@@ -1,0 +1,1 @@
+FROM ghcr.io/nhaef/devcontainer-bun:latest
