@@ -1,1 +1,1 @@
-FROM ghcr.io/nhaef/devcontainer-bun:latest
+FROM mcr.microsoft.com/devcontainers/typescript-node:22-bullseye

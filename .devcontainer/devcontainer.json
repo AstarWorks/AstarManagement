@@ -10,6 +10,8 @@
       "helm": "latest",
       "minikube": "none"
     },
+    
+    "ghcr.io/prulloac/devcontainer-features/bun:1": {},
 
     "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {},
     "ghcr.io/devcontainers/features/git:1": {},
