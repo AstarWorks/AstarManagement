@@ -9,8 +9,8 @@ plugins {
     kotlin("plugin.jpa") version "1.9.25"
 }
 
-var group = "dev.ryuzu"
-var version = "0.0.1"
+group = "dev.ryuzu"
+version = "0.0.1"
 
 java {
     toolchain {
@@ -38,6 +38,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
+    implementation("org.flywaydb:flyway-core")
+    runtimeOnly("org.flywaydb:flyway-database-postgresql")
     implementation("org.springframework.ai:spring-ai-pdf-document-reader")
     implementation("org.springframework.ai:spring-ai-starter-model-vertex-ai-embedding")
     implementation("org.springframework.ai:spring-ai-starter-model-vertex-ai-gemini")
