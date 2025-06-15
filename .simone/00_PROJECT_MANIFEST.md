@@ -4,7 +4,7 @@ current_milestone_id: M01
 highest_sprint_in_milestone: S04
 current_sprint_id: S01
 status: active
-last_updated: 2025-06-15 10:19:00
+last_updated: 2025-06-15 12:44:00
 ---
 
 # Project Manifest: Aster Management
@@ -64,6 +64,8 @@ This project follows a milestone-based development approach.
 - [✅] [T001: Frontend Library Integration Setup](./04_GENERAL_TASKS/TX001_Frontend_Library_Integration_Setup.md) - Status: Completed
   - Integrate Storybook, Zustand, Lucide-React, and Zod for enhanced frontend development
   - Update architecture and frontend documentation with new library specifications
+- [✅] [T002: Use TDD](./04_GENERAL_TASKS/TX002_Use_TDD.md) - Status: Completed
+  - Add Test-Driven Development principles to CLAUDE.md and ARCHITECTURE.md files
 
 ## 6. Quick Links
 
