@@ -4,10 +4,16 @@
       "Bash(bun run lint)",
       "Bash(bun run test:*)",
       "Bash(git:*)",
-      "Read(~/.zshrc)"
+      "Bash(ls:*)",
+      "Bash(cd:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Read(~/.zshrc)",
+      "Read(./.simone/*)",
+      "Read(./docs/*)"
     ],
     "deny": [
-      "Bash(curl:*)"
+      
     ]
   },
   "env": {

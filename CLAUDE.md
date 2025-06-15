@@ -2,14 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working across all projects.
 
-## 📋 Overview
+## 📋 Project Overview
 
-This is my global Claude Code configuration directory (`~/.claude`) that sets up:
-- Professional development standards and workflows
-- Language-specific best practices (Rust, Go, TypeScript, Python, Bash)
-- Permission rules for tool usage
-- Environment variables for development
-- Session history and todo management
+- YOU MUST READ: @docs/80-archived/english/structure.md
+- You can 
 
 ## 🧠 Proactive AI Assistance
 
@@ -102,63 +98,6 @@ uv run --frozen ruff format . && uv run --frozen ruff check . && uv run --frozen
 - **Interfaces**: Accept interfaces, return concrete types
 - **Defer**: Use for cleanup, but be aware of loop gotchas
 - **Error Wrapping**: Use `fmt.Errorf` with `%w` verb
-
-## 📘 TypeScript Development
-
-### Core Rules
-- **Package Manager**: Use `bun > pnpm` > `npm` > `yarn`
-- **Type Safety**: `strict: true` in tsconfig.json
-- **Null Handling**: Use optional chaining `?.` and nullish coalescing `??`
-- **Imports**: Use ES modules, avoid require()
-
-### Code Quality Tools
-```bash
-# Format code
-bunx prettier --write .
-
-# Lint code
-bunx eslint . --fix
-
-# Type check
-bunx tsc --noEmit
-
-# Run tests (if using Jest)
-bunx jest --coverage
-
-# Bundle analysis
-bunx webpack-bundle-analyzer
-```
-
-
-### Documentation Template (TypeScript)
-```typescript
-/**
- * Brief description of what the function does
- * 
- * @description Detailed explanation of the business logic and purpose
- * @param paramName - What this parameter represents
- * @returns What the function returns and why
- * @throws {ErrorType} When this error occurs
- * @example
-* @see {@link RelatedFunction} For related functionality
-* @since 1.0.0
-  */
-  export function functionName(paramName: ParamType): ReturnType {
-  // Implementation
-  }
-```
-
-### Best Practices
-- **Type Inference**: Let TypeScript infer when obvious
-- **Generics**: Use for reusable components
-- **Union Types**: Prefer over enums for string literals
-- **Utility Types**: Use built-in types (Partial, Pick, Omit)
-
-### Best Practices
-- **Virtual Environments**: Always use venv or uv
-- **Dependencies**: Pin versions in requirements
-- **Testing**: Use pytest with fixtures
-- **Type Narrowing**: Explicit None checks for Optional
 
 ## 🐚 Bash Development
 
