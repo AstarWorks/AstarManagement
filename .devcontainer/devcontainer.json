@@ -1,6 +1,6 @@
 // See https://containers.dev/implementors/json_reference/ for configuration reference
 {
-  "name": "Aster Management Frontend Dev Container",
+  "name": "Aster Management Dev Container",
   "dockerComposeFile": "docker-compose.yaml",
   "service": "devcontainer",
   "features": {
