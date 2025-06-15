@@ -24,7 +24,7 @@
     "ghcr.io/devcontainers-extra/features/tmux-apt-get:1": {},
     "ghcr.io/devcontainers/features/git:1": {},
     "ghcr.io/devcontainers/features/github-cli:1": {},
-    "\tghcr.io/jungaretti/features/vim:1": {},
+    "ghcr.io/jungaretti/features/vim:1": {},
     "ghcr.io/devcontainers-extra/features/neovim-apt-get:1": {},
     
   },
