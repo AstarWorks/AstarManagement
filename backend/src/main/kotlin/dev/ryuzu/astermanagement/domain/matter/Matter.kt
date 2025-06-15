@@ -126,8 +126,9 @@ class Matter : BaseEntity() {
      * Add a tag to the matter
      */
     fun addTag(tag: String) {
-        if (!hasTag(tag)) {
-            tags = tags.plus(tag.trim())
+        val trimmedTag = tag.trim()
+        if (!hasTag(trimmedTag)) {
+            tags = tags.plus(trimmedTag)
         }
     }
 
@@ -142,7 +143,7 @@ class Matter : BaseEntity() {
      * Check if the matter has a specific tag
      */
     fun hasTag(tag: String): Boolean {
-        return tags.contains(tag.trim())
+        return tags.contains(tag)
     }
 
     /**
