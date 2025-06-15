@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "webforai": {
+      "command": "npx",
+      "args": ["mcp-remote","http://localhost:8787/sse"]
+    }
+  }
+}

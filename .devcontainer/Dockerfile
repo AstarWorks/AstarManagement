@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/devcontainers/typescript-node:22-bullseye
+FROM mcr.microsoft.com/devcontainers/typescript-node:22-bookworm
 
-RUN git clone https://github.com/nishimoto265/Claude-Code-Communication.git && \
-    cd Claude-Code-Communication 
+ENV EDITOR=vim
+ENV VISUAL=vim

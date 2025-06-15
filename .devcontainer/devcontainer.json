@@ -13,14 +13,24 @@
     
     "ghcr.io/prulloac/devcontainer-features/bun:1": {},
 
+    "ghcr.io/devcontainers/features/java:1": {
+      "version": "latest",
+      "installGradle": "true",
+      "installMaven": "false"
+    },
+    "ghcr.io/devcontainers-extra/features/kotlin-sdkman:2": {},
+
     "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {},
     "ghcr.io/devcontainers-extra/features/tmux-apt-get:1": {},
     "ghcr.io/devcontainers/features/git:1": {},
     "ghcr.io/devcontainers/features/github-cli:1": {},
+    "\tghcr.io/jungaretti/features/vim:1": {},
+    "ghcr.io/devcontainers-extra/features/neovim-apt-get:1": {},
+    
   },
   "customizations": {
     "jetbrains": {
-      "backend": "WebStorm"
+      "backend": "IntelliJ"
     }
   }
 }
