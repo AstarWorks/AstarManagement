@@ -1,0 +1,72 @@
+---
+project_name: Aster Management
+current_milestone_id: M01
+highest_sprint_in_milestone: S04
+current_sprint_id: S01
+status: active
+last_updated: 2025-06-15 10:19:00
+---
+
+# Project Manifest: Aster Management
+
+This manifest serves as the central reference point for the project. It tracks the current focus and links to key documentation.
+
+## 1. Project Vision & Overview
+
+Aster Management is a comprehensive legal case management system designed to digitize and streamline law firm operations. It addresses the challenges of scattered case files, paper-based workflows, and limited visibility into case progress by providing a centralized, AI-powered platform for matter management, document processing, and client communication.
+
+This project follows a milestone-based development approach.
+
+## 2. Current Focus
+
+- **Milestone:** M01 - Matter Management MVP
+- **Sprint:** S01 - Backend API Development
+
+## 3. Sprints in Current Milestone
+
+### S01 Backend API Development (🚧 IN PROGRESS)
+
+🚧 Matter entity and database schema
+📋 REST API endpoints for CRUD operations
+📋 Status transition validation and audit logging
+📋 Spring Security integration for authorization
+
+### S02 Frontend Kanban Board (📋 PLANNED)
+
+📋 Kanban board component with drag-and-drop
+📋 Matter card components with real-time updates
+📋 Responsive design and mobile support
+📋 Internationalization (JP/EN) setup
+
+### S03 Integration and Polish (📋 PLANNED)
+
+📋 Frontend-backend API integration
+📋 Advanced search and filtering
+📋 Audit history timeline view
+📋 Performance optimization and error handling
+
+### S04 Testing and Deployment (📋 PLANNED)
+
+📋 Comprehensive E2E testing
+📋 Performance and security testing
+📋 Documentation completion
+📋 Staging environment deployment
+
+## 4. Key Documentation
+
+- [Architecture Documentation](./01_PROJECT_DOCS/ARCHITECTURE.md)
+- [Current Milestone Requirements](./02_REQUIREMENTS/M01_Matter_Management_MVP/)
+- [General Tasks](./04_GENERAL_TASKS/)
+
+## 5. General Tasks
+
+### Cross-Sprint Foundation Tasks
+- [✅] [T001: Frontend Library Integration Setup](./04_GENERAL_TASKS/TX001_Frontend_Library_Integration_Setup.md) - Status: Completed
+  - Integrate Storybook, Zustand, Lucide-React, and Zod for enhanced frontend development
+  - Update architecture and frontend documentation with new library specifications
+
+## 6. Quick Links
+
+- **Current Sprint:** [S01 Sprint Folder](./03_SPRINTS/S01_M01_Backend_API_Development/)
+- **Active Tasks:** Check sprint folder for T##_S01_*.md files
+- **Project Reviews:** [Latest Review](./10_STATE_OF_PROJECT/)
