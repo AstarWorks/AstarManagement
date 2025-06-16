@@ -29,6 +29,11 @@ class InvalidStatusTransitionException(
 class InsufficientPermissionException(message: String) : BusinessException(message)
 
 /**
+ * Exception thrown when authentication is required or credentials are invalid
+ */
+class UnauthorizedException(message: String = "Authentication required") : BusinessException(message)
+
+/**
  * Exception thrown when validation fails
  */
 class ValidationException(

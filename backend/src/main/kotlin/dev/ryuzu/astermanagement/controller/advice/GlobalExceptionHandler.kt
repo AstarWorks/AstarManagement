@@ -119,6 +119,26 @@ class GlobalExceptionHandler(
     }
     
     /**
+     * Handles UnauthorizedException from our business logic
+     */
+    @ExceptionHandler(UnauthorizedException::class)
+    fun handleUnauthorizedException(
+        ex: UnauthorizedException,
+        request: HttpServletRequest
+    ): ResponseEntity<ErrorResponse> {
+        val locale = LocaleContextHolder.getLocale()
+        val response = ErrorResponse(
+            timestamp = OffsetDateTime.now(),
+            status = HttpStatus.UNAUTHORIZED.value(),
+            error = HttpStatus.UNAUTHORIZED.reasonPhrase,
+            message = ex.message ?: getMessage("error.unauthorized", locale),
+            path = request.requestURI
+        )
+        
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response)
+    }
+
+    /**
      * Handles authentication errors.
      */
     @ExceptionHandler(AuthenticationException::class)

@@ -4,7 +4,7 @@ current_milestone_id: M01
 highest_sprint_in_milestone: S04
 current_sprint_id: S01
 status: active
-last_updated: 2025-06-16 08:36:00
+last_updated: 2025-06-16 09:20:00
 ---
 
 # Project Manifest: Aster Management
@@ -31,7 +31,7 @@ This project follows a milestone-based development approach.
 ✅ REST API endpoints for CRUD operations (T03_S01 COMPLETED)
 ✅ Service Layer Business Logic (T04_S01 COMPLETED)
 ✅ Status transition validation and audit logging (T05_S01 COMPLETED)
-📋 Spring Security integration for authorization
+✅ Spring Security integration for authorization (T06_S01 COMPLETED)
 
 ### S02 Frontend Kanban Board (📋 PLANNED)
 
