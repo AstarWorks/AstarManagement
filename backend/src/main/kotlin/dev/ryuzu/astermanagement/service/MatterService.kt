@@ -1,13 +1,14 @@
 package dev.ryuzu.astermanagement.service
 
-import dev.ryuzu.astermanagement.domain.Matter
-import dev.ryuzu.astermanagement.domain.MatterStatus
+import dev.ryuzu.astermanagement.domain.matter.Matter
+import dev.ryuzu.astermanagement.domain.matter.MatterStatus
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import java.util.*
 
 /**
  * Service interface for matter management operations.
- * Defines business logic for handling matters.
+ * Defines business logic for handling matters using the backend domain model.
  */
 interface MatterService {
     
@@ -25,7 +26,7 @@ interface MatterService {
      * @param id The matter ID
      * @return The matter if found, null otherwise
      */
-    fun getMatterById(id: Long): Matter?
+    fun getMatterById(id: UUID): Matter?
     
     /**
      * Retrieves all matters with pagination and optional filtering.
@@ -48,7 +49,7 @@ interface MatterService {
      * @param matter The updated matter data
      * @return The updated matter if found, null otherwise
      */
-    fun updateMatter(id: Long, matter: Matter): Matter?
+    fun updateMatter(id: UUID, matter: Matter): Matter?
     
     /**
      * Updates the status of a matter.
@@ -61,19 +62,19 @@ interface MatterService {
      * @throws IllegalStateException if the status transition is not allowed
      */
     fun updateMatterStatus(
-        id: Long,
+        id: UUID,
         newStatus: MatterStatus,
         comment: String? = null,
-        userId: Long
+        userId: UUID
     ): Matter?
     
     /**
-     * Soft deletes a matter by setting its status to DELETED.
+     * Soft deletes a matter by setting its status to CLOSED.
      * 
      * @param id The matter ID to delete
      * @return true if deleted, false if not found
      */
-    fun deleteMatter(id: Long): Boolean
+    fun deleteMatter(id: UUID): Boolean
     
     /**
      * Checks if a case number already exists.
@@ -82,4 +83,22 @@ interface MatterService {
      * @return true if exists, false otherwise
      */
     fun existsByCaseNumber(caseNumber: String): Boolean
+    
+    /**
+     * Assigns a lawyer to a matter
+     * 
+     * @param matterId The matter ID
+     * @param lawyerId The lawyer ID to assign
+     * @return The updated matter
+     */
+    fun assignLawyer(matterId: UUID, lawyerId: UUID): Matter?
+    
+    /**
+     * Assigns a clerk to a matter
+     * 
+     * @param matterId The matter ID  
+     * @param clerkId The clerk ID to assign
+     * @return The updated matter
+     */
+    fun assignClerk(matterId: UUID, clerkId: UUID): Matter?
 }

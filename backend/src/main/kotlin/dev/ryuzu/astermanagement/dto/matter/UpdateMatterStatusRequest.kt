@@ -1,6 +1,6 @@
 package dev.ryuzu.astermanagement.dto.matter
 
-import dev.ryuzu.astermanagement.domain.MatterStatus
+import dev.ryuzu.astermanagement.domain.matter.MatterStatus
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
 
@@ -12,6 +12,6 @@ data class UpdateMatterStatusRequest(
     @field:NotNull(message = "Status is required")
     val status: MatterStatus,
     
-    @field:Size(max = 500, message = "Comment must not exceed 500 characters")
+    @field:Size(max = 1000, message = "Comment must not exceed 1000 characters")
     val comment: String? = null
 )

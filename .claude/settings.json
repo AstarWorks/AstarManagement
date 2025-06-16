@@ -8,6 +8,8 @@
       "Bash(cd:*)",
       "Bash(find:*)",
       "Bash(grep:*)",
+      "Bash(mkdir:*)",
+      "Bash(./gradlew:*)",
       "Read(~/.zshrc)",
       "Read(./.simone/*)",
       "Read(./docs/*)"

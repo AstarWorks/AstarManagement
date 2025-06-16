@@ -1,6 +1,7 @@
 package dev.ryuzu.astermanagement.controller.advice
 
 import dev.ryuzu.astermanagement.dto.common.ErrorResponse
+import dev.ryuzu.astermanagement.service.exception.*
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.ConstraintViolationException
 import org.slf4j.LoggerFactory
@@ -202,12 +203,12 @@ class GlobalExceptionHandler(
             timestamp = OffsetDateTime.now(),
             status = HttpStatus.BAD_REQUEST.value(),
             error = HttpStatus.BAD_REQUEST.reasonPhrase,
-            message = getMessage("error.type.mismatch", locale, arrayOf(ex.name, ex.requiredType?.simpleName)),
+            message = getMessage("error.type.mismatch", locale, arrayOf(ex.name ?: "unknown", ex.requiredType?.simpleName ?: "unknown")),
             path = request.requestURI,
             details = listOf(
                 ErrorResponse.ErrorDetail(
-                    field = ex.name,
-                    message = "Invalid type: expected ${ex.requiredType?.simpleName}",
+                    field = ex.name ?: "unknown",
+                    message = "Invalid type: expected ${ex.requiredType?.simpleName ?: "unknown"}",
                     code = "type.mismatch"
                 )
             )
@@ -274,6 +275,133 @@ class GlobalExceptionHandler(
         )
         
         return ResponseEntity.badRequest().body(response)
+    }
+    
+    /**
+     * Handles business exceptions - matters not found.
+     */
+    @ExceptionHandler(MatterNotFoundException::class)
+    fun handleMatterNotFound(
+        ex: MatterNotFoundException,
+        request: HttpServletRequest
+    ): ResponseEntity<ErrorResponse> {
+        val locale = LocaleContextHolder.getLocale()
+        val response = ErrorResponse(
+            timestamp = OffsetDateTime.now(),
+            status = HttpStatus.NOT_FOUND.value(),
+            error = HttpStatus.NOT_FOUND.reasonPhrase,
+            message = ex.message ?: getMessage("error.matter.not.found", locale),
+            path = request.requestURI
+        )
+        
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response)
+    }
+    
+    /**
+     * Handles invalid status transition exceptions.
+     */
+    @ExceptionHandler(InvalidStatusTransitionException::class)
+    fun handleInvalidStatusTransition(
+        ex: InvalidStatusTransitionException,
+        request: HttpServletRequest
+    ): ResponseEntity<ErrorResponse> {
+        val locale = LocaleContextHolder.getLocale()
+        val response = ErrorResponse(
+            timestamp = OffsetDateTime.now(),
+            status = HttpStatus.BAD_REQUEST.value(),
+            error = HttpStatus.BAD_REQUEST.reasonPhrase,
+            message = ex.message ?: getMessage("error.invalid.status.transition", locale),
+            path = request.requestURI
+        )
+        
+        return ResponseEntity.badRequest().body(response)
+    }
+    
+    /**
+     * Handles insufficient permission exceptions.
+     */
+    @ExceptionHandler(InsufficientPermissionException::class)
+    fun handleInsufficientPermission(
+        ex: InsufficientPermissionException,
+        request: HttpServletRequest
+    ): ResponseEntity<ErrorResponse> {
+        val locale = LocaleContextHolder.getLocale()
+        val response = ErrorResponse(
+            timestamp = OffsetDateTime.now(),
+            status = HttpStatus.FORBIDDEN.value(),
+            error = HttpStatus.FORBIDDEN.reasonPhrase,
+            message = ex.message ?: getMessage("error.insufficient.permission", locale),
+            path = request.requestURI
+        )
+        
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response)
+    }
+    
+    /**
+     * Handles business validation exceptions.
+     */
+    @ExceptionHandler(ValidationException::class)
+    fun handleBusinessValidation(
+        ex: ValidationException,
+        request: HttpServletRequest
+    ): ResponseEntity<ErrorResponse> {
+        val locale = LocaleContextHolder.getLocale()
+        val response = ErrorResponse(
+            timestamp = OffsetDateTime.now(),
+            status = HttpStatus.BAD_REQUEST.value(),
+            error = HttpStatus.BAD_REQUEST.reasonPhrase,
+            message = getMessage("validation.failed", locale),
+            path = request.requestURI,
+            details = listOf(
+                ErrorResponse.ErrorDetail(
+                    field = ex.field,
+                    message = ex.message ?: "Validation failed",
+                    code = "business.validation"
+                )
+            )
+        )
+        
+        return ResponseEntity.badRequest().body(response)
+    }
+    
+    /**
+     * Handles business rule violation exceptions.
+     */
+    @ExceptionHandler(BusinessRuleViolationException::class)
+    fun handleBusinessRuleViolation(
+        ex: BusinessRuleViolationException,
+        request: HttpServletRequest
+    ): ResponseEntity<ErrorResponse> {
+        val locale = LocaleContextHolder.getLocale()
+        val response = ErrorResponse(
+            timestamp = OffsetDateTime.now(),
+            status = HttpStatus.BAD_REQUEST.value(),
+            error = HttpStatus.BAD_REQUEST.reasonPhrase,
+            message = ex.message ?: getMessage("error.business.rule.violation", locale),
+            path = request.requestURI
+        )
+        
+        return ResponseEntity.badRequest().body(response)
+    }
+    
+    /**
+     * Handles resource already exists exceptions.
+     */
+    @ExceptionHandler(ResourceAlreadyExistsException::class)
+    fun handleResourceAlreadyExists(
+        ex: ResourceAlreadyExistsException,
+        request: HttpServletRequest
+    ): ResponseEntity<ErrorResponse> {
+        val locale = LocaleContextHolder.getLocale()
+        val response = ErrorResponse(
+            timestamp = OffsetDateTime.now(),
+            status = HttpStatus.CONFLICT.value(),
+            error = HttpStatus.CONFLICT.reasonPhrase,
+            message = ex.message ?: getMessage("error.resource.already.exists", locale),
+            path = request.requestURI
+        )
+        
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response)
     }
     
     /**

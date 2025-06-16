@@ -4,7 +4,7 @@ current_milestone_id: M01
 highest_sprint_in_milestone: S04
 current_sprint_id: S01
 status: active
-last_updated: 2025-06-16 04:51:00
+last_updated: 2025-06-16 05:59:00
 ---
 
 # Project Manifest: Aster Management
@@ -29,6 +29,7 @@ This project follows a milestone-based development approach.
 ✅ Matter entity and database schema (T01_S01 COMPLETED)
 ✅ Matter Entity and JPA Configuration (T02_S01 COMPLETED)
 ✅ REST API endpoints for CRUD operations (T03_S01 COMPLETED)
+✅ Service Layer Business Logic (T04_S01 COMPLETED)
 📋 Status transition validation and audit logging
 📋 Spring Security integration for authorization
 

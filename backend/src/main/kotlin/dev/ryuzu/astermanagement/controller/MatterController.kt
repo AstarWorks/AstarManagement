@@ -1,8 +1,10 @@
 package dev.ryuzu.astermanagement.controller
 
 import dev.ryuzu.astermanagement.controller.base.BaseController
-import dev.ryuzu.astermanagement.domain.Matter
-import dev.ryuzu.astermanagement.domain.MatterStatus
+import dev.ryuzu.astermanagement.domain.matter.Matter
+import dev.ryuzu.astermanagement.domain.matter.MatterStatus
+import dev.ryuzu.astermanagement.domain.matter.MatterPriority
+import dev.ryuzu.astermanagement.domain.user.UserRepository
 import dev.ryuzu.astermanagement.dto.common.PagedResponse
 import dev.ryuzu.astermanagement.dto.matter.*
 import dev.ryuzu.astermanagement.service.MatterService
@@ -21,9 +23,11 @@ import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
+import java.util.*
 
 /**
  * REST controller for matter management operations.
@@ -35,7 +39,8 @@ import org.springframework.web.bind.annotation.*
 @Tag(name = "Matter Management", description = "Endpoints for managing legal matters")
 @SecurityRequirement(name = "bearerAuth")
 class MatterController(
-    private val matterService: MatterService
+    private val matterService: MatterService,
+    private val userRepository: UserRepository
 ) : BaseController() {
     
     /**
@@ -61,29 +66,26 @@ class MatterController(
         @Valid @RequestBody request: CreateMatterRequest,
         @AuthenticationPrincipal user: UserDetails
     ): ResponseEntity<MatterDto> {
-        // Check if case number already exists
-        if (matterService.existsByCaseNumber(request.caseNumber)) {
-            return conflict(null)
+        val matter = Matter().apply {
+            caseNumber = request.caseNumber
+            title = request.title
+            description = request.description
+            status = request.status
+            priority = request.priority
+            clientName = request.clientName
+            clientContact = request.clientContact
+            opposingParty = request.opposingParty
+            courtName = request.courtName
+            filingDate = request.filingDate
+            estimatedCompletionDate = request.estimatedCompletionDate
+            assignedLawyer = userRepository.findById(request.assignedLawyerId).orElse(null)
+            assignedClerk = request.assignedClerkId?.let { userRepository.findById(it).orElse(null) }
+            notes = request.notes
+            tags = request.tags.toTypedArray()
         }
         
-        val matter = Matter(
-            caseNumber = request.caseNumber,
-            title = request.title,
-            description = request.description,
-            status = request.status,
-            clientName = request.clientName,
-            clientContact = request.clientContact,
-            opponentName = request.opponentName,
-            opponentContact = request.opponentContact,
-            assignedLawyerId = request.assignedLawyerId,
-            courtName = request.courtName,
-            courtCaseNumber = request.courtCaseNumber,
-            filingDeadline = request.filingDeadline,
-            nextHearingDate = request.nextHearingDate
-        )
-        
         val createdMatter = matterService.createMatter(matter)
-        return created(createdMatter.toDto(), createdMatter.id)
+        return created(createdMatter.toDto(), createdMatter.id.toString())
     }
     
     /**
@@ -102,7 +104,7 @@ class MatterController(
         ApiResponse(responseCode = "404", description = "Matter not found")
     )
     fun getMatterById(
-        @PathVariable @Parameter(description = "Matter ID") id: Long
+        @PathVariable @Parameter(description = "Matter ID") id: UUID
     ): ResponseEntity<MatterDto> {
         val matter = matterService.getMatterById(id)
         return matter?.let { ok(it.toDto()) } ?: notFound()
@@ -127,7 +129,9 @@ class MatterController(
         @RequestParam(defaultValue = "20") @Parameter(description = "Page size (1-100)") size: Int,
         @RequestParam(defaultValue = "createdAt,desc") @Parameter(description = "Sort criteria") sort: String,
         @RequestParam(required = false) @Parameter(description = "Filter by status") status: MatterStatus?,
-        @RequestParam(required = false) @Parameter(description = "Filter by client name (partial match)") clientName: String?
+        @RequestParam(required = false) @Parameter(description = "Filter by priority") priority: MatterPriority?,
+        @RequestParam(required = false) @Parameter(description = "Filter by client name (partial match)") clientName: String?,
+        @RequestParam(required = false) @Parameter(description = "Filter by assigned lawyer") assignedLawyer: UUID?
     ): ResponseEntity<PagedResponse<MatterDto>> {
         val (validatedPage, validatedSize) = validatePagination(page, size)
         val sortParams = parseSortParams(sort)
@@ -156,27 +160,29 @@ class MatterController(
         ApiResponse(responseCode = "404", description = "Matter not found")
     )
     fun updateMatter(
-        @PathVariable @Parameter(description = "Matter ID") id: Long,
+        @PathVariable @Parameter(description = "Matter ID") id: UUID,
         @Valid @RequestBody request: UpdateMatterRequest,
         @AuthenticationPrincipal user: UserDetails
     ): ResponseEntity<MatterDto> {
         val existingMatter = matterService.getMatterById(id) ?: return notFound()
         
-        val updatedMatter = existingMatter.copy(
-            title = request.title,
-            description = request.description,
-            clientName = request.clientName,
-            clientContact = request.clientContact,
-            opponentName = request.opponentName,
-            opponentContact = request.opponentContact,
-            assignedLawyerId = request.assignedLawyerId,
-            courtName = request.courtName,
-            courtCaseNumber = request.courtCaseNumber,
-            filingDeadline = request.filingDeadline,
-            nextHearingDate = request.nextHearingDate
-        )
+        existingMatter.apply {
+            title = request.title
+            description = request.description
+            clientName = request.clientName
+            clientContact = request.clientContact
+            opposingParty = request.opposingParty
+            courtName = request.courtName
+            filingDate = request.filingDate
+            estimatedCompletionDate = request.estimatedCompletionDate
+            request.priority?.let { priority = it }
+            request.assignedLawyerId?.let { assignedLawyer = userRepository.findById(it).orElse(null) }
+            request.assignedClerkId?.let { assignedClerk = userRepository.findById(it).orElse(null) }
+            request.notes?.let { notes = it }
+            request.tags?.let { tags = it.toTypedArray() }
+        }
         
-        val result = matterService.updateMatter(id, updatedMatter)
+        val result = matterService.updateMatter(id, existingMatter)
         return result?.let { ok(it.toDto()) } ?: notFound()
     }
     
@@ -197,14 +203,12 @@ class MatterController(
         ApiResponse(responseCode = "404", description = "Matter not found")
     )
     fun updateMatterStatus(
-        @PathVariable @Parameter(description = "Matter ID") id: Long,
+        @PathVariable @Parameter(description = "Matter ID") id: UUID,
         @Valid @RequestBody request: UpdateMatterStatusRequest,
         @AuthenticationPrincipal user: UserDetails
     ): ResponseEntity<MatterDto> {
-        // TODO: Get actual user ID from security context
-        val userId = 1L // Placeholder
-        
         return try {
+            val userId = getCurrentUserId()
             val result = matterService.updateMatterStatus(id, request.status, request.comment, userId)
             result?.let { ok(it.toDto()) } ?: notFound()
         } catch (e: IllegalStateException) {
@@ -220,7 +224,7 @@ class MatterController(
     @PreAuthorize("hasRole('LAWYER')")
     @Operation(
         summary = "Delete matter",
-        description = "Soft deletes a matter by setting its status to DELETED. Requires LAWYER role."
+        description = "Soft deletes a matter by setting its status to CLOSED. Requires LAWYER role."
     )
     @ApiResponses(
         ApiResponse(responseCode = "204", description = "Matter deleted successfully"),
@@ -229,12 +233,29 @@ class MatterController(
         ApiResponse(responseCode = "404", description = "Matter not found")
     )
     fun deleteMatter(
-        @PathVariable @Parameter(description = "Matter ID") id: Long
+        @PathVariable @Parameter(description = "Matter ID") id: UUID
     ): ResponseEntity<Void> {
         return if (matterService.deleteMatter(id)) {
             noContent()
         } else {
             ResponseEntity.notFound().build()
+        }
+    }
+    
+    /**
+     * Get the current user's ID from security context
+     */
+    private fun getCurrentUserId(): UUID {
+        val authentication = SecurityContextHolder.getContext().authentication
+        return when (val principal = authentication?.principal) {
+            is UserDetails -> {
+                try {
+                    UUID.fromString(principal.username)
+                } catch (e: IllegalArgumentException) {
+                    UUID.nameUUIDFromBytes(principal.username.toByteArray())
+                }
+            }
+            else -> throw SecurityException("No authenticated user found or invalid principal type")
         }
     }
     
@@ -262,25 +283,33 @@ class MatterController(
      */
     private fun Matter.toDto(): MatterDto {
         return MatterDto(
-            id = this.id,
+            id = this.id!!,
             caseNumber = this.caseNumber,
             title = this.title,
             description = this.description,
             status = this.status,
+            priority = this.priority,
             clientName = this.clientName,
             clientContact = this.clientContact,
-            opponentName = this.opponentName,
-            opponentContact = this.opponentContact,
-            assignedLawyerId = this.assignedLawyerId,
-            assignedLawyerName = null, // TODO: Fetch from user service
+            opposingParty = this.opposingParty,
             courtName = this.courtName,
-            courtCaseNumber = this.courtCaseNumber,
-            filingDeadline = this.filingDeadline,
-            nextHearingDate = this.nextHearingDate,
-            createdAt = this.createdAt,
-            updatedAt = this.updatedAt,
-            createdByUserId = this.createdByUserId,
-            updatedByUserId = this.updatedByUserId
+            filingDate = this.filingDate,
+            estimatedCompletionDate = this.estimatedCompletionDate,
+            actualCompletionDate = this.actualCompletionDate,
+            assignedLawyerId = this.assignedLawyer?.id,
+            assignedLawyerName = this.assignedLawyer?.let { "${it.firstName} ${it.lastName}" },
+            assignedClerkId = this.assignedClerk?.id,
+            assignedClerkName = this.assignedClerk?.let { "${it.firstName} ${it.lastName}" },
+            notes = this.notes,
+            tags = this.tags.toList(),
+            isActive = this.isActive,
+            isOverdue = this.isOverdue,
+            isCompleted = this.isCompleted,
+            ageInDays = this.ageInDays,
+            createdAt = this.createdAt ?: throw IllegalStateException("Created at cannot be null"),
+            updatedAt = this.updatedAt ?: throw IllegalStateException("Updated at cannot be null"),
+            createdBy = this.createdBy?.toString() ?: "System",
+            updatedBy = this.updatedBy?.toString() ?: "System"
         )
     }
 }
