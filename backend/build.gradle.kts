@@ -7,6 +7,7 @@ plugins {
     id("org.graalvm.buildtools.native") version "0.10.6"
     id("org.asciidoctor.jvm.convert") version "3.3.2"
     kotlin("plugin.jpa") version "1.9.25"
+    jacoco
 }
 
 group = "dev.ryuzu"
@@ -43,7 +44,8 @@ dependencies {
     runtimeOnly("org.flywaydb:flyway-database-postgresql")
     
     // OpenAPI/Swagger
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-api:2.6.0")
     
     // Spring AI
     implementation("org.springframework.ai:spring-ai-pdf-document-reader")
@@ -78,6 +80,14 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api")
     testImplementation("org.junit.jupiter:junit-jupiter-engine")
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.1.0")
+    
+    // Additional Test Utilities
+    testImplementation("io.mockk:mockk:1.13.12") 
+    testImplementation("com.ninja-squad:springmockk:4.0.2")
+    testImplementation("org.springframework.boot:spring-boot-starter-webflux") // For WebTestClient
+    testImplementation("io.rest-assured:rest-assured:5.5.0")
+    testImplementation("io.kotest:kotest-assertions-core:5.8.0")
+    
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
@@ -117,4 +127,46 @@ tasks.test {
 tasks.asciidoctor {
     inputs.dir(project.extra["snippetsDir"]!!)
     dependsOn(tasks.test)
+}
+
+// JaCoCo Configuration
+jacoco {
+    toolVersion = "0.8.12"
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+    reports {
+        xml.required = true
+        html.required = true
+        csv.required = false
+    }
+    finalizedBy(tasks.jacocoTestCoverageVerification)
+}
+
+tasks.jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                minimum = "0.90".toBigDecimal() // 90% coverage required
+            }
+        }
+        rule {
+            element = "CLASS"
+            excludes = listOf(
+                "*.config.*",
+                "*.dto.*",
+                "*Application*",
+                "*.TestcontainersConfiguration*"
+            )
+            limit {
+                counter = "LINE"
+                minimum = "0.85".toBigDecimal()
+            }
+        }
+    }
+}
+
+tasks.check {
+    dependsOn(tasks.jacocoTestCoverageVerification)
 }

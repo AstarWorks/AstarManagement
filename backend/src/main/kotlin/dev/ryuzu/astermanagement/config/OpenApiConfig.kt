@@ -45,15 +45,35 @@ class OpenApiConfig {
         return Info()
             .title("Aster Management API")
             .version(appVersion)
-            .description(appDescription)
+            .description("""
+                $appDescription
+                
+                ## Features
+                - Matter management with comprehensive CRUD operations
+                - Status transition management with business rule validation
+                - Role-based access control (LAWYER, CLERK, CLIENT)
+                - Comprehensive audit logging for all operations
+                - Real-time matter progress tracking
+                
+                ## Authentication
+                All endpoints require JWT Bearer token authentication.
+                
+                ## Error Handling
+                API returns standardized error responses using RFC 7807 Problem Details format.
+                
+                ## Rate Limiting
+                API endpoints are rate-limited to ensure fair usage and system stability.
+            """.trimIndent())
             .contact(
                 Contact()
-                    .name("Aster Management Team")
+                    .name("Aster Management Development Team")
                     .email("support@astermanagement.dev")
+                    .url("https://docs.astermanagement.dev")
             )
             .license(
                 License()
-                    .name("Proprietary")
+                    .name("Proprietary License")
+                    .url("https://astermanagement.dev/license")
             )
     }
     
