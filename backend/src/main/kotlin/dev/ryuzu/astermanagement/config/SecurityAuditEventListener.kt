@@ -1,5 +1,6 @@
 package dev.ryuzu.astermanagement.config
 
+import dev.ryuzu.astermanagement.service.AuditEventPublisher
 import dev.ryuzu.astermanagement.service.AuditService
 import org.slf4j.LoggerFactory
 import org.springframework.context.event.EventListener
@@ -22,7 +23,8 @@ import java.util.*
  */
 @Component
 class SecurityAuditEventListener(
-    private val auditService: AuditService
+    private val auditService: AuditService,
+    private val auditEventPublisher: AuditEventPublisher
 ) {
     
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -43,7 +45,7 @@ class SecurityAuditEventListener(
             username, authorities, requestContext.ipAddress, requestContext.userAgent, Instant.now()
         )
         
-        // Record in audit system
+        // Record in legacy audit system
         try {
             auditService.recordEvent(
                 entityType = "Authentication",
@@ -53,6 +55,18 @@ class SecurityAuditEventListener(
             )
         } catch (e: Exception) {
             logger.warn("Failed to record authentication success audit event for user {}: {}", username, e.message)
+        }
+        
+        // Publish comprehensive audit event
+        try {
+            auditEventPublisher.publishUserLogin(
+                userId = getUserIdFromAuthentication(authentication),
+                username = username,
+                loginMethod = "JWT",
+                success = true
+            )
+        } catch (e: Exception) {
+            logger.warn("Failed to publish user login audit event for user {}: {}", username, e.message)
         }
     }
 
@@ -99,6 +113,7 @@ class SecurityAuditEventListener(
             username, failureReason, requestContext.ipAddress, requestContext.userAgent, Instant.now()
         )
         
+        // Record in legacy audit system
         try {
             // Use a generic UUID for failed authentication attempts
             val genericId = UUID.nameUUIDFromBytes("AUTH_FAILURE_$username".toByteArray())
@@ -110,6 +125,17 @@ class SecurityAuditEventListener(
             )
         } catch (e: Exception) {
             logger.warn("Failed to record authentication failure audit event for user {}: {}", username, e.message)
+        }
+        
+        // Publish comprehensive audit event
+        try {
+            auditEventPublisher.publishAuthenticationFailed(
+                attemptedUsername = username,
+                failureReason = failureReason,
+                ipAddress = requestContext.ipAddress
+            )
+        } catch (e: Exception) {
+            logger.warn("Failed to publish authentication failure audit event for user {}: {}", username, e.message)
         }
     }
 
@@ -129,6 +155,7 @@ class SecurityAuditEventListener(
             username, authorities, requestContext.ipAddress, requestContext.path, Instant.now()
         )
         
+        // Record in legacy audit system
         try {
             val userId = if (authentication != null) {
                 getUserIdFromAuthentication(authentication)
@@ -144,6 +171,21 @@ class SecurityAuditEventListener(
             )
         } catch (e: Exception) {
             logger.warn("Failed to record authorization denied audit event for user {}: {}", username, e.message)
+        }
+        
+        // Publish comprehensive audit event
+        try {
+            if (authentication != null) {
+                auditEventPublisher.publishAuthorizationDenied(
+                    userId = getUserIdFromAuthentication(authentication),
+                    username = username,
+                    resourceAccessed = requestContext.path ?: "unknown",
+                    requiredPermission = "unknown", // Could be extracted from event context if available
+                    userPermissions = authorities.split(", ")
+                )
+            }
+        } catch (e: Exception) {
+            logger.warn("Failed to publish authorization denied audit event for user {}: {}", username, e.message)
         }
     }
 

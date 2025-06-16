@@ -1,9 +1,13 @@
 package dev.ryuzu.astermanagement.service.impl
 
+import dev.ryuzu.astermanagement.config.AuditLog
+import dev.ryuzu.astermanagement.config.AuditMatterOperation
+import dev.ryuzu.astermanagement.domain.audit.AuditEventType
 import dev.ryuzu.astermanagement.domain.matter.Matter
 import dev.ryuzu.astermanagement.domain.matter.MatterRepository
 import dev.ryuzu.astermanagement.domain.matter.MatterStatus
 import dev.ryuzu.astermanagement.domain.user.UserRepository
+import dev.ryuzu.astermanagement.service.AuditEventPublisher
 import dev.ryuzu.astermanagement.service.AuditService
 import dev.ryuzu.astermanagement.service.MatterService
 import dev.ryuzu.astermanagement.service.StatusTransitionService
@@ -27,12 +31,14 @@ class MatterServiceImpl(
     private val matterRepository: MatterRepository,
     private val userRepository: UserRepository,
     private val auditService: AuditService,
+    private val auditEventPublisher: AuditEventPublisher,
     private val statusTransitionService: StatusTransitionService
 ) : BaseService(), MatterService {
     
     private val logger = LoggerFactory.getLogger(javaClass)
     
     @Transactional
+    @AuditMatterOperation(operation = "createMatter")
     override fun createMatter(matter: Matter): Matter {
         validateCreateMatter(matter)
         
@@ -55,7 +61,15 @@ class MatterServiceImpl(
         
         val savedMatter = matterRepository.save(matter)
         
-        // Log the creation for audit trail
+        // Publish comprehensive audit event
+        auditEventPublisher.publishMatterCreated(
+            matterId = savedMatter.id!!,
+            matterTitle = savedMatter.title,
+            clientName = savedMatter.clientName,
+            assignedLawyer = savedMatter.assignedLawyer?.username
+        )
+        
+        // Keep legacy audit for backward compatibility
         logMatterActivity(savedMatter.id!!, "CREATED", "Matter created with case number: ${savedMatter.caseNumber}")
         
         return savedMatter
@@ -115,6 +129,7 @@ class MatterServiceImpl(
     }
     
     @Transactional
+    @AuditMatterOperation(operation = "updateMatter")
     override fun updateMatter(id: UUID, matter: Matter): Matter? {
         val existingMatter = matterRepository.findById(id).orElse(null) ?: return null
         
@@ -125,31 +140,95 @@ class MatterServiceImpl(
         
         validateUpdateMatter(matter)
         
-        // Update fields while preserving certain metadata
+        // Track changes for audit
+        val fieldsChanged = mutableListOf<String>()
+        val oldValues = mutableMapOf<String, Any?>()
+        val newValues = mutableMapOf<String, Any?>()
+        
+        // Update fields while tracking changes
         existingMatter.apply {
-            title = matter.title
-            description = matter.description
-            clientName = matter.clientName
-            clientContact = matter.clientContact
-            opposingParty = matter.opposingParty
-            courtName = matter.courtName
-            filingDate = matter.filingDate
-            estimatedCompletionDate = matter.estimatedCompletionDate
-            notes = matter.notes
-            tags = matter.tags
-            // Do not update status here - use updateMatterStatus for that
-            // Do not update creation metadata
+            if (title != matter.title) {
+                fieldsChanged.add("title")
+                oldValues["title"] = title
+                newValues["title"] = matter.title
+                title = matter.title
+            }
+            if (description != matter.description) {
+                fieldsChanged.add("description")
+                oldValues["description"] = description
+                newValues["description"] = matter.description
+                description = matter.description
+            }
+            if (clientName != matter.clientName) {
+                fieldsChanged.add("clientName")
+                oldValues["clientName"] = clientName
+                newValues["clientName"] = matter.clientName
+                clientName = matter.clientName
+            }
+            if (clientContact != matter.clientContact) {
+                fieldsChanged.add("clientContact")
+                oldValues["clientContact"] = clientContact
+                newValues["clientContact"] = matter.clientContact
+                clientContact = matter.clientContact
+            }
+            if (opposingParty != matter.opposingParty) {
+                fieldsChanged.add("opposingParty")
+                oldValues["opposingParty"] = opposingParty
+                newValues["opposingParty"] = matter.opposingParty
+                opposingParty = matter.opposingParty
+            }
+            if (courtName != matter.courtName) {
+                fieldsChanged.add("courtName")
+                oldValues["courtName"] = courtName
+                newValues["courtName"] = matter.courtName
+                courtName = matter.courtName
+            }
+            if (filingDate != matter.filingDate) {
+                fieldsChanged.add("filingDate")
+                oldValues["filingDate"] = filingDate
+                newValues["filingDate"] = matter.filingDate
+                filingDate = matter.filingDate
+            }
+            if (estimatedCompletionDate != matter.estimatedCompletionDate) {
+                fieldsChanged.add("estimatedCompletionDate")
+                oldValues["estimatedCompletionDate"] = estimatedCompletionDate
+                newValues["estimatedCompletionDate"] = matter.estimatedCompletionDate
+                estimatedCompletionDate = matter.estimatedCompletionDate
+            }
+            if (notes != matter.notes) {
+                fieldsChanged.add("notes")
+                oldValues["notes"] = notes
+                newValues["notes"] = matter.notes
+                notes = matter.notes
+            }
+            if (tags != matter.tags) {
+                fieldsChanged.add("tags")
+                oldValues["tags"] = tags
+                newValues["tags"] = matter.tags
+                tags = matter.tags
+            }
         }
         
         val updatedMatter = matterRepository.save(existingMatter)
         
-        // Log the update for audit trail
-        logMatterActivity(id, "UPDATED", "Matter details updated")
+        // Publish comprehensive audit event with field-level changes
+        if (fieldsChanged.isNotEmpty()) {
+            auditEventPublisher.publishMatterUpdated(
+                matterId = id,
+                fieldsChanged = fieldsChanged,
+                oldValues = oldValues,
+                newValues = newValues
+            )
+        }
+        
+        // Keep legacy audit for backward compatibility
+        logMatterActivity(id, "UPDATED", "Matter details updated - fields: ${fieldsChanged.joinToString(", ")}")
         
         return updatedMatter
     }
     
     @Transactional
+    @AuditMatterOperation(operation = "changeStatus")
     override fun updateMatterStatus(
         id: UUID,
         newStatus: MatterStatus,
@@ -180,11 +259,22 @@ class MatterServiceImpl(
         // Execute comprehensive validation and transition
         val transitionResult = statusTransitionService.executeTransition(transitionContext)
         
-        // Update matter entity with new status
+        // Capture old status for audit
         val oldStatus = existingMatter.status
+        
+        // Update matter entity with new status
         existingMatter.updateStatus(newStatus)
         
         val updatedMatter = matterRepository.save(existingMatter)
+        
+        // Publish comprehensive status change audit event
+        auditEventPublisher.publishMatterStatusChanged(
+            matterId = id,
+            oldStatus = oldStatus?.name ?: "UNKNOWN",
+            newStatus = newStatus.name,
+            reason = comment,
+            userId = userId.toString()
+        )
         
         logger.info("Matter ${id} status updated from ${oldStatus} to ${newStatus} by user ${userId}")
         
@@ -192,6 +282,7 @@ class MatterServiceImpl(
     }
     
     @Transactional
+    @AuditMatterOperation(operation = "deleteMatter")
     override fun deleteMatter(id: UUID): Boolean {
         val existingMatter = matterRepository.findById(id).orElse(null) ?: return false
         
@@ -199,6 +290,13 @@ class MatterServiceImpl(
         if (!canUserModifyMatter(existingMatter)) {
             throw InsufficientPermissionException("User cannot delete this matter")
         }
+        
+        // Publish deletion audit event before soft delete
+        auditEventPublisher.publishMatterDeleted(
+            matterId = id,
+            matterTitle = existingMatter.title,
+            reason = "Matter deleted by user"
+        )
         
         // Soft delete by setting status to CLOSED
         return updateMatterStatus(id, MatterStatus.CLOSED, "Matter deleted", getCurrentUserId()) != null
@@ -209,6 +307,7 @@ class MatterServiceImpl(
     }
     
     @Transactional
+    @AuditLog(eventType = AuditEventType.MATTER_UPDATED, entityType = "Matter", operation = "assignLawyer")
     override fun assignLawyer(matterId: UUID, lawyerId: UUID): Matter? {
         val matter = matterRepository.findById(matterId).orElse(null) ?: return null
         val lawyer = userRepository.findById(lawyerId).orElseThrow {
@@ -225,8 +324,19 @@ class MatterServiceImpl(
         // For MVP, we'll just log a warning if validation is skipped
         logger.info("Assigning lawyer ${lawyer.username} to matter $matterId. Role validation should be implemented.")
         
+        // Track assignment change for audit
+        val oldLawyer = matter.assignedLawyer
         matter.assignedLawyer = lawyer
         val updatedMatter = matterRepository.save(matter)
+        
+        // Publish assignment audit event
+        auditEventPublisher.publishMatterUpdated(
+            matterId = matterId,
+            fieldsChanged = listOf("assignedLawyer"),
+            oldValues = mapOf("assignedLawyer" to oldLawyer?.username),
+            newValues = mapOf("assignedLawyer" to lawyer.username),
+            reason = "Lawyer assignment change"
+        )
         
         logMatterActivity(matterId, "LAWYER_ASSIGNED", "Lawyer assigned: ${lawyer.username}")
         
@@ -234,6 +344,7 @@ class MatterServiceImpl(
     }
     
     @Transactional
+    @AuditLog(eventType = AuditEventType.MATTER_UPDATED, entityType = "Matter", operation = "assignClerk")
     override fun assignClerk(matterId: UUID, clerkId: UUID): Matter? {
         val matter = matterRepository.findById(matterId).orElse(null) ?: return null
         val clerk = userRepository.findById(clerkId).orElseThrow {
@@ -250,8 +361,19 @@ class MatterServiceImpl(
         // For MVP, we'll just log a warning if validation is skipped
         logger.info("Assigning clerk ${clerk.username} to matter $matterId. Role validation should be implemented.")
         
+        // Track assignment change for audit
+        val oldClerk = matter.assignedClerk
         matter.assignedClerk = clerk
         val updatedMatter = matterRepository.save(matter)
+        
+        // Publish assignment audit event
+        auditEventPublisher.publishMatterUpdated(
+            matterId = matterId,
+            fieldsChanged = listOf("assignedClerk"),
+            oldValues = mapOf("assignedClerk" to oldClerk?.username),
+            newValues = mapOf("assignedClerk" to clerk.username),
+            reason = "Clerk assignment change"
+        )
         
         logMatterActivity(matterId, "CLERK_ASSIGNED", "Clerk assigned: ${clerk.username}")
         
