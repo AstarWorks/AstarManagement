@@ -6,6 +6,8 @@ import dev.ryuzu.astermanagement.domain.matter.MatterStatus
 import dev.ryuzu.astermanagement.domain.user.UserRepository
 import dev.ryuzu.astermanagement.service.AuditService
 import dev.ryuzu.astermanagement.service.MatterService
+import dev.ryuzu.astermanagement.service.StatusTransitionService
+import dev.ryuzu.astermanagement.service.StatusTransitionContext
 import dev.ryuzu.astermanagement.service.base.BaseService
 import dev.ryuzu.astermanagement.service.exception.*
 import org.slf4j.LoggerFactory
@@ -24,7 +26,8 @@ import java.util.*
 class MatterServiceImpl(
     private val matterRepository: MatterRepository,
     private val userRepository: UserRepository,
-    private val auditService: AuditService
+    private val auditService: AuditService,
+    private val statusTransitionService: StatusTransitionService
 ) : BaseService(), MatterService {
     
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -155,33 +158,35 @@ class MatterServiceImpl(
     ): Matter? {
         val existingMatter = matterRepository.findById(id).orElse(null) ?: return null
         
-        // Check permissions for status transitions
-        validateStatusTransition(existingMatter, newStatus)
-        
+        // Basic permission check (enhanced validation happens in StatusTransitionService)
         if (!canUserModifyMatter(existingMatter)) {
             throw InsufficientPermissionException("User cannot modify this matter")
         }
         
-        // Validate the status transition
-        if (!existingMatter.status.canTransitionTo(newStatus)) {
-            throw InvalidStatusTransitionException(
-                existingMatter.status.name,
-                newStatus.name
-            )
+        // Get current user information
+        val currentUser = userRepository.findById(userId).orElseThrow {
+            ValidationException("userId", "User not found: $userId")
         }
         
+        // Create status transition context
+        val transitionContext = statusTransitionService.createTransitionContext(
+            matter = existingMatter,
+            newStatus = newStatus,
+            reason = comment,
+            userId = userId,
+            userRole = currentUser.role
+        )
+        
+        // Execute comprehensive validation and transition
+        val transitionResult = statusTransitionService.executeTransition(transitionContext)
+        
+        // Update matter entity with new status
         val oldStatus = existingMatter.status
         existingMatter.updateStatus(newStatus)
         
         val updatedMatter = matterRepository.save(existingMatter)
         
-        // Log the status change for audit trail
-        val statusComment = comment?.let { " - $it" } ?: ""
-        logMatterActivity(
-            id, 
-            "STATUS_CHANGED", 
-            "Status changed from $oldStatus to $newStatus$statusComment"
-        )
+        logger.info("Matter ${id} status updated from ${oldStatus} to ${newStatus} by user ${userId}")
         
         return updatedMatter
     }
