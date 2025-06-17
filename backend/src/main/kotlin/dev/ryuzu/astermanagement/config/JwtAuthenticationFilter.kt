@@ -12,6 +12,7 @@ import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
+import org.slf4j.LoggerFactory
 
 /**
  * JWT Authentication Filter
@@ -24,6 +25,8 @@ class JwtAuthenticationFilter(
     private val jwtService: JwtService,
     private val securityAuditEventListener: SecurityAuditEventListener
 ) : OncePerRequestFilter() {
+
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     companion object {
         private const val AUTHORIZATION_HEADER = "Authorization"
@@ -79,7 +82,7 @@ class JwtAuthenticationFilter(
                 }
             }
         } catch (e: Exception) {
-            logger.error("Cannot set user authentication: {}", e.message)
+            logger.error("Cannot set user authentication", e)
         }
         
         filterChain.doFilter(request, response)

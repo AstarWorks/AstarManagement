@@ -242,22 +242,6 @@ class MatterController(
         }
     }
     
-    /**
-     * Get the current user's ID from security context
-     */
-    private fun getCurrentUserId(): UUID {
-        val authentication = SecurityContextHolder.getContext().authentication
-        return when (val principal = authentication?.principal) {
-            is UserDetails -> {
-                try {
-                    UUID.fromString(principal.username)
-                } catch (e: IllegalArgumentException) {
-                    UUID.nameUUIDFromBytes(principal.username.toByteArray())
-                }
-            }
-            else -> throw SecurityException("No authenticated user found or invalid principal type")
-        }
-    }
     
     /**
      * Parses sort parameters from string format.

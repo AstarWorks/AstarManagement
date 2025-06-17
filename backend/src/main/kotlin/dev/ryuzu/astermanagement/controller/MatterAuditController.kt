@@ -18,6 +18,7 @@ import org.springframework.data.web.PageableDefault
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
+import java.time.OffsetDateTime
 import java.util.*
 
 /**
@@ -137,8 +138,8 @@ class MatterAuditController(
         
         val comprehensiveAudit = ComprehensiveMatterAuditDto(
             matterId = matterId,
-            generalAuditTrail = generalAuditTrail.content.map { it.toDto() },
-            fieldAuditTrail = fieldAuditTrail.content.map { it.toDto() },
+            generalAuditTrail = generalAuditTrail.map { it.toDto() },
+            fieldAuditTrail = fieldAuditTrail.map { it.toDto() },
             totalGeneralEvents = generalAuditTrail.totalElements,
             totalFieldEvents = fieldAuditTrail.totalElements
         )
@@ -183,7 +184,7 @@ class MatterAuditController(
             matterId = matterId,
             exportFormat = format,
             exportedAt = java.time.OffsetDateTime.now(),
-            exportedBy = getCurrentUserIdOrDefault()?.toString() ?: "system",
+            exportedBy = try { getCurrentUserId().toString() } catch (e: Exception) { "system" },
             generalEvents = generalAuditTrail.content.map { it.toDto() },
             fieldEvents = fieldAuditTrail.content.map { it.toDto() },
             totalEvents = generalAuditTrail.totalElements + fieldAuditTrail.totalElements,
@@ -230,10 +231,7 @@ data class ComprehensiveMatterAuditDto(
     val totalFieldEvents: Long,
     val summary: MatterAuditSummaryDto = MatterAuditSummaryDto(
         totalEvents = totalGeneralEvents + totalFieldEvents,
-        lastActivity = maxOfOrNull(
-            generalAuditTrail.content.maxOfOrNull { it.eventTimestamp },
-            fieldAuditTrail.content.maxOfOrNull { it.changedAt }
-        ),
+        lastActivity = generalAuditTrail.content.maxByOrNull { it.eventTimestamp }?.eventTimestamp,
         mostActiveFields = emptyList(), // Would be calculated from actual data
         statusChanges = 0 // Would be calculated from actual data
     )

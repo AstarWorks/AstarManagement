@@ -42,7 +42,7 @@ class AuditConfiguration(
     var maxFailedAuditsPerHour: Int = 100,
     
     @Column(name = "updated_by")
-    var updatedBy: UUID? = null
+    override var updatedBy: UUID? = null
 ) : BaseEntity() {
     
     companion object {

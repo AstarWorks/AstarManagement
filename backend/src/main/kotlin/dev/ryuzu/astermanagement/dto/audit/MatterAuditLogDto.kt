@@ -34,7 +34,7 @@ fun dev.ryuzu.astermanagement.domain.audit.MatterAuditLog.toDto(): MatterAuditLo
         fieldName = fieldName,
         oldValue = oldValue,
         newValue = newValue,
-        performedAt = performedAt,
+        performedAt = performedAt.toInstant(),
         performedBy = performedBy,
         performedByName = performedByName,
         ipAddress = ipAddress,

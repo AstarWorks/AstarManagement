@@ -1,5 +1,6 @@
 package dev.ryuzu.astermanagement.domain.audit
 
+import dev.ryuzu.astermanagement.config.AuditContext
 import java.time.OffsetDateTime
 import java.util.*
 
@@ -217,7 +218,7 @@ sealed class AuditEvent(
     
     data class DataExport(
         val exportType: String,
-        val entityType: String,
+        override val entityType: String,
         override val entityId: String,
         val exportFormat: String,
         val recordCount: Int,
@@ -243,7 +244,7 @@ sealed class AuditEvent(
         
         // Add context information if available
         context?.let { ctx ->
-            enrichedMetadata.putAll(ctx.toMap())
+            enrichedMetadata.putAll(ctx.toMap().filterValues { it != null } as Map<String, Any>)
         }
         
         // Add event-specific details based on event type

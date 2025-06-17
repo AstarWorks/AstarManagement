@@ -1,5 +1,6 @@
 package dev.ryuzu.astermanagement.controller.base
 
+import dev.ryuzu.astermanagement.service.base.BaseService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder
@@ -9,7 +10,7 @@ import java.net.URI
  * Base controller providing common functionality for all REST controllers.
  * Includes helper methods for consistent response formatting and URI building.
  */
-abstract class BaseController {
+abstract class BaseController : BaseService() {
     
     /**
      * Creates a ResponseEntity with 201 Created status and Location header.

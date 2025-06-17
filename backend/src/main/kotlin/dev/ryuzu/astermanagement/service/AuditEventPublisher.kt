@@ -423,10 +423,10 @@ class AuditEventPublisher(
         val metadata = mutableMapOf<String, Any>()
         
         // Add context information
-        metadata.putAll(context.toMap().filterValues { it != null })
+        metadata.putAll(context.toMap().filterValues { it != null } as Map<String, Any>)
         
         // Add event-specific data
-        metadata.putAll(eventData.filterValues { it != null })
+        metadata.putAll(eventData.filterValues { it != null } as Map<String, Any>)
         
         // Add system information
         metadata["publishedAt"] = System.currentTimeMillis()

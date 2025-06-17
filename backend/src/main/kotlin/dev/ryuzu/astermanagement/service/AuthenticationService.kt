@@ -1,5 +1,6 @@
 package dev.ryuzu.astermanagement.service
 
+import dev.ryuzu.astermanagement.config.JwtConfiguration
 import dev.ryuzu.astermanagement.config.SecurityAuditEventListener
 import dev.ryuzu.astermanagement.domain.user.User
 import dev.ryuzu.astermanagement.domain.user.UserRepository
@@ -28,7 +29,8 @@ class AuthenticationService(
     private val jwtService: JwtService,
     private val passwordEncoder: PasswordEncoder,
     private val redisTemplate: RedisTemplate<String, String>,
-    private val securityAuditEventListener: SecurityAuditEventListener
+    private val securityAuditEventListener: SecurityAuditEventListener,
+    private val jwtConfiguration: JwtConfiguration
 ) {
 
     companion object {
@@ -68,7 +70,7 @@ class AuthenticationService(
                 accessToken = accessToken,
                 refreshToken = refreshToken,
                 tokenType = "Bearer",
-                expiresIn = jwtService.getJwtExpiration().seconds,
+                expiresIn = jwtConfiguration.getJwtExpiration().seconds,
                 user = UserInfoResponse(
                     id = user.id!!,
                     email = user.email,
@@ -133,7 +135,7 @@ class AuthenticationService(
             accessToken = newAccessToken,
             refreshToken = newRefreshToken,
             tokenType = "Bearer",
-            expiresIn = jwtService.getJwtExpiration().seconds,
+            expiresIn = jwtConfiguration.getJwtExpiration().seconds,
             user = UserInfoResponse(
                 id = user.id!!,
                 email = user.email,
@@ -203,7 +205,7 @@ class AuthenticationService(
         redisTemplate.opsForValue().set(
             key,
             refreshToken,
-            jwtService.getRefreshExpiration().seconds,
+            jwtConfiguration.getRefreshExpiration().seconds,
             TimeUnit.SECONDS
         )
     }
@@ -222,7 +224,7 @@ class AuthenticationService(
         
         // Store session data
         redisTemplate.opsForHash<String, String>().putAll(sessionKey, sessionData)
-        redisTemplate.expire(sessionKey, jwtService.getJwtExpiration())
+        redisTemplate.expire(sessionKey, jwtConfiguration.getJwtExpiration())
         
         // Add to active sessions set
         redisTemplate.opsForSet().add("$ACTIVE_SESSIONS_PREFIX$userId", userId.toString())
@@ -240,7 +242,7 @@ class AuthenticationService(
         redisTemplate.opsForHash<String, String>().put(sessionKey, "updatedAt", System.currentTimeMillis().toString())
         
         // Extend expiration
-        redisTemplate.expire(sessionKey, jwtService.getJwtExpiration())
+        redisTemplate.expire(sessionKey, jwtConfiguration.getJwtExpiration())
     }
 
     /**

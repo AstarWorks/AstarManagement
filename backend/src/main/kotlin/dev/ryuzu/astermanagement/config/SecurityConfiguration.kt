@@ -96,20 +96,15 @@ class SecurityConfiguration(
             // Security headers
             .headers { headers ->
                 headers
-                    .frameOptions { it.deny() }
+                    .frameOptions { frameOptions -> frameOptions.deny() }
                     .contentTypeOptions { }
                     .httpStrictTransportSecurity { hsts ->
                         hsts.maxAgeInSeconds(31536000)
-                            .includeSubdomains(true)
+                            .includeSubDomains(true)
                     }
-                    .and()
-                    .addHeaderWriter(XXssProtectionHeaderWriter())
-                    .addHeaderWriter(
-                        StaticHeadersWriter(
-                            "Content-Security-Policy",
-                            "default-src 'self'; frame-ancestors 'none'"
-                        )
-                    )
+                    .contentSecurityPolicy { csp ->
+                        csp.policyDirectives("default-src 'self'; frame-ancestors 'none'")
+                    }
             }
             
             // Add JWT filter before UsernamePasswordAuthenticationFilter

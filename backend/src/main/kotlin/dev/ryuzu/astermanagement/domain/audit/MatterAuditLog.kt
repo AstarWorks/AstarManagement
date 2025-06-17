@@ -45,7 +45,7 @@ class MatterAuditLog(
     val newValue: String?,
     
     @Column(name = "performed_at", nullable = false)
-    val performedAt: java.time.Instant = java.time.Instant.now(),
+    val performedAt: OffsetDateTime = OffsetDateTime.now(),
     
     @Column(name = "performed_by", nullable = false)
     val performedBy: UUID,
@@ -53,7 +53,7 @@ class MatterAuditLog(
     @Column(name = "performed_by_name", nullable = false)
     val performedByName: String, // R03 requirement - denormalized username
     
-    @Column(name = "ip_address", nullable = false)
+    @Column(name = "ip_address_temp", nullable = false)
     val ipAddress: String, // R03 requirement - string representation
     
     @Column(name = "user_agent", nullable = false, columnDefinition = "TEXT")

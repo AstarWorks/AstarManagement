@@ -101,8 +101,8 @@ class StatusPermissionService : BaseService() {
                     errorCode = "NOT_ASSIGNED_LAWYER",
                     message = "Only the assigned lawyer can modify this matter's status",
                     additionalInfo = mapOf(
-                        "assignedLawyerId" to context.matter.assignedLawyer?.id,
-                        "requestingUserId" to context.userId
+                        "assignedLawyerId" to (context.matter.assignedLawyer?.id?.toString() ?: ""),
+                        "requestingUserId" to context.userId.toString()
                     )
                 )
             }
@@ -118,9 +118,9 @@ class StatusPermissionService : BaseService() {
                     errorCode = "NOT_ASSIGNED_CLERK",
                     message = "Clerk can only modify matters they are assigned to or where they support the assigned lawyer",
                     additionalInfo = mapOf(
-                        "assignedClerkId" to context.matter.assignedClerk?.id,
-                        "assignedLawyerId" to context.matter.assignedLawyer?.id,
-                        "requestingUserId" to context.userId
+                        "assignedClerkId" to (context.matter.assignedClerk?.id?.toString() ?: ""),
+                        "assignedLawyerId" to (context.matter.assignedLawyer?.id?.toString() ?: ""),
+                        "requestingUserId" to context.userId.toString()
                     )
                 )
             }

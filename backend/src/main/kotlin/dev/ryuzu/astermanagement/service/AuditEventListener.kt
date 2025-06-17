@@ -78,13 +78,13 @@ class AuditEventListener(
             is AuditEvent.MatterStatusChanged -> {
                 oldValues["status"] = event.oldStatus
                 newValues["status"] = event.newStatus
-                enhancedDetails["changeReason"] = event.reason
+                event.reason?.let { enhancedDetails["changeReason"] = it }
             }
             is AuditEvent.MatterUpdated -> {
                 oldValues.putAll(event.oldValues)
                 newValues.putAll(event.newValues)
                 enhancedDetails["fieldsChanged"] = event.fieldsChanged
-                enhancedDetails["changeReason"] = event.reason
+                event.reason?.let { enhancedDetails["changeReason"] = it }
             }
             is AuditEvent.DocumentAccessed -> {
                 enhancedDetails["accessType"] = event.accessType.name
@@ -100,10 +100,10 @@ class AuditEventListener(
             is AuditEvent.AuthenticationFailed -> {
                 enhancedDetails["attemptedUsername"] = event.attemptedUsername
                 enhancedDetails["failureReason"] = event.failureReason
-                enhancedDetails["sourceIpAddress"] = event.ipAddress
+                event.ipAddress?.let { enhancedDetails["sourceIpAddress"] = it }
             }
             is AuditEvent.AuthorizationDenied -> {
-                enhancedDetails["resourceAccessed"] = event.resourceAccessed
+                event.resourceAccessed?.let { enhancedDetails["resourceAccessed"] = it }
                 enhancedDetails["requiredPermission"] = event.requiredPermission
                 enhancedDetails["userPermissions"] = event.userPermissions
                 enhancedDetails["username"] = event.username
@@ -111,13 +111,13 @@ class AuditEventListener(
             is AuditEvent.SecurityEvent -> {
                 enhancedDetails["securityEventType"] = event.eventSubType.name
                 enhancedDetails["success"] = event.success
-                enhancedDetails["resourceAccessed"] = event.resourceAccessed
-                enhancedDetails["details"] = event.details
+                event.resourceAccessed?.let { enhancedDetails["resourceAccessed"] = it }
+                event.details?.let { enhancedDetails["details"] = it }
             }
             is AuditEvent.BulkOperation -> {
                 enhancedDetails["operationType"] = event.operationType
                 enhancedDetails["affectedEntityIds"] = event.affectedEntityIds
-                enhancedDetails["criteria"] = event.criteria
+                event.criteria?.let { enhancedDetails["criteria"] = it }
                 enhancedDetails["recordCount"] = event.recordCount
             }
             is AuditEvent.DataExport -> {
@@ -142,8 +142,8 @@ class AuditEventListener(
             sessionId = context.sessionId,
             requestId = context.requestId,
             eventDetails = enhancedDetails,
-            oldValues = if (oldValues.isNotEmpty()) oldValues else null,
-            newValues = if (newValues.isNotEmpty()) newValues else null
+            oldValues = if (oldValues.isNotEmpty()) oldValues.filterValues { it != null } as Map<String, Any> else null,
+            newValues = if (newValues.isNotEmpty()) newValues.filterValues { it != null } as Map<String, Any> else null
         )
     }
     

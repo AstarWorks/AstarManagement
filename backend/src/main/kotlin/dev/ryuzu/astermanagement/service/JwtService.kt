@@ -41,7 +41,7 @@ class JwtService(
             .claim("role", user.role.name)
             .claim("permissions", getUserPermissions(user))
             .claim("email", user.email)
-            .claim("name", user.name)
+            .claim("name", "${user.firstName} ${user.lastName}")
             .build()
 
         return jwtEncoder.encode(JwtEncoderParameters.from(claims)).tokenValue
