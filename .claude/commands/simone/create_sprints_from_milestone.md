@@ -1,5 +1,6 @@
 # Plan Sprints from a given Milestone. Execute from Top to Bottom
 
+# YOU MUST ultrathink
 Follow these instructions to sprint the scope of a Milestone into Sprints
 
 ## Create a TODO with EXACTLY these 8 items

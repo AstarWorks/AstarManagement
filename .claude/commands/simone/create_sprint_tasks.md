@@ -1,5 +1,6 @@
 # Create Tasks for Sprint - Execute top to bottom
 
+# YOU MUST ultrathink
 Create detailed tasks for an existing sprint with integrated implementation guidance.
 
 ## Create a TODO with EXACTLY these 8 Items

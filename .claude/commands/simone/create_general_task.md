@@ -1,5 +1,6 @@
 # Create General Task - Execute top to bottom
 
+# YOU MUST ultrathink
 Creates a new general task in `.simone/04_GENERAL_TASKS/` following project documentation standards.
 
 ## Create a TODO with EXACTLY these 10 Items
