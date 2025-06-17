@@ -80,6 +80,7 @@ export const MatterCard = React.memo(function MatterCard({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition: transition || ANIMATION_CONFIG.cardHoverTransition,
+    willChange: isActuallyDragging ? 'transform' : 'auto',
   }
 
   const isActuallyDragging = isDragging || isSortableDragging
@@ -107,7 +108,8 @@ export const MatterCard = React.memo(function MatterCard({
         "border-l-4",
         priorityConfig.border,
         cardHeight,
-        isActuallyDragging && "opacity-50 transform rotate-2 shadow-lg z-50",
+        isActuallyDragging && "opacity-50 shadow-xl z-50 cursor-grabbing",
+        !isActuallyDragging && "cursor-grab",
         matterIsOverdue && "ring-1 ring-red-200 bg-red-50/30",
         className
       )}

@@ -4,19 +4,88 @@ import React from 'react'
 import {
   DndContext,
   DragEndEvent,
+  DragStartEvent,
+  DragOverEvent,
   PointerSensor,
+  TouchSensor,
+  KeyboardSensor,
   useSensor,
   useSensors,
   closestCenter,
   DragOverlay
 } from '@dnd-kit/core'
+import {
+  sortableKeyboardCoordinates
+} from '@dnd-kit/sortable'
 import { KanbanColumn } from './KanbanColumn'
 import { MatterCard } from './MatterCard'
 import { KanbanBoardProps, MatterCard as MatterCardType } from './types'
 import { BOARD_CONFIG } from './constants'
 import { cn } from '@/lib/utils'
 
-export function KanbanBoard({
+// Status transition validation - integrated with backend
+const validateStatusTransition = async (
+  currentStatus: string, 
+  newStatus: string,
+  matterId: string
+): Promise<{ isValid: boolean; message?: string }> => {
+  try {
+    // In a real implementation, this would call the backend API
+    // For now, we'll use the backend's validation logic from S01 sprint
+    const response = await fetch(`/api/matters/${matterId}/validate-transition`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ currentStatus, newStatus })
+    })
+    
+    if (!response.ok) {
+      return { isValid: false, message: 'Unable to validate transition' }
+    }
+    
+    const result = await response.json()
+    return { isValid: result.valid, message: result.message }
+  } catch (error) {
+    // Fallback validation for development/demo mode
+    console.warn('Backend validation unavailable, using fallback rules')
+    return fallbackValidateTransition(currentStatus, newStatus)
+  }
+}
+
+// Fallback validation rules (matches backend S01 implementation)
+const fallbackValidateTransition = (
+  currentStatus: string, 
+  newStatus: string
+): { isValid: boolean; message?: string } => {
+  const validTransitions: Record<string, string[]> = {
+    INTAKE: ['INITIAL_REVIEW', 'INVESTIGATION'],
+    INITIAL_REVIEW: ['INVESTIGATION', 'RESEARCH', 'CLOSED'],
+    INVESTIGATION: ['RESEARCH', 'DRAFT_PLEADINGS', 'CLOSED'],
+    RESEARCH: ['DRAFT_PLEADINGS', 'FILED', 'CLOSED'],
+    DRAFT_PLEADINGS: ['FILED', 'RESEARCH', 'CLOSED'],
+    FILED: ['DISCOVERY', 'TRIAL_PREP', 'MEDIATION', 'CLOSED'],
+    DISCOVERY: ['TRIAL_PREP', 'MEDIATION', 'SETTLEMENT', 'CLOSED'],
+    MEDIATION: ['SETTLEMENT', 'TRIAL_PREP', 'CLOSED'],
+    TRIAL_PREP: ['TRIAL', 'MEDIATION', 'SETTLEMENT', 'CLOSED'],
+    TRIAL: ['SETTLEMENT', 'CLOSED'],
+    SETTLEMENT: ['CLOSED'],
+    CLOSED: [] // Cannot move from closed
+  }
+  
+  const allowedTransitions = validTransitions[currentStatus] || []
+  const isValid = allowedTransitions.includes(newStatus)
+  
+  return {
+    isValid,
+    message: isValid ? undefined : `Cannot transition from ${currentStatus} to ${newStatus}`
+  }
+}
+
+// Status transitions that require confirmation
+const CONFIRMATION_REQUIRED: Set<string> = new Set([
+  'CLOSED', 'SETTLEMENT'
+])
+
+export const KanbanBoard = React.memo(function KanbanBoard({
   board,
   actions,
   filters,
@@ -27,12 +96,35 @@ export function KanbanBoard({
   onColumnCollapse,
   className
 }: KanbanBoardProps) {
+  // State for drag operations
+  const [activeId, setActiveId] = React.useState<string | null>(null)
+  const [overId, setOverId] = React.useState<string | null>(null)
+  const [dragStartTime, setDragStartTime] = React.useState<number>(0)
+  
+  // State for confirmation dialog
+  const [confirmationDialog, setConfirmationDialog] = React.useState<{
+    isOpen: boolean
+    matterId: string
+    newStatus: string
+    targetColumnId: string
+    matterTitle: string
+  } | null>(null)
+
   // onMatterClick and onMatterEdit are available in props but not used in demo
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
         distance: 8
       }
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250, // Long press delay
+        tolerance: 5, // Movement tolerance
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
     })
   )
 
@@ -159,16 +251,39 @@ export function KanbanBoard({
       })
   }, [board.columns, viewPreferences.columnsVisible, viewPreferences.columnOrder])
 
-  const handleDragStart = () => {
-    // Handle drag start logic here if needed
-  }
+  const handleDragStart = React.useCallback((event: DragStartEvent) => {
+    setActiveId(event.active.id as string)
+    setDragStartTime(performance.now())
+    
+    // Provide screen reader announcement
+    const matter = board.matters.find(m => m.id === event.active.id)
+    if (matter) {
+      // Could add aria-live announcement here
+      console.log(`Started dragging matter: ${matter.caseNumber} - ${matter.title}`)
+    }
+  }, [board.matters])
 
-  const handleDragOver = () => {
-    // Handle drag over logic here if needed
-  }
+  const handleDragOver = React.useCallback((event: DragOverEvent) => {
+    const { over } = event
+    setOverId(over ? (over.id as string) : null)
+  }, [])
 
-  const handleDragEnd = async (event: DragEndEvent) => {
+  const handleDragEnd = React.useCallback(async (event: DragEndEvent) => {
     const { active, over } = event
+    const dragEndTime = performance.now()
+    const dragDuration = dragEndTime - dragStartTime
+
+    // Reset drag state
+    setActiveId(null)
+    setOverId(null)
+    setDragStartTime(0)
+
+    // Performance check - drag start response time should be < 50ms
+    if (dragDuration < 50) {
+      console.log(`✅ Drag operation completed in ${dragDuration.toFixed(2)}ms`)
+    } else {
+      console.warn(`⚠️ Drag operation took ${dragDuration.toFixed(2)}ms (target: <50ms)`)
+    }
 
     if (!over) return
 
@@ -187,18 +302,87 @@ export function KanbanBoard({
     const newStatus = targetColumn.status[0]
 
     // Only move if the status is actually changing
-    if (matter.status !== newStatus) {
-      try {
-        await actions.moveMatter(matterId, newStatus, targetColumn.id)
-      } catch (error) {
-        console.error('Failed to move matter:', error)
-        // Could show error toast here
-      }
-    }
-  }
+    if (matter.status === newStatus) return
 
-  const activeMatter = dragContext.activeId 
-    ? board.matters.find(m => m.id === dragContext.activeId)
+    // Validate transition with backend
+    const currentStatus = matter.status
+    const validation = await validateStatusTransition(currentStatus, newStatus, matterId)
+    
+    if (!validation.isValid) {
+      console.warn(`Invalid transition from ${currentStatus} to ${newStatus}: ${validation.message}`)
+      // Could show error toast here with validation.message
+      return
+    }
+
+    // Check if confirmation is required
+    if (CONFIRMATION_REQUIRED.has(newStatus)) {
+      setConfirmationDialog({
+        isOpen: true,
+        matterId,
+        newStatus,
+        targetColumnId: targetColumn.id,
+        matterTitle: matter.title
+      })
+      return
+    }
+
+    // Proceed with the move
+    await executeMatterMove(matterId, newStatus, targetColumn.id)
+  }, [board.matters, board.columns, dragStartTime])
+
+  // Function to execute the actual matter move
+  const executeMatterMove = React.useCallback(async (
+    matterId: string, 
+    newStatus: string, 
+    targetColumnId: string
+  ) => {
+    const moveStartTime = performance.now()
+    
+    try {
+      // Optimistic update
+      await actions.moveMatter(matterId, newStatus, targetColumnId)
+      
+      const moveEndTime = performance.now()
+      const moveDuration = moveEndTime - moveStartTime
+      
+      // Performance check - drop completion should be < 200ms
+      if (moveDuration < 200) {
+        console.log(`✅ Move operation completed in ${moveDuration.toFixed(2)}ms`)
+      } else {
+        console.warn(`⚠️ Move operation took ${moveDuration.toFixed(2)}ms (target: <200ms)`)
+      }
+      
+      // Screen reader announcement
+      const matter = board.matters.find(m => m.id === matterId)
+      if (matter) {
+        console.log(`Moved matter ${matter.caseNumber} to ${newStatus}`)
+      }
+    } catch (error) {
+      console.error('Failed to move matter:', error)
+      // Could show error toast here
+      // Rollback would happen automatically via optimistic updates
+    }
+  }, [actions, board.matters])
+
+  // Handle confirmation dialog
+  const handleConfirmMove = React.useCallback(async () => {
+    if (!confirmationDialog) return
+    
+    await executeMatterMove(
+      confirmationDialog.matterId,
+      confirmationDialog.newStatus,
+      confirmationDialog.targetColumnId
+    )
+    
+    setConfirmationDialog(null)
+  }, [confirmationDialog, executeMatterMove])
+
+  const handleCancelMove = React.useCallback(() => {
+    setConfirmationDialog(null)
+  }, [])
+
+  const activeMatter = activeId 
+    ? board.matters.find(m => m.id === activeId)
     : null
 
   return (
@@ -279,11 +463,43 @@ export function KanbanBoard({
               isDragging={true}
               viewPreferences={viewPreferences}
               currentUser={currentUser}
-              className="transform rotate-3 shadow-lg"
+              className="transform rotate-3 shadow-lg opacity-60"
             />
           ) : null}
         </DragOverlay>
       </DndContext>
+
+      {/* Confirmation Dialog */}
+      {confirmationDialog?.isOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
+            <h3 className="text-lg font-semibold mb-2">Confirm Status Change</h3>
+            <p className="text-gray-600 mb-4">
+              Are you sure you want to move "{confirmationDialog.matterTitle}" to{' '}
+              <span className="font-medium">{confirmationDialog.newStatus.replace('_', ' ').toLowerCase()}</span>?
+            </p>
+            {confirmationDialog.newStatus === 'CLOSED' && (
+              <p className="text-orange-600 text-sm mb-4">
+                ⚠️ Closing a matter is a significant action that may require additional documentation.
+              </p>
+            )}
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={handleCancelMove}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmMove}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
-}
+})

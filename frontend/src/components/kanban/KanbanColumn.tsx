@@ -29,7 +29,7 @@ const getColumnIcon = (iconName: string) => {
   return IconComponent ? IconComponent() : <div className="w-4 h-4 rounded bg-gray-400" />
 }
 
-export function KanbanColumn({
+export const KanbanColumn = React.memo(function KanbanColumn({
   column,
   matters,
   isDragging,
@@ -73,7 +73,7 @@ export function KanbanColumn({
         "flex flex-col h-full bg-card rounded-lg border shadow-sm",
         "transition-all duration-200",
         column.color,
-        isOverDroppable && "ring-2 ring-primary ring-offset-2",
+        isOverDroppable && "ring-2 ring-blue-500 ring-offset-2 bg-blue-50/50 border-blue-300",
         isDragging && "opacity-50",
         isCollapsed && "w-16",
         className
@@ -218,4 +218,4 @@ export function KanbanColumn({
       )}
     </div>
   )
-}
+})
