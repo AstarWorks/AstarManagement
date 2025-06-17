@@ -163,6 +163,7 @@ export interface KanbanBoardProps {
   onMatterClick?: (matter: MatterCard) => void
   onMatterEdit?: (matter: MatterCard) => void
   onColumnCollapse?: (columnId: string, collapsed: boolean) => void
+  renderHeaderExtras?: () => React.ReactNode
   className?: string
 }
 

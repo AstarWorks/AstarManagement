@@ -94,6 +94,7 @@ export const KanbanBoard = React.memo(function KanbanBoard({
   dragContext,
   currentUser,
   onColumnCollapse,
+  renderHeaderExtras,
   className
 }: KanbanBoardProps) {
   // State for drag operations
@@ -406,14 +407,18 @@ export const KanbanBoard = React.memo(function KanbanBoard({
               </p>
             </div>
             <div className="flex items-center gap-4">
-              <div className="text-sm text-muted-foreground">
-                {filteredMatters.length} of {board.matters.length} matters
-              </div>
-              {viewPreferences.autoRefresh && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                  Auto-refresh
-                </div>
+              {renderHeaderExtras ? renderHeaderExtras() : (
+                <>
+                  <div className="text-sm text-muted-foreground">
+                    {filteredMatters.length} of {board.matters.length} matters
+                  </div>
+                  {viewPreferences.autoRefresh && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                      Auto-refresh
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>

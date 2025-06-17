@@ -11,6 +11,8 @@ export { KanbanBoardFoundation } from './KanbanBoardFoundation'
 // Main components (includes advanced features from T03-T05)
 export { KanbanBoard } from './KanbanBoard'
 export { KanbanBoardContainer } from './KanbanBoardContainer'
+export { KanbanBoardWithRealTime, EnhancedKanbanBoard } from './KanbanBoardWithRealTime'
+export { SyncStatusIndicator, SyncStatusIndicatorCompact } from './SyncStatusIndicator'
 export { KanbanColumn } from './KanbanColumn'
 export { MatterCard } from './MatterCard'
 export { KanbanEmptyState } from './KanbanEmptyState'

@@ -56,6 +56,10 @@ interface KanbanStoreState {
   // Auto-refresh state
   autoRefreshInterval: NodeJS.Timeout | null
   
+  // Real-time polling state
+  pollingEnabled: boolean
+  lastSyncTime: Date | null
+  
   // Actions
   // Board operations
   initializeBoard: (matters?: MatterCard[]) => void
@@ -83,6 +87,12 @@ interface KanbanStoreState {
   // Auto-refresh
   startAutoRefresh: () => void
   stopAutoRefresh: () => void
+  
+  // Real-time polling operations
+  setPollingEnabled: (enabled: boolean) => void
+  setLastSyncTime: (time: Date) => void
+  applyBulkUpdate: (matters: MatterCard[]) => void
+  fetchMatters: () => Promise<MatterCard[]>
   
   // Error handling
   setError: (error: BoardError | null) => void
@@ -150,6 +160,8 @@ export const useKanbanStore = create<KanbanStoreState>()(
           isDragging: false
         },
         autoRefreshInterval: null,
+        pollingEnabled: true,
+        lastSyncTime: null,
 
         // Board operations
         initializeBoard: (matters = []) => set((state) => {
@@ -588,6 +600,28 @@ export const useKanbanStore = create<KanbanStoreState>()(
           })
 
           return groups
+        },
+
+        // Real-time polling operations
+        setPollingEnabled: (enabled) => set((state) => {
+          state.pollingEnabled = enabled
+        }),
+
+        setLastSyncTime: (time) => set((state) => {
+          state.lastSyncTime = time
+        }),
+
+        applyBulkUpdate: (newMatters) => set((state) => {
+          state.matters = newMatters
+          if (state.board) {
+            state.board.matters = newMatters
+            state.board.lastUpdated = new Date().toISOString()
+          }
+          state.lastRefresh = new Date()
+        }),
+
+        fetchMatters: async () => {
+          return mockAPI.fetchMatters()
         }
       }))
     ),
@@ -635,5 +669,9 @@ export const useBoardActions = () => useKanbanStore((state) => ({
   startAutoRefresh: state.startAutoRefresh,
   stopAutoRefresh: state.stopAutoRefresh,
   setError: state.setError,
-  clearError: state.clearError
+  clearError: state.clearError,
+  setPollingEnabled: state.setPollingEnabled,
+  setLastSyncTime: state.setLastSyncTime,
+  applyBulkUpdate: state.applyBulkUpdate,
+  fetchMatters: state.fetchMatters
 }))
