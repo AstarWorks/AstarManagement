@@ -160,8 +160,14 @@ export const BREAKPOINTS = {
   wide: 1440
 }
 
-// Default filters
+// Default filters - T04_S02 specification
 export const DEFAULT_FILTERS = {
+  searchQuery: '',
+  selectedLawyers: [],
+  selectedPriorities: [],
+  showClosed: true,
+  
+  // Legacy fields for backward compatibility
   search: '',
   priorities: [],
   assignedLawyer: '',

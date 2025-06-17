@@ -76,8 +76,14 @@ export interface KanbanBoard {
   lastUpdated: string
 }
 
-// Filter options for the board
+// Filter options for the board - T04_S02 specification
 export interface FilterOptions {
+  searchQuery: string
+  selectedLawyers: string[]
+  selectedPriorities: MatterPriority[]
+  showClosed: boolean
+  
+  // Legacy fields for backward compatibility
   search?: string
   priorities?: MatterPriority[]
   assignedLawyer?: string

@@ -14,6 +14,7 @@ export { KanbanBoardContainer } from './KanbanBoardContainer'
 export { KanbanColumn } from './KanbanColumn'
 export { MatterCard } from './MatterCard'
 export { KanbanEmptyState } from './KanbanEmptyState'
+export { FilterBar } from './FilterBar'
 
 // Types and interfaces
 export type {
