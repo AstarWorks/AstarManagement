@@ -5,7 +5,10 @@
  * This provides a clean API surface for importing Kanban functionality.
  */
 
-// Main components
+// ===== FOUNDATIONAL COMPONENTS (T01_S02 SCOPE) =====
+export { KanbanBoardFoundation } from './KanbanBoardFoundation'
+
+// Main components (includes advanced features from T03-T05)
 export { KanbanBoard } from './KanbanBoard'
 export { KanbanBoardContainer } from './KanbanBoardContainer'
 export { KanbanColumn } from './KanbanColumn'
@@ -14,8 +17,15 @@ export { KanbanEmptyState } from './KanbanEmptyState'
 
 // Types and interfaces
 export type {
+  // Foundational types (T01_S02 scope)
+  KanbanBoardFoundationProps,
+  KanbanColumnFoundationProps,
+  FoundationConfig,
+  LanguagePreference,
+  
+  // Full feature types (T03-T05 scope)
   MatterStatus,
-  Priority,
+  MatterPriority,
   UserRole,
   KanbanColumn as KanbanColumnType,
   MatterCard as MatterCardType,
@@ -58,4 +68,4 @@ export {
 } from './constants'
 
 // Zod schemas for runtime validation
-export { MatterStatus as MatterStatusSchema, Priority as PrioritySchema, UserRole as UserRoleSchema } from './types'
+export { MatterStatus as MatterStatusSchema, MatterPriority as PrioritySchema, UserRole as UserRoleSchema } from './types'

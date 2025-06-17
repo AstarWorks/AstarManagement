@@ -23,9 +23,9 @@ export const MatterStatus = z.enum([
 
 export type MatterStatus = z.infer<typeof MatterStatus>
 
-// Priority levels with color coding
-export const Priority = z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT'])
-export type Priority = z.infer<typeof Priority>
+// Priority levels with color coding - renamed to match backend
+export const MatterPriority = z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT'])
+export type MatterPriority = z.infer<typeof MatterPriority>
 
 // User role for RBAC
 export const UserRole = z.enum(['LAWYER', 'CLERK', 'CLIENT'])
@@ -35,6 +35,7 @@ export type UserRole = z.infer<typeof UserRole>
 export interface KanbanColumn {
   id: string
   title: string
+  titleJa: string  // Japanese title for internationalization
   status: MatterStatus[]  // Multiple backend statuses can map to one column
   color: string
   order: number
@@ -48,7 +49,7 @@ export interface MatterCard {
   title: string
   clientName: string
   status: MatterStatus
-  priority: Priority
+  priority: MatterPriority
   assignedLawyer?: {
     id: string
     name: string
@@ -78,7 +79,7 @@ export interface KanbanBoard {
 // Filter options for the board
 export interface FilterOptions {
   search?: string
-  priorities?: Priority[]
+  priorities?: MatterPriority[]
   assignedLawyer?: string
   assignedClerk?: string
   dateRange?: {
@@ -223,9 +224,39 @@ export interface BoardError {
 export interface BoardMetrics {
   totalMatters: number
   mattersByStatus: Record<MatterStatus, number>
-  mattersByPriority: Record<Priority, number>
+  mattersByPriority: Record<MatterPriority, number>
   averageTimeInStatus: Record<MatterStatus, number> // days
   overdueMatters: number
   mattersCompletedToday: number
   lastRefresh: string
 }
+
+// ===== FOUNDATIONAL INTERFACES (T01_S02 SCOPE) =====
+// These interfaces are scoped for foundational layout only
+
+// Foundational board props - simple and focused on layout only
+export interface KanbanBoardFoundationProps {
+  title?: string
+  columns?: KanbanColumn[]
+  showJapanese?: boolean
+  className?: string
+  children?: React.ReactNode
+}
+
+// Foundational column props - no drag/drop or complex interactions
+export interface KanbanColumnFoundationProps {
+  column: KanbanColumn
+  showJapanese?: boolean
+  className?: string
+  style?: React.CSSProperties
+}
+
+// Foundational board configuration - basic layout settings only
+export interface FoundationConfig {
+  showJapanese: boolean
+  columns: KanbanColumn[]
+  mobileTabIndex: number
+}
+
+// Language preference for foundational display
+export type LanguagePreference = 'ja' | 'en'
