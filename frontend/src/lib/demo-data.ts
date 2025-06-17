@@ -3,7 +3,7 @@
  * Contains sample matters, users, and board configuration
  */
 
-import { MatterCard, KanbanBoard, UserRole, MatterStatus, Priority } from '@/components/kanban/types'
+import { MatterCard, KanbanBoard, UserRole, MatterStatus, MatterPriority } from '@/components/kanban/types'
 
 // Sample users for assignment
 export const demoUsers = {
@@ -52,7 +52,7 @@ export const demoMatters: MatterCard[] = [
     title: 'Employment Contract Dispute',
     clientName: 'ABC Corporation',
     status: 'INTAKE' as MatterStatus,
-    priority: 'HIGH' as Priority,
+    priority: 'HIGH' as MatterPriority,
     assignedLawyer: demoUsers.lawyers[0],
     assignedClerk: demoUsers.clerks[0],
     dueDate: '2025-01-25T17:00:00Z',
@@ -67,7 +67,7 @@ export const demoMatters: MatterCard[] = [
     title: 'Child Custody Modification',
     clientName: 'Jennifer Smith',
     status: 'INITIAL_REVIEW' as MatterStatus,
-    priority: 'URGENT' as Priority,
+    priority: 'URGENT' as MatterPriority,
     assignedLawyer: demoUsers.lawyers[1],
     assignedClerk: demoUsers.clerks[1],
     dueDate: '2025-01-20T16:00:00Z',
@@ -84,7 +84,7 @@ export const demoMatters: MatterCard[] = [
     title: 'Personal Injury Claim',
     clientName: 'Robert Johnson',
     status: 'INVESTIGATION' as MatterStatus,
-    priority: 'MEDIUM' as Priority,
+    priority: 'MEDIUM' as MatterPriority,
     assignedLawyer: demoUsers.lawyers[2],
     assignedClerk: demoUsers.clerks[0],
     dueDate: '2025-02-01T17:00:00Z',
@@ -99,7 +99,7 @@ export const demoMatters: MatterCard[] = [
     title: 'Real Estate Purchase Agreement',
     clientName: 'Green Valley Properties',
     status: 'RESEARCH' as MatterStatus,
-    priority: 'LOW' as Priority,
+    priority: 'LOW' as MatterPriority,
     assignedLawyer: demoUsers.lawyers[0],
     assignedClerk: demoUsers.clerks[1],
     dueDate: '2025-01-30T12:00:00Z',
@@ -114,7 +114,7 @@ export const demoMatters: MatterCard[] = [
     title: 'Criminal Defense - DUI',
     clientName: 'Mark Davis',
     status: 'DRAFT_PLEADINGS' as MatterStatus,
-    priority: 'HIGH' as Priority,
+    priority: 'HIGH' as MatterPriority,
     assignedLawyer: demoUsers.lawyers[1],
     dueDate: '2025-01-22T15:00:00Z',
     createdAt: '2025-01-05T08:00:00Z',
@@ -130,7 +130,7 @@ export const demoMatters: MatterCard[] = [
     title: 'Chapter 7 Bankruptcy Filing',
     clientName: 'Maria Gonzalez',
     status: 'FILED' as MatterStatus,
-    priority: 'MEDIUM' as Priority,
+    priority: 'MEDIUM' as MatterPriority,
     assignedLawyer: demoUsers.lawyers[2],
     assignedClerk: demoUsers.clerks[0],
     dueDate: '2025-02-15T17:00:00Z',
@@ -147,7 +147,7 @@ export const demoMatters: MatterCard[] = [
     title: 'Business Partnership Dissolution',
     clientName: 'Tech Innovations LLC',
     status: 'DISCOVERY' as MatterStatus,
-    priority: 'HIGH' as Priority,
+    priority: 'HIGH' as MatterPriority,
     assignedLawyer: demoUsers.lawyers[0],
     assignedClerk: demoUsers.clerks[1],
     dueDate: '2025-03-01T17:00:00Z',
@@ -162,7 +162,7 @@ export const demoMatters: MatterCard[] = [
     title: 'Motor Vehicle Accident Claim',
     clientName: 'Patricia Wilson',
     status: 'TRIAL_PREP' as MatterStatus,
-    priority: 'URGENT' as Priority,
+    priority: 'URGENT' as MatterPriority,
     assignedLawyer: demoUsers.lawyers[1],
     assignedClerk: demoUsers.clerks[0],
     dueDate: '2025-01-28T09:00:00Z',
@@ -179,7 +179,7 @@ export const demoMatters: MatterCard[] = [
     title: 'Divorce Settlement Mediation',
     clientName: 'Thomas Anderson',
     status: 'MEDIATION' as MatterStatus,
-    priority: 'MEDIUM' as Priority,
+    priority: 'MEDIUM' as MatterPriority,
     assignedLawyer: demoUsers.lawyers[2],
     assignedClerk: demoUsers.clerks[1],
     dueDate: '2025-02-10T10:00:00Z',
@@ -194,7 +194,7 @@ export const demoMatters: MatterCard[] = [
     title: 'Felony Drug Possession Trial',
     clientName: 'James Brown',
     status: 'TRIAL' as MatterStatus,
-    priority: 'URGENT' as Priority,
+    priority: 'URGENT' as MatterPriority,
     assignedLawyer: demoUsers.lawyers[0],
     dueDate: '2025-01-24T09:00:00Z',
     createdAt: '2024-09-15T08:30:00Z',
@@ -210,7 +210,7 @@ export const demoMatters: MatterCard[] = [
     title: 'Contract Breach Settlement',
     clientName: 'Downtown Retailers Inc',
     status: 'SETTLEMENT' as MatterStatus,
-    priority: 'LOW' as Priority,
+    priority: 'LOW' as MatterPriority,
     assignedLawyer: demoUsers.lawyers[1],
     assignedClerk: demoUsers.clerks[0],
     createdAt: '2024-06-10T09:00:00Z',
@@ -223,7 +223,7 @@ export const demoMatters: MatterCard[] = [
     title: 'Commercial Lease Review',
     clientName: 'Sunset Medical Center',
     status: 'CLOSED' as MatterStatus,
-    priority: 'LOW' as Priority,
+    priority: 'LOW' as MatterPriority,
     assignedLawyer: demoUsers.lawyers[2],
     assignedClerk: demoUsers.clerks[1],
     createdAt: '2024-07-22T14:00:00Z',
@@ -252,7 +252,7 @@ export const demoCurrentUser = {
 // Demo filters and preferences
 export const demoFilters = {
   search: '',
-  priorities: [] as Priority[],
+  priorities: [] as MatterPriority[],
   assignedLawyer: '',
   assignedClerk: '',
   showOverdueOnly: false

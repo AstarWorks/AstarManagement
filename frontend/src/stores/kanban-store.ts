@@ -19,7 +19,7 @@ import {
   SortOptions,
   ViewPreferences,
   MatterStatus,
-  Priority,
+  MatterPriority,
   BoardError,
   BoardMetrics
 } from '@/components/kanban/types'
@@ -531,7 +531,7 @@ export const useKanbanStore = create<KanbanStoreState>()(
           const metrics: BoardMetrics = {
             totalMatters: matters.length,
             mattersByStatus: {} as Record<MatterStatus, number>,
-            mattersByPriority: {} as Record<Priority, number>,
+            mattersByPriority: {} as Record<MatterPriority, number>,
             averageTimeInStatus: {} as Record<MatterStatus, number>,
             overdueMatters: matters.filter(m => m.isOverdue).length,
             mattersCompletedToday: matters.filter(m => {
