@@ -18,6 +18,21 @@ export { MatterCard } from './MatterCard'
 export { KanbanEmptyState } from './KanbanEmptyState'
 export { FilterBar } from './FilterBar'
 
+// ===== MOBILE RESPONSIVE COMPONENTS (T06_S02 SCOPE) =====
+export { KanbanBoardMobile } from './KanbanBoardMobile'
+export { KanbanBoardResponsive } from './KanbanBoardResponsive'
+export { MobileLayout, TouchTarget, SafeAreaContainer } from './MobileLayout'
+export { 
+  MobileCardSkeleton, 
+  MobileColumnLoading, 
+  MobileBoardLoading,
+  RefreshLoading,
+  PullToRefreshIndicator,
+  TouchLoadingFeedback,
+  ConnectionStatusLoading
+} from './MobileLoadingStates'
+export { OfflineIndicator, ConnectionStatus } from './OfflineIndicator'
+
 // Types and interfaces
 export type {
   // Foundational types (T01_S02 scope)
