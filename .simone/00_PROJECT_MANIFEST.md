@@ -4,7 +4,7 @@ current_milestone_id: M01
 highest_sprint_in_milestone: S04
 current_sprint_id: S02
 status: active
-last_updated: 2025-06-17 00:00:00
+last_updated: 2025-06-17 04:27:00
 ---
 
 # Project Manifest: Aster Management
@@ -37,7 +37,7 @@ This project follows a milestone-based development approach.
 
 ### S02 Frontend Kanban Board (🚀 ACTIVE)
 
-📋 Kanban Board Foundation (T01_S02) - Medium complexity
+🚧 Kanban Board Foundation (T01_S02) - Medium complexity (IN PROGRESS)
 📋 Matter Card Component (T02_S02) - Low complexity
 📋 Drag-and-Drop Implementation (T03_S02) - Medium complexity
 📋 State Management & API Integration (T04_S02) - Medium complexity
