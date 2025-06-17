@@ -34,6 +34,24 @@ Build the interactive Kanban board UI with drag-and-drop functionality for visua
 - [ ] Visual regression tests passing
 - [ ] Accessibility audit completed (WCAG 2.1 AA)
 
+## Sprint Tasks
+
+### Foundation & Components
+- **T01_S02_Kanban_Board_Foundation.md** - Set up the basic Kanban board layout with 7 default columns and responsive design
+- **T02_S02_Matter_Card_Component.md** - Create matter card component with priority-based styling and all required fields
+
+### Core Functionality
+- **T03_S02_Drag_Drop_Implementation.md** - Implement @dnd-kit/sortable for drag-and-drop with optimistic updates
+- **T04_S02_State_Management_API_Integration.md** - Set up Zustand store and integrate with backend REST API
+
+### Features & Enhancements
+- **T05_S02_Filters_Search_Features.md** - Build quick filters (lawyer, priority) and search functionality
+- **T06_S02_Real_Time_Updates.md** - Implement polling mechanism with future WebSocket support
+
+### Responsive & Internationalization
+- **T07_S02_Responsive_Mobile_Views.md** - Create responsive layouts and mobile-specific swipe navigation
+- **T08_S02_Internationalization_Setup.md** - Set up next-intl for Japanese/English language support
+
 ## Notes / Retrospective Points
 - Start with static data, then integrate with API in next sprint
 - Focus on smooth animations and user experience

@@ -35,12 +35,16 @@ This project follows a milestone-based development approach.
 🚧 Comprehensive Audit Logging System (T07_S01 IN PROGRESS)
 ⚠️ Unit Tests and API Documentation (T08_S01 COMPLETED WITH BLOCKERS)
 
-### S02 Frontend Kanban Board (📋 PLANNED)
+### S02 Frontend Kanban Board (📋 PLANNED - TASKS CREATED)
 
-📋 Kanban board component with drag-and-drop
-📋 Matter card components with real-time updates
-📋 Responsive design and mobile support
-📋 Internationalization (JP/EN) setup
+📋 Kanban Board Foundation (T01_S02) - Medium complexity
+📋 Matter Card Component (T02_S02) - Low complexity
+📋 Drag-and-Drop Implementation (T03_S02) - Medium complexity
+📋 State Management & API Integration (T04_S02) - Medium complexity
+📋 Filters & Search Features (T05_S02) - Low complexity
+📋 Real-time Updates (T06_S02) - Medium complexity
+📋 Responsive & Mobile Views (T07_S02) - Medium complexity
+📋 Internationalization Setup (T08_S02) - Low complexity
 
 ### S03 Integration and Polish (📋 PLANNED)
 
