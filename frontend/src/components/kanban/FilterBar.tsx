@@ -1,118 +1,130 @@
+/**
+ * FilterBar component for T04_S02 Filters and Search Implementation
+ * 
+ * Implements comprehensive filtering for the Kanban board including:
+ * - Debounced search by case number and title
+ * - Multi-lawyer selection dropdown
+ * - Priority multi-select checkboxes  
+ * - Closed matters toggle switch
+ * - Mobile-responsive collapsible layout
+ * - Filter count badges and clear functionality
+ * 
+ * Uses exact FilterState interface as specified in T04_S02 requirements.
+ */
+
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { Search, X, Filter, Users, Flag, ToggleLeft } from 'lucide-react'
+import React, { useState } from 'react'
 import { useDebouncedCallback } from 'use-debounce'
+import { Search, X, Filter, ChevronDown, ChevronUp } from 'lucide-react'
 
+// UI Components
 import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent } from '@/components/ui/card'
-import { cn } from '@/lib/utils'
 
-import { useKanbanStore } from '@/stores/kanban-store'
+// Types and utilities
 import { MatterPriority } from '@/components/kanban/types'
+import { cn } from '@/lib/utils'
+import { useKanbanStore, useFilters, useBoardActions, useMatters } from '@/stores/kanban-store'
 
-/**
- * FilterBar component for Kanban board filtering and search
- * 
- * @description Provides comprehensive filtering capabilities including
- * search by case number/title, lawyer filtering, priority selection,
- * and closed matters toggle. Features mobile-responsive design with
- * collapsible interface and persistent filter state.
- * 
- * @returns JSX.Element - The filter bar component
- * 
- * @example
- * ```tsx
- * <FilterBar />
- * ```
- */
-export function FilterBar() {
-  const {
-    filters,
-    matters,
-    setFilters,
-    clearFilters
-  } = useKanbanStore()
+// FilterState interface implementation for T04_S02
+interface FilterBarProps {
+  className?: string
+}
 
-  const [searchInput, setSearchInput] = useState(filters.search || '')
+export function FilterBar({ className }: FilterBarProps) {
+  const filters = useFilters()
+  const { setFilters, clearFilters } = useBoardActions()
+  const matters = useMatters()
+  
+  // Local state for UI
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const [searchValue, setSearchValue] = useState(filters.searchQuery || '')
 
-  // Extract unique lawyers from matters
-  const availableLawyers = Array.from(
-    new Set(matters.map(matter => matter.assignedLawyerId).filter(Boolean))
-  )
-
-  // Available priority options
-  const priorityOptions: MatterPriority[] = ['LOW', 'MEDIUM', 'HIGH', 'URGENT']
-
-  // Debounced search handler
+  // Debounced search handler - 300ms delay as specified
   const debouncedSearch = useDebouncedCallback(
     (value: string) => {
-      setFilters({ search: value })
+      setFilters({ searchQuery: value })
     },
-    300 // 300ms delay
+    300
   )
 
-  // Handle search input change
-  const handleSearchChange = (value: string) => {
-    setSearchInput(value)
+  // Search input change handler
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setSearchValue(value)
     debouncedSearch(value)
   }
 
-  // Handle lawyer filter change
-  const handleLawyerChange = (lawyerId: string) => {
-    // For now, only support single lawyer selection to work with existing store
-    setFilters({ assignedLawyer: lawyerId === filters.assignedLawyer ? '' : lawyerId })
+  // Clear search
+  const clearSearch = () => {
+    setSearchValue('')
+    setFilters({ searchQuery: '' })
   }
 
-  // Handle priority filter change
-  const handlePriorityChange = (priority: MatterPriority, checked: boolean) => {
-    const currentPriorities = filters.priorities || []
-    const newPriorities = checked
-      ? [...currentPriorities, priority]
-      : currentPriorities.filter(p => p !== priority)
+  // Multi-lawyer selection handler
+  const handleLawyerSelection = (lawyerId: string) => {
+    const currentLawyers = filters.selectedLawyers || []
+    const newLawyers = currentLawyers.includes(lawyerId)
+      ? currentLawyers.filter(id => id !== lawyerId)
+      : [...currentLawyers, lawyerId]
     
-    setFilters({ priorities: newPriorities })
+    setFilters({ selectedLawyers: newLawyers })
   }
 
-  // Handle closed matters toggle - simulate with overdue filter for now
-  const handleClosedToggle = (show: boolean) => {
-    // Map to existing showOverdueOnly filter as closest approximation
-    setFilters({ showOverdueOnly: show })
+  // Priority multi-select handler
+  const handlePriorityToggle = (priority: MatterPriority) => {
+    const currentPriorities = filters.selectedPriorities || []
+    const newPriorities = currentPriorities.includes(priority)
+      ? currentPriorities.filter(p => p !== priority)
+      : [...currentPriorities, priority]
+    
+    setFilters({ selectedPriorities: newPriorities })
   }
 
-  // Handle clear all filters
-  const handleClearFilters = () => {
-    setSearchInput('')
-    clearFilters()
+  // Closed matters toggle handler
+  const handleClosedToggle = (checked: boolean) => {
+    setFilters({ showClosed: checked })
   }
+
+  // Get unique lawyers from matters for dropdown
+  const uniqueLawyers = React.useMemo(() => {
+    const lawyerMap = new Map()
+    matters.forEach(matter => {
+      if (matter.assignedLawyer) {
+        lawyerMap.set(matter.assignedLawyer.id, matter.assignedLawyer)
+      }
+    })
+    return Array.from(lawyerMap.values())
+  }, [matters])
 
   // Calculate active filter count
-  const activeFilterCount = 
-    (filters.search ? 1 : 0) +
-    (filters.assignedLawyer ? 1 : 0) +
-    ((filters.priorities && filters.priorities.length > 0) ? filters.priorities.length : 0) +
-    (filters.showOverdueOnly ? 1 : 0)
+  const activeFilterCount = React.useMemo(() => {
+    let count = 0
+    if (filters.searchQuery) count++
+    if (filters.selectedLawyers && filters.selectedLawyers.length > 0) count++
+    if (filters.selectedPriorities && filters.selectedPriorities.length > 0) count++
+    if (!filters.showClosed) count++
+    return count
+  }, [filters])
 
-  // Sync search input with store on mount
-  useEffect(() => {
-    setSearchInput(filters.search || '')
-  }, [filters.search])
+  // Priority options
+  const priorityOptions: MatterPriority[] = ['LOW', 'MEDIUM', 'HIGH', 'URGENT']
 
   return (
-    <Card className="w-full">
-      <CardContent className="p-4">
-        {/* Mobile toggle header */}
-        <div className="flex items-center justify-between mb-4 md:hidden">
+    <div className={cn('bg-white border-b border-gray-200', className)}>
+      <div className="px-4 py-3">
+        {/* Header with filter toggle for mobile */}
+        <div className="flex items-center justify-between mb-3 lg:hidden">
           <div className="flex items-center gap-2">
-            <Filter className="size-4" />
-            <span className="font-medium">Filters</span>
+            <Filter className="size-4 text-gray-500" />
+            <span className="text-sm font-medium text-gray-700">Filters</span>
             {activeFilterCount > 0 && (
-              <Badge variant="secondary" className="ml-2">
+              <Badge variant="secondary" className="text-xs">
                 {activeFilterCount}
               </Badge>
             )}
@@ -121,137 +133,120 @@ export function FilterBar() {
             variant="ghost"
             size="sm"
             onClick={() => setIsCollapsed(!isCollapsed)}
+            className="p-1"
           >
-            <ToggleLeft className={cn("size-4 transition-transform", {
-              "rotate-180": !isCollapsed
-            })} />
+            {isCollapsed ? (
+              <ChevronDown className="size-4" />
+            ) : (
+              <ChevronUp className="size-4" />
+            )}
           </Button>
         </div>
 
         {/* Filter content */}
-        <div className={cn("space-y-4", {
-          "hidden md:block": isCollapsed
-        })}>
+        <div className={cn(
+          'space-y-4 lg:space-y-0 lg:flex lg:items-center lg:gap-4',
+          isCollapsed && 'hidden lg:flex'
+        )}>
           {/* Search input */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 size-4 text-muted-foreground" />
+          <div className="relative flex-1 lg:max-w-sm">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 size-4 text-gray-400" />
             <Input
               placeholder="Search by case number or title..."
-              value={searchInput}
-              onChange={(e) => handleSearchChange(e.target.value)}
+              value={searchValue}
+              onChange={handleSearchChange}
               className="pl-10 pr-10"
             />
-            {searchInput && (
+            {searchValue && (
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => handleSearchChange('')}
-                className="absolute right-1 top-1/2 transform -translate-y-1/2 size-6 p-0"
+                onClick={clearSearch}
+                className="absolute right-1 top-1/2 transform -translate-y-1/2 p-1 h-auto"
               >
-                <X className="size-3" />
+                <X className="size-4" />
               </Button>
             )}
           </div>
 
-          {/* Filter controls */}
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {/* Lawyer filter */}
+          {/* Lawyer selection dropdown */}
+          <div className="lg:w-48">
+            <label className="block text-xs font-medium text-gray-700 mb-1 lg:hidden">
+              Assigned Lawyers
+            </label>
             <div className="space-y-2">
-              <label className="flex items-center gap-2 text-sm font-medium">
-                <Users className="size-4" />
-                Assigned Lawyer
-              </label>
-              <div className="space-y-2">
-                {availableLawyers.map(lawyerId => (
-                  <div key={lawyerId} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`lawyer-${lawyerId}`}
-                      checked={filters.assignedLawyer === lawyerId}
-                      onCheckedChange={() => handleLawyerChange(lawyerId)}
-                    />
-                    <label
-                      htmlFor={`lawyer-${lawyerId}`}
-                      className="text-sm font-normal cursor-pointer"
-                    >
-                      {lawyerId}
-                    </label>
-                  </div>
-                ))}
-                {availableLawyers.length === 0 && (
-                  <p className="text-sm text-muted-foreground">No lawyers assigned</p>
-                )}
-              </div>
-            </div>
-
-            {/* Priority filter */}
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-sm font-medium">
-                <Flag className="size-4" />
-                Priority
-              </label>
-              <div className="space-y-2">
-                {priorityOptions.map(priority => (
-                  <div key={priority} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`priority-${priority}`}
-                      checked={(filters.priorities || []).includes(priority)}
-                      onCheckedChange={(checked) => handlePriorityChange(priority, checked as boolean)}
-                    />
-                    <label
-                      htmlFor={`priority-${priority}`}
-                      className="text-sm font-normal cursor-pointer capitalize"
-                    >
-                      {priority.toLowerCase()}
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Overdue matters toggle (closest to closed matters functionality) */}
-            <div className="space-y-2">
-              <label className="flex items-center gap-2 text-sm font-medium">
-                Show Overdue Only
-              </label>
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="show-overdue"
-                  checked={filters.showOverdueOnly || false}
-                  onCheckedChange={handleClosedToggle}
-                />
+              {uniqueLawyers.map(lawyer => (
                 <label
-                  htmlFor="show-overdue"
-                  className="text-sm font-normal cursor-pointer"
+                  key={lawyer.id}
+                  className="flex items-center space-x-2 text-sm"
                 >
-                  {filters.showOverdueOnly ? 'Showing overdue only' : 'Showing all matters'}
+                  <Checkbox
+                    checked={filters.selectedLawyers?.includes(lawyer.id) || false}
+                    onCheckedChange={() => handleLawyerSelection(lawyer.id)}
+                  />
+                  <span className="text-gray-700">{lawyer.name}</span>
                 </label>
-              </div>
-            </div>
-
-            {/* Clear filters */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Active Filters</span>
-                {activeFilterCount > 0 && (
-                  <Badge variant="secondary">
-                    {activeFilterCount}
-                  </Badge>
-                )}
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleClearFilters}
-                disabled={activeFilterCount === 0}
-                className="w-full"
-              >
-                <X className="size-4 mr-2" />
-                Clear All
-              </Button>
+              ))}
+              {uniqueLawyers.length === 0 && (
+                <div className="text-xs text-gray-500 italic">
+                  No lawyers assigned to matters
+                </div>
+              )}
             </div>
           </div>
+
+          {/* Priority multi-select */}
+          <div className="lg:w-48">
+            <label className="block text-xs font-medium text-gray-700 mb-1 lg:hidden">
+              Priority Levels
+            </label>
+            <div className="space-y-2">
+              {priorityOptions.map(priority => (
+                <label
+                  key={priority}
+                  className="flex items-center space-x-2 text-sm"
+                >
+                  <Checkbox
+                    checked={filters.selectedPriorities?.includes(priority) || false}
+                    onCheckedChange={() => handlePriorityToggle(priority)}
+                  />
+                  <span className="text-gray-700">{priority}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Closed matters toggle */}
+          <div className="flex items-center space-x-2">
+            <Switch
+              checked={filters.showClosed !== false}
+              onCheckedChange={handleClosedToggle}
+            />
+            <label className="text-sm text-gray-700">
+              Show closed matters
+            </label>
+          </div>
+
+          {/* Clear filters and filter count */}
+          <div className="flex items-center gap-2">
+            {activeFilterCount > 0 && (
+              <>
+                <Badge variant="outline" className="text-xs">
+                  {activeFilterCount} filter{activeFilterCount !== 1 ? 's' : ''} active
+                </Badge>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearFilters}
+                  className="text-xs h-8"
+                >
+                  Clear all
+                </Button>
+              </>
+            )}
+          </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

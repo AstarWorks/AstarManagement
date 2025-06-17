@@ -16,7 +16,10 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@hookform/resolvers": "^5.1.1",
     "@radix-ui/react-avatar": "^1.1.10",
+    "@radix-ui/react-checkbox": "^1.1.10",
+    "@radix-ui/react-select": "^2.1.10",
     "@radix-ui/react-slot": "^1.2.3",
+    "@radix-ui/react-switch": "^1.1.10",
     "@radix-ui/react-tooltip": "^1.2.7",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -28,6 +31,7 @@
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.57.0",
     "tailwind-merge": "^3.3.0",
+    "use-debounce": "^10.0.4",
     "zod": "^3.25.64",
     "zustand": "^5.0.5"
   },
