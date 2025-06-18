@@ -51,6 +51,7 @@
     "tailwind-merge": "^3.3.0",
     "use-debounce": "^10.0.4",
     "uuid": "^11.1.0",
+    "web-vitals": "^5.0.3",
     "zod": "^3.25.64",
     "zustand": "^5.0.5"
   },

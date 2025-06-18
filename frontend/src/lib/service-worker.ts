@@ -5,6 +5,8 @@
  * for the mobile Kanban board interface.
  */
 
+import React from 'react'
+
 interface ServiceWorkerEvents {
   onInstalled?: () => void
   onUpdated?: () => void
@@ -326,6 +328,3 @@ export function useServiceWorker() {
     isOffline: !isOnline
   }
 }
-
-// Add React import
-const React = require('react')

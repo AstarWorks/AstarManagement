@@ -3,6 +3,7 @@
  * Implements memoization and selective subscriptions to minimize re-renders
  */
 
+import React from 'react'
 import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
 import { shallow } from 'zustand/shallow'
@@ -304,5 +305,3 @@ export const useMemoryLeakPrevention = () => {
   }
 }
 
-// Export React import for hooks
-import React from 'react'

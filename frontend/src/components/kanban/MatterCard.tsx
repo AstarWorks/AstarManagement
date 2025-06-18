@@ -71,6 +71,24 @@ export const MatterCard = React.memo(function MatterCard({
   const { searchMode, lastSearchQuery } = useSearchState()
   const searchTerms = useStoreSearchTerms()
   
+  // Memoize expensive computations
+  const priorityConfig = React.useMemo(() => PRIORITY_COLORS[matter.priority], [matter.priority])
+  const statusColor = React.useMemo(() => STATUS_COLORS[matter.status], [matter.status])
+  const PriorityIcon = React.useMemo(() => getPriorityIcon(matter.priority), [matter.priority])
+  
+  // Check if matter is overdue - memoized
+  const matterIsOverdue = React.useMemo(() => 
+    matter.dueDate ? isOverdue(matter.dueDate) : false, 
+    [matter.dueDate]
+  )
+
+  // Determine card size based on view preferences - memoized
+  const cardHeight = React.useMemo(() => ({
+    compact: 'h-20',
+    normal: 'h-28',
+    detailed: 'h-36'
+  }[viewPreferences.cardSize]), [viewPreferences.cardSize])
+  
   // currentUser and onEdit are available in props but not used in demo
   const {
     attributes,
@@ -83,26 +101,13 @@ export const MatterCard = React.memo(function MatterCard({
     id: matter.id
   })
 
-  const style = {
+  const style = React.useMemo(() => ({
     transform: CSS.Transform.toString(transform),
     transition: transition || ANIMATION_CONFIG.cardHoverTransition,
     willChange: isActuallyDragging ? 'transform' : 'auto',
-  }
+  }), [transform, transition, isActuallyDragging])
 
   const isActuallyDragging = isDragging || isSortableDragging
-  const priorityConfig = PRIORITY_COLORS[matter.priority]
-  const statusColor = STATUS_COLORS[matter.status]
-  const PriorityIcon = getPriorityIcon(matter.priority)
-  
-  // Check if matter is overdue
-  const matterIsOverdue = matter.dueDate ? isOverdue(matter.dueDate) : false
-
-  // Determine card size based on view preferences
-  const cardHeight = {
-    compact: 'h-20',
-    normal: 'h-28',
-    detailed: 'h-36'
-  }[viewPreferences.cardSize]
 
   return (
     <Card
@@ -295,4 +300,50 @@ export const MatterCard = React.memo(function MatterCard({
       </CardContent>
     </Card>
   )
+}, (prevProps, nextProps) => {
+  // Custom comparison function for React.memo
+  const prevMatter = prevProps.matter
+  const nextMatter = nextProps.matter
+  
+  // Compare matter object properties that affect rendering
+  if (
+    prevMatter.id !== nextMatter.id ||
+    prevMatter.title !== nextMatter.title ||
+    prevMatter.status !== nextMatter.status ||
+    prevMatter.priority !== nextMatter.priority ||
+    prevMatter.updatedAt !== nextMatter.updatedAt ||
+    prevMatter.dueDate !== nextMatter.dueDate ||
+    prevMatter.clientName !== nextMatter.clientName ||
+    prevMatter.caseNumber !== nextMatter.caseNumber
+  ) {
+    return false // Re-render if any of these changed
+  }
+  
+  // Compare other props
+  if (
+    prevProps.isDragging !== nextProps.isDragging ||
+    prevProps.viewPreferences?.cardSize !== nextProps.viewPreferences?.cardSize ||
+    prevProps.viewPreferences?.showPriority !== nextProps.viewPreferences?.showPriority ||
+    prevProps.viewPreferences?.showDueDates !== nextProps.viewPreferences?.showDueDates ||
+    prevProps.viewPreferences?.showAvatars !== nextProps.viewPreferences?.showAvatars ||
+    prevProps.className !== nextProps.className
+  ) {
+    return false // Re-render if any of these changed
+  }
+  
+  // Only re-render for search highlights if in search mode
+  const prevSearchHighlights = prevMatter.searchHighlights
+  const nextSearchHighlights = nextMatter.searchHighlights
+  if (prevSearchHighlights || nextSearchHighlights) {
+    if (!prevSearchHighlights || !nextSearchHighlights) return false
+    if (
+      JSON.stringify(prevSearchHighlights.title) !== JSON.stringify(nextSearchHighlights.title) ||
+      JSON.stringify(prevSearchHighlights.clientName) !== JSON.stringify(nextSearchHighlights.clientName) ||
+      JSON.stringify(prevSearchHighlights.caseNumber) !== JSON.stringify(nextSearchHighlights.caseNumber)
+    ) {
+      return false
+    }
+  }
+  
+  return true // Don't re-render if none of the above changed
 })
