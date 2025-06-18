@@ -4,6 +4,7 @@ import "./globals.css";
 import { QueryProvider } from '@/providers/QueryProvider'
 import { ToastProvider } from '@/providers/ToastProvider'
 import { ServiceWorkerProvider } from '@/providers/ServiceWorkerProvider'
+import { ErrorToastProvider } from '@/components/providers/ErrorToastProvider'
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -47,7 +48,9 @@ export default function RootLayout({
         <ServiceWorkerProvider>
           <QueryProvider>
             <ToastProvider>
-              {children}
+              <ErrorToastProvider>
+                {children}
+              </ErrorToastProvider>
             </ToastProvider>
           </QueryProvider>
         </ServiceWorkerProvider>
