@@ -50,3 +50,11 @@ gen
 
 *storybook.log
 storybook-static
+
+# Playwright E2E testing
+/test-results/
+/playwright-report/
+/playwright/.cache/
+/screenshots/
+/videos/
+.env.test.local
