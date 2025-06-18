@@ -45,21 +45,22 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ErrorBoundary>
-          <ServiceWorkerProvider>
-            <QueryProvider>
-              <ToastProvider>
-                <ErrorToastProvider>
-                  <OfflineDetector>
-                    {children}
-                  </OfflineDetector>
-                </ErrorToastProvider>
-              </ToastProvider>
-            </QueryProvider>
-          </ServiceWorkerProvider>
-        </ErrorBoundary>
+        <div className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+          <ErrorBoundary>
+            <ServiceWorkerProvider>
+              <QueryProvider>
+                <ToastProvider>
+                  <ErrorToastProvider>
+                    <OfflineDetector>
+                      {children}
+                    </OfflineDetector>
+                  </ErrorToastProvider>
+                </ToastProvider>
+              </QueryProvider>
+            </ServiceWorkerProvider>
+          </ErrorBoundary>
+        </div>
       </body>
     </html>
   );
