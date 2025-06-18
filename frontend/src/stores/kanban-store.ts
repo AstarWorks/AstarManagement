@@ -18,15 +18,73 @@ import {
   FilterOptions,
   SortOptions,
   ViewPreferences,
-  MatterStatus,
-  MatterPriority,
-  BoardError,
   BoardMetrics
 } from '@/components/kanban/types'
 import { DEFAULT_COLUMNS, DEFAULT_VIEW_PREFERENCES, DEFAULT_FILTERS, DEFAULT_SORTING } from '@/components/kanban/constants'
+import { 
+  getMatters, 
+  createMatter, 
+  updateMatter, 
+  deleteMatter, 
+  updateMatterStatus,
+  type MatterDto,
+  type CreateMatterRequest,
+  MatterStatus,
+  MatterPriority 
+} from '@/services/api/matter.service'
+import { handleApiError, type BoardError } from '@/services/error/error.handler'
 
-// API simulation delay for realistic UX
-const API_DELAY = 300
+// DTO to UI model conversion functions
+function convertMatterDtoToCard(dto: MatterDto): MatterCard {
+  return {
+    id: dto.id,
+    caseNumber: dto.caseNumber,
+    title: dto.title,
+    description: dto.description || '',
+    clientName: dto.clientName,
+    clientContact: dto.clientContact || '',
+    opposingParty: dto.opposingParty || '',
+    courtName: dto.courtName || '',
+    status: dto.status,
+    priority: dto.priority,
+    filingDate: dto.filingDate || '',
+    estimatedCompletionDate: dto.estimatedCompletionDate || '',
+    assignedLawyerId: dto.assignedLawyerId || '',
+    assignedLawyerName: dto.assignedLawyerName || '',
+    assignedClerkId: dto.assignedClerkId || '',
+    assignedClerkName: dto.assignedClerkName || '',
+    notes: dto.notes || '',
+    tags: dto.tags || [],
+    isActive: dto.isActive,
+    isOverdue: dto.isOverdue,
+    isCompleted: dto.isCompleted,
+    ageInDays: dto.ageInDays,
+    createdAt: dto.createdAt,
+    updatedAt: dto.updatedAt,
+    createdBy: dto.createdBy,
+    updatedBy: dto.updatedBy
+  }
+}
+
+function convertMatterCardToCreateRequest(matter: Omit<MatterCard, 'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'updatedBy' | 'isActive' | 'isOverdue' | 'isCompleted' | 'ageInDays'>): CreateMatterRequest {
+  return {
+    caseNumber: matter.caseNumber,
+    title: matter.title,
+    description: matter.description || undefined,
+    status: matter.status as MatterStatus,
+    priority: matter.priority as MatterPriority,
+    clientName: matter.clientName,
+    clientContact: matter.clientContact || undefined,
+    opposingParty: matter.opposingParty || undefined,
+    courtName: matter.courtName || undefined,
+    filingDate: matter.filingDate || undefined,
+    estimatedCompletionDate: matter.estimatedCompletionDate || undefined,
+    assignedLawyerId: matter.assignedLawyerId,
+    assignedClerkId: matter.assignedClerkId || undefined,
+    notes: matter.notes || undefined,
+    tags: matter.tags
+  }
+}
 
 // Store state interface
 interface KanbanStoreState {
@@ -104,41 +162,6 @@ interface KanbanStoreState {
   getMattersByColumn: () => Record<string, MatterCard[]>
 }
 
-// Mock API functions (replace with real API calls)
-const mockAPI = {
-  async fetchMatters(): Promise<MatterCard[]> {
-    await new Promise(resolve => setTimeout(resolve, API_DELAY))
-    // Return empty array - will be populated by demo data
-    return []
-  },
-  
-  async createMatter(matter: Omit<MatterCard, 'id' | 'createdAt' | 'updatedAt'>): Promise<MatterCard> {
-    await new Promise(resolve => setTimeout(resolve, API_DELAY))
-    const now = new Date().toISOString()
-    return {
-      ...matter,
-      id: `matter-${Date.now()}`,
-      createdAt: now,
-      updatedAt: now
-    }
-  },
-  
-  async updateMatter(): Promise<MatterCard> {
-    await new Promise(resolve => setTimeout(resolve, API_DELAY))
-    // Return updated matter - in real implementation, fetch from server
-    throw new Error('Matter not found')
-  },
-  
-  async deleteMatter(): Promise<void> {
-    await new Promise(resolve => setTimeout(resolve, API_DELAY))
-    // Delete matter on server
-  },
-  
-  async moveMatter(): Promise<void> {
-    await new Promise(resolve => setTimeout(resolve, API_DELAY))
-    // Update matter status on server
-  }
-}
 
 // Create the store
 export const useKanbanStore = create<KanbanStoreState>()(
@@ -184,7 +207,9 @@ export const useKanbanStore = create<KanbanStoreState>()(
           })
 
           try {
-            const matters = await mockAPI.fetchMatters()
+            // Fetch matters from real API with pagination
+            const response = await getMatters({ page: 0, size: 100, sort: 'createdAt,desc' })
+            const matters = response.content.map(convertMatterDtoToCard)
             
             set((state) => {
               state.matters = matters
@@ -196,14 +221,9 @@ export const useKanbanStore = create<KanbanStoreState>()(
               state.isLoading = false
             })
           } catch (error) {
+            const boardError = handleApiError(error)
             set((state) => {
-              state.error = {
-                type: 'network',
-                message: 'Failed to refresh board data',
-                details: error instanceof Error ? error.message : 'Unknown error',
-                timestamp: new Date().toISOString(),
-                action: 'Try refreshing the page'
-              }
+              state.error = boardError
               state.isLoading = false
             })
           }
@@ -217,7 +237,12 @@ export const useKanbanStore = create<KanbanStoreState>()(
           })
 
           try {
-            const newMatter = await mockAPI.createMatter(matterData)
+            // Convert UI model to API request format
+            const createRequest = convertMatterCardToCreateRequest(matterData)
+            
+            // Create matter via API
+            const createdMatterDto = await createMatter(createRequest)
+            const newMatter = convertMatterDtoToCard(createdMatterDto)
             
             set((state) => {
               state.matters.push(newMatter)
@@ -231,14 +256,9 @@ export const useKanbanStore = create<KanbanStoreState>()(
 
             return newMatter.id
           } catch (error) {
+            const boardError = handleApiError(error)
             set((state) => {
-              state.error = {
-                type: 'server',
-                message: 'Failed to create matter',
-                details: error instanceof Error ? error.message : 'Unknown error',
-                timestamp: new Date().toISOString(),
-                action: 'Please try again'
-              }
+              state.error = boardError
               state.isLoading = false
             })
             throw error
@@ -266,9 +286,35 @@ export const useKanbanStore = create<KanbanStoreState>()(
           })
 
           try {
-            await mockAPI.updateMatter()
+            // Update via API (convert updates to API format)
+            const updateRequest = {
+              title: updates.title || originalMatter.title,
+              description: updates.description,
+              clientName: updates.clientName || originalMatter.clientName,
+              clientContact: updates.clientContact,
+              opposingParty: updates.opposingParty,
+              courtName: updates.courtName,
+              filingDate: updates.filingDate,
+              estimatedCompletionDate: updates.estimatedCompletionDate,
+              priority: updates.priority as MatterPriority,
+              assignedLawyerId: updates.assignedLawyerId,
+              assignedClerkId: updates.assignedClerkId,
+              notes: updates.notes,
+              tags: updates.tags
+            }
+            
+            const updatedMatterDto = await updateMatter(matterId, updateRequest)
+            const updatedMatter = convertMatterDtoToCard(updatedMatterDto)
             
             set((state) => {
+              const index = state.matters.findIndex(m => m.id === matterId)
+              if (index !== -1) {
+                state.matters[index] = updatedMatter
+              }
+              if (state.board) {
+                state.board.matters = state.matters
+                state.board.lastUpdated = new Date().toISOString()
+              }
               state.lastRefresh = new Date()
             })
           } catch (error) {
@@ -278,13 +324,7 @@ export const useKanbanStore = create<KanbanStoreState>()(
               if (matterIndex !== -1) {
                 state.matters[matterIndex] = originalMatter
               }
-              state.error = {
-                type: 'server',
-                message: 'Failed to update matter',
-                details: error instanceof Error ? error.message : 'Unknown error',
-                timestamp: new Date().toISOString(),
-                action: 'Changes have been reverted'
-              }
+              state.error = handleApiError(error)
             })
             throw error
           }
@@ -303,7 +343,8 @@ export const useKanbanStore = create<KanbanStoreState>()(
           })
 
           try {
-            await mockAPI.deleteMatter()
+            // Delete via API
+            await deleteMatter(matterId)
             
             set((state) => {
               state.lastRefresh = new Date()
@@ -312,19 +353,13 @@ export const useKanbanStore = create<KanbanStoreState>()(
             // Rollback optimistic delete
             set((state) => {
               state.matters = originalMatters
-              state.error = {
-                type: 'server',
-                message: 'Failed to delete matter',
-                details: error instanceof Error ? error.message : 'Unknown error',
-                timestamp: new Date().toISOString(),
-                action: 'Matter has been restored'
-              }
+              state.error = handleApiError(error)
             })
             throw error
           }
         },
 
-        moveMatter: async (matterId, newStatus) => {
+        moveMatter: async (matterId, newStatus, newColumnId) => {
           // Optimistic move
           const originalMatter = get().matters.find(m => m.id === matterId)
           if (!originalMatter) return
@@ -345,9 +380,22 @@ export const useKanbanStore = create<KanbanStoreState>()(
           })
 
           try {
-            await mockAPI.moveMatter()
+            // Update status via API
+            const updatedMatterDto = await updateMatterStatus(matterId, {
+              status: newStatus as MatterStatus,
+              comment: `Moved to ${newColumnId}`
+            })
+            const updatedMatter = convertMatterDtoToCard(updatedMatterDto)
             
             set((state) => {
+              const index = state.matters.findIndex(m => m.id === matterId)
+              if (index !== -1) {
+                state.matters[index] = updatedMatter
+              }
+              if (state.board) {
+                state.board.matters = state.matters
+                state.board.lastUpdated = new Date().toISOString()
+              }
               state.lastRefresh = new Date()
             })
           } catch (error) {
@@ -357,13 +405,7 @@ export const useKanbanStore = create<KanbanStoreState>()(
               if (matterIndex !== -1) {
                 state.matters[matterIndex] = originalMatter
               }
-              state.error = {
-                type: 'server',
-                message: 'Failed to move matter',
-                details: error instanceof Error ? error.message : 'Unknown error',
-                timestamp: new Date().toISOString(),
-                action: 'Matter has been moved back'
-              }
+              state.error = handleApiError(error)
             })
             throw error
           }
@@ -621,7 +663,13 @@ export const useKanbanStore = create<KanbanStoreState>()(
         }),
 
         fetchMatters: async () => {
-          return mockAPI.fetchMatters()
+          try {
+            const response = await getMatters({ page: 0, size: 100, sort: 'updatedAt,desc' })
+            return response.content.map(convertMatterDtoToCard)
+          } catch (error) {
+            console.error('Failed to fetch matters:', error)
+            throw error
+          }
         }
       }))
     ),

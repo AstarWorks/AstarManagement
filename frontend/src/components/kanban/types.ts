@@ -42,14 +42,37 @@ export interface KanbanColumn {
   isCollapsed?: boolean
 }
 
-// Matter card data for display
+// Matter card data for display - matching backend DTO exactly
 export interface MatterCard {
   id: string
   caseNumber: string
   title: string
+  description?: string
   clientName: string
+  clientContact?: string
+  opposingParty?: string
+  courtName?: string
   status: MatterStatus
   priority: MatterPriority
+  filingDate?: string
+  estimatedCompletionDate?: string
+  actualCompletionDate?: string
+  assignedLawyerId?: string
+  assignedLawyerName?: string
+  assignedClerkId?: string
+  assignedClerkName?: string
+  notes?: string
+  tags: string[]
+  isActive: boolean
+  isOverdue: boolean
+  isCompleted: boolean
+  ageInDays: number
+  createdAt: string
+  updatedAt: string
+  createdBy: string
+  updatedBy: string
+  
+  // Legacy fields for backward compatibility
   assignedLawyer?: {
     id: string
     name: string
@@ -61,9 +84,6 @@ export interface MatterCard {
     avatar?: string
   }
   dueDate?: string
-  createdAt: string
-  updatedAt: string
-  isOverdue?: boolean
   statusDuration?: number // days in current status
 }
 
@@ -218,14 +238,8 @@ export interface VirtualScrollConfig {
   threshold: number // number of cards before virtualization kicks in
 }
 
-// Error handling
-export interface BoardError {
-  type: 'network' | 'validation' | 'authorization' | 'server' | 'unknown'
-  message: string
-  details?: string
-  timestamp: string
-  action?: string // suggested action for user
-}
+// Re-export error types from error handler
+export type { BoardError, ErrorType, ErrorAction } from '@/services/error/error.handler'
 
 // Analytics and metrics
 export interface BoardMetrics {

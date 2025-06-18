@@ -1,24 +1,26 @@
 import { z } from 'zod'
 
-// Enums matching the R02 Kanban Board UI requirements
+// Enums matching the backend API exactly
 export const MatterStatusSchema = z.enum([
-  'INITIAL_CONSULTATION',
-  'DOCUMENT_PREPARATION',
+  'INTAKE',
+  'INITIAL_REVIEW',
+  'INVESTIGATION',
+  'RESEARCH',
+  'DRAFT_PLEADINGS',
   'FILED',
-  'IN_PROGRESS',
-  'IN_COURT',
-  'SETTLEMENT_DISCUSSION',
-  'CLOSED_WON',
-  'CLOSED_LOST',
-  'CLOSED_SETTLED',
-  'CLOSED_WITHDRAWN'
+  'DISCOVERY',
+  'MEDIATION',
+  'TRIAL_PREP',
+  'TRIAL',
+  'SETTLEMENT',
+  'CLOSED'
 ])
 
 export const PrioritySchema = z.enum([
-  'URGENT',
-  'HIGH',
+  'LOW',
   'MEDIUM',
-  'LOW'
+  'HIGH',
+  'URGENT'
 ])
 
 // Core Matter schema matching backend API
