@@ -43,6 +43,7 @@ import {
 import { searchAnalytics } from '@/services/analytics/search-analytics.service'
 import { handleApiError, type BoardError } from '@/services/error/error.handler'
 
+
 // DTO to UI model conversion functions
 function convertSearchResultToCard(result: MatterSearchResult): MatterCard {
   return {
@@ -222,6 +223,111 @@ interface KanbanStoreState {
   getSearchTerms: () => string[]
 }
 
+// Server state cache for SSR support
+let serverSnapshotCache: KanbanStoreState | null = null
+let serverSnapshotTimestamp: number = 0
+const SERVER_SNAPSHOT_TTL = 1000 * 60 * 5 // 5 minutes
+
+// SSR detection utility
+const isServer = typeof window === 'undefined'
+
+// Get server snapshot with caching
+const getServerSnapshot = (): KanbanStoreState => {
+  // Return cached snapshot if valid
+  if (serverSnapshotCache && 
+      Date.now() - serverSnapshotTimestamp < SERVER_SNAPSHOT_TTL) {
+    return serverSnapshotCache
+  }
+
+  // Create minimal server state
+  const serverState: KanbanStoreState = {
+    // Data state
+    board: null,
+    matters: [],
+    
+    // UI state
+    isLoading: false,
+    error: null,
+    lastRefresh: new Date(),
+    
+    // Filter and sort state
+    filters: DEFAULT_FILTERS,
+    sorting: DEFAULT_SORTING,
+    
+    // View preferences (from persisted storage if available)
+    viewPreferences: DEFAULT_VIEW_PREFERENCES,
+    
+    // Drag state
+    dragContext: {
+      activeId: null,
+      overId: null,
+      isDragging: false
+    },
+    
+    // Auto-refresh state
+    autoRefreshInterval: null,
+    
+    // Real-time polling state
+    pollingEnabled: false,
+    lastSyncTime: null,
+    
+    // Search state
+    searchResults: [],
+    searchSuggestions: [],
+    isSearching: false,
+    searchMode: false,
+    lastSearchQuery: '',
+    searchHistory: [],
+    
+    // Stub all actions with no-ops for server
+    initializeBoard: () => {},
+    refreshBoard: async () => {},
+    addMatter: async () => '',
+    updateMatter: async () => {},
+    deleteMatter: async () => {},
+    moveMatter: async () => {},
+    updateMatterStatus: async () => {},
+    setFilters: () => {},
+    clearFilters: () => {},
+    setSorting: () => {},
+    setViewPreferences: () => {},
+    toggleColumn: () => {},
+    reorderColumns: () => {},
+    setDragContext: () => {},
+    startAutoRefresh: () => {},
+    stopAutoRefresh: () => {},
+    setPollingEnabled: () => {},
+    setLastSyncTime: () => {},
+    applyBulkUpdate: () => {},
+    fetchMatters: async () => [],
+    setError: () => {},
+    clearError: () => {},
+    performSearch: async () => {},
+    getSuggestions: async () => {},
+    clearSearch: () => {},
+    exitSearchMode: () => {},
+    addToSearchHistory: () => {},
+    clearSearchHistory: () => {},
+    getFilteredMatters: () => [],
+    getBoardMetrics: () => ({
+      totalMatters: 0,
+      mattersByStatus: {},
+      mattersByPriority: {},
+      averageTimeInStatus: {},
+      overdueMatters: 0,
+      mattersCompletedToday: 0,
+      lastRefresh: new Date().toISOString()
+    }),
+    getMattersByColumn: () => ({}),
+    getSearchTerms: () => []
+  }
+
+  // Cache the snapshot
+  serverSnapshotCache = serverState
+  serverSnapshotTimestamp = Date.now()
+  
+  return serverState
+}
 
 // Create the store
 export const useKanbanStore = create<KanbanStoreState>()(
@@ -917,7 +1023,9 @@ export const useKanbanStore = create<KanbanStoreState>()(
       // Only persist view preferences
       partialize: (state) => ({
         viewPreferences: state.viewPreferences
-      })
+      }),
+      // Skip persistence on server
+      skipHydration: isServer
     }
   )
 )
@@ -984,3 +1092,13 @@ export const useBoardActions = () => useKanbanStore((state) => ({
   addToSearchHistory: state.addToSearchHistory,
   clearSearchHistory: state.clearSearchHistory
 }))
+
+// Export getServerSnapshot for SSR usage
+export { getServerSnapshot }
+
+// Optional: Clean up server cache periodically on client
+if (!isServer) {
+  setInterval(() => {
+    serverSnapshotCache = null
+  }, SERVER_SNAPSHOT_TTL)
+}
