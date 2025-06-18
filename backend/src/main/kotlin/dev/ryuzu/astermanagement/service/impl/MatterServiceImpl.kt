@@ -15,6 +15,9 @@ import dev.ryuzu.astermanagement.service.StatusTransitionContext
 import dev.ryuzu.astermanagement.service.base.BaseService
 import dev.ryuzu.astermanagement.service.exception.*
 import org.slf4j.LoggerFactory
+import org.springframework.cache.annotation.CacheEvict
+import org.springframework.cache.annotation.Cacheable
+import org.springframework.cache.annotation.Caching
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
@@ -39,6 +42,7 @@ class MatterServiceImpl(
     
     @Transactional
     @AuditMatterOperation(operation = "createMatter")
+    @CacheEvict(value = ["matters"], allEntries = true)
     override fun createMatter(matter: Matter): Matter {
         validateCreateMatter(matter)
         
@@ -75,6 +79,11 @@ class MatterServiceImpl(
         return savedMatter
     }
     
+    @Cacheable(
+        value = ["matter-details"],
+        key = "#id.toString() + '_' + #root.target.getCurrentUserId()",
+        condition = "#id != null"
+    )
     override fun getMatterById(id: UUID): Matter? {
         val matter = matterRepository.findById(id).orElse(null) ?: return null
         
@@ -86,6 +95,11 @@ class MatterServiceImpl(
         return matter
     }
     
+    @Cacheable(
+        value = ["matters"],
+        key = "#pageable.pageNumber + '_' + #pageable.pageSize + '_' + (#status?.name ?: 'null') + '_' + (#clientName ?: 'null') + '_' + #root.target.getCurrentUserId()",
+        condition = "#pageable != null"
+    )
     override fun getAllMatters(
         pageable: Pageable,
         status: MatterStatus?,
@@ -130,6 +144,10 @@ class MatterServiceImpl(
     
     @Transactional
     @AuditMatterOperation(operation = "updateMatter")
+    @Caching(evict = [
+        CacheEvict(value = ["matter-details"], key = "#id.toString() + '_*'", allEntries = false),
+        CacheEvict(value = ["matters"], allEntries = true)
+    ])
     override fun updateMatter(id: UUID, matter: Matter): Matter? {
         val existingMatter = matterRepository.findById(id).orElse(null) ?: return null
         
@@ -229,6 +247,10 @@ class MatterServiceImpl(
     
     @Transactional
     @AuditMatterOperation(operation = "changeStatus")
+    @Caching(evict = [
+        CacheEvict(value = ["matter-details"], key = "#id.toString() + '_*'", allEntries = false),
+        CacheEvict(value = ["matters"], allEntries = true)
+    ])
     override fun updateMatterStatus(
         id: UUID,
         newStatus: MatterStatus,
