@@ -128,14 +128,18 @@ export class TestDataManager {
     return matters;
   }
 
-  async addDocumentToMatter(matterId: string, documentData: { filename: string; type: string }): Promise<any> {
+  async addDocumentToMatter(matterId: string, documentData: { 
+    filename: string; 
+    type: string;
+    size?: number;
+  }): Promise<any> {
     const response = await this.request.post(`/api/v1/matters/${matterId}/documents`, {
       data: {
         filename: documentData.filename,
         type: documentData.type,
         uploadedAt: new Date().toISOString(),
-        size: 1024 * 1024, // 1MB
-        mimeType: 'application/pdf'
+        size: documentData.size || 1024 * 1024, // Default 1MB
+        mimeType: documentData.type === 'IMAGE' ? 'image/jpeg' : 'application/pdf'
       },
       headers: {
         'Authorization': `Bearer ${process.env.TEST_API_TOKEN}`
@@ -147,6 +151,72 @@ export class TestDataManager {
     }
     
     return response.json();
+  }
+
+  async createDocument(data: {
+    matterId: string;
+    filename: string;
+    content: string;
+    ocr: boolean;
+  }): Promise<any> {
+    const response = await this.request.post(`/api/v1/matters/${data.matterId}/documents`, {
+      data: {
+        filename: data.filename,
+        type: 'DOCUMENT',
+        content: data.content,
+        ocr: data.ocr,
+        uploadedAt: new Date().toISOString(),
+        size: 1024 * 1024,
+        mimeType: 'application/pdf'
+      },
+      headers: {
+        'Authorization': `Bearer ${process.env.TEST_API_TOKEN}`
+      }
+    });
+    
+    if (!response.ok()) {
+      throw new Error(`Failed to create document: ${response.status()}`);
+    }
+    
+    return response.json();
+  }
+
+  async createMemo(data: {
+    matterId: string;
+    content: string;
+    type: string;
+  }): Promise<any> {
+    const response = await this.request.post(`/api/v1/matters/${data.matterId}/memos`, {
+      data: {
+        content: data.content,
+        type: data.type,
+        createdAt: new Date().toISOString()
+      },
+      headers: {
+        'Authorization': `Bearer ${process.env.TEST_API_TOKEN}`
+      }
+    });
+    
+    if (!response.ok()) {
+      throw new Error(`Failed to create memo: ${response.status()}`);
+    }
+    
+    return response.json();
+  }
+
+  async getAuditLog(matterId: string): Promise<any[]> {
+    const response = await this.request.get(`/api/v1/matters/${matterId}/audit-log`, {
+      headers: {
+        'Authorization': `Bearer ${process.env.TEST_API_TOKEN}`
+      }
+    });
+    
+    if (!response.ok()) {
+      throw new Error(`Failed to get audit log: ${response.status()}`);
+    }
+    
+    const data = await response.json();
+    return data.entries || [];
   }
 }
 

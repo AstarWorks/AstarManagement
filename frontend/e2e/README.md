@@ -1,6 +1,6 @@
 # E2E Testing with Playwright
 
-This directory contains end-to-end tests for the Aster Management application using Playwright.
+This directory contains comprehensive end-to-end tests for the Aster Management application using Playwright, covering all MVP features.
 
 ## Setup
 
@@ -19,11 +19,40 @@ This directory contains end-to-end tests for the Aster Management application us
    bunx playwright install-deps
    ```
 
+## Test Categories
+
+### Core User Flows
+- **Authentication** (`auth.spec.ts`) - Login, 2FA, logout, session management
+- **Matter CRUD** (`matters-crud.spec.ts`) - Create, read, update, delete operations
+- **Kanban Board** (`kanban-board.spec.ts`) - Drag & drop, status transitions
+
+### Advanced Features
+- **Search** (`search-advanced.spec.ts`) - Multi-criteria, full-text with OCR, performance
+- **Permissions** (`permissions-mvp.spec.ts`) - RBAC with Lawyer, Clerk, Client roles
+- **Mobile** (`mobile-responsive.spec.ts`) - Touch interactions, responsive layouts
+- **Accessibility** (`accessibility.spec.ts`) - WCAG 2.1 AA compliance
+- **Performance** (`performance.spec.ts`) - Load times, API response benchmarks
+
 ## Running Tests
 
 ### Run all tests
 ```bash
 bun run test:e2e
+```
+
+### Run specific test category
+```bash
+# Authentication tests
+bun playwright test auth.spec.ts
+
+# Mobile tests on specific device
+bun playwright test mobile-responsive.spec.ts --project="Mobile Chrome"
+
+# Accessibility tests
+bun playwright test accessibility.spec.ts
+
+# Performance benchmarks
+bun playwright test performance.spec.ts
 ```
 
 ### Run tests in UI mode (recommended for development)
@@ -57,8 +86,28 @@ bun run test:e2e:report
 e2e/
 ├── fixtures/       # Test fixtures (authentication, data setup)
 ├── pages/          # Page Object Models
+│   ├── BasePage.ts
+│   ├── LoginPage.ts
+│   ├── MattersPage.ts
+│   ├── MatterDetailPage.ts
+│   ├── KanbanPage.ts
+│   ├── SearchPage.ts
+│   ├── MobileKanbanPage.ts
+│   └── MobileMatterPage.ts
 ├── tests/          # Test specifications
+│   ├── auth.spec.ts
+│   ├── matters-crud.spec.ts
+│   ├── kanban-board.spec.ts
+│   ├── search-advanced.spec.ts
+│   ├── permissions-mvp.spec.ts
+│   ├── mobile-responsive.spec.ts
+│   ├── accessibility.spec.ts
+│   └── performance.spec.ts
 ├── utils/          # Utility functions and helpers
+│   ├── test-data.ts
+│   ├── performance.ts
+│   ├── global-setup.ts
+│   └── global-teardown.ts
 └── README.md       # This file
 ```
 
