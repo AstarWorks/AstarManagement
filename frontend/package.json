@@ -23,6 +23,7 @@
     "@radix-ui/react-tooltip": "^1.2.7",
     "@tanstack/react-query": "^5.80.7",
     "@tanstack/react-query-devtools": "^5.80.7",
+    "@tanstack/react-virtual": "^3.13.10",
     "@types/lodash-es": "^4.17.12",
     "axios": "^1.10.0",
     "class-variance-authority": "^0.7.1",
