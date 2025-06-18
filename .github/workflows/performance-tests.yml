@@ -1,0 +1,293 @@
+name: Performance Tests
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
+      - 'tests/performance/**'
+      - '.github/workflows/performance-tests.yml'
+  schedule:
+    # Run performance tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: 'Type of performance test to run'
+        required: true
+        default: 'baseline'
+        type: choice
+        options:
+          - baseline
+          - load
+          - stress
+          - all
+      environment:
+        description: 'Environment to test against'
+        required: true
+        default: 'local'
+        type: choice
+        options:
+          - local
+          - staging
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  performance-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: astermanagement_test
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpassword
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install k6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Cache Node.js dependencies
+        uses: actions/cache@v3
+        with:
+          path: frontend/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('frontend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Initialize test database
+        run: |
+          PGPASSWORD=testpassword psql -h localhost -U testuser -d astermanagement_test -f tests/performance/init-db.sql
+
+      - name: Build backend
+        run: |
+          cd backend
+          chmod +x gradlew
+          ./gradlew build -x test
+
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Build frontend
+        run: |
+          cd frontend
+          npm run build
+
+      - name: Start backend application
+        run: |
+          cd backend
+          nohup java -jar build/libs/*.jar --spring.profiles.active=test &
+          echo $! > backend.pid
+        env:
+          DATABASE_URL: jdbc:postgresql://localhost:5432/astermanagement_test
+          DATABASE_USERNAME: testuser
+          DATABASE_PASSWORD: testpassword
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+
+      - name: Wait for backend to be ready
+        run: |
+          timeout 60 bash -c 'until curl -f http://localhost:8080/actuator/health; do sleep 2; done'
+
+      - name: Start frontend application
+        run: |
+          cd frontend
+          nohup npm start &
+          echo $! > frontend.pid
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:8080
+
+      - name: Wait for frontend to be ready
+        run: |
+          timeout 60 bash -c 'until curl -f http://localhost:3000; do sleep 2; done'
+
+      - name: Run baseline performance tests
+        if: ${{ github.event.inputs.test_type == 'baseline' || github.event.inputs.test_type == 'all' || github.event.inputs.test_type == '' }}
+        run: |
+          cd tests/performance
+          k6 run --out json=results/baseline-results.json tests/baseline.js
+        env:
+          ENVIRONMENT: ${{ github.event.inputs.environment || 'local' }}
+
+      - name: Run load performance tests
+        if: ${{ github.event.inputs.test_type == 'load' || github.event.inputs.test_type == 'all' }}
+        run: |
+          cd tests/performance
+          k6 run --out json=results/load-results.json tests/load-test.js
+        env:
+          ENVIRONMENT: ${{ github.event.inputs.environment || 'local' }}
+
+      - name: Run stress performance tests
+        if: ${{ github.event.inputs.test_type == 'stress' || github.event.inputs.test_type == 'all' }}
+        run: |
+          cd tests/performance
+          k6 run --out json=results/stress-results.json tests/stress-test.js
+        env:
+          ENVIRONMENT: ${{ github.event.inputs.environment || 'local' }}
+
+      - name: Generate performance report
+        run: |
+          cd tests/performance
+          mkdir -p results/reports
+          
+          # Create summary report
+          cat > results/reports/summary.md << 'EOF'
+          # Performance Test Results
+          
+          ## Test Environment
+          - **Date**: $(date)
+          - **Commit**: ${{ github.sha }}
+          - **Branch**: ${{ github.ref_name }}
+          - **Test Type**: ${{ github.event.inputs.test_type || 'baseline' }}
+          
+          ## Results Files
+          EOF
+          
+          # Add results file links
+          for file in results/*.json; do
+            if [ -f "$file" ]; then
+              echo "- [$(basename $file)](../$(basename $file))" >> results/reports/summary.md
+            fi
+          done
+
+      - name: Upload performance test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-test-results-${{ github.run_number }}
+          path: |
+            tests/performance/results/
+          retention-days: 30
+
+      - name: Check performance thresholds
+        run: |
+          cd tests/performance
+          
+          # Parse baseline results and check against thresholds
+          if [ -f "results/baseline-results.json" ]; then
+            python3 -c "
+            import json
+            import sys
+            
+            with open('results/baseline-results.json', 'r') as f:
+                for line in f:
+                    if line.strip():
+                        data = json.loads(line)
+                        if data.get('type') == 'Point' and data.get('metric') == 'http_req_duration':
+                            p95 = data.get('data', {}).get('tags', {}).get('expected_response', 'true')
+                            if p95 == 'true':
+                                duration = data.get('data', {}).get('value', 0)
+                                if duration > 200:  # 200ms threshold
+                                    print(f'❌ Performance threshold exceeded: {duration}ms > 200ms')
+                                    sys.exit(1)
+                                else:
+                                    print(f'✅ Performance threshold met: {duration}ms <= 200ms')
+            "
+          fi
+
+      - name: Comment performance results on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            let comment = '## 📊 Performance Test Results\n\n';
+            comment += `**Test Type**: ${context.payload.inputs?.test_type || 'baseline'}\n`;
+            comment += `**Commit**: ${context.sha.substring(0, 7)}\n\n`;
+            
+            const resultsDir = 'tests/performance/results';
+            try {
+              const files = fs.readdirSync(resultsDir);
+              const jsonFiles = files.filter(f => f.endsWith('.json'));
+              
+              if (jsonFiles.length > 0) {
+                comment += '### Test Files Generated\n';
+                jsonFiles.forEach(file => {
+                  comment += `- ${file}\n`;
+                });
+                comment += '\n📁 Full results available in workflow artifacts.\n';
+              } else {
+                comment += '⚠️ No performance test results found.\n';
+              }
+            } catch (error) {
+              comment += `❌ Error reading results: ${error.message}\n`;
+            }
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+      - name: Cleanup
+        if: always()
+        run: |
+          # Stop applications
+          if [ -f backend/backend.pid ]; then
+            kill $(cat backend/backend.pid) || true
+          fi
+          if [ -f frontend/frontend.pid ]; then
+            kill $(cat frontend/frontend.pid) || true
+          fi
+          
+          # Clean up test data from database
+          PGPASSWORD=testpassword psql -h localhost -U testuser -d astermanagement_test -c "
+            DELETE FROM matters WHERE title LIKE '%Test%' OR case_number LIKE 'PERF-%' OR case_number LIKE 'LOAD-%' OR case_number LIKE 'STRESS-%';
+            DELETE FROM performance_tests.test_data_cleanup WHERE cleanup_status = 'pending';
+          " || true
