@@ -22,7 +22,7 @@ import java.util.*
  * and logs them through the AuditService for comprehensive security auditing.
  */
 @Component
-class SecurityAuditEventListener(
+open class SecurityAuditEventListener(
     private val auditService: AuditService,
     private val auditEventPublisher: AuditEventPublisher
 ) {

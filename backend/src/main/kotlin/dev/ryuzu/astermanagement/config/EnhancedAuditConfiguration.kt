@@ -169,7 +169,7 @@ class EnhancedAuditConfiguration : BaseService() {
  * Provides audit context information from HTTP requests
  * Extracts IP address, user agent, session ID, and other request metadata
  */
-class AuditContextProvider {
+open class AuditContextProvider {
     
     private val logger = LoggerFactory.getLogger(javaClass)
     

@@ -321,34 +321,36 @@ class MatterController(
         val matter = matterService.getMatterById(id) ?: 
             return notFound()
 
-        val currentUser = getCurrentUser()
+        val currentUserDetails = getCurrentUser() ?: return ResponseEntity.status(401).build()
+        val currentUser = userRepository.findByUsername(currentUserDetails.username)
+            ?: return ResponseEntity.status(401).build()
         val userRole = currentUser.role
 
         // Import the status transition rules
-        val transitionValid = com.astermanagement.api.domain.StatusTransitionRules.isTransitionAllowed(
+        val transitionValid = dev.ryuzu.astermanagement.domain.StatusTransitionRules.isTransitionAllowed(
             matter.status, 
             request.newStatus
         )
         
-        val roleCanPerform = com.astermanagement.api.domain.StatusTransitionRules.canRolePerformTransition(
+        val roleCanPerform = dev.ryuzu.astermanagement.domain.StatusTransitionRules.canRolePerformTransition(
             userRole, 
             matter.status, 
             request.newStatus
         )
         
-        val isCritical = com.astermanagement.api.domain.StatusTransitionRules.isCriticalTransition(
+        val isCritical = dev.ryuzu.astermanagement.domain.StatusTransitionRules.isCriticalTransition(
             matter.status, 
             request.newStatus
         )
         
-        val requiresReason = com.astermanagement.api.domain.StatusTransitionRules.requiresReason(
+        val requiresReason = dev.ryuzu.astermanagement.domain.StatusTransitionRules.requiresReason(
             matter.status, 
             request.newStatus
         )
 
         val isValid = transitionValid && roleCanPerform
         val errorMessage = if (!isValid) {
-            com.astermanagement.api.domain.StatusTransitionRules.getTransitionError(
+            dev.ryuzu.astermanagement.domain.StatusTransitionRules.getTransitionError(
                 matter.status, 
                 request.newStatus, 
                 userRole

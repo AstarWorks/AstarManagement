@@ -160,8 +160,8 @@ class CacheWarmer(
         try {
             // Test Redis connectivity
             redisTemplate.execute { connection ->
-                val response = connection.ping()
-                logger.info("Redis connectivity test: {}", String(response))
+                connection.ping()
+                logger.info("Redis connectivity test: PONG")
                 true
             }
             

@@ -63,6 +63,16 @@ abstract class BaseController : BaseService() {
     }
     
     /**
+     * Creates a ResponseEntity with 400 Bad Request status.
+     * 
+     * @param body The error details
+     * @return ResponseEntity with 400 status
+     */
+    protected fun <T> badRequest(body: T): ResponseEntity<T> {
+        return ResponseEntity.badRequest().body(body)
+    }
+    
+    /**
      * Builds a URI for the created resource using the current request context.
      * 
      * @param id The identifier to append to the current request path

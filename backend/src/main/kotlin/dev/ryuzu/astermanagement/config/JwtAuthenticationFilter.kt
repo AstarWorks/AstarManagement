@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory
  * Sets up Spring Security context with authenticated user details and authorities.
  */
 @Component
-class JwtAuthenticationFilter(
+open class JwtAuthenticationFilter(
     private val jwtService: JwtService,
     private val securityAuditEventListener: SecurityAuditEventListener
 ) : OncePerRequestFilter() {
