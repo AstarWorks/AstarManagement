@@ -85,6 +85,14 @@ export const CreateMatterSchema = z.object({
   }, 'Must be a valid date'),
   notes: z.string().optional(),
   tags: z.array(z.string()).default([])
+}).refine((data) => {
+  if (data.filingDate && data.estimatedCompletionDate) {
+    return new Date(data.filingDate) <= new Date(data.estimatedCompletionDate)
+  }
+  return true
+}, {
+  message: 'Filing date must be before or equal to estimated completion date',
+  path: ['estimatedCompletionDate']
 })
 
 export const UpdateMatterSchema = CreateMatterSchema.partial().extend({
