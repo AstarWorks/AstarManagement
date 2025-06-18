@@ -127,6 +127,27 @@ export class TestDataManager {
     
     return matters;
   }
+
+  async addDocumentToMatter(matterId: string, documentData: { filename: string; type: string }): Promise<any> {
+    const response = await this.request.post(`/api/v1/matters/${matterId}/documents`, {
+      data: {
+        filename: documentData.filename,
+        type: documentData.type,
+        uploadedAt: new Date().toISOString(),
+        size: 1024 * 1024, // 1MB
+        mimeType: 'application/pdf'
+      },
+      headers: {
+        'Authorization': `Bearer ${process.env.TEST_API_TOKEN}`
+      }
+    });
+    
+    if (!response.ok()) {
+      throw new Error(`Failed to add document to matter: ${response.status()}`);
+    }
+    
+    return response.json();
+  }
 }
 
 // Global setup hook
