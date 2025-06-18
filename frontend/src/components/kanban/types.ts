@@ -153,6 +153,7 @@ export interface BoardActions {
   // Matter operations
   moveMatter: (matterId: string, newStatus: MatterStatus, newColumnId: string) => Promise<void>
   updateMatter: (matterId: string, updates: Partial<MatterCard>) => Promise<void>
+  updateMatterStatus: (matterId: string, statusUpdate: { status: MatterStatus; reason: string }) => Promise<void>
   refreshBoard: () => Promise<void>
   
   // Filter and sort

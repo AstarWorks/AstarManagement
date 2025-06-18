@@ -178,6 +178,7 @@ interface KanbanStoreState {
   updateMatter: (matterId: string, updates: Partial<MatterCard>) => Promise<void>
   deleteMatter: (matterId: string) => Promise<void>
   moveMatter: (matterId: string, newStatus: MatterStatus, newColumnId: string) => Promise<void>
+  updateMatterStatus: (matterId: string, statusUpdate: { status: MatterStatus; reason: string }) => Promise<void>
   
   // Filter and sort operations
   setFilters: (filters: Partial<FilterOptions>) => void
@@ -467,6 +468,59 @@ export const useKanbanStore = create<KanbanStoreState>()(
             })
           } catch (error) {
             // Rollback optimistic move
+            set((state) => {
+              const matterIndex = state.matters.findIndex(m => m.id === matterId)
+              if (matterIndex !== -1) {
+                state.matters[matterIndex] = originalMatter
+              }
+              state.error = handleApiError(error)
+            })
+            throw error
+          }
+        },
+
+        updateMatterStatus: async (matterId, statusUpdate) => {
+          // Optimistic update
+          const originalMatter = get().matters.find(m => m.id === matterId)
+          if (!originalMatter) return
+
+          set((state) => {
+            const matterIndex = state.matters.findIndex(m => m.id === matterId)
+            if (matterIndex !== -1) {
+              state.matters[matterIndex] = {
+                ...state.matters[matterIndex],
+                status: statusUpdate.status,
+                updatedAt: new Date().toISOString()
+              }
+              if (state.board) {
+                state.board.matters = state.matters
+                state.board.lastUpdated = new Date().toISOString()
+              }
+            }
+          })
+
+          try {
+            // Update status via API with reason
+            const updatedMatterDto = await updateMatterStatus(matterId, {
+              status: statusUpdate.status as MatterStatus,
+              reason: statusUpdate.reason,
+              comment: statusUpdate.reason // For audit trail
+            })
+            const updatedMatter = convertMatterDtoToCard(updatedMatterDto)
+            
+            set((state) => {
+              const index = state.matters.findIndex(m => m.id === matterId)
+              if (index !== -1) {
+                state.matters[index] = updatedMatter
+              }
+              if (state.board) {
+                state.board.matters = state.matters
+                state.board.lastUpdated = new Date().toISOString()
+              }
+              state.lastRefresh = new Date()
+            })
+          } catch (error) {
+            // Rollback optimistic update
             set((state) => {
               const matterIndex = state.matters.findIndex(m => m.id === matterId)
               if (matterIndex !== -1) {

@@ -22,6 +22,8 @@ import { MatterCard } from './MatterCard'
 import { KanbanBoardProps, MatterCard as MatterCardType } from './types'
 import { BOARD_CONFIG } from './constants'
 import { cn } from '@/lib/utils'
+import { StatusConfirmationDialog } from '../dialogs/StatusConfirmationDialog'
+import { MatterStatus } from '@/types/matter'
 
 // Status transition validation - integrated with backend
 const validateStatusTransition = async (
@@ -103,11 +105,10 @@ export const KanbanBoard = React.memo(function KanbanBoard({
   const [dragStartTime, setDragStartTime] = React.useState<number>(0)
   
   // State for confirmation dialog
-  const [confirmationDialog, setConfirmationDialog] = React.useState<{
-    isOpen: boolean
+  const [pendingTransition, setPendingTransition] = React.useState<{
+    from: MatterStatus
+    to: MatterStatus
     matterId: string
-    newStatus: string
-    targetColumnId: string
     matterTitle: string
   } | null>(null)
 
@@ -305,29 +306,44 @@ export const KanbanBoard = React.memo(function KanbanBoard({
     // Only move if the status is actually changing
     if (matter.status === newStatus) return
 
-    // Validate transition with backend
+    // Call the validation endpoint once
     const currentStatus = matter.status
-    const validation = await validateStatusTransition(currentStatus, newStatus, matterId)
-    
-    if (!validation.isValid) {
-      console.warn(`Invalid transition from ${currentStatus} to ${newStatus}: ${validation.message}`)
-      // Could show error toast here with validation.message
-      return
-    }
-
-    // Check if confirmation is required
-    if (CONFIRMATION_REQUIRED.has(newStatus)) {
-      setConfirmationDialog({
-        isOpen: true,
-        matterId,
-        newStatus,
-        targetColumnId: targetColumn.id,
-        matterTitle: matter.title
+    try {
+      const response = await fetch(`/api/v1/matters/${matterId}/validate-transition`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newStatus })
       })
-      return
+      
+      if (!response.ok) {
+        const validation = await validateStatusTransition(currentStatus, newStatus, matterId)
+        console.warn(`Invalid transition from ${currentStatus} to ${newStatus}: ${validation.message}`)
+        // Could show error toast here with validation.message
+        return
+      }
+      
+      const result = await response.json()
+      if (result.requiresReason || result.isCritical) {
+        // Show confirmation dialog
+        setPendingTransition({
+          from: currentStatus as MatterStatus,
+          to: newStatus as MatterStatus,
+          matterId,
+          matterTitle: matter.title
+        })
+        return
+      }
+    } catch (error) {
+      console.error('Failed to validate transition:', error)
+      // Fall back to local validation
+      const validation = await validateStatusTransition(currentStatus, newStatus, matterId)
+      if (!validation.isValid) {
+        console.warn(`Invalid transition from ${currentStatus} to ${newStatus}: ${validation.message}`)
+        return
+      }
     }
 
-    // Proceed with the move
+    // Proceed with the move if no confirmation needed
     await executeMatterMove(matterId, newStatus, targetColumn.id)
   }, [board.matters, board.columns, dragStartTime])
 
@@ -366,21 +382,22 @@ export const KanbanBoard = React.memo(function KanbanBoard({
   }, [actions, board.matters])
 
   // Handle confirmation dialog
-  const handleConfirmMove = React.useCallback(async () => {
-    if (!confirmationDialog) return
+  const handleConfirmMove = React.useCallback(async (reason: string) => {
+    if (!pendingTransition) return
     
-    await executeMatterMove(
-      confirmationDialog.matterId,
-      confirmationDialog.newStatus,
-      confirmationDialog.targetColumnId
-    )
-    
-    setConfirmationDialog(null)
-  }, [confirmationDialog, executeMatterMove])
-
-  const handleCancelMove = React.useCallback(() => {
-    setConfirmationDialog(null)
-  }, [])
+    // Update the matter status with reason
+    try {
+      await actions.updateMatterStatus(pendingTransition.matterId, {
+        status: pendingTransition.to,
+        reason
+      })
+      
+      // Clear the pending transition
+      setPendingTransition(null)
+    } catch (error) {
+      console.error('Failed to update matter status:', error)
+    }
+  }, [pendingTransition, actions])
 
   const activeMatter = activeId 
     ? board.matters.find(m => m.id === activeId)
@@ -474,37 +491,15 @@ export const KanbanBoard = React.memo(function KanbanBoard({
         </DragOverlay>
       </DndContext>
 
-      {/* Confirmation Dialog */}
-      {confirmationDialog?.isOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
-            <h3 className="text-lg font-semibold mb-2">Confirm Status Change</h3>
-            <p className="text-gray-600 mb-4">
-              Are you sure you want to move "{confirmationDialog.matterTitle}" to{' '}
-              <span className="font-medium">{confirmationDialog.newStatus.replace('_', ' ').toLowerCase()}</span>?
-            </p>
-            {confirmationDialog.newStatus === 'CLOSED' && (
-              <p className="text-orange-600 text-sm mb-4">
-                ⚠️ Closing a matter is a significant action that may require additional documentation.
-              </p>
-            )}
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={handleCancelMove}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleConfirmMove}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-              >
-                Confirm
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Status Confirmation Dialog */}
+      <StatusConfirmationDialog
+        open={!!pendingTransition}
+        onOpenChange={(open) => {
+          if (!open) setPendingTransition(null)
+        }}
+        transition={pendingTransition}
+        onConfirm={handleConfirmMove}
+      />
     </div>
   )
 })

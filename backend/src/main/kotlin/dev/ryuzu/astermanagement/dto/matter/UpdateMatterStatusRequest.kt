@@ -13,5 +13,8 @@ data class UpdateMatterStatusRequest(
     val status: MatterStatus,
     
     @field:Size(max = 1000, message = "Comment must not exceed 1000 characters")
-    val comment: String? = null
+    val comment: String? = null,
+    
+    @field:Size(min = 10, max = 500, message = "Reason must be between 10 and 500 characters")
+    val reason: String? = null
 )

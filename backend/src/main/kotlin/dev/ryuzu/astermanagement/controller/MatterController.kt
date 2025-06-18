@@ -298,6 +298,76 @@ class MatterController(
     
     
     /**
+     * Validate a status transition before execution.
+     */
+    @PostMapping("/{id}/validate-transition")
+    @PreAuthorize("hasRole('LAWYER') or hasRole('CLERK')")
+    @Operation(
+        summary = "Validate status transition",
+        description = "Validate if a status transition is allowed for the current user and matter state"
+    )
+    @ApiResponses(
+        ApiResponse(responseCode = "200", description = "Transition is valid"),
+        ApiResponse(responseCode = "400", description = "Invalid transition"),
+        ApiResponse(responseCode = "401", description = "Unauthorized"),
+        ApiResponse(responseCode = "403", description = "Insufficient permissions"),
+        ApiResponse(responseCode = "404", description = "Matter not found")
+    )
+    fun validateStatusTransition(
+        @PathVariable @Parameter(description = "Matter ID") id: UUID,
+        @RequestBody @Valid request: ValidateTransitionRequest,
+        @AuthenticationPrincipal userDetails: UserDetails
+    ): ResponseEntity<ValidateTransitionResponse> {
+        val matter = matterService.getMatterById(id) ?: 
+            return notFound()
+
+        val currentUser = getCurrentUser()
+        val userRole = currentUser.role
+
+        // Import the status transition rules
+        val transitionValid = com.astermanagement.api.domain.StatusTransitionRules.isTransitionAllowed(
+            matter.status, 
+            request.newStatus
+        )
+        
+        val roleCanPerform = com.astermanagement.api.domain.StatusTransitionRules.canRolePerformTransition(
+            userRole, 
+            matter.status, 
+            request.newStatus
+        )
+        
+        val isCritical = com.astermanagement.api.domain.StatusTransitionRules.isCriticalTransition(
+            matter.status, 
+            request.newStatus
+        )
+        
+        val requiresReason = com.astermanagement.api.domain.StatusTransitionRules.requiresReason(
+            matter.status, 
+            request.newStatus
+        )
+
+        val isValid = transitionValid && roleCanPerform
+        val errorMessage = if (!isValid) {
+            com.astermanagement.api.domain.StatusTransitionRules.getTransitionError(
+                matter.status, 
+                request.newStatus, 
+                userRole
+            )
+        } else null
+
+        val response = ValidateTransitionResponse(
+            isValid = isValid,
+            requiresReason = requiresReason,
+            isCritical = isCritical,
+            errorMessage = errorMessage,
+            currentStatus = matter.status,
+            targetStatus = request.newStatus
+        )
+
+        return if (isValid) ok(response) else badRequest(response)
+    }
+
+    /**
      * Parses sort parameters from string format.
      */
     private fun parseSortParams(sort: String): Sort {
