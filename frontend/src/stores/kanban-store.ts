@@ -32,9 +32,51 @@ import {
   MatterStatus,
   MatterPriority 
 } from '@/services/api/matter.service'
+import { 
+  searchMatters, 
+  getSearchSuggestions, 
+  extractSearchTerms,
+  type MatterSearchResult, 
+  type SearchSuggestion, 
+  type SearchType 
+} from '@/services/api/search.service'
+import { searchAnalytics } from '@/services/analytics/search-analytics.service'
 import { handleApiError, type BoardError } from '@/services/error/error.handler'
 
 // DTO to UI model conversion functions
+function convertSearchResultToCard(result: MatterSearchResult): MatterCard {
+  return {
+    id: result.id,
+    caseNumber: result.caseNumber,
+    title: result.title,
+    description: '',
+    clientName: result.clientName,
+    clientContact: '',
+    opposingParty: '',
+    courtName: '',
+    status: result.status as MatterStatus,
+    priority: result.priority as MatterPriority,
+    filingDate: result.filingDate || '',
+    estimatedCompletionDate: '',
+    assignedLawyerId: '',
+    assignedLawyerName: result.assignedLawyerName || '',
+    assignedClerkId: '',
+    assignedClerkName: '',
+    notes: '',
+    tags: [],
+    isActive: true,
+    isOverdue: false,
+    isCompleted: false,
+    ageInDays: null,
+    createdAt: result.createdAt,
+    updatedAt: result.createdAt,
+    createdBy: '',
+    updatedBy: '',
+    searchHighlights: result.highlights,
+    relevanceScore: result.relevanceScore
+  }
+}
+
 function convertMatterDtoToCard(dto: MatterDto): MatterCard {
   return {
     id: dto.id,
@@ -118,6 +160,14 @@ interface KanbanStoreState {
   pollingEnabled: boolean
   lastSyncTime: Date | null
   
+  // Search state for T02_S03
+  searchResults: MatterCard[]
+  searchSuggestions: SearchSuggestion[]
+  isSearching: boolean
+  searchMode: boolean  // true when showing search results instead of normal board
+  lastSearchQuery: string
+  searchHistory: string[]
+  
   // Actions
   // Board operations
   initializeBoard: (matters?: MatterCard[]) => void
@@ -156,10 +206,19 @@ interface KanbanStoreState {
   setError: (error: BoardError | null) => void
   clearError: () => void
   
+  // Search operations for T02_S03
+  performSearch: (query: string, searchType?: SearchType) => Promise<void>
+  getSuggestions: (query: string) => Promise<void>
+  clearSearch: () => void
+  exitSearchMode: () => void
+  addToSearchHistory: (query: string) => void
+  clearSearchHistory: () => void
+  
   // Utility getters
   getFilteredMatters: () => MatterCard[]
   getBoardMetrics: () => BoardMetrics
   getMattersByColumn: () => Record<string, MatterCard[]>
+  getSearchTerms: () => string[]
 }
 
 
@@ -185,6 +244,14 @@ export const useKanbanStore = create<KanbanStoreState>()(
         autoRefreshInterval: null,
         pollingEnabled: true,
         lastSyncTime: null,
+        
+        // Search state initialization
+        searchResults: [],
+        searchSuggestions: [],
+        isSearching: false,
+        searchMode: false,
+        lastSearchQuery: '',
+        searchHistory: [],
 
         // Board operations
         initializeBoard: (matters = []) => set((state) => {
@@ -489,8 +556,10 @@ export const useKanbanStore = create<KanbanStoreState>()(
 
         // Utility getters
         getFilteredMatters: () => {
-          const { matters, filters, sorting } = get()
-          let filtered = [...matters]
+          const { matters, filters, sorting, searchMode, searchResults } = get()
+          
+          // If in search mode, use search results instead of all matters
+          let filtered = searchMode ? [...searchResults] : [...matters]
 
           // Apply search filter
           if (filters.search) {
@@ -644,6 +713,122 @@ export const useKanbanStore = create<KanbanStoreState>()(
           return groups
         },
 
+        // Search operations for T02_S03
+        performSearch: async (query, searchType = 'FULL_TEXT') => {
+          if (!query.trim()) {
+            set((state) => {
+              state.searchMode = false
+              state.searchResults = []
+              state.lastSearchQuery = ''
+            })
+            return
+          }
+
+          const startTime = Date.now()
+          set((state) => {
+            state.isSearching = true
+            state.error = null
+          })
+
+          try {
+            const results = await searchMatters({
+              query: query.trim(),
+              searchType,
+              page: 0,
+              size: 100
+            })
+
+            const responseTime = Date.now() - startTime
+            const searchResultCards = results.content.map(convertSearchResultToCard)
+
+            set((state) => {
+              state.searchResults = searchResultCards
+              state.searchMode = true
+              state.lastSearchQuery = query
+              state.isSearching = false
+            })
+
+            // Track search analytics
+            searchAnalytics.trackSearchQuery({
+              query: query.trim(),
+              searchType,
+              resultsCount: results.content.length,
+              responseTime
+            })
+
+            // Add to search history
+            get().addToSearchHistory(query)
+
+          } catch (error) {
+            const responseTime = Date.now() - startTime
+            const boardError = handleApiError(error)
+            
+            // Track failed search
+            searchAnalytics.trackSearchQuery({
+              query: query.trim(),
+              searchType,
+              resultsCount: 0,
+              responseTime
+            })
+
+            set((state) => {
+              state.error = boardError
+              state.isSearching = false
+              state.searchMode = false
+            })
+          }
+        },
+
+        getSuggestions: async (query) => {
+          if (query.length < 2) {
+            set((state) => {
+              state.searchSuggestions = []
+            })
+            return
+          }
+
+          try {
+            const suggestions = await getSearchSuggestions({ query, limit: 10 })
+            set((state) => {
+              state.searchSuggestions = suggestions
+            })
+          } catch (error) {
+            console.error('Failed to get search suggestions:', error)
+            set((state) => {
+              state.searchSuggestions = []
+            })
+          }
+        },
+
+        clearSearch: () => set((state) => {
+          state.searchResults = []
+          state.searchSuggestions = []
+          state.lastSearchQuery = ''
+        }),
+
+        exitSearchMode: () => set((state) => {
+          state.searchMode = false
+          state.searchResults = []
+          state.searchSuggestions = []
+          state.lastSearchQuery = ''
+        }),
+
+        addToSearchHistory: (query) => set((state) => {
+          const trimmed = query.trim()
+          if (trimmed && !state.searchHistory.includes(trimmed)) {
+            state.searchHistory = [trimmed, ...state.searchHistory.slice(0, 9)] // Keep last 10
+          }
+        }),
+
+        clearSearchHistory: () => set((state) => {
+          state.searchHistory = []
+        }),
+
+        getSearchTerms: () => {
+          const { lastSearchQuery } = get()
+          return extractSearchTerms(lastSearchQuery)
+        },
+
         // Real-time polling operations
         setPollingEnabled: (enabled) => set((state) => {
           state.pollingEnabled = enabled
@@ -699,6 +884,20 @@ export const useLoadingState = () => useKanbanStore((state) => ({
 }))
 export const useBoardMetrics = () => useKanbanStore((state) => state.getBoardMetrics())
 
+// Search-related selector hooks for T02_S03
+export const useSearchState = () => useKanbanStore((state) => ({
+  searchResults: state.searchResults,
+  searchSuggestions: state.searchSuggestions,
+  isSearching: state.isSearching,
+  searchMode: state.searchMode,
+  lastSearchQuery: state.lastSearchQuery,
+  searchHistory: state.searchHistory
+}))
+export const useSearchResults = () => useKanbanStore((state) => state.searchResults)
+export const useSearchSuggestions = () => useKanbanStore((state) => state.searchSuggestions)
+export const useSearchMode = () => useKanbanStore((state) => state.searchMode)
+export const useSearchTerms = () => useKanbanStore((state) => state.getSearchTerms())
+
 // Actions hooks
 export const useBoardActions = () => useKanbanStore((state) => ({
   initializeBoard: state.initializeBoard,
@@ -721,5 +920,13 @@ export const useBoardActions = () => useKanbanStore((state) => ({
   setPollingEnabled: state.setPollingEnabled,
   setLastSyncTime: state.setLastSyncTime,
   applyBulkUpdate: state.applyBulkUpdate,
-  fetchMatters: state.fetchMatters
+  fetchMatters: state.fetchMatters,
+  
+  // Search actions for T02_S03
+  performSearch: state.performSearch,
+  getSuggestions: state.getSuggestions,
+  clearSearch: state.clearSearch,
+  exitSearchMode: state.exitSearchMode,
+  addToSearchHistory: state.addToSearchHistory,
+  clearSearchHistory: state.clearSearchHistory
 }))

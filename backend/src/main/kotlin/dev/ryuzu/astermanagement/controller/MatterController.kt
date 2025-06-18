@@ -8,6 +8,7 @@ import dev.ryuzu.astermanagement.domain.user.UserRepository
 import dev.ryuzu.astermanagement.dto.common.PagedResponse
 import dev.ryuzu.astermanagement.dto.matter.*
 import dev.ryuzu.astermanagement.service.MatterService
+import dev.ryuzu.astermanagement.service.MatterSearchService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
@@ -40,9 +41,62 @@ import java.util.*
 @SecurityRequirement(name = "bearerAuth")
 class MatterController(
     private val matterService: MatterService,
+    private val matterSearchService: MatterSearchService,
     private val userRepository: UserRepository
 ) : BaseController() {
     
+    /**
+     * Search matters with full-text search capabilities.
+     */
+    @GetMapping("/search")
+    @PreAuthorize("hasRole('LAWYER') or hasRole('CLERK')")
+    @Operation(
+        summary = "Search matters",
+        description = "Search matters using full-text search with highlighting and relevance scoring. Supports basic and advanced search modes."
+    )
+    @ApiResponses(
+        ApiResponse(responseCode = "200", description = "Search completed successfully"),
+        ApiResponse(responseCode = "400", description = "Invalid search parameters"),
+        ApiResponse(responseCode = "401", description = "Unauthorized"),
+        ApiResponse(responseCode = "403", description = "Insufficient permissions")
+    )
+    fun searchMatters(
+        @RequestParam @Parameter(description = "Search query") query: String,
+        @RequestParam(defaultValue = "FULL_TEXT") @Parameter(description = "Search type") searchType: SearchType,
+        @RequestParam(defaultValue = "0") @Parameter(description = "Page number (0-based)") page: Int,
+        @RequestParam(defaultValue = "20") @Parameter(description = "Page size (1-100)") size: Int
+    ): ResponseEntity<PagedResponse<MatterSearchResultDto>> {
+        val (validatedPage, validatedSize) = validatePagination(page, size)
+        val pageable = PageRequest.of(validatedPage, validatedSize)
+        
+        val results = matterSearchService.searchMatters(query, searchType, pageable)
+        val response = PagedResponse.fromPage(results) { it }
+        
+        return ok(response)
+    }
+
+    /**
+     * Get search suggestions for autocomplete.
+     */
+    @GetMapping("/search/suggestions")
+    @PreAuthorize("hasRole('LAWYER') or hasRole('CLERK')")
+    @Operation(
+        summary = "Get search suggestions",
+        description = "Get search suggestions for autocomplete functionality based on partial query."
+    )
+    @ApiResponses(
+        ApiResponse(responseCode = "200", description = "Suggestions retrieved successfully"),
+        ApiResponse(responseCode = "401", description = "Unauthorized"),
+        ApiResponse(responseCode = "403", description = "Insufficient permissions")
+    )
+    fun getSearchSuggestions(
+        @RequestParam @Parameter(description = "Partial search query") query: String,
+        @RequestParam(defaultValue = "10") @Parameter(description = "Maximum suggestions") limit: Int
+    ): ResponseEntity<List<SearchSuggestionDto>> {
+        val suggestions = matterSearchService.getSearchSuggestions(query, limit)
+        return ok(suggestions)
+    }
+
     /**
      * Creates a new matter.
      */

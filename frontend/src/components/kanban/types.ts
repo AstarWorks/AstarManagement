@@ -85,6 +85,10 @@ export interface MatterCard {
   }
   dueDate?: string
   statusDuration?: number // days in current status
+  
+  // Search-related fields for T02_S03
+  searchHighlights?: Record<string, string[]>
+  relevanceScore?: number
 }
 
 // Kanban board configuration

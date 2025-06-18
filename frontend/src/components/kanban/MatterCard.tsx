@@ -12,6 +12,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 import { format, isAfter, parseISO } from 'date-fns'
+import { SearchHighlight, useSearchTerms } from '@/components/search/SearchHighlight'
+import { useSearchState, useSearchTerms as useStoreSearchTerms } from '@/stores/kanban-store'
 
 // Priority icon mapping
 const getPriorityIcon = (priority: string) => {
@@ -65,6 +67,10 @@ export const MatterCard = React.memo(function MatterCard({
   className,
   ...props
 }: MatterCardProps & React.HTMLAttributes<HTMLDivElement>) {
+  // Search highlighting logic
+  const { searchMode, lastSearchQuery } = useSearchState()
+  const searchTerms = useStoreSearchTerms()
+  
   // currentUser and onEdit are available in props but not used in demo
   const {
     attributes,
@@ -123,7 +129,17 @@ export const MatterCard = React.memo(function MatterCard({
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
               <h4 className="font-medium text-sm text-foreground truncate">
-                {matter.title}
+                {searchMode ? (
+                  <SearchHighlight
+                    text={matter.title}
+                    highlights={matter.searchHighlights?.title}
+                    searchTerms={searchTerms}
+                    maxLength={50}
+                    highlightClassName="bg-yellow-200 px-1 rounded font-medium"
+                  />
+                ) : (
+                  matter.title
+                )}
               </h4>
               {viewPreferences.showPriority && (
                 <Tooltip>
@@ -144,19 +160,46 @@ export const MatterCard = React.memo(function MatterCard({
             </div>
             
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <span className="truncate">#{matter.caseNumber}</span>
+              <span className="truncate">
+                #{searchMode ? (
+                  <SearchHighlight
+                    text={matter.caseNumber}
+                    highlights={matter.searchHighlights?.caseNumber}
+                    searchTerms={searchTerms}
+                    highlightClassName="bg-yellow-200 px-1 rounded"
+                  />
+                ) : (
+                  matter.caseNumber
+                )}
+              </span>
               <Badge variant="outline" className={cn("text-xs", statusColor)}>
                 {matter.status.replace('_', ' ').toLowerCase()}
               </Badge>
             </div>
           </div>
           
-          {/* Drag handle indicator */}
-          <div className="flex flex-col gap-1 opacity-30 hover:opacity-60 transition-opacity">
-            <div className="w-1 h-1 bg-muted-foreground rounded-full" />
-            <div className="w-1 h-1 bg-muted-foreground rounded-full" />
-            <div className="w-1 h-1 bg-muted-foreground rounded-full" />
-          </div>
+          {/* Search relevance score or drag handle */}
+          {searchMode && matter.relevanceScore ? (
+            <div className="text-xs text-muted-foreground">
+              <Tooltip>
+                <TooltipTrigger>
+                  <Badge variant="outline" className="text-xs">
+                    {Math.round(matter.relevanceScore * 100)}%
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  Search relevance score
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          ) : (
+            /* Drag handle indicator */
+            <div className="flex flex-col gap-1 opacity-30 hover:opacity-60 transition-opacity">
+              <div className="w-1 h-1 bg-muted-foreground rounded-full" />
+              <div className="w-1 h-1 bg-muted-foreground rounded-full" />
+              <div className="w-1 h-1 bg-muted-foreground rounded-full" />
+            </div>
+          )}
         </div>
       </CardHeader>
 
@@ -165,7 +208,19 @@ export const MatterCard = React.memo(function MatterCard({
           {/* Client name */}
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <User className="w-3 h-3" />
-            <span className="truncate">{matter.clientName}</span>
+            <span className="truncate">
+              {searchMode ? (
+                <SearchHighlight
+                  text={matter.clientName}
+                  highlights={matter.searchHighlights?.clientName}
+                  searchTerms={searchTerms}
+                  maxLength={30}
+                  highlightClassName="bg-yellow-200 px-1 rounded"
+                />
+              ) : (
+                matter.clientName
+              )}
+            </span>
           </div>
 
           {/* Due date */}
