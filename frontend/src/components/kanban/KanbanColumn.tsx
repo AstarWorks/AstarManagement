@@ -12,6 +12,8 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
+import { CardSkeletonGroup } from '@/components/ui/skeleton/CardSkeleton'
+import { useLoadingState } from '@/stores/kanban-store'
 
 // Import icon components dynamically
 const getColumnIcon = (iconName: string) => {
@@ -39,6 +41,8 @@ export const KanbanColumn = React.memo(function KanbanColumn({
   className,
   ...props
 }: KanbanColumnProps & React.HTMLAttributes<HTMLDivElement>) {
+  // Get loading state from store
+  const { isLoading } = useLoadingState()
   const {
     isOver: isOverDroppable,
     setNodeRef: setDroppableRef
@@ -164,7 +168,18 @@ export const KanbanColumn = React.memo(function KanbanColumn({
       {/* Column Content */}
       {!isCollapsed && (
         <div className="flex-1 overflow-hidden">
-          {matters.length === 0 ? (
+          {isLoading && matters.length === 0 ? (
+            // Show skeleton loading for empty columns during load
+            <div className="p-2">
+              <CardSkeletonGroup 
+                count={3}
+                cardSize={viewPreferences.cardSize}
+                showPriority={viewPreferences.showPriority}
+                showDueDates={viewPreferences.showDueDates}
+                showAvatars={viewPreferences.showAvatars}
+              />
+            </div>
+          ) : matters.length === 0 ? (
             <KanbanEmptyState
               column={column}
               className="p-4"
@@ -185,6 +200,19 @@ export const KanbanColumn = React.memo(function KanbanColumn({
                   />
                 ))}
               </SortableContext>
+              
+              {/* Show additional skeleton cards if still loading more data */}
+              {isLoading && (
+                <div className="pt-2">
+                  <CardSkeletonGroup 
+                    count={2}
+                    cardSize={viewPreferences.cardSize}
+                    showPriority={viewPreferences.showPriority}
+                    showDueDates={viewPreferences.showDueDates}
+                    showAvatars={viewPreferences.showAvatars}
+                  />
+                </div>
+              )}
             </div>
           )}
         </div>

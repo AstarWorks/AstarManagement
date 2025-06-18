@@ -24,6 +24,8 @@ import { BOARD_CONFIG } from './constants'
 import { cn } from '@/lib/utils'
 import { StatusConfirmationDialog } from '../dialogs/StatusConfirmationDialog'
 import { MatterStatus } from '@/types/matter'
+import { BoardSkeleton } from '@/components/ui/skeleton/BoardSkeleton'
+import { useLoadingState } from '@/stores/kanban-store'
 
 // Status transition validation - integrated with backend
 const validateStatusTransition = async (
@@ -99,6 +101,19 @@ export const KanbanBoard = React.memo(function KanbanBoard({
   renderHeaderExtras,
   className
 }: KanbanBoardProps) {
+  // Get loading state from store
+  const { isLoading } = useLoadingState()
+  
+  // Show skeleton during initial load
+  if (isLoading && (!board || board.matters.length === 0)) {
+    return (
+      <BoardSkeleton 
+        columnCount={4}
+        cardsPerColumn={3}
+        className={className}
+      />
+    )
+  }
   // State for drag operations
   const [activeId, setActiveId] = React.useState<string | null>(null)
   const [overId, setOverId] = React.useState<string | null>(null)
