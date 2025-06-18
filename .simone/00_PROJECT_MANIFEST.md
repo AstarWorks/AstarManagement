@@ -38,7 +38,7 @@ This project follows a milestone-based development approach.
 ### S02 Frontend Kanban Board (🚀 ACTIVE)
 
 ✅ Kanban Board Layout Foundation (T01_S02) - Medium complexity (COMPLETED)
-✅ Matter Card Component (T02_S02) - Medium complexity (COMPLETED)  
+✅ Matter Card Component (T02_S02) - Low complexity (COMPLETED)  
 ✅ Drag and Drop Implementation (T03_S02) - Medium complexity (COMPLETED)
 ✅ Filters and Search (T04_S02) - Low complexity (COMPLETED)
 ✅ Real-Time Updates (T05_S02) - Medium complexity (COMPLETED)
