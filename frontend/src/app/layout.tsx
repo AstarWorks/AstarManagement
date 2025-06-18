@@ -5,6 +5,8 @@ import { QueryProvider } from '@/providers/QueryProvider'
 import { ToastProvider } from '@/providers/ToastProvider'
 import { ServiceWorkerProvider } from '@/providers/ServiceWorkerProvider'
 import { ErrorToastProvider } from '@/components/providers/ErrorToastProvider'
+import { ErrorBoundary } from '@/components/error/ErrorBoundary'
+import { OfflineDetector } from '@/components/error/OfflineDetector'
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -45,15 +47,19 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ServiceWorkerProvider>
-          <QueryProvider>
-            <ToastProvider>
-              <ErrorToastProvider>
-                {children}
-              </ErrorToastProvider>
-            </ToastProvider>
-          </QueryProvider>
-        </ServiceWorkerProvider>
+        <ErrorBoundary>
+          <ServiceWorkerProvider>
+            <QueryProvider>
+              <ToastProvider>
+                <ErrorToastProvider>
+                  <OfflineDetector>
+                    {children}
+                  </OfflineDetector>
+                </ErrorToastProvider>
+              </ToastProvider>
+            </QueryProvider>
+          </ServiceWorkerProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );
