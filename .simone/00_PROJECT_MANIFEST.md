@@ -99,6 +99,9 @@ This project follows a milestone-based development approach.
   - Update architecture and frontend documentation with new library specifications
 - [✅] [T002: Use TDD](./04_GENERAL_TASKS/TX002_Use_TDD.md) - Status: Completed
   - Add Test-Driven Development principles to CLAUDE.md and ARCHITECTURE.md files
+- [✅] [T003: Spring Boot Backend Devcontainer Launch Fix](./04_GENERAL_TASKS/TX003_Spring_Boot_Backend_Devcontainer_Launch_Fix.md) - Status: Completed
+  - Fix network connectivity issues preventing Spring Boot from launching in devcontainer environment
+  - Resolve Docker-outside-of-Docker (DooD) configuration for PostgreSQL and Redis access
 
 ## 6. Quick Links
 

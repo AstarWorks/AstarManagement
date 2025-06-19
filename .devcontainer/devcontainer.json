@@ -32,5 +32,10 @@
     "jetbrains": {
       "backend": "IntelliJ"
     }
+  },
+  "containerEnv": {
+    "DB_HOST": "172.18.0.1",
+    "REDIS_HOST": "172.18.0.1",
+    "SPRING_PROFILES_ACTIVE": "dev"
   }
 }

@@ -58,7 +58,7 @@ dependencies {
     implementation("org.springframework.session:spring-session-data-redis")
     
     // Development
-    developmentOnly("org.springframework.boot:spring-boot-devtools")
+//    developmentOnly("org.springframework.boot:spring-boot-devtools")
     developmentOnly("org.springframework.boot:spring-boot-docker-compose")
     runtimeOnly("org.postgresql:postgresql")
     runtimeOnly("com.h2database:h2") // For testing
