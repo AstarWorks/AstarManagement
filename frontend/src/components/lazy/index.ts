@@ -3,7 +3,7 @@
  * Implements route-based and component-based code splitting
  */
 
-import { lazy } from 'react'
+import React, { lazy } from 'react'
 import { 
   PDFViewerSkeleton, 
   AnalyticsSkeleton, 
@@ -69,10 +69,10 @@ export const LazyPDFViewer = withLazyLoading(
     }).catch(() => {
       // Fallback to a simple PDF viewer placeholder
       return { 
-        default: () => (
-          <div className="flex items-center justify-center h-64 border rounded-lg">
-            <p className="text-muted-foreground">PDF Viewer not available</p>
-          </div>
+        default: () => React.createElement(
+          'div',
+          { className: "flex items-center justify-center h-64 border rounded-lg" },
+          React.createElement('p', { className: "text-muted-foreground" }, 'PDF Viewer not available')
         )
       }
     })
@@ -93,11 +93,11 @@ export const LazyAnalyticsDashboard = withLazyLoading(
     }).catch(() => {
       // Fallback component
       return {
-        default: () => (
-          <div className="p-6">
-            <h2 className="text-xl font-semibold mb-4">Analytics Dashboard</h2>
-            <p className="text-muted-foreground">Analytics features will be available soon.</p>
-          </div>
+        default: () => React.createElement(
+          'div',
+          { className: "p-6" },
+          React.createElement('h2', { className: "text-xl font-semibold mb-4" }, 'Analytics Dashboard'),
+          React.createElement('p', { className: "text-muted-foreground" }, 'Analytics features will be available soon.')
         )
       }
     })

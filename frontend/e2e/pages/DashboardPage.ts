@@ -8,6 +8,7 @@ export class DashboardPage extends BasePage {
   readonly createMatterButton: Locator;
   readonly userMenu: Locator;
   readonly notificationBell: Locator;
+  readonly welcomeMessage: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -17,6 +18,7 @@ export class DashboardPage extends BasePage {
     this.createMatterButton = page.getByRole('button', { name: 'Create Matter' });
     this.userMenu = page.getByTestId('user-menu');
     this.notificationBell = page.getByTestId('notification-bell');
+    this.welcomeMessage = page.getByTestId('welcome-message');
   }
 
   async goto() {

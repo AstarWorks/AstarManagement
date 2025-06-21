@@ -114,11 +114,12 @@ mobileDevices.forEach(({ name, device }) => {
       
       // Verify touch targets are at least 44x44px
       const cardBox = await matterCard.boundingBox();
-      expect(cardBox.height).toBeGreaterThanOrEqual(44);
+      expect(cardBox).not.toBeNull();
+      expect(cardBox!.height).toBeGreaterThanOrEqual(44);
       
       // Long press for context menu (on mobile)
       if (device.isMobile) {
-        await matterCard.tap({ delay: 1000 });
+        await matterCard.press('Enter', { delay: 1000 });
         
         const contextMenu = page.getByTestId('mobile-context-menu');
         await expect(contextMenu).toBeVisible();
@@ -164,12 +165,13 @@ mobileDevices.forEach(({ name, device }) => {
       // Submit button should be easily tappable
       const submitButton = page.getByRole('button', { name: 'Create Matter' });
       const submitBox = await submitButton.boundingBox();
-      expect(submitBox.height).toBeGreaterThanOrEqual(44);
-      expect(submitBox.width).toBeGreaterThanOrEqual(44);
+      expect(submitBox).not.toBeNull();
+      expect(submitBox!.height).toBeGreaterThanOrEqual(44);
+      expect(submitBox!.width).toBeGreaterThanOrEqual(44);
     });
 
     test('responsive images and document viewer', async ({ page }) => {
-      const matter = await testData.createTestMatter();
+      const matter = await testData.createTestMatter({});
       const document = await testData.addDocumentToMatter(matter.id, {
         filename: 'evidence.jpg',
         type: 'IMAGE'
@@ -200,7 +202,8 @@ mobileDevices.forEach(({ name, device }) => {
       // Close button should be easily tappable
       const closeButton = viewer.getByRole('button', { name: 'Close' });
       const closeBox = await closeButton.boundingBox();
-      expect(closeBox.height).toBeGreaterThanOrEqual(44);
+      expect(closeBox).not.toBeNull();
+      expect(closeBox!.height).toBeGreaterThanOrEqual(44);
     });
 
     test('performance on mobile devices', async ({ page }) => {
@@ -256,13 +259,15 @@ test.describe('Tablet Responsive - iPad', () => {
     // But layout should be more compact than desktop
     const mainContent = page.getByTestId('main-content');
     const contentBox = await mainContent.boundingBox();
-    expect(contentBox.width).toBeLessThan(1200); // Not full desktop width
+    expect(contentBox).not.toBeNull();
+    expect(contentBox!.width).toBeLessThan(1200); // Not full desktop width
   });
 
-  test('tablet kanban shows 2 columns', async ({ page }) => {
+  test('tablet kanban shows 2 columns', async ({ page, request }) => {
+    const testDataManager = new TestDataManager(request);
     // Create test matters
-    await testData.createTestMatter({ status: 'INTAKE' });
-    await testData.createTestMatter({ status: 'INITIAL_REVIEW' });
+    await testDataManager.createTestMatter({ status: 'INTAKE' });
+    await testDataManager.createTestMatter({ status: 'INITIAL_REVIEW' });
     
     // Login
     await page.goto('/login');

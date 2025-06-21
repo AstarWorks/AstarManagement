@@ -33,7 +33,7 @@ export function OfflineDetector({
 }: OfflineDetectorProps) {
   const [isOnline, setIsOnline] = useState(true)
   const [wasOffline, setWasOffline] = useState(false)
-  const [offlineQueue, setOfflineQueue] = useState<Array<{ action: string; data: any; timestamp: Date }>>([])
+  const [offlineQueue, setOfflineQueue] = useState<Array<{ action: string; data: unknown; timestamp: Date }>>([])
   const setError = useKanbanStore((state) => state.setError)
   const refreshBoard = useKanbanStore((state) => state.refreshBoard)
 
@@ -110,23 +110,24 @@ export function OfflineDetector({
   }, [handleOnline, handleOffline])
 
   // Function to queue actions when offline
-  const queueOfflineAction = useCallback((action: string, data: any) => {
-    if (!isOnline && enableQueueing) {
-      setOfflineQueue(prev => [...prev, {
-        action,
-        data,
-        timestamp: new Date()
-      }])
-      
-      toast.info('Action queued', {
-        description: 'This action will be processed when you reconnect.',
-        duration: 2000
-      })
-      
-      return true // Indicates action was queued
-    }
-    return false // Indicates action should proceed normally
-  }, [isOnline, enableQueueing])
+  // TODO: Implement offline action queuing when needed
+  // const queueOfflineAction = useCallback((action: string, data: unknown) => {
+  //   if (!isOnline && enableQueueing) {
+  //     setOfflineQueue(prev => [...prev, {
+  //       action,
+  //       data,
+  //       timestamp: new Date()
+  //     }])
+  //     
+  //     toast.info('Action queued', {
+  //       description: 'This action will be processed when you reconnect.',
+  //       duration: 2000
+  //     })
+  //     
+  //     return true // Indicates action was queued
+  //   }
+  //   return false // Indicates action should proceed normally
+  // }, [isOnline, enableQueueing])
 
   return (
     <>
@@ -205,7 +206,7 @@ export function useOfflineDetection() {
 export function useOfflineAwareAction() {
   const { isOffline } = useOfflineDetection()
 
-  const executeAction = useCallback(async <T>(
+  const executeAction = useCallback(async <T,>(
     action: () => Promise<T>,
     options: {
       offlineMessage?: string

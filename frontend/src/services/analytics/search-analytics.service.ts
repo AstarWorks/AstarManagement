@@ -269,9 +269,11 @@ class SearchAnalyticsService {
 
   private loadStoredEvents(): void {
     try {
-      const stored = localStorage.getItem(this.STORAGE_KEY)
-      if (stored) {
-        this.events = JSON.parse(stored)
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const stored = localStorage.getItem(this.STORAGE_KEY)
+        if (stored) {
+          this.events = JSON.parse(stored)
+        }
       }
     } catch (error) {
       console.warn('Failed to load stored search analytics events:', error)
@@ -281,7 +283,9 @@ class SearchAnalyticsService {
 
   private saveEvents(): void {
     try {
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.events))
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.events))
+      }
     } catch (error) {
       console.warn('Failed to save search analytics events:', error)
     }

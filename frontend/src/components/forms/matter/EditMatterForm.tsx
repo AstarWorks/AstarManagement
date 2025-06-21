@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Form } from '@/components/ui/form'
 import { UpdateMatterSchema, type UpdateMatterRequest, type Matter } from '@/lib/schemas/matter-schemas'
 import { useMatterStore } from '@/stores/matter-store'
-import { matterService } from '@/services/api/matter.service'
+import { updateMatter as updateMatterApi, getMatterById } from '@/services/api/matter.service'
 import { MatterFormFields } from './MatterFormFields'
 
 interface EditMatterFormProps {
@@ -54,7 +54,7 @@ export function EditMatterForm({ matter, onSuccess, onCancel }: EditMatterFormPr
       if (!mounted) return
       
       try {
-        const latestMatter = await matterService.getMatterById(matter.id)
+        const latestMatter = await getMatterById(matter.id)
         if (!mounted) return
         
         if (new Date(latestMatter.updatedAt) > new Date(matter.updatedAt)) {
@@ -92,7 +92,7 @@ export function EditMatterForm({ matter, onSuccess, onCancel }: EditMatterFormPr
       }, { id: matter.id } as UpdateMatterRequest)
       
       // Call API to update matter
-      const updatedMatter = await matterService.updateMatter(matter.id, changedFields)
+      const updatedMatter = await updateMatterApi(matter.id, changedFields)
       
       // Update local store
       updateMatter(matter.id, updatedMatter)

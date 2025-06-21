@@ -16,7 +16,7 @@ test.describe('Role-Based Access Control', () => {
     testData = new TestDataManager(request);
     testMatter = await testData.createTestMatter({
       title: 'RBAC Test Matter',
-      clientId: 'client-123'
+      clientName: 'Test Client'
     });
   });
 
@@ -85,7 +85,7 @@ test.describe('Role-Based Access Control', () => {
       // Create matter for different client
       const otherMatter = await testData.createTestMatter({
         title: 'Other Client Matter',
-        clientId: 'other-client-456'
+        clientName: 'other-client-456'
       });
       
       const mattersPage = new MattersPage(page);

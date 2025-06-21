@@ -4,7 +4,7 @@
 
 ### Core Rules
 - **Package Manager**: Use `bun > pnpm > npm > yarn`
-- **Type Safety**: `strict: true` in tsconfig.json
+- **Type Safety**: `strict: true` in tsconfig.json and whenever you have completed to write code, please check the code using bun tsc --noEmit
 - **Null Handling**: Use optional chaining `?.` and nullish coalescing `??`
 - **Imports**: Use ES modules with absolute imports via `@/` prefix
 - **Components**: Always use TypeScript interfaces for props

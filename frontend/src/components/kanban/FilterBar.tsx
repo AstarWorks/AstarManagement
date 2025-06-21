@@ -20,7 +20,7 @@ import { Search, X, Filter, ChevronDown, ChevronUp } from 'lucide-react'
 
 // UI Components
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
@@ -29,7 +29,7 @@ import { Badge } from '@/components/ui/badge'
 // Types and utilities
 import { MatterPriority } from '@/components/kanban/types'
 import { cn } from '@/lib/utils'
-import { useKanbanStore, useFilters, useBoardActions, useMatters, useSearchState } from '@/stores/kanban-store'
+import { useFilters, useBoardActions, useMatters, useSearchState } from '@/stores/kanban-store'
 import { useSearchAnalytics } from '@/services/analytics/search-analytics.service'
 
 // FilterState interface implementation for T04_S02

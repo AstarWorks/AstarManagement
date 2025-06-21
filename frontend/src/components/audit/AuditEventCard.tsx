@@ -18,7 +18,6 @@ import {
   Key,
   Settings,
   AlertCircle,
-  CheckCircle,
   XCircle,
   RefreshCw,
   GitBranch
@@ -115,7 +114,7 @@ function getEventDescription(event: AuditLog): string {
 /**
  * Render field changes
  */
-function FieldChanges({ oldValues, newValues }: { oldValues?: Record<string, any>; newValues?: Record<string, any> }) {
+function FieldChanges({ oldValues, newValues }: { oldValues?: Record<string, unknown>; newValues?: Record<string, unknown> }) {
   if (!oldValues && !newValues) return null;
   
   const changedFields = new Set([
@@ -130,14 +129,14 @@ function FieldChanges({ oldValues, newValues }: { oldValues?: Record<string, any
         {Array.from(changedFields).map(field => (
           <div key={field} className="text-sm">
             <span className="font-medium text-gray-600">{field}:</span>
-            {oldValues?.[field] && (
+            {oldValues?.[field] !== undefined && (
               <span className="ml-2 line-through text-red-600">
-                {JSON.stringify(oldValues[field])}
+                {String(JSON.stringify(oldValues[field]))}
               </span>
             )}
-            {newValues?.[field] && (
+            {newValues?.[field] !== undefined && (
               <span className="ml-2 text-green-600">
-                {JSON.stringify(newValues[field])}
+                {String(JSON.stringify(newValues[field]))}
               </span>
             )}
           </div>

@@ -4,6 +4,7 @@ import "./globals.css";
 import { QueryProvider } from '@/providers/QueryProvider'
 import { ToastProvider } from '@/providers/ToastProvider'
 import { ServiceWorkerProvider } from '@/providers/ServiceWorkerProvider'
+import { MockServiceWorkerProvider } from '@/providers/MockServiceWorkerProvider'
 import { ErrorToastProvider } from '@/components/providers/ErrorToastProvider'
 import { ErrorBoundary } from '@/components/error/ErrorBoundary'
 import { OfflineDetector } from '@/components/error/OfflineDetector'
@@ -48,17 +49,19 @@ export default function RootLayout({
       >
         <div className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
           <ErrorBoundary>
-            <ServiceWorkerProvider>
-              <QueryProvider>
-                <ToastProvider>
-                  <ErrorToastProvider>
-                    <OfflineDetector>
-                      {children}
-                    </OfflineDetector>
-                  </ErrorToastProvider>
-                </ToastProvider>
-              </QueryProvider>
-            </ServiceWorkerProvider>
+            <MockServiceWorkerProvider>
+              <ServiceWorkerProvider>
+                <QueryProvider>
+                  <ToastProvider>
+                    <ErrorToastProvider>
+                      <OfflineDetector>
+                        {children}
+                      </OfflineDetector>
+                    </ErrorToastProvider>
+                  </ToastProvider>
+                </QueryProvider>
+              </ServiceWorkerProvider>
+            </MockServiceWorkerProvider>
           </ErrorBoundary>
         </div>
       </body>

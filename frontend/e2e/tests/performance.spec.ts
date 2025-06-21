@@ -114,7 +114,7 @@ test.describe('Performance Benchmarks - MVP Requirements', () => {
 
   test('PDF initial display meets < 1 second requirement', async ({ page }) => {
     // Create matter with PDF document
-    const matter = await testData.createTestMatter();
+    const matter = await testData.createTestMatter({});
     const document = await testData.addDocumentToMatter(matter.id, {
       filename: 'test-document.pdf',
       type: 'PDF',
@@ -185,7 +185,7 @@ test.describe('Performance Benchmarks - MVP Requirements', () => {
           
           return { success: hasWebSocket, index };
         } catch (error) {
-          return { success: false, index, error: error.message };
+          return { success: false, index, error: error instanceof Error ? error.message : String(error) };
         }
       });
       

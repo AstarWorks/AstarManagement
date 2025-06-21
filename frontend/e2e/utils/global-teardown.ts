@@ -29,7 +29,11 @@ async function globalTeardown(config: FullConfig) {
     // Delete test matters
     for (const id of testDataIds) {
       try {
-        await testData.deleteTestMatter(id);
+        await page.request.delete(`/api/v1/matters/${id}`, {
+          headers: {
+            'Authorization': `Bearer ${process.env.TEST_API_TOKEN}`
+          }
+        });
       } catch (error) {
         console.warn(`Failed to delete matter ${id}:`, error);
       }

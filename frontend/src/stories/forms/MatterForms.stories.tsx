@@ -1,8 +1,7 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { CreateMatterForm } from '@/components/forms/matter/CreateMatterForm'
 import { EditMatterForm } from '@/components/forms/matter/EditMatterForm'
-import { within, userEvent } from '@storybook/testing-library'
-import { expect } from '@storybook/test'
+import { within, userEvent, expect } from '@storybook/test'
 
 const meta: Meta<typeof CreateMatterForm> = {
   title: 'Forms/Matter',
@@ -27,7 +26,7 @@ export const CreateForm: Story = {
     // Test keyboard navigation
     const firstInput = await canvas.findByLabelText('Case Number *')
     await userEvent.tab() // Should focus on first input
-    expect(document.activeElement).toBe(firstInput)
+    await expect(document.activeElement).toBe(firstInput)
     
     // Test required field validation
     const submitButton = await canvas.findByRole('button', { name: /create matter/i })
@@ -35,7 +34,7 @@ export const CreateForm: Story = {
     
     // Should show validation errors
     const errors = await canvas.findAllByRole('alert')
-    expect(errors.length).toBeGreaterThan(0)
+    await expect(errors.length).toBeGreaterThan(0)
   }
 }
 
@@ -85,11 +84,11 @@ export const CreateFormWithAccessibility: Story = {
     
     // Test ARIA labels and descriptions
     const caseNumberInput = await canvas.findByLabelText('Case Number *')
-    expect(caseNumberInput).toHaveAttribute('aria-describedby')
+    await expect(caseNumberInput).toHaveAttribute('aria-describedby')
     
     // Test form field associations
     const titleInput = await canvas.findByLabelText('Title *')
-    expect(titleInput).toHaveAttribute('id')
+    await expect(titleInput).toHaveAttribute('id')
     
     // Test error state ARIA attributes
     const submitButton = await canvas.findByRole('button', { name: /create matter/i })
@@ -99,7 +98,7 @@ export const CreateFormWithAccessibility: Story = {
     await new Promise(resolve => setTimeout(resolve, 100))
     
     // Check that invalid fields have aria-invalid
-    expect(caseNumberInput).toHaveAttribute('aria-invalid', 'true')
+    await expect(caseNumberInput).toHaveAttribute('aria-invalid', 'true')
     
     // Test keyboard navigation through all form sections
     await userEvent.tab() // Move through form fields
@@ -110,9 +109,9 @@ export const CreateFormWithAccessibility: Story = {
     const allInputs = await canvas.findAllByRole('textbox')
     const allSelects = await canvas.findAllByRole('combobox')
     
-    expect(allButtons.length).toBeGreaterThan(0)
-    expect(allInputs.length).toBeGreaterThan(0)
-    expect(allSelects.length).toBeGreaterThan(0)
+    await expect(allButtons.length).toBeGreaterThan(0)
+    await expect(allInputs.length).toBeGreaterThan(0)
+    await expect(allSelects.length).toBeGreaterThan(0)
   }
 }
 
@@ -153,6 +152,6 @@ export const WithPersistence: Story = {
     
     // Check that draft saved message appears
     const draftMessage = await canvas.findByText(/draft saved automatically/i)
-    expect(draftMessage).toBeInTheDocument()
+    await expect(draftMessage).toBeInTheDocument()
   }
 }

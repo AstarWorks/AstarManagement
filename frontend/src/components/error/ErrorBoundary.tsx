@@ -141,7 +141,7 @@ URL: ${window.location.href}`
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-center text-gray-600 dark:text-gray-400">
-                An unexpected error occurred. We've been notified and are working on a fix.
+                An unexpected error occurred. We&apos;ve been notified and are working on a fix.
               </p>
               
               {this.state.errorId && (

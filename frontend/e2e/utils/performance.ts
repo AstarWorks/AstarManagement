@@ -2,7 +2,7 @@
  * Performance optimization utilities for E2E tests
  */
 
-import { PlaywrightTestConfig } from '@playwright/test';
+import { PlaywrightTestConfig, Page, Locator, BrowserContext, Response } from '@playwright/test';
 import { TestDataManager } from './test-data';
 
 /**
@@ -32,19 +32,19 @@ export const performanceConfig: Partial<PlaywrightTestConfig> = {
  */
 export const waitStrategies = {
   // Wait for network idle (no requests for 500ms)
-  networkIdle: async (page) => {
+  networkIdle: async (page: Page) => {
     await page.waitForLoadState('networkidle');
   },
   
   // Wait for specific API responses
-  apiResponse: async (page, endpoint: string) => {
+  apiResponse: async (page: Page, endpoint: string) => {
     await page.waitForResponse(
-      response => response.url().includes(endpoint) && response.status() === 200
+      (response: Response) => response.url().includes(endpoint) && response.status() === 200
     );
   },
   
   // Wait for animations to complete
-  animationComplete: async (page) => {
+  animationComplete: async (page: Page) => {
     await page.evaluate(() => {
       return new Promise(resolve => {
         requestAnimationFrame(() => {
@@ -55,7 +55,7 @@ export const waitStrategies = {
   },
   
   // Smart wait for element stability
-  elementStable: async (locator) => {
+  elementStable: async (locator: Locator) => {
     // Wait for element to be visible
     await locator.waitFor({ state: 'visible' });
     
@@ -146,7 +146,7 @@ export class PerformanceMonitor {
   
   measure(name: string, startMark: string, endMark?: string) {
     const start = this.marks.get(startMark);
-    const end = endMark ? this.marks.get(endMark) : Date.now();
+    const end = endMark ? this.marks.get(endMark)! : Date.now();
     
     if (start) {
       const duration = end - start;
@@ -180,7 +180,7 @@ export class PerformanceMonitor {
  */
 export const optimizedPatterns = {
   // Reuse authentication state across tests
-  reuseAuth: async (context) => {
+  reuseAuth: async (context: BrowserContext) => {
     return context.storageState({ path: 'auth-state.json' });
   },
   
@@ -199,13 +199,13 @@ export const optimizedPatterns = {
   },
   
   // Smart wait for drag and drop
-  waitForDragAndDrop: async (page) => {
+  waitForDragAndDrop: async (page: Page) => {
     await waitStrategies.animationComplete(page);
     await page.waitForTimeout(300); // Allow for DOM updates
   },
   
   // Optimized search wait
-  waitForSearchResults: async (page) => {
+  waitForSearchResults: async (page: Page) => {
     await Promise.race([
       waitStrategies.apiResponse(page, '/api/v1/matters/search'),
       page.waitForTimeout(2000)
@@ -240,14 +240,14 @@ export const stabilityHelpers = {
   },
   
   // Wait for element with retry
-  waitForElementWithRetry: async (page, selector: string, options = {}) => {
+  waitForElementWithRetry: async (page: Page, selector: string, options = {}) => {
     return stabilityHelpers.retryOperation(
       () => page.waitForSelector(selector, { timeout: 5000, ...options })
     );
   },
   
   // Stable click with retry
-  clickWithRetry: async (locator) => {
+  clickWithRetry: async (locator: Locator) => {
     return stabilityHelpers.retryOperation(async () => {
       await waitStrategies.elementStable(locator);
       await locator.click();

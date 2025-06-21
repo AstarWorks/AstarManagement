@@ -18,7 +18,7 @@ interface CustomMetric {
   name: string
   value: number
   timestamp: number
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 }
 
 interface PerformanceReport {
@@ -219,7 +219,7 @@ class WebVitalsMonitor {
   /**
    * Record a custom performance metric
    */
-  recordCustomMetric(name: string, value: number, metadata?: Record<string, any>): void {
+  recordCustomMetric(name: string, value: number, metadata?: Record<string, unknown>): void {
     const metric: CustomMetric = {
       name,
       value,
@@ -486,7 +486,7 @@ export function useWebVitals() {
     return unsubscribe
   }, [])
 
-  const recordMetric = React.useCallback((name: string, value: number, metadata?: Record<string, any>) => {
+  const recordMetric = React.useCallback((name: string, value: number, metadata?: Record<string, unknown>) => {
     WebVitalsMonitor.getInstance().recordCustomMetric(name, value, metadata)
   }, [])
 
@@ -507,7 +507,7 @@ export const performanceUtils = {
   /**
    * Measure function execution time
    */
-  measureFunction<T extends (...args: any[]) => any>(
+  measureFunction<T extends (...args: unknown[]) => unknown>(
     fn: T, 
     name?: string
   ): (...args: Parameters<T>) => ReturnType<T> {
@@ -529,7 +529,7 @@ export const performanceUtils = {
   /**
    * Measure async function execution time
    */
-  measureAsyncFunction<T extends (...args: any[]) => Promise<any>>(
+  measureAsyncFunction<T extends (...args: unknown[]) => Promise<unknown>>(
     fn: T,
     name?: string
   ): (...args: Parameters<T>) => ReturnType<T> {

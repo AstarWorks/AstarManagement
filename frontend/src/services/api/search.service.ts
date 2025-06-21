@@ -129,7 +129,7 @@ export function extractSearchTerms(query: string): string[] {
   }
   
   // Remove quoted phrases from query and split remaining terms
-  let remainingQuery = query.replace(/"[^"]+"/g, '')
+  const remainingQuery = query.replace(/"[^"]+"/g, '')
   const simpleTerms = remainingQuery
     .split(/\s+/)
     .filter(term => term.trim() && !['AND', 'OR', 'NOT'].includes(term.toUpperCase()))

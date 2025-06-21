@@ -28,7 +28,7 @@ export function LibraryIntegrationExample() {
       caseNumber: '2025-CV-0001',
       title: 'Test Contract Dispute',
       clientName: 'Test Client Corp',
-      status: MatterStatus.INITIAL_CONSULTATION,
+      status: MatterStatus.INITIAL_REVIEW,
       priority: Priority.HIGH,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),

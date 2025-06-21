@@ -25,7 +25,7 @@ test.describe('Accessibility Compliance - WCAG 2.1 AA', () => {
         await injectAxe(page);
         
         // Check for accessibility violations
-        await checkA11y(page, null, {
+        await checkA11y(page, undefined, {
           detailedReport: true,
           detailedReportOptions: {
             html: true
@@ -40,7 +40,7 @@ test.describe('Accessibility Compliance - WCAG 2.1 AA', () => {
     await page.goto('/login');
     await injectAxe(page);
     
-    await checkA11y(page, null, {
+    await checkA11y(page, undefined, {
       detailedReport: true,
       detailedReportOptions: {
         html: true
@@ -146,7 +146,7 @@ test.describe('Accessibility Compliance - WCAG 2.1 AA', () => {
     await injectAxe(page);
     
     // Check only color contrast rules
-    await checkA11y(page, null, {
+    await checkA11y(page, undefined, {
       rules: {
         'color-contrast': { enabled: true }
       }
@@ -370,9 +370,7 @@ test.describe('Accessibility Compliance - WCAG 2.1 AA', () => {
   });
 
   test('mobile touch target size compliance', async ({ page, isMobile }) => {
-    if (!isMobile) {
-      test.skip('Mobile-specific test');
-    }
+    test.skip(!isMobile, 'Mobile-specific test');
     
     await page.goto('/matters');
     

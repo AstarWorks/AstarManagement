@@ -8,12 +8,12 @@
  * - Interactive filtering scenarios
  */
 
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/nextjs'
 import { within, userEvent, expect } from '@storybook/test'
 import React from 'react'
 import { FilterBar } from './FilterBar'
 import { useKanbanStore } from '@/stores/kanban-store'
-import { DEMO_MATTERS } from '@/lib/demo-data'
+import { demoMatters } from '@/lib/demo-data'
 
 const meta: Meta<typeof FilterBar> = {
   title: 'Features/Kanban/FilterBar',

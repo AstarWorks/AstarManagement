@@ -47,13 +47,15 @@ export class MobileMatterPage extends BasePage {
     const viewport = this.page.viewportSize();
     if (!viewport) throw new Error('No viewport size');
     
-    await this.page.touchscreen.swipe({
-      startX: viewport.width / 2,
-      startY: viewport.height - 20,
-      endX: viewport.width / 2,
-      endY: viewport.height / 2,
-      steps: 10
-    });
+    const startX = viewport.width / 2;
+    const startY = viewport.height - 20;
+    const endX = viewport.width / 2;
+    const endY = viewport.height / 2;
+    
+    await this.page.mouse.move(startX, startY);
+    await this.page.mouse.down();
+    await this.page.mouse.move(endX, endY, { steps: 10 });
+    await this.page.mouse.up();
   }
 
   async closeBottomSheet() {
@@ -61,12 +63,14 @@ export class MobileMatterPage extends BasePage {
     const sheetBox = await this.bottomSheet.boundingBox();
     if (!sheetBox) throw new Error('Bottom sheet not found');
     
-    await this.page.touchscreen.swipe({
-      startX: sheetBox.x + sheetBox.width / 2,
-      startY: sheetBox.y + 50,
-      endX: sheetBox.x + sheetBox.width / 2,
-      endY: sheetBox.y + sheetBox.height - 50,
-      steps: 10
-    });
+    const startX = sheetBox.x + sheetBox.width / 2;
+    const startY = sheetBox.y + 50;
+    const endX = sheetBox.x + sheetBox.width / 2;
+    const endY = sheetBox.y + sheetBox.height - 50;
+    
+    await this.page.mouse.move(startX, startY);
+    await this.page.mouse.down();
+    await this.page.mouse.move(endX, endY, { steps: 10 });
+    await this.page.mouse.up();
   }
 }

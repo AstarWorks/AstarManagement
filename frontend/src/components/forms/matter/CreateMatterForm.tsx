@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Form } from '@/components/ui/form'
 import { CreateMatterSchema, type CreateMatterRequest } from '@/lib/schemas/matter-schemas'
 import { useMatterStore } from '@/stores/matter-store'
-import { matterService } from '@/services/api/matter.service'
+import { createMatter } from '@/services/api/matter.service'
 import { MatterFormFields } from './MatterFormFields'
 import { useFormPersistence } from '@/hooks/useFormPersistence'
 
@@ -72,7 +72,7 @@ export function CreateMatterForm({ onSuccess, onCancel }: CreateMatterFormProps)
       setIsSubmitting(true)
       
       // Call API to create matter
-      const createdMatter = await matterService.createMatter(data)
+      const createdMatter = await createMatter(data)
       
       // Update local store
       addMatter(createdMatter)

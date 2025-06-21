@@ -213,7 +213,7 @@ export function FormErrorSummary({
 /**
  * Hook to convert react-hook-form errors to FieldValidationError format
  */
-export function useFormErrors(errors: Record<string, any>): FieldValidationError[] {
+export function useFormErrors(errors: Record<string, { message?: string; type?: string }>): FieldValidationError[] {
   return Object.entries(errors).map(([field, error]) => ({
     field,
     message: error?.message || 'This field has an error',
@@ -225,10 +225,10 @@ export function useFormErrors(errors: Record<string, any>): FieldValidationError
 /**
  * Hook to convert Zod errors to FieldValidationError format
  */
-export function useZodErrors(zodError: any): FieldValidationError[] {
+export function useZodErrors(zodError: { issues?: Array<{ path: string[]; message: string; code?: string }> }): FieldValidationError[] {
   if (!zodError?.issues) return []
   
-  return zodError.issues.map((issue: any) => ({
+  return zodError.issues.map((issue) => ({
     field: issue.path.join('.') || 'form',
     message: issue.message,
     type: 'error' as const,

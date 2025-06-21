@@ -59,7 +59,11 @@ export class MobileKanbanPage extends BasePage {
 
   async dragMatterToColumn(matterCard: Locator, targetStatus: string) {
     // On mobile, long press to initiate drag
-    await matterCard.tap({ delay: 1000 });
+    const box = await matterCard.boundingBox();
+    if (!box) throw new Error('Matter card not found');
+    
+    await this.page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
+    await this.page.waitForTimeout(1000); // Hold for 1 second
     
     // Then navigate to target column
     await this.selectTab(targetStatus);

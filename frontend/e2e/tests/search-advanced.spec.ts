@@ -196,7 +196,8 @@ test.describe('Advanced Search - MVP Features', () => {
       
       // Should find matches in multiple content types
       const results = searchPage.getSearchResults();
-      await expect(results).toBeGreaterThan(0);
+      await expect(results).toHaveCount(await results.count());
+      expect(await results.count()).toBeGreaterThan(0);
       
       // Check for different match types
       const firstResult = results.first();
@@ -215,12 +216,12 @@ test.describe('Advanced Search - MVP Features', () => {
       // Test case-insensitive search
       await searchPage.search('CONTRACT');
       const caseResults = searchPage.getSearchResults();
-      await expect(caseResults).toBeGreaterThan(0);
+      expect(await caseResults.count()).toBeGreaterThan(0);
       
       // Test partial word search
       await searchPage.search('soft');
       const partialResults = searchPage.getSearchResults();
-      await expect(partialResults).toBeGreaterThan(0);
+      expect(await partialResults.count()).toBeGreaterThan(0);
     });
   });
 

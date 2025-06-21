@@ -48,7 +48,7 @@ const validateStatusTransition = async (
     
     const result = await response.json()
     return { isValid: result.valid, message: result.message }
-  } catch (error) {
+  } catch {
     // Fallback validation for development/demo mode
     console.warn('Backend validation unavailable, using fallback rules')
     return fallbackValidateTransition(currentStatus, newStatus)
@@ -84,10 +84,10 @@ const fallbackValidateTransition = (
   }
 }
 
-// Status transitions that require confirmation
-const CONFIRMATION_REQUIRED: Set<string> = new Set([
-  'CLOSED', 'SETTLEMENT'
-])
+// Status transitions that require confirmation (currently unused)
+// const CONFIRMATION_REQUIRED: Set<string> = new Set([
+//   'CLOSED', 'SETTLEMENT'
+// ])
 
 export const KanbanBoard = React.memo(function KanbanBoard({
   board,
@@ -95,7 +95,7 @@ export const KanbanBoard = React.memo(function KanbanBoard({
   filters,
   sorting,
   viewPreferences,
-  dragContext,
+  // dragContext is currently unused
   currentUser,
   onColumnCollapse,
   renderHeaderExtras,
@@ -104,19 +104,9 @@ export const KanbanBoard = React.memo(function KanbanBoard({
   // Get loading state from store
   const { isLoading } = useLoadingState()
   
-  // Show skeleton during initial load
-  if (isLoading && (!board || board.matters.length === 0)) {
-    return (
-      <BoardSkeleton 
-        columnCount={4}
-        cardsPerColumn={3}
-        className={className}
-      />
-    )
-  }
-  // State for drag operations
+  // State for drag operations - must be before any conditional returns
   const [activeId, setActiveId] = React.useState<string | null>(null)
-  const [overId, setOverId] = React.useState<string | null>(null)
+  const [, setOverId] = React.useState<string | null>(null)
   const [dragStartTime, setDragStartTime] = React.useState<number>(0)
   
   // State for confirmation dialog
@@ -147,6 +137,9 @@ export const KanbanBoard = React.memo(function KanbanBoard({
 
   // Filter and sort matters
   const filteredMatters = React.useMemo(() => {
+    // Early return empty array if board is not loaded
+    if (!board || !board.matters) return []
+    
     let filtered = [...board.matters]
 
     // Apply search filter
@@ -233,11 +226,14 @@ export const KanbanBoard = React.memo(function KanbanBoard({
     })
 
     return filtered
-  }, [board.matters, filters, sorting])
+  }, [board, filters, sorting])
 
   // Group matters by column
   const mattersByColumn = React.useMemo(() => {
     const groups: Record<string, MatterCardType[]> = {}
+    
+    // Early return if board is not loaded
+    if (!board || !board.columns) return groups
     
     // Initialize all columns
     board.columns.forEach(column => {
@@ -255,10 +251,13 @@ export const KanbanBoard = React.memo(function KanbanBoard({
     })
 
     return groups
-  }, [filteredMatters, board.columns])
+  }, [board, filteredMatters])
 
   // Get visible columns based on preferences
   const visibleColumns = React.useMemo(() => {
+    // Early return if board is not loaded
+    if (!board || !board.columns) return []
+    
     return board.columns
       .filter(column => viewPreferences.columnsVisible.includes(column.id))
       .sort((a, b) => {
@@ -266,24 +265,62 @@ export const KanbanBoard = React.memo(function KanbanBoard({
         const bIndex = viewPreferences.columnOrder.indexOf(b.id)
         return aIndex - bIndex
       })
-  }, [board.columns, viewPreferences.columnsVisible, viewPreferences.columnOrder])
+  }, [board, viewPreferences.columnsVisible, viewPreferences.columnOrder])
 
   const handleDragStart = React.useCallback((event: DragStartEvent) => {
     setActiveId(event.active.id as string)
     setDragStartTime(performance.now())
     
     // Provide screen reader announcement
-    const matter = board.matters.find(m => m.id === event.active.id)
-    if (matter) {
-      // Could add aria-live announcement here
-      console.log(`Started dragging matter: ${matter.caseNumber} - ${matter.title}`)
+    if (board && board.matters) {
+      const matter = board.matters.find(m => m.id === event.active.id)
+      if (matter) {
+        // Could add aria-live announcement here
+        console.log(`Started dragging matter: ${matter.caseNumber} - ${matter.title}`)
+      }
     }
-  }, [board.matters])
+  }, [board])
 
   const handleDragOver = React.useCallback((event: DragOverEvent) => {
     const { over } = event
     setOverId(over ? (over.id as string) : null)
   }, [])
+
+  // Function to execute the actual matter move
+  const executeMatterMove = React.useCallback(async (
+    matterId: string, 
+    newStatus: string, 
+    targetColumnId: string
+  ) => {
+    const moveStartTime = performance.now()
+    
+    try {
+      // Optimistic update
+      await actions.moveMatter(matterId, newStatus, targetColumnId)
+      
+      const moveEndTime = performance.now()
+      const moveDuration = moveEndTime - moveStartTime
+      
+      // Performance check - drop completion should be < 200ms
+      if (moveDuration < 200) {
+        console.log(`✅ Move operation completed in ${moveDuration.toFixed(2)}ms`)
+      } else {
+        console.warn(`⚠️ Move operation took ${moveDuration.toFixed(2)}ms (target: <200ms)`)
+      }
+      
+      // Screen reader announcement
+      if (board && board.matters) {
+        const matter = board.matters.find(m => m.id === matterId)
+        if (matter) {
+          console.log(`Moved matter ${matter.caseNumber} to ${newStatus}`)
+        }
+      }
+    } catch (error) {
+      console.error('Failed to move matter:', error)
+      // Could show error toast here
+      // Rollback would happen automatically via optimistic updates
+    }
+  }, [actions, board])
 
   const handleDragEnd = React.useCallback(async (event: DragEndEvent) => {
     const { active, over } = event
@@ -303,6 +340,9 @@ export const KanbanBoard = React.memo(function KanbanBoard({
     }
 
     if (!over) return
+
+    // Early return if board is not loaded
+    if (!board || !board.columns || !board.matters) return
 
     const matterId = active.id as string
     const overId = over.id as string
@@ -360,41 +400,7 @@ export const KanbanBoard = React.memo(function KanbanBoard({
 
     // Proceed with the move if no confirmation needed
     await executeMatterMove(matterId, newStatus, targetColumn.id)
-  }, [board.matters, board.columns, dragStartTime])
-
-  // Function to execute the actual matter move
-  const executeMatterMove = React.useCallback(async (
-    matterId: string, 
-    newStatus: string, 
-    targetColumnId: string
-  ) => {
-    const moveStartTime = performance.now()
-    
-    try {
-      // Optimistic update
-      await actions.moveMatter(matterId, newStatus, targetColumnId)
-      
-      const moveEndTime = performance.now()
-      const moveDuration = moveEndTime - moveStartTime
-      
-      // Performance check - drop completion should be < 200ms
-      if (moveDuration < 200) {
-        console.log(`✅ Move operation completed in ${moveDuration.toFixed(2)}ms`)
-      } else {
-        console.warn(`⚠️ Move operation took ${moveDuration.toFixed(2)}ms (target: <200ms)`)
-      }
-      
-      // Screen reader announcement
-      const matter = board.matters.find(m => m.id === matterId)
-      if (matter) {
-        console.log(`Moved matter ${matter.caseNumber} to ${newStatus}`)
-      }
-    } catch (error) {
-      console.error('Failed to move matter:', error)
-      // Could show error toast here
-      // Rollback would happen automatically via optimistic updates
-    }
-  }, [actions, board.matters])
+  }, [board, dragStartTime, executeMatterMove])
 
   // Handle confirmation dialog
   const handleConfirmMove = React.useCallback(async (reason: string) => {
@@ -414,9 +420,25 @@ export const KanbanBoard = React.memo(function KanbanBoard({
     }
   }, [pendingTransition, actions])
 
-  const activeMatter = activeId 
+  const activeMatter = activeId && board && board.matters
     ? board.matters.find(m => m.id === activeId)
     : null
+
+  // Show skeleton during initial load
+  if (isLoading && (!board || board.matters.length === 0)) {
+    return (
+      <BoardSkeleton 
+        columnCount={4}
+        cardsPerColumn={3}
+        className={className}
+      />
+    )
+  }
+
+  // Early return if no board data
+  if (!board) {
+    return null
+  }
 
   return (
     <div className={cn("flex flex-col h-full w-full", className)}>

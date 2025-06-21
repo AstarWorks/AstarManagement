@@ -122,14 +122,18 @@ export function KanbanBoardContainer({
     stopAutoRefresh
   ])
 
-  // Provide default board if none exists
-  const boardData = board || {
-    id: 'default-board',
-    title: 'Kanban Board',
-    columns: DEFAULT_COLUMNS,
-    matters: [],
-    lastUpdated: new Date().toISOString()
-  }
+  // Provide default board if none exists - memoized to prevent object recreation
+  const boardData = React.useMemo(() => {
+    if (board) return board
+    
+    return {
+      id: 'default-board',
+      title: 'Kanban Board',
+      columns: DEFAULT_COLUMNS,
+      matters: [],
+      lastUpdated: new Date().toISOString()
+    }
+  }, [board])
 
   return (
     <KanbanBoard

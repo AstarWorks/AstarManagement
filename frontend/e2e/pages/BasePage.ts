@@ -7,6 +7,12 @@ export abstract class BasePage {
     await this.page.waitForLoadState('networkidle');
   }
 
+  async waitForPageLoad() {
+    await this.page.waitForLoadState('networkidle');
+    // Additional wait for any dynamic content
+    await this.page.waitForTimeout(500);
+  }
+
   async takeScreenshot(name: string) {
     await this.page.screenshot({ path: `screenshots/${name}.png` });
   }

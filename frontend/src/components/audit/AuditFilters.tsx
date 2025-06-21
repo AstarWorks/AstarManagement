@@ -6,11 +6,9 @@ import * as React from 'react';
 import { Calendar, Filter, User, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { cn } from '@/lib/utils';
 import { AuditEventType, type AuditFilterState } from '@/types/audit';
 
 interface AuditFiltersProps {

@@ -123,7 +123,7 @@ test.describe('Matter Management', () => {
     });
 
     test('concurrent edits show conflict warning', async ({ authenticatedPage, context }) => {
-      const matter = await testData.createTestMatter();
+      const matter = await testData.createTestMatter({});
       
       // Open matter in two tabs
       const page1 = authenticatedPage;
@@ -186,11 +186,11 @@ test.describe('Matter Management', () => {
       // Matter should not appear in list
       const mattersPage = new MattersPage(authenticatedPage);
       await mattersPage.searchMatters(matter.caseNumber);
-      await expect(mattersPage.getByText('No matters found')).toBeVisible();
+      await expect(authenticatedPage.getByText('No matters found')).toBeVisible();
     });
 
     test('cannot delete matter with active documents', async ({ authenticatedPage }) => {
-      const matter = await testData.createTestMatter();
+      const matter = await testData.createTestMatter({});
       
       // Add document to matter
       await testData.addDocumentToMatter(matter.id, {

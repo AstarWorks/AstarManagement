@@ -12,7 +12,7 @@ test.describe('MVP RBAC Permissions', () => {
     testData = new TestDataManager(request);
     testMatter = await testData.createTestMatter({
       title: 'RBAC Test Matter',
-      clientId: 'client-123'
+      clientName: 'Test Client'
     });
   });
 
@@ -155,7 +155,7 @@ test.describe('MVP RBAC Permissions', () => {
       // Create matter for different client
       const otherMatter = await testData.createTestMatter({
         title: 'Other Client Matter',
-        clientId: 'other-client-456'
+        clientName: 'other-client-456'
       });
       
       // Login as client
@@ -249,7 +249,7 @@ test.describe('MVP RBAC Permissions', () => {
 
     test('client cannot access other matters via API', async ({ page }) => {
       const otherMatter = await testData.createTestMatter({
-        clientId: 'other-client-456'
+        clientName: 'other-client-456'
       });
       
       // Login as client

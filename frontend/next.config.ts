@@ -172,8 +172,6 @@ const nextConfig: NextConfig = {
   // Disable powered by header
   poweredByHeader: false,
   
-  // Enable GZIP compression
-  compress: true,
 
   // Transpile packages for better tree shaking
   transpilePackages: [

@@ -9,7 +9,7 @@ import { AuditEventCard } from './AuditEventCard';
 import { AuditFilters } from './AuditFilters';
 import { useAuditTimeline, useAuditExport } from '@/hooks/useAuditTimeline';
 import { cn } from '@/lib/utils';
-import type { AuditFilterState, AuditSearchParams } from '@/types/audit';
+import type { AuditFilterState, AuditSearchParams, AuditLog } from '@/types/audit';
 
 interface AuditTimelineProps {
   entityType?: string;
@@ -59,7 +59,7 @@ export function AuditTimeline({
 
   // Flatten timeline groups for virtualization
   const allItems = React.useMemo(() => {
-    const items: Array<{ type: 'date' | 'event'; data: any; groupIndex: number; eventIndex?: number }> = [];
+    const items: Array<{ type: 'date' | 'event'; data: AuditLog | string; groupIndex: number; eventIndex?: number }> = [];
     
     timelineGroups.forEach((group, groupIndex) => {
       items.push({ type: 'date', data: group.date, groupIndex });
@@ -95,7 +95,7 @@ export function AuditTimeline({
       fetchNextPage();
     }
   }, [
-    rowVirtualizer.getVirtualItems(),
+    rowVirtualizer,
     allItems.length,
     hasNextPage,
     isFetchingNextPage,
@@ -179,13 +179,13 @@ export function AuditTimeline({
                     {item.type === 'date' ? (
                       <div className="sticky top-0 z-20 bg-gray-50 px-6 py-2">
                         <div className="text-sm font-medium text-gray-700">
-                          {item.data}
+                          {item.data as string}
                         </div>
                       </div>
                     ) : (
                       <div className="px-6 py-2">
                         <AuditEventCard
-                          event={item.data}
+                          event={item.data as AuditLog}
                           isLast={
                             virtualItem.index === allItems.length - 1 ||
                             (allItems[virtualItem.index + 1]?.type === 'date')

@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/nextjs'
 import { MatterCard } from './MatterCard'
 import { DEFAULT_VIEW_PREFERENCES } from './constants'
-import { TooltipProvider } from '@/components/ui/tooltip'
+// import { TooltipProvider } from '@/components/ui/tooltip'
 import type { MatterStatus, MatterPriority } from './types'
 
 const meta: Meta<typeof MatterCard> = {
@@ -12,11 +12,9 @@ const meta: Meta<typeof MatterCard> = {
   },
   decorators: [
     (Story) => (
-      <TooltipProvider>
-        <div className="w-80">
-          <Story />
-        </div>
-      </TooltipProvider>
+      <div className="w-80">
+        <Story />
+      </div>
     )
   ],
   tags: ['autodocs']

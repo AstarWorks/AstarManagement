@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 import React from 'react'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { KanbanBoard } from './KanbanBoard'
 import { demoBoard, demoCurrentUser, demoFilters, demoSorting, demoViewPreferences } from '@/lib/demo-data'
 import { DEFAULT_COLUMNS } from './constants'
@@ -76,7 +76,7 @@ describe('KanbanBoard Drag and Drop', () => {
   })
 
   it('displays confirmation dialog for major status transitions', async () => {
-    const { rerender } = render(
+    render(
       <MockTooltipProvider>
         <KanbanBoard
           board={mockBoardWithColumns}

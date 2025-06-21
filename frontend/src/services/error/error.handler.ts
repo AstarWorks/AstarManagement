@@ -148,11 +148,48 @@ function isRetryable(status?: number): boolean {
 /**
  * Parse RFC 7807 Problem+JSON error response
  */
-export function handleApiError(error: any): BoardError {
+export function handleApiError(error: unknown): BoardError {
   const timestamp = new Date().toISOString()
   
+  // Type guard for objects with response property
+  const hasResponse = (err: unknown): err is { response: unknown } => {
+    return typeof err === 'object' && err !== null && 'response' in err
+  }
+
+  // Type guard for AxiosError-like objects
+  const isAxiosErrorLike = (err: unknown): err is {
+    response: {
+      status: number
+      data: unknown
+    }
+    correlationId?: string
+  } => {
+    return hasResponse(err) && 
+           typeof err.response === 'object' && 
+           err.response !== null && 
+           'status' in err.response
+  }
+
+  // Type guard for ApiError-like objects
+  const isApiErrorLike = (err: unknown): err is {
+    name: string
+    problemDetail: unknown
+    status?: number
+    correlationId?: string
+  } => {
+    return typeof err === 'object' && 
+           err !== null && 
+           'name' in err && 
+           'problemDetail' in err
+  }
+
+  // Type guard for objects with message property
+  const hasMessage = (err: unknown): err is { message: string } => {
+    return typeof err === 'object' && err !== null && 'message' in err && typeof (err as { message: unknown }).message === 'string'
+  }
+  
   // Handle network errors (no response)
-  if (!error.response) {
+  if (!hasResponse(error)) {
     return {
       type: ErrorType.NETWORK,
       message: 'Network error. Please check your connection and try again.',
@@ -163,7 +200,7 @@ export function handleApiError(error: any): BoardError {
   }
   
   // Handle AxiosError with response
-  if (error.response) {
+  if (isAxiosErrorLike(error)) {
     const status = error.response.status
     const problemDetail = error.response.data as ProblemDetail
     
@@ -183,8 +220,8 @@ export function handleApiError(error: any): BoardError {
   }
   
   // Handle ApiError instances
-  if (error.name === 'ApiError' && error.problemDetail) {
-    const { status, problemDetail, correlationId } = error as ApiError
+  if (isApiErrorLike(error) && error.name === 'ApiError') {
+    const { status, problemDetail, correlationId } = error as unknown as ApiError
     const errorType = mapErrorType(status, problemDetail?.type)
     const action = getErrorAction(status, errorType)
     const canRetry = isRetryable(status)
@@ -203,7 +240,7 @@ export function handleApiError(error: any): BoardError {
   // Handle generic errors
   return {
     type: ErrorType.UNKNOWN,
-    message: error.message || 'An unexpected error occurred.',
+    message: hasMessage(error) ? error.message : 'An unexpected error occurred.',
     timestamp,
     action: ErrorAction.NONE,
     canRetry: false
@@ -291,7 +328,7 @@ export async function retryWithBackoff<T>(
   maxRetries = 3,
   baseDelay = 1000
 ): Promise<T> {
-  let lastError: any
+  let lastError: unknown
   
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {

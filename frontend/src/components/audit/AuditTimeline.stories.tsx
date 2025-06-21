@@ -2,12 +2,13 @@
  * Storybook stories for AuditTimeline component
  */
 
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuditTimeline } from './AuditTimeline';
 import { AuditEventType } from '@/types/audit';
 
 // Mock data generator
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function generateMockAuditLogs(count: number = 100) {
   const eventTypes = Object.values(AuditEventType);
   const users = [

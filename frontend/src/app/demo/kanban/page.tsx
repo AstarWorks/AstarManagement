@@ -3,18 +3,23 @@
 import React from 'react'
 import { KanbanBoardContainer } from '@/components/kanban'
 import { useKanbanStore, useBoardActions, useBoardMetrics, useLoadingState } from '@/stores/kanban-store'
+import { useMatterDataStore } from '@/stores/kanban/matter-data-store'
+import { useKanbanBoardStore } from '@/stores/kanban/kanban-board-store'
 import { demoCurrentUser, demoMatters } from '@/lib/demo-data'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { RefreshCw, Filter, Settings, Plus } from 'lucide-react'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 
 export default function KanbanDemoPage() {
   // Initialize store with demo data on mount
   React.useEffect(() => {
-    const initializeBoard = useKanbanStore.getState().initializeBoard
-    initializeBoard(demoMatters)
+    // Initialize board store
+    const { initializeBoard } = useKanbanBoardStore.getState()
+    initializeBoard()
+    
+    // Set demo matters directly in the store state
+    useMatterDataStore.setState({ matters: demoMatters })
   }, [])
 
   // Store state and actions
@@ -47,47 +52,35 @@ export default function KanbanDemoPage() {
             
             {/* Demo Controls */}
             <div className="flex items-center gap-2">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => refreshBoard()}
-                    disabled={isLoading}
-                  >
-                    <RefreshCw className={cn("w-4 h-4", isLoading && "animate-spin")} />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Refresh board data</TooltipContent>
-              </Tooltip>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => refreshBoard()}
+                disabled={isLoading}
+              >
+                <RefreshCw className={cn("w-4 h-4", isLoading && "animate-spin")} />
+              </Button>
 
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <Filter className="w-4 h-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Filter options (demo)</TooltipContent>
-              </Tooltip>
+              <Button 
+                variant="outline" 
+                size="sm"
+              >
+                <Filter className="w-4 h-4" />
+              </Button>
 
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <Settings className="w-4 h-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Board settings (demo)</TooltipContent>
-              </Tooltip>
+              <Button 
+                variant="outline" 
+                size="sm"
+              >
+                <Settings className="w-4 h-4" />
+              </Button>
 
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button size="sm">
-                    <Plus className="w-4 h-4 mr-2" />
-                    New Matter
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Create new matter (demo)</TooltipContent>
-              </Tooltip>
+              <Button 
+                size="sm"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                New Matter
+              </Button>
             </div>
           </div>
 

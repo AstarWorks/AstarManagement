@@ -12,16 +12,16 @@
  */
 
 import React from 'react'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { act } from 'react'
 import { FilterBar } from './FilterBar'
 import { useKanbanStore } from '@/stores/kanban-store'
-import { DEMO_MATTERS } from '@/lib/demo-data'
+import { demoMatters } from '@/lib/demo-data'
 
 // Mock the debounce hook
 jest.mock('use-debounce', () => ({
-  useDebouncedCallback: (fn: Function, delay: number) => {
+  useDebouncedCallback: <T extends (...args: unknown[]) => unknown>(fn: T) => {
     return fn // Return the function directly for testing
   }
 }))

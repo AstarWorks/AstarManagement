@@ -10,7 +10,7 @@ import { toast } from 'sonner'
 import { ErrorBoundary } from '../ErrorBoundary'
 import { ErrorToastProvider } from '../../providers/ErrorToastProvider'
 import { OfflineDetector, useOfflineDetection } from '../OfflineDetector'
-import { FieldError, FieldErrorList, FormErrorSummary, useFormErrors } from '../../forms/FieldError'
+import { FieldError, FieldErrorList, FormErrorSummary } from '../../forms/FieldError'
 import { handleApiError, createUIError, ErrorType, ErrorAction } from '@/services/error/error.handler'
 import { errorLoggingService } from '@/lib/error-logging'
 import { useKanbanStore } from '@/stores/kanban-store'
@@ -534,7 +534,7 @@ describe('Error Recovery Scenarios', () => {
     })
 
     // Mock the retry logic
-    const retryWithBackoff = async (fn: () => Promise<any>, maxRetries = 3) => {
+    const retryWithBackoff = async <T,>(fn: () => Promise<T>, maxRetries = 3): Promise<T> => {
       for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {
           return await fn()

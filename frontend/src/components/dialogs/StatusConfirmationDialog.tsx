@@ -15,7 +15,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { AlertTriangle, Info } from 'lucide-react'
-import { MatterStatus } from '@/types/matter'
+import { MatterStatus } from '@/components/kanban/types'
 
 interface StatusTransition {
   from: MatterStatus
@@ -35,13 +35,18 @@ interface StatusConfirmationDialogProps {
 const criticalStatuses: MatterStatus[] = ['CLOSED', 'SETTLEMENT', 'TRIAL']
 
 const statusLabels: Record<MatterStatus, string> = {
-  NEW: 'New',
-  ACTIVE: 'Active',
-  IN_REVIEW: 'In Review',
-  ON_HOLD: 'On Hold',
-  CLOSED: 'Closed',
-  SETTLEMENT: 'Settlement',
+  INTAKE: 'Intake',
+  INITIAL_REVIEW: 'Initial Review',
+  INVESTIGATION: 'Investigation',
+  RESEARCH: 'Research',
+  DRAFT_PLEADINGS: 'Draft Pleadings',
+  FILED: 'Filed',
+  DISCOVERY: 'Discovery',
+  MEDIATION: 'Mediation',
+  TRIAL_PREP: 'Trial Prep',
   TRIAL: 'Trial',
+  SETTLEMENT: 'Settlement',
+  CLOSED: 'Closed',
 }
 
 export function StatusConfirmationDialog({
@@ -61,6 +66,20 @@ export function StatusConfirmationDialog({
     }
   }, [open])
 
+  const handleConfirm = React.useCallback(() => {
+    if (!reason.trim()) {
+      setError('Please provide a reason for this status change')
+      return
+    }
+
+    if (reason.trim().length < 10) {
+      setError('Please provide a more detailed reason (at least 10 characters)')
+      return
+    }
+
+    onConfirm(reason.trim())
+  }, [reason, onConfirm])
+
   // Add keyboard shortcuts
   React.useEffect(() => {
     if (!open) return
@@ -76,21 +95,7 @@ export function StatusConfirmationDialog({
 
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [open, reason])
-
-  const handleConfirm = () => {
-    if (!reason.trim()) {
-      setError('Please provide a reason for this status change')
-      return
-    }
-
-    if (reason.trim().length < 10) {
-      setError('Please provide a more detailed reason (at least 10 characters)')
-      return
-    }
-
-    onConfirm(reason.trim())
-  }
+  }, [open, handleConfirm])
 
   if (!transition) return null
 

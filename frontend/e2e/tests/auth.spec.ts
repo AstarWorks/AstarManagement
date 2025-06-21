@@ -117,9 +117,12 @@ test.describe('Authentication Flow', () => {
         return localStorage.getItem('session_expires_at');
       });
       
+      if (!sessionExpiry) {
+        throw new Error('Session expiry not found');
+      }
       const expiryDate = new Date(sessionExpiry);
       const now = new Date();
-      const daysDiff = (expiryDate - now) / (1000 * 60 * 60 * 24);
+      const daysDiff = (expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
       
       expect(daysDiff).toBeGreaterThan(25); // Should be ~30 days
     });

@@ -84,22 +84,22 @@ const mockActions = {
   moveMatter: async (matterId: string, newStatus: string, columnId: string) => {
     console.log(`Moving matter ${matterId} to ${newStatus} in column ${columnId}`)
   },
-  updateMatter: async (matterId: string, updates: any) => {
+  updateMatter: async (matterId: string, updates: unknown) => {
     console.log(`Updating matter ${matterId}:`, updates)
   },
   refreshBoard: async () => {
     console.log('Refreshing board...')
   },
-  setFilters: (filters: any) => {
+  setFilters: (filters: unknown) => {
     console.log('Setting filters:', filters)
   },
-  setSorting: (sort: any) => {
+  setSorting: (sort: unknown) => {
     console.log('Setting sorting:', sort)
   },
   clearFilters: () => {
     console.log('Clearing filters')
   },
-  setViewPreferences: (preferences: any) => {
+  setViewPreferences: (preferences: unknown) => {
     console.log('Setting view preferences:', preferences)
   },
   toggleColumn: (columnId: string) => {
@@ -253,7 +253,7 @@ export const ManyMatters: Story = {
         generateMockMatter({ 
           id: `matter-${i}`, 
           status: 'INTAKE',
-          priority: ['LOW', 'MEDIUM', 'HIGH', 'URGENT'][i % 4] as any
+          priority: ['LOW', 'MEDIUM', 'HIGH', 'URGENT'][i % 4] as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
         })
       )
     }

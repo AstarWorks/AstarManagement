@@ -26,12 +26,6 @@ import {
   Loader2 
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { 
-  Tooltip, 
-  TooltipContent, 
-  TooltipProvider, 
-  TooltipTrigger 
-} from '@/components/ui/tooltip'
 
 interface SyncStatusIndicatorProps {
   connectionStatus: 'connected' | 'disconnected' | 'reconnecting'
@@ -130,83 +124,52 @@ export function SyncStatusIndicator({
   }
 
   return (
-    <TooltipProvider>
-      <div className={`flex items-center gap-2 ${className}`}>
+    <div className={`flex items-center gap-2 ${className}`}>
         {/* Status indicator dot */}
         <div className={`w-2 h-2 rounded-full ${status.dotClass}`} />
         
         {/* Status icon and label */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div className="flex items-center gap-1.5 cursor-help">
-              <StatusIcon className={`w-4 h-4 ${status.iconClass}`} />
-              <span className="text-sm text-muted-foreground">
-                {status.label}
-              </span>
-            </div>
-          </TooltipTrigger>
-          <TooltipContent side="bottom" className="max-w-xs">
-            <div className="space-y-1">
-              <p className="font-medium">{status.label}</p>
-              <p className="text-xs text-muted-foreground">
-                {getDetailedStatus()}
-              </p>
-              {connectionStatus === 'disconnected' && errorCount > 0 && (
-                <p className="text-xs text-red-400">
-                  Click refresh to retry connection
-                </p>
-              )}
-            </div>
-          </TooltipContent>
-        </Tooltip>
+        <div className="flex items-center gap-1.5" title={getDetailedStatus()}>
+          <StatusIcon className={`w-4 h-4 ${status.iconClass}`} />
+          <span className="text-sm text-muted-foreground">
+            {status.label}
+          </span>
+        </div>
 
         {/* Action buttons */}
         <div className="flex items-center gap-1">
           {/* Manual refresh button */}
           {onRefresh && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 w-6 p-0"
-                  onClick={onRefresh}
-                  disabled={isPolling}
-                >
-                  <RefreshCw className={`w-3 h-3 ${isPolling ? 'animate-spin' : ''}`} />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                Refresh now
-              </TooltipContent>
-            </Tooltip>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0"
+              onClick={onRefresh}
+              disabled={isPolling}
+              title="Refresh now"
+            >
+              <RefreshCw className={`w-3 h-3 ${isPolling ? 'animate-spin' : ''}`} />
+            </Button>
           )}
 
           {/* Toggle auto-sync button */}
           {onToggle && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 w-6 p-0"
-                  onClick={onToggle}
-                >
-                  {isEnabled ? (
-                    <Wifi className="w-3 h-3 text-blue-500" />
-                  ) : (
-                    <WifiOff className="w-3 h-3 text-gray-400" />
-                  )}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                {isEnabled ? 'Disable auto-sync' : 'Enable auto-sync'}
-              </TooltipContent>
-            </Tooltip>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0"
+              onClick={onToggle}
+              title={isEnabled ? 'Disable auto-sync' : 'Enable auto-sync'}
+            >
+              {isEnabled ? (
+                <Wifi className="w-3 h-3 text-blue-500" />
+              ) : (
+                <WifiOff className="w-3 h-3 text-gray-400" />
+              )}
+            </Button>
           )}
         </div>
       </div>
-    </TooltipProvider>
   )
 }
 
@@ -231,21 +194,12 @@ export function SyncStatusIndicatorCompact({
   }
 
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <button
-            className={`w-2 h-2 rounded-full ${statusColors[status]} ${
-              isPolling || status === 'reconnecting' ? 'animate-pulse' : ''
-            } ${className}`}
-            onClick={onRefresh}
-          />
-        </TooltipTrigger>
-        <TooltipContent side="bottom">
-          <p className="capitalize">{status}</p>
-          {onRefresh && <p className="text-xs">Click to refresh</p>}
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <button
+      className={`w-2 h-2 rounded-full ${statusColors[status]} ${
+        isPolling || status === 'reconnecting' ? 'animate-pulse' : ''
+      } ${className}`}
+      onClick={onRefresh}
+      title={`${status}${onRefresh ? ' - Click to refresh' : ''}`}
+    />
   )
 }

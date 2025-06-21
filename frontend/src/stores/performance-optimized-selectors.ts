@@ -4,10 +4,11 @@
  */
 
 import React from 'react'
-import { create } from 'zustand'
-import { subscribeWithSelector } from 'zustand/middleware'
 import { shallow } from 'zustand/shallow'
 import { useKanbanStore } from './kanban-store'
+import type { MatterCard, KanbanColumn } from '@/components/kanban/types'
+import type { SearchType } from '@/services/api/search.service'
+// Note: debounce function is implemented locally below
 
 /**
  * Optimized selectors that prevent unnecessary re-renders
@@ -15,18 +16,18 @@ import { useKanbanStore } from './kanban-store'
 
 // Memoized matter transformations
 const createMemoizedMattersByColumn = () => {
-  let lastMatters: any[] = []
-  let lastColumns: any[] = []
-  let cachedResult: Record<string, any[]> = {}
+  let lastMatters: MatterCard[] = []
+  let lastColumns: KanbanColumn[] = []
+  let cachedResult: Record<string, MatterCard[]> = {}
 
-  return (matters: any[], columns: any[]) => {
+  return (matters: MatterCard[], columns: KanbanColumn[]) => {
     // Check if inputs have changed
     if (matters === lastMatters && columns === lastColumns) {
       return cachedResult
     }
 
     // Recompute only if necessary
-    const groups: Record<string, any[]> = {}
+    const groups: Record<string, MatterCard[]> = {}
     
     // Initialize all columns
     columns.forEach(column => {
@@ -60,10 +61,7 @@ const memoizedMattersByColumn = createMemoizedMattersByColumn()
 
 // Only re-render when the specific matter changes
 export const useMatterById = (matterId: string) => {
-  return useKanbanStore(
-    (state) => state.matters.find(m => m.id === matterId),
-    (a, b) => a?.id === b?.id && a?.updatedAt === b?.updatedAt
-  )
+  return useKanbanStore((state) => state.matters.find(m => m.id === matterId))
 }
 
 // Only re-render when matter count changes, not when individual matters change
@@ -75,18 +73,12 @@ export const useMatterCount = () => {
 
 // Only re-render when filter values change, not when matters change
 export const useFiltersOnly = () => {
-  return useKanbanStore(
-    (state) => state.filters,
-    shallow
-  )
+  return useKanbanStore((state) => state.filters)
 }
 
 // Only re-render when sorting changes
 export const useSortingOnly = () => {
-  return useKanbanStore(
-    (state) => state.sorting,
-    shallow
-  )
+  return useKanbanStore((state) => state.sorting)
 }
 
 // Optimized matters by column with memoization
@@ -97,81 +89,57 @@ export const useOptimizedMattersByColumn = () => {
       const columns = state.board?.columns || []
       
       return memoizedMattersByColumn(filteredMatters, columns)
-    },
-    shallow
+    }
   )
 }
 
 // Only re-render when loading state changes
 export const useLoadingOnly = () => {
-  return useKanbanStore(
-    (state) => state.isLoading
-  )
+  return useKanbanStore((state) => state.isLoading)
 }
 
 // Only re-render when error state changes
 export const useErrorOnly = () => {
-  return useKanbanStore(
-    (state) => state.error
-  )
+  return useKanbanStore((state) => state.error)
 }
 
 // Only re-render when search mode changes
 export const useSearchModeOnly = () => {
-  return useKanbanStore(
-    (state) => state.searchMode
-  )
+  return useKanbanStore((state) => state.searchMode)
 }
 
 // Minimal board header data
 export const useBoardHeader = () => {
-  return useKanbanStore(
-    (state) => ({
-      title: state.board?.title || '',
-      lastUpdated: state.board?.lastUpdated || '',
-      totalMatters: state.matters.length,
-      isLoading: state.isLoading
-    }),
-    shallow
-  )
+  return useKanbanStore((state) => ({
+    title: state.board?.title || '',
+    lastUpdated: state.board?.lastUpdated || '',
+    totalMatters: state.matters.length,
+    isLoading: state.isLoading
+  }))
 }
 
 // Minimal column data for headers
 export const useColumnHeaders = () => {
-  return useKanbanStore(
-    (state) => {
-      const columns = state.board?.columns || []
-      const mattersByColumn = state.getMattersByColumn()
-      
-      return columns.map(column => ({
-        id: column.id,
-        title: column.title,
-        count: mattersByColumn[column.id]?.length || 0
-      }))
-    },
-    (a, b) => {
-      if (a.length !== b.length) return false
-      return a.every((colA, idx) => {
-        const colB = b[idx]
-        return colA.id === colB.id && 
-               colA.title === colB.title && 
-               colA.count === colB.count
-      })
-    }
-  )
+  return useKanbanStore((state) => {
+    const columns = state.board?.columns || []
+    const mattersByColumn = state.getMattersByColumn()
+    
+    return columns.map(column => ({
+      id: column.id,
+      title: column.title,
+      count: mattersByColumn[column.id]?.length || 0
+    }))
+  })
 }
 
 // Performance monitoring selector
 export const useStorePerformanceMetrics = () => {
-  return useKanbanStore(
-    (state) => ({
-      matterCount: state.matters.length,
-      searchResultsCount: state.searchResults.length,
-      cacheSize: state.searchHistory.length,
-      lastRefresh: state.lastRefresh
-    }),
-    shallow
-  )
+  return useKanbanStore((state) => ({
+    matterCount: state.matters.length,
+    searchResultsCount: state.searchResults.length,
+    cacheSize: state.searchHistory.length,
+    lastRefresh: state.lastRefresh
+  }))
 }
 
 /**
@@ -182,7 +150,7 @@ export const useStorePerformanceMetrics = () => {
 export const useBatchFilterUpdates = () => {
   const setFilters = useKanbanStore((state) => state.setFilters)
   
-  return (filterUpdates: Record<string, any>) => {
+  return (filterUpdates: Record<string, unknown>) => {
     // Apply all filter updates in a single action
     setFilters(filterUpdates)
   }
@@ -192,7 +160,7 @@ export const useBatchFilterUpdates = () => {
 export const useBatchViewPreferenceUpdates = () => {
   const setViewPreferences = useKanbanStore((state) => state.setViewPreferences)
   
-  return (preferenceUpdates: Record<string, any>) => {
+  return (preferenceUpdates: Record<string, unknown>) => {
     // Apply all preference updates in a single action
     setViewPreferences(preferenceUpdates)
   }
@@ -206,31 +174,35 @@ export const useBatchViewPreferenceUpdates = () => {
 export const useDebouncedSearch = () => {
   const performSearch = useKanbanStore((state) => state.performSearch)
   
-  return React.useCallback(
-    debounce((query: string, searchType?: string) => {
+  const debouncedFn = React.useMemo(
+    () => debounce((query: string, searchType?: SearchType) => {
       performSearch(query, searchType)
     }, 300),
     [performSearch]
   )
+  
+  return React.useCallback(debouncedFn, [debouncedFn])
 }
 
 // Throttled filter updates
 export const useThrottledFilterUpdate = () => {
   const setFilters = useKanbanStore((state) => state.setFilters)
   
-  return React.useCallback(
-    throttle((filters: Record<string, any>) => {
+  const throttledFn = React.useMemo(
+    () => throttle((filters: Record<string, unknown>) => {
       setFilters(filters)
     }, 100),
     [setFilters]
   )
+  
+  return React.useCallback(throttledFn, [throttledFn])
 }
 
 /**
  * Utility functions
  */
 
-function debounce<T extends (...args: any[]) => any>(
+function debounce<T extends (...args: unknown[]) => unknown>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {
@@ -242,7 +214,7 @@ function debounce<T extends (...args: any[]) => any>(
   }
 }
 
-function throttle<T extends (...args: any[]) => any>(
+function throttle<T extends (...args: unknown[]) => unknown>(
   func: T,
   limit: number
 ): (...args: Parameters<T>) => void {
