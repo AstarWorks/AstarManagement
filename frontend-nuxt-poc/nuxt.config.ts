@@ -13,7 +13,8 @@ export default defineNuxtConfig({
     '@pinia/nuxt',
     '@vueuse/nuxt',
     '@nuxtjs/google-fonts',
-    '@nuxtjs/color-mode'
+    '@nuxtjs/color-mode',
+    'shadcn-nuxt'
   ],
   
   googleFonts: {
@@ -30,6 +31,11 @@ export default defineNuxtConfig({
     fallback: 'light',
     classSuffix: '',
     storageKey: 'aster-color-mode'
+  },
+
+  shadcn: {
+    prefix: '',
+    componentDir: './components/ui'
   },
   
   app: {

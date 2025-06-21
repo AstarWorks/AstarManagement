@@ -9,7 +9,6 @@ export type Theme = 'light' | 'dark' | 'system'
 
 export const useTheme = () => {
   const colorMode = useColorMode()
-  const { $toast } = useNuxtApp()
   
   // Current theme state
   const theme = computed<Theme>({
@@ -34,14 +33,6 @@ export const useTheme = () => {
   const toggleTheme = () => {
     const newTheme = isDark.value ? 'light' : 'dark'
     theme.value = newTheme
-    
-    // Optional: Show toast notification
-    if ($toast) {
-      $toast.success(
-        'Theme Changed',
-        `Switched to ${newTheme} mode`
-      )
-    }
   }
   
   // Set specific theme

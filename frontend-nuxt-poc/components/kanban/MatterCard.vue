@@ -1,15 +1,6 @@
 <template>
   <Card
-    :class="[
-      'cursor-pointer transition-all duration-150',
-      'hover:shadow-md hover:scale-[1.02]',
-      'border-l-4',
-      priorityConfig.border,
-      cardHeightClass,
-      isDragging && 'opacity-50 shadow-xl z-50 cursor-grabbing',
-      !isDragging && 'cursor-grab',
-      isOverdue && 'ring-1 ring-red-200 bg-red-50/30'
-    ]"
+    :class="cardClasses"
     @click="$emit('click', matter)"
   >
     <CardContent class="p-3">
@@ -130,6 +121,18 @@ const cardHeightClass = computed(() => {
     default:
       return 'min-h-[120px]'
   }
+})
+
+const cardClasses = computed(() => {
+  return [
+    'cursor-pointer transition-all duration-150',
+    'hover:shadow-md hover:scale-[1.02]',
+    'border-l-4',
+    priorityConfig.value.border,
+    cardHeightClass.value,
+    props.isDragging ? 'opacity-50 shadow-xl z-50 cursor-grabbing' : 'cursor-grab',
+    isOverdue.value ? 'ring-1 ring-red-200 bg-red-50/30' : ''
+  ].filter(Boolean).join(' ')
 })
 
 // Helper functions
