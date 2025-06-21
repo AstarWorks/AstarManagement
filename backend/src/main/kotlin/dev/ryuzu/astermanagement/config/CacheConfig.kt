@@ -107,15 +107,18 @@ class CacheConfig {
             // Short-term caches (5 minutes) - for frequently changing data
             MATTERS_CACHE to defaultConfig.entryTtl(Duration.ofMinutes(5)),
             SEARCH_RESULTS_CACHE to defaultConfig.entryTtl(Duration.ofMinutes(5)),
+            "matter-list" to defaultConfig.entryTtl(Duration.ofMinutes(5)),
             
             // Medium-term caches (10 minutes) - for matter details
             MATTER_DETAILS_CACHE to defaultConfig.entryTtl(Duration.ofMinutes(10)),
+            "documents" to defaultConfig.entryTtl(Duration.ofMinutes(30)),
             
             // Long-term caches (30 minutes) - for relatively stable configuration data
             STATUS_TRANSITIONS_CACHE to defaultConfig.entryTtl(Duration.ofMinutes(30)),
             ROLE_CAPABILITIES_CACHE to defaultConfig.entryTtl(Duration.ofMinutes(30)),
             STATUS_RULES_CACHE to defaultConfig.entryTtl(Duration.ofMinutes(30)),
             USER_PERMISSIONS_CACHE to defaultConfig.entryTtl(Duration.ofMinutes(30)),
+            "users" to defaultConfig.entryTtl(Duration.ofHours(1)),
             
             // Very long-term caches (2 hours) - for rarely changing reference data
             TRANSITION_MATRIX_CACHE to defaultConfig.entryTtl(Duration.ofHours(2))
@@ -143,7 +146,7 @@ class CacheConfig {
 /**
  * Utility class for cache warming operations
  */
-class CacheWarmer(
+open class CacheWarmer(
     private val redisTemplate: RedisTemplate<String, Any>
 ) {
     

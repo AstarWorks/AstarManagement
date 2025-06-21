@@ -31,6 +31,17 @@ interface MatterRepository : JpaRepository<Matter, UUID> {
      * Find matters by status with pagination
      */
     fun findByStatus(status: MatterStatus, pageable: Pageable): Page<Matter>
+    
+    /**
+     * Find matters by status with fetch optimization
+     */
+    @Query("""
+        SELECT DISTINCT m FROM Matter m
+        LEFT JOIN FETCH m.assignedLawyer
+        LEFT JOIN FETCH m.assignedClerk
+        WHERE m.status = :status
+    """)
+    fun findByStatusWithDetails(@Param("status") status: MatterStatus, pageable: Pageable): Page<Matter>
 
     /**
      * Find matters by assigned lawyer
@@ -67,6 +78,18 @@ interface MatterRepository : JpaRepository<Matter, UUID> {
      */
     @Query("SELECT m FROM Matter m WHERE m.status != 'CLOSED' ORDER BY m.priority DESC, m.createdAt ASC")
     fun findActiveMatters(): List<Matter>
+    
+    /**
+     * Find active matters with optimized fetching
+     */
+    @Query("""
+        SELECT DISTINCT m FROM Matter m 
+        LEFT JOIN FETCH m.assignedLawyer
+        LEFT JOIN FETCH m.assignedClerk
+        WHERE m.status != 'CLOSED' 
+        ORDER BY m.priority DESC, m.createdAt ASC
+    """)
+    fun findActiveMattersWithDetails(pageable: Pageable): Page<Matter>
 
     /**
      * Find overdue matters
@@ -118,9 +141,9 @@ interface MatterRepository : JpaRepository<Matter, UUID> {
      * Full-text search across matter content
      */
     @Query("""
-        SELECT m FROM Matter m 
-        WHERE m.searchVector @@ plainto_tsquery('simple', :searchTerm)
-        ORDER BY ts_rank(m.searchVector, plainto_tsquery('simple', :searchTerm)) DESC
+        SELECT * FROM matters m 
+        WHERE m.search_vector @@ plainto_tsquery('simple', :searchTerm)
+        ORDER BY ts_rank(m.search_vector, plainto_tsquery('simple', :searchTerm)) DESC
     """, nativeQuery = true)
     fun fullTextSearch(@Param("searchTerm") searchTerm: String): List<Matter>
 
@@ -129,16 +152,16 @@ interface MatterRepository : JpaRepository<Matter, UUID> {
      */
     @Query("""
         SELECT 
-            m.status as status,
-            COUNT(m) as count,
-            AVG(CASE WHEN m.estimatedCompletionDate IS NOT NULL 
-                THEN EXTRACT(EPOCH FROM (m.estimatedCompletionDate - CURRENT_DATE))/86400 
-                ELSE NULL END) as avgDaysToCompletion
-        FROM Matter m 
+            m.status,
+            COUNT(m),
+            AVG(CASE WHEN m.estimated_completion_date IS NOT NULL 
+                THEN EXTRACT(EPOCH FROM (m.estimated_completion_date - CURRENT_DATE))/86400 
+                ELSE NULL END)
+        FROM matters m 
         WHERE m.status != 'CLOSED'
         GROUP BY m.status
-    """)
-    fun getDashboardStatistics(): List<MatterStatistics>
+    """, nativeQuery = true)
+    fun getDashboardStatistics(): List<Array<Any>>
 
     /**
      * Count matters by status
@@ -178,10 +201,10 @@ interface MatterRepository : JpaRepository<Matter, UUID> {
      * Find matters with specific tags
      */
     @Query("""
-        SELECT m FROM Matter m 
+        SELECT * FROM matters m 
         WHERE :tag = ANY(m.tags)
-        ORDER BY m.createdAt DESC
-    """)
+        ORDER BY m.created_at DESC
+    """, nativeQuery = true)
     fun findByTag(@Param("tag") tag: String): List<Matter>
 }
 

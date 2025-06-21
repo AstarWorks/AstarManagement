@@ -47,10 +47,10 @@ dependencies {
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-api:2.6.0")
     
-    // Spring AI
-    implementation("org.springframework.ai:spring-ai-pdf-document-reader")
-    implementation("org.springframework.ai:spring-ai-starter-model-vertex-ai-embedding")
-    implementation("org.springframework.ai:spring-ai-starter-model-vertex-ai-gemini")
+    // Spring AI - Commented out to resolve Vertex AI configuration issues
+    // implementation("org.springframework.ai:spring-ai-pdf-document-reader")
+    // implementation("org.springframework.ai:spring-ai-starter-model-vertex-ai-embedding")
+    // implementation("org.springframework.ai:spring-ai-starter-model-vertex-ai-gemini")
     
     // Spring Modulith
     implementation("org.springframework.modulith:spring-modulith-starter-core")
@@ -62,7 +62,7 @@ dependencies {
     developmentOnly("org.springframework.boot:spring-boot-docker-compose")
     runtimeOnly("org.postgresql:postgresql")
     runtimeOnly("com.h2database:h2") // For testing
-    developmentOnly("org.springframework.ai:spring-ai-spring-boot-docker-compose")
+    // developmentOnly("org.springframework.ai:spring-ai-spring-boot-docker-compose")
     runtimeOnly("org.springframework.modulith:spring-modulith-actuator")
     runtimeOnly("org.springframework.modulith:spring-modulith-observability")
     
@@ -70,7 +70,7 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-    testImplementation("org.springframework.ai:spring-ai-spring-boot-testcontainers")
+    // testImplementation("org.springframework.ai:spring-ai-spring-boot-testcontainers")
     testImplementation("org.springframework.batch:spring-batch-test")
     testImplementation("org.springframework.modulith:spring-modulith-starter-test")
     testImplementation("org.springframework.restdocs:spring-restdocs-mockmvc")
@@ -94,7 +94,7 @@ dependencies {
 dependencyManagement {
     imports {
         mavenBom("org.springframework.modulith:spring-modulith-bom:${property("springModulithVersion")}")
-        mavenBom("org.springframework.ai:spring-ai-bom:${property("springAiVersion")}")
+        // mavenBom("org.springframework.ai:spring-ai-bom:${property("springAiVersion")}")
     }
 }
 
