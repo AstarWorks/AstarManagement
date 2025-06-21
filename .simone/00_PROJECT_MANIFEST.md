@@ -1,10 +1,10 @@
 ---
 project_name: Aster Management
-current_milestone_id: M01
-highest_sprint_in_milestone: S04
-current_sprint_id: S04
+current_milestone_id: M02
+highest_sprint_in_milestone: S05
+current_sprint_id: S05
 status: active
-last_updated: 2025-06-19 02:10
+last_updated: 2025-01-21 14:00
 ---
 
 # Project Manifest: Aster Management
@@ -19,8 +19,8 @@ This project follows a milestone-based development approach.
 
 ## 2. Current Focus
 
-- **Milestone:** M01 - Matter Management MVP
-- **Sprint:** S04 - Testing and Deployment
+- **Milestone:** M02 - Frontend Framework Migration
+- **Sprint:** S05 - Migration Foundation and Planning
 
 ## 3. Sprints in Current Milestone
 
@@ -65,7 +65,7 @@ This project follows a milestone-based development approach.
 **Performance:**
 ✅ Performance Testing Setup (T04_S04) - Low complexity (COMPLETED)
 ✅ Frontend Performance Optimization (TX05_S04) - Medium complexity (COMPLETED)
-🚧 Backend Performance Optimization (T06_S04) - Medium complexity (IN PROGRESS)
+✅ Backend Performance Optimization (TX06_S04) - Medium complexity (COMPLETED)
 
 **Security:**
 📋 Security Vulnerability Scanning (T07_S04) - Low complexity
@@ -85,13 +85,30 @@ This project follows a milestone-based development approach.
 📋 Application Deployment Verification (T15_S04) - Low complexity
 ✅ Kanban Store SSR Cache Implementation (TX16_S04) - Medium complexity (COMPLETED)
 
-## 4. Key Documentation
+## 4. M02 - Frontend Framework Migration
+
+### S05 Migration Foundation and Planning (🚀 ACTIVE)
+
+**Planning and Analysis:**
+✅ Codebase Analysis and Dependency Mapping (TX01_S05) - Medium complexity (COMPLETED)
+📋 Migration Risk Assessment (T06_S05) - Low complexity
+
+**Technical Implementation:**
+🚧 Nuxt 3 Proof of Concept (T02_S05) - Medium complexity (IN PROGRESS)
+📋 Vue Ecosystem Library Research (T03_S05) - Medium complexity
+📋 Migration Tooling Setup (T04_S05) - Medium complexity
+
+**Documentation:**
+📋 Architecture Decision Records (T05_S05) - Low complexity
+
+## 5. Key Documentation
 
 - [Architecture Documentation](./01_PROJECT_DOCS/ARCHITECTURE.md)
-- [Current Milestone Requirements](./02_REQUIREMENTS/M01_Matter_Management_MVP/)
+- [Current Milestone Requirements](./02_REQUIREMENTS/M02_Frontend_Framework_Migration/)
+- [Previous Milestone](./02_REQUIREMENTS/M01_Matter_Management_MVP/)
 - [General Tasks](./04_GENERAL_TASKS/)
 
-## 5. General Tasks
+## 6. General Tasks
 
 ### Cross-Sprint Foundation Tasks
 - [✅] [T001: Frontend Library Integration Setup](./04_GENERAL_TASKS/TX001_Frontend_Library_Integration_Setup.md) - Status: Completed
@@ -102,9 +119,18 @@ This project follows a milestone-based development approach.
 - [✅] [T003: Spring Boot Backend Devcontainer Launch Fix](./04_GENERAL_TASKS/TX003_Spring_Boot_Backend_Devcontainer_Launch_Fix.md) - Status: Completed
   - Fix network connectivity issues preventing Spring Boot from launching in devcontainer environment
   - Resolve Docker-outside-of-Docker (DooD) configuration for PostgreSQL and Redis access
+- [🚧] [T004: Fix TypeScript and ESLint Errors](./04_GENERAL_TASKS/TX004_Fix_TypeScript_and_ESLint_Errors.md) - Status: In Progress
+  - Fix all TypeScript compilation errors and ESLint violations blocking frontend builds
+  - Enable clean CI/CD pipeline execution
+- [📋] [T005: Fix React Runtime Errors](./04_GENERAL_TASKS/TX005_Fix_React_Runtime_Errors.md) - Status: Not Started
+  - Fix React runtime errors including infinite re-render loops and DOM prop forwarding issues
+  - Resolve "Maximum update depth exceeded" and "currentUser prop on DOM element" errors
+- [✅] [T006: Refactor Kanban Store Architecture](./04_GENERAL_TASKS/TX006_Refactor_Kanban_Store_Architecture.md) - Status: Completed
+  - Split monolithic kanban-store.ts into focused, modular stores for better maintainability
+  - Preserve all existing APIs and SSR compatibility while improving code organization
 
-## 6. Quick Links
+## 7. Quick Links
 
-- **Current Sprint:** [S03 Sprint Folder](./03_SPRINTS/S03_M01_Integration_and_Polish/)
-- **Active Tasks:** Check sprint folder for T##_S01_*.md files
+- **Current Sprint:** [S05 Sprint Folder](./03_SPRINTS/S05_M02_Migration_Foundation_and_Planning/)
+- **Active Tasks:** Check sprint folder for T##_S05_*.md files
 - **Project Reviews:** [Latest Review](./10_STATE_OF_PROJECT/)
