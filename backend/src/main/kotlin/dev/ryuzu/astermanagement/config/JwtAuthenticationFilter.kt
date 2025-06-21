@@ -1,7 +1,7 @@
 package dev.ryuzu.astermanagement.config
 
 import dev.ryuzu.astermanagement.service.JwtService
-import jakarta.servlet.FilterChain
+import jakarta.servlet.*
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
@@ -11,8 +11,8 @@ import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource
 import org.springframework.stereotype.Component
-import org.springframework.web.filter.OncePerRequestFilter
 import org.slf4j.LoggerFactory
+import java.io.IOException
 
 /**
  * JWT Authentication Filter
@@ -21,25 +21,38 @@ import org.slf4j.LoggerFactory
  * Sets up Spring Security context with authenticated user details and authorities.
  */
 @Component
-open class JwtAuthenticationFilter(
+class JwtAuthenticationFilter(
     private val jwtService: JwtService,
     private val securityAuditEventListener: SecurityAuditEventListener
-) : OncePerRequestFilter() {
-
-    private val logger = LoggerFactory.getLogger(javaClass)
+) : Filter {
 
     companion object {
+        private val logger = LoggerFactory.getLogger(JwtAuthenticationFilter::class.java)
         private const val AUTHORIZATION_HEADER = "Authorization"
         private const val BEARER_PREFIX = "Bearer "
     }
 
-    override fun doFilterInternal(
-        request: HttpServletRequest,
-        response: HttpServletResponse,
-        filterChain: FilterChain
+    override fun init(filterConfig: FilterConfig?) {
+        // No initialization needed
+    }
+
+    @Throws(IOException::class, ServletException::class)
+    override fun doFilter(
+        request: ServletRequest,
+        response: ServletResponse,
+        chain: FilterChain
     ) {
+        val httpRequest = request as HttpServletRequest
+        val httpResponse = response as HttpServletResponse
+        
+        // Skip JWT processing for public endpoints
+        if (shouldNotFilter(httpRequest)) {
+            chain.doFilter(request, response)
+            return
+        }
+        
         try {
-            val token = extractTokenFromRequest(request)
+            val token = extractTokenFromRequest(httpRequest)
             
             if (token != null && SecurityContextHolder.getContext().authentication == null) {
                 val jwt = jwtService.validateToken(token)
@@ -55,7 +68,7 @@ open class JwtAuthenticationFilter(
                             null,
                             userDetails.authorities
                         )
-                        authentication.details = WebAuthenticationDetailsSource().buildDetails(request)
+                        authentication.details = WebAuthenticationDetailsSource().buildDetails(httpRequest)
                         
                         SecurityContextHolder.getContext().authentication = authentication
                         
@@ -85,7 +98,11 @@ open class JwtAuthenticationFilter(
             logger.error("Cannot set user authentication", e)
         }
         
-        filterChain.doFilter(request, response)
+        chain.doFilter(request, response)
+    }
+
+    override fun destroy() {
+        // No cleanup needed
     }
 
     /**
@@ -129,7 +146,7 @@ open class JwtAuthenticationFilter(
     /**
      * Skip JWT processing for public endpoints
      */
-    override fun shouldNotFilter(request: HttpServletRequest): Boolean {
+    private fun shouldNotFilter(request: HttpServletRequest): Boolean {
         val path = request.servletPath
         return path.startsWith("/auth/") ||
                path.startsWith("/actuator/health") ||

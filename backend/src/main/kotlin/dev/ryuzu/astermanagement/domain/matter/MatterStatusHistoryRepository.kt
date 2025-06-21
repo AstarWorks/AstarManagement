@@ -151,20 +151,20 @@ interface MatterStatusHistoryRepository : JpaRepository<MatterStatusHistory, UUI
      */
     @Query("""
         SELECT 
-            h1.newStatus as status,
-            AVG(EXTRACT(EPOCH FROM (h2.changedAt - h1.changedAt))/86400) as avgDaysInStatus
-        FROM MatterStatusHistory h1
-        LEFT JOIN MatterStatusHistory h2 ON h1.matter = h2.matter 
-            AND h2.changedAt = (
-                SELECT MIN(h3.changedAt) 
-                FROM MatterStatusHistory h3 
-                WHERE h3.matter = h1.matter 
-                AND h3.changedAt > h1.changedAt
+            h1.new_status as status,
+            AVG(EXTRACT(EPOCH FROM (h2.changed_at - h1.changed_at))/86400) as avgDaysInStatus
+        FROM matter_status_history h1
+        LEFT JOIN matter_status_history h2 ON h1.matter_id = h2.matter_id 
+            AND h2.changed_at = (
+                SELECT MIN(h3.changed_at) 
+                FROM matter_status_history h3 
+                WHERE h3.matter_id = h1.matter_id 
+                AND h3.changed_at > h1.changed_at
             )
-        WHERE h1.newStatus != 'CLOSED'
-        GROUP BY h1.newStatus
-    """)
-    fun getAverageTimeInStatus(): List<StatusTimeStatistic>
+        WHERE h1.new_status != 'CLOSED'
+        GROUP BY h1.new_status
+    """, nativeQuery = true)
+    fun getAverageTimeInStatus(): List<Array<Any>>
 }
 
 /**

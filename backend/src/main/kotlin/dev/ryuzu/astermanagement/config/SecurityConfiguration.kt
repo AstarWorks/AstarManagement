@@ -1,5 +1,6 @@
 package dev.ryuzu.astermanagement.config
 
+import dev.ryuzu.astermanagement.service.JwtService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
@@ -37,7 +38,7 @@ class SecurityConfiguration(
     private val jwtAuthenticationEntryPoint: JwtAuthenticationEntryPoint,
     private val jwtAccessDeniedHandler: JwtAccessDeniedHandler
 ) {
-
+    
     /**
      * Main security filter chain configuration
      */

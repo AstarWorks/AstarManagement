@@ -87,7 +87,7 @@ interface AuditLogRepository : JpaRepository<AuditLog, UUID>, JpaSpecificationEx
      */
     @Query("""
         SELECT al FROM AuditLog al 
-        WHERE CAST(al.ipAddress AS string) = :ipAddress
+        WHERE al.ipAddress = :ipAddress
         AND al.eventTimestamp >= :since
         ORDER BY al.eventTimestamp DESC
     """)

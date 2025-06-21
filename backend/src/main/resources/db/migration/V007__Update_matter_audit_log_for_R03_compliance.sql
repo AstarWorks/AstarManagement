@@ -216,24 +216,23 @@ CREATE TRIGGER log_matter_field_changes_r03
     EXECUTE FUNCTION log_matter_field_changes_r03();
 
 -- Step 13: Create matter_status_history table as required by R03
-CREATE TABLE IF NOT EXISTS matter_status_history (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    matter_id UUID NOT NULL REFERENCES matters(id) ON DELETE CASCADE,
-    old_status VARCHAR(20),
-    new_status VARCHAR(20) NOT NULL,
-    changed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    changed_by UUID NOT NULL REFERENCES users(id),
-    changed_by_name VARCHAR(255) NOT NULL,
-    reason VARCHAR(500),
-    notes TEXT,
-    metadata JSONB DEFAULT '{}'::jsonb
-);
+-- Add missing columns to existing matter_status_history table
+ALTER TABLE matter_status_history 
+ADD COLUMN IF NOT EXISTS changed_by_name VARCHAR(255),
+ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}'::jsonb;
+
+-- Update changed_by_name for existing records
+UPDATE matter_status_history msh
+SET changed_by_name = u.username
+FROM users u
+WHERE msh.changed_by = u.id
+AND msh.changed_by_name IS NULL;
 
 -- Indexes for matter_status_history
-CREATE INDEX idx_matter_status_history_matter_id ON matter_status_history(matter_id);
-CREATE INDEX idx_matter_status_history_changed_at ON matter_status_history(changed_at DESC);
-CREATE INDEX idx_matter_status_history_changed_by ON matter_status_history(changed_by);
-CREATE INDEX idx_matter_status_history_new_status ON matter_status_history(new_status);
+CREATE INDEX IF NOT EXISTS idx_matter_status_history_matter_id ON matter_status_history(matter_id);
+CREATE INDEX IF NOT EXISTS idx_matter_status_history_changed_at ON matter_status_history(changed_at DESC);
+CREATE INDEX IF NOT EXISTS idx_matter_status_history_changed_by ON matter_status_history(changed_by);
+CREATE INDEX IF NOT EXISTS idx_matter_status_history_new_status ON matter_status_history(new_status);
 
 -- Step 14: Add comments for R03 compliance documentation
 COMMENT ON COLUMN matter_audit_log.action IS 'R03-compliant audit action: CREATE, UPDATE, DELETE, STATUS_CHANGE, ASSIGN, UNASSIGN, VIEW, EXPORT, PRINT';
