@@ -11,8 +11,31 @@ export default defineNuxtConfig({
   modules: [
     '@nuxtjs/tailwindcss',
     '@pinia/nuxt',
-    '@vueuse/nuxt'
+    '@vueuse/nuxt',
+    '@nuxtjs/google-fonts',
+    '@nuxtjs/color-mode'
   ],
+  
+  googleFonts: {
+    families: {
+      'Geist': [400, 500, 600, 700],
+      'Geist+Mono': [400, 500, 600, 700]
+    },
+    display: 'swap',
+    preload: true
+  },
+  
+  colorMode: {
+    preference: 'system',
+    fallback: 'light',
+    classSuffix: '',
+    storageKey: 'aster-color-mode'
+  },
+  
+  app: {
+    pageTransition: { name: 'page', mode: 'out-in' },
+    layoutTransition: { name: 'layout', mode: 'out-in' }
+  },
   
   css: ['~/assets/css/main.css'],
   

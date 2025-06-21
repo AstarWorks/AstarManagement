@@ -17,6 +17,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "lucide-vue-next": "^0.522.0",
     "nuxt": "^3.17.5",
     "radix-vue": "^1.9.17",
     "tailwind-merge": "^3.3.1",
@@ -26,6 +27,8 @@
   },
   "devDependencies": {
     "@nuxt/devtools": "^2.5.0",
+    "@nuxtjs/color-mode": "^3.5.2",
+    "@nuxtjs/google-fonts": "^3.2.0",
     "@types/node": "^24.0.3",
     "@types/uuid": "^10.0.0",
     "@vitest/ui": "^3.2.4",
