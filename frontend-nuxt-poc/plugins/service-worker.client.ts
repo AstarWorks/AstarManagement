@@ -72,8 +72,8 @@ export default defineNuxtPlugin(() => {
             console.log('Service Worker update available')
             
             // Show update notification
-            if (window.$nuxt?.$toast) {
-              window.$nuxt.$toast.info(
+            if ((window as any).$nuxt?.$toast) {
+              (window as any).$nuxt.$toast.info(
                 'Update Available',
                 'A new version of the app is available.',
                 {
@@ -120,15 +120,15 @@ export default defineNuxtPlugin(() => {
   // Monitor online/offline status
   window.addEventListener('online', () => {
     isOffline.value = false
-    if (window.$nuxt?.$toast) {
-      window.$nuxt.$toast.success('Back Online', 'Connection restored')
+    if ((window as any).$nuxt?.$toast) {
+      (window as any).$nuxt.$toast.success('Back Online', 'Connection restored')
     }
   })
   
   window.addEventListener('offline', () => {
     isOffline.value = true
-    if (window.$nuxt?.$toast) {
-      window.$nuxt.$toast.warning('Offline', 'You are currently offline')
+    if ((window as any).$nuxt?.$toast) {
+      (window as any).$nuxt.$toast.warning('Offline', 'You are currently offline')
     }
   })
   

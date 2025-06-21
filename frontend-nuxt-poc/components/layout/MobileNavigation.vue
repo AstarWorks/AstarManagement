@@ -68,12 +68,14 @@ onMounted(() => {
   let touchStartX = 0
   let touchEndX = 0
   
-  const handleTouchStart = (e: TouchEvent) => {
-    touchStartX = e.changedTouches[0].screenX
+  const handleTouchStart = (e: Event) => {
+    const touchEvent = e as TouchEvent
+    touchStartX = touchEvent.changedTouches[0].screenX
   }
   
-  const handleTouchEnd = (e: TouchEvent) => {
-    touchEndX = e.changedTouches[0].screenX
+  const handleTouchEnd = (e: Event) => {
+    const touchEvent = e as TouchEvent
+    touchEndX = touchEvent.changedTouches[0].screenX
     handleSwipe()
   }
   

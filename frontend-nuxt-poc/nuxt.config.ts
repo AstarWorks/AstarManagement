@@ -37,6 +37,17 @@ export default defineNuxtConfig({
     layoutTransition: { name: 'layout', mode: 'out-in' }
   },
   
+  router: {
+    options: {
+      strict: true,
+      scrollBehaviorType: 'smooth'
+    }
+  },
+  
+  experimental: {
+    payloadExtraction: false
+  },
+  
   css: ['~/assets/css/main.css'],
   
   runtimeConfig: {

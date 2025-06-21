@@ -21,33 +21,7 @@
 
     <!-- Main navigation -->
     <nav class="sidebar-nav">
-      <div v-for="section in navSections" :key="section.label" class="nav-section">
-        <h3 v-if="!isCollapsed && section.label" class="section-label">
-          {{ section.label }}
-        </h3>
-        
-        <NuxtLink
-          v-for="item in section.items"
-          :key="item.path"
-          :to="item.path"
-          class="nav-item"
-          :class="{ 
-            'nav-item--active': isActive(item.path),
-            'nav-item--collapsed': isCollapsed 
-          }"
-          :title="isCollapsed ? item.label : undefined"
-        >
-          <component :is="item.icon" class="nav-icon" />
-          <span v-if="!isCollapsed" class="nav-label">{{ item.label }}</span>
-          <span 
-            v-if="!isCollapsed && item.badge" 
-            class="nav-badge"
-            :class="`nav-badge--${item.badgeType || 'default'}`"
-          >
-            {{ item.badge }}
-          </span>
-        </NuxtLink>
-      </div>
+      <MainMenu />
     </nav>
 
     <!-- Bottom section -->
@@ -105,33 +79,8 @@ const router = useRouter()
 // Use UI store for sidebar state - create a simple reactive state for now
 const isCollapsed = ref(false)
 
-// Navigation sections
-const navSections = [
-  {
-    label: '',
-    items: [
-      { path: '/', label: 'Dashboard', icon: Home },
-      { path: '/inbox', label: 'Inbox', icon: Inbox, badge: '5', badgeType: 'primary' }
-    ]
-  },
-  {
-    label: 'Case Management',
-    items: [
-      { path: '/matters', label: 'Matters', icon: Briefcase },
-      { path: '/documents', label: 'Documents', icon: FileText },
-      { path: '/calendar', label: 'Calendar', icon: Calendar },
-      { path: '/deadlines', label: 'Deadlines', icon: Clock, badge: '3', badgeType: 'warning' }
-    ]
-  },
-  {
-    label: 'Clients & Finance',
-    items: [
-      { path: '/clients', label: 'Clients', icon: Users },
-      { path: '/billing', label: 'Billing', icon: DollarSign },
-      { path: '/reports', label: 'Reports', icon: BarChart }
-    ]
-  }
-]
+// Use navigation store to manage sidebar state
+const navigationStore = useNavigationStore()
 
 // Methods
 const toggleCollapse = () => {

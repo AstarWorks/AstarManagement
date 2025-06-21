@@ -54,10 +54,10 @@ const isDevelopment = process.env.NODE_ENV === 'development'
 
 // Check for updates in production
 onMounted(() => {
-  if (!isDevelopment && window.$nuxt?.$serviceWorker?.isUpdateAvailable) {
+  if (!isDevelopment && (window as any).$nuxt?.$serviceWorker?.isUpdateAvailable) {
     // Watch for updates
     watch(
-      () => window.$nuxt.$serviceWorker.isUpdateAvailable.value,
+      () => (window as any).$nuxt.$serviceWorker.isUpdateAvailable.value,
       (hasUpdate) => {
         if (hasUpdate) {
           appVersion.value += ' (update available)'

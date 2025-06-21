@@ -14,8 +14,8 @@ export default defineNuxtPlugin((nuxtApp) => {
     console.error('Error Info:', info)
     
     // Get toast plugin if available (client-side only)
-    if (process.client && nuxtApp.$toast) {
-      nuxtApp.$toast.error(
+    if (process.client && (nuxtApp as any).$toast) {
+      (nuxtApp as any).$toast.error(
         'Application Error',
         error instanceof Error ? error.message : 'An unexpected error occurred'
       )
@@ -32,8 +32,8 @@ export default defineNuxtPlugin((nuxtApp) => {
     window.addEventListener('unhandledrejection', (event) => {
       console.error('Unhandled Promise Rejection:', event.reason)
       
-      if (nuxtApp.$toast) {
-        nuxtApp.$toast.error(
+      if ((nuxtApp as any).$toast) {
+        (nuxtApp as any).$toast.error(
           'Unhandled Error',
           event.reason?.message || 'An unexpected error occurred'
         )
@@ -50,11 +50,11 @@ export default defineNuxtPlugin((nuxtApp) => {
       handleError: (error: unknown, context?: string) => {
         console.error(context ? `Error in ${context}:` : 'Error:', error)
         
-        if (process.client && nuxtApp.$toast) {
-          const message = error instanceof Error ? error.message : 'An unexpected error occurred'
-          nuxtApp.$toast.error(
+        if (process.client && (nuxtApp as any).$toast) {
+          const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred'
+          ;(nuxtApp as any).$toast.error(
             context || 'Error',
-            message
+            errorMessage
           )
         }
         
@@ -73,7 +73,7 @@ export default defineNuxtPlugin((nuxtApp) => {
           try {
             return await fn(...args)
           } catch (error) {
-            nuxtApp.$handleError(error, context)
+            (nuxtApp as any).$handleError(error, context)
             throw error
           }
         }) as T

@@ -6,7 +6,7 @@
       <main class="mobile-content">
         <slot />
       </main>
-      <MobileNavigation />
+      <BottomNav />
     </div>
 
     <!-- Desktop layout for larger screens -->

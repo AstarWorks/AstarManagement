@@ -1,34 +1,52 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <!-- Header -->
-    <header class="border-b">
-      <div class="container mx-auto px-4 py-4">
-        <h1 class="text-2xl font-bold">Aster Management - Nuxt PoC</h1>
-        <p class="text-gray-600">Next.js to Nuxt.js Migration Proof of Concept</p>
+  <div class="dashboard-page">
+    <Breadcrumbs />
+    <h1 class="page-title">Dashboard</h1>
+    
+    <!-- Dashboard content -->
+    <div class="dashboard-grid">
+      <div class="dashboard-card">
+        <h2>Quick Stats</h2>
+        <p>Overview of your matters and tasks</p>
       </div>
-    </header>
-
-    <!-- Filter Bar -->
-    <FilterBar v-model="filters" />
-
-    <!-- Loading State -->
-    <div v-if="isLoading" class="flex items-center justify-center min-h-[400px]">
-      <div class="text-center">
-        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-        <p class="text-gray-600">Loading matters...</p>
+      
+      <div class="dashboard-card">
+        <h2>Recent Activity</h2>
+        <p>Latest updates and changes</p>
       </div>
-    </div>
-
-    <!-- Error State -->
-    <div v-else-if="error" class="flex items-center justify-center min-h-[400px]">
-      <div class="text-center text-red-600">
-        <p class="mb-4">{{ error }}</p>
-        <Button @click="loadMatters">Retry</Button>
+      
+      <div class="dashboard-card">
+        <h2>Upcoming Deadlines</h2>
+        <p>Important dates and deadlines</p>
       </div>
     </div>
+    
+    <!-- Kanban Board Section -->
+    <div class="kanban-section">
+      <h2 class="section-title">Kanban Board</h2>
+      
+      <!-- Filter Bar -->
+      <FilterBar v-model="filters" />
 
-    <!-- Kanban Board -->
-    <KanbanBoard v-else />
+      <!-- Loading State -->
+      <div v-if="isLoading" class="flex items-center justify-center min-h-[400px]">
+        <div class="text-center">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p class="text-gray-600">Loading matters...</p>
+        </div>
+      </div>
+
+      <!-- Error State -->
+      <div v-else-if="error" class="flex items-center justify-center min-h-[400px]">
+        <div class="text-center text-red-600">
+          <p class="mb-4">{{ error }}</p>
+          <Button @click="loadMatters">Retry</Button>
+        </div>
+      </div>
+
+      <!-- Kanban Board -->
+      <KanbanBoard v-else />
+    </div>
   </div>
 </template>
 
@@ -37,13 +55,60 @@ import { onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useKanbanStore } from '~/stores/kanban'
 
+definePageMeta({
+  title: 'Dashboard',
+  layout: 'app'
+})
+
 // Store
 const kanbanStore = useKanbanStore()
 const { filters, isLoading, error } = storeToRefs(kanbanStore)
 const { loadMatters, setFilters } = kanbanStore
 
+// Use breadcrumbs
+const { setBreadcrumbs } = useBreadcrumbs()
+
 // Load matters on mount
 onMounted(() => {
   loadMatters()
+  
+  // Set breadcrumbs
+  setBreadcrumbs([
+    { label: 'Dashboard', current: true }
+  ])
 })
 </script>
+
+<style scoped>
+.dashboard-page {
+  @apply p-6;
+}
+
+.page-title {
+  @apply text-2xl font-bold text-gray-900 dark:text-gray-100 mt-4 mb-6;
+}
+
+.dashboard-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8;
+}
+
+.dashboard-card {
+  @apply bg-white dark:bg-gray-800 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700;
+}
+
+.dashboard-card h2 {
+  @apply text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2;
+}
+
+.dashboard-card p {
+  @apply text-gray-600 dark:text-gray-400;
+}
+
+.kanban-section {
+  @apply mt-8;
+}
+
+.section-title {
+  @apply text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4;
+}
+</style>

@@ -2,7 +2,7 @@
   <div 
     ref="containerRef"
     class="mobile-layout relative w-full h-full overflow-auto overscroll-behavior-y-contain -webkit-overflow-scrolling-touch"
-    :style="touchStyles"
+    :style="touchStyles as any"
     @touchstart="handleTouchStart"
     @touchmove="handleTouchMove"
     @touchend="handleTouchEnd"
