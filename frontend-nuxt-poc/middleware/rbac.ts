@@ -20,8 +20,9 @@ export default defineNuxtRouteMiddleware((to, from) => {
     return
   }
   
-  // Get user roles and permissions from auth store
-  const authStore = useAuthStore()
+  // Get user roles and permissions from auth store with proper Nuxt context
+  const { $pinia } = useNuxtApp()
+  const authStore = useAuthStore($pinia)
   const userRoles: string[] = authStore.user?.role ? [authStore.user.role] : []
   const userPermissions: string[] = authStore.permissions
   

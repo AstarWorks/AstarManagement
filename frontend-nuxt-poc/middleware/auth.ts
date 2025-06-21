@@ -17,8 +17,9 @@ export default defineNuxtRouteMiddleware((to, from) => {
     return
   }
   
-  // Get authentication status from auth store
-  const authStore = useAuthStore()
+  // Get authentication status from auth store with proper Nuxt context
+  const { $pinia } = useNuxtApp()
+  const authStore = useAuthStore($pinia)
   const isAuthenticated = authStore.isAuthenticated
   
   // Check if user is authenticated

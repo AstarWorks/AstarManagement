@@ -2,22 +2,22 @@
   <div class="app-layout-container">
     <!-- Mobile layout for small screens -->
     <div class="mobile-layout md:hidden">
-      <AppHeader :show-menu-toggle="false" />
+      <LayoutAppHeader :show-menu-toggle="false" />
       <main class="mobile-content">
         <slot />
       </main>
-      <BottomNav />
+      <NavigationBottomNav />
     </div>
 
     <!-- Desktop layout for larger screens -->
     <div class="desktop-layout hidden md:flex">
-      <AppSidebar />
+      <LayoutAppSidebar />
       <div class="desktop-content">
-        <AppHeader @toggle-sidebar="handleSidebarToggle" />
+        <LayoutAppHeader @toggle-sidebar="handleSidebarToggle" />
         <main class="main-content">
           <slot />
         </main>
-        <AppFooter />
+        <LayoutAppFooter />
       </div>
     </div>
   </div>

@@ -10,7 +10,7 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
-    "@nuxtjs/tailwindcss": "^7.0.0-beta.0",
+    "@nuxtjs/tailwindcss": "6",
     "@pinia/nuxt": "^0.11.1",
     "@vueuse/nuxt": "^13.4.0",
     "axios": "^1.10.0",
@@ -34,6 +34,7 @@
     "@vitest/ui": "^3.2.4",
     "@vue/test-utils": "^2.4.6",
     "happy-dom": "^18.0.1",
+    "tailwindcss": "3",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5.8.3",
     "vitest": "^3.2.4",

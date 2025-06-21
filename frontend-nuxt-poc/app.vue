@@ -6,8 +6,8 @@
     </NuxtLayout>
     
     <!-- Global components -->
-    <ToastContainer />
-    <OfflineDetector />
+    <SystemToastContainer />
+    <SystemOfflineDetector />
   </div>
 </template>
 

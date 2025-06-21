@@ -5,13 +5,23 @@
  * Automatically generates breadcrumbs from route meta or navigation structure.
  */
 
-import type { BreadcrumbItem } from '~/types/navigation'
+import type { BreadcrumbItem, NavItem } from '~/types/navigation'
 import { mainNavigation } from '~/config/navigation'
 import { generateBreadcrumbs } from '~/utils/navigation'
 
 export const useBreadcrumbs = () => {
   const route = useRoute()
-  const navigationStore = useNavigationStore()
+  
+  // Lazy access to navigation store to avoid Pinia initialization issues
+  const getNavigationStore = () => {
+    try {
+      return useNavigationStore()
+    } catch (error) {
+      // Fallback if Pinia is not available
+      console.warn('Navigation store not available:', error)
+      return null
+    }
+  }
   
   // Generate breadcrumbs from route
   const generateFromRoute = (): BreadcrumbItem[] => {
@@ -45,7 +55,7 @@ export const useBreadcrumbs = () => {
         })
       } else {
         // Generate from navigation structure
-        const navBreadcrumbs = generateBreadcrumbs(mainNavigation, route.path)
+        const navBreadcrumbs = generateBreadcrumbs(mainNavigation as NavItem[], route.path)
         if (navBreadcrumbs.length > 1) {
           // Skip home since we already added it
           breadcrumbs.push(...navBreadcrumbs.slice(1).map((crumb, idx) => ({
@@ -74,31 +84,46 @@ export const useBreadcrumbs = () => {
   // Update breadcrumbs when route changes
   const updateBreadcrumbs = () => {
     const breadcrumbs = generateFromRoute()
-    navigationStore.setBreadcrumbs(breadcrumbs)
+    const navigationStore = getNavigationStore()
+    if (navigationStore) {
+      navigationStore.setBreadcrumbs(breadcrumbs)
+    }
   }
   
   // Set custom breadcrumbs
   const setBreadcrumbs = (breadcrumbs: BreadcrumbItem[]) => {
-    navigationStore.setBreadcrumbs(breadcrumbs)
+    const navigationStore = getNavigationStore()
+    if (navigationStore) {
+      navigationStore.setBreadcrumbs(breadcrumbs)
+    }
   }
   
   // Add breadcrumb
   const addBreadcrumb = (breadcrumb: BreadcrumbItem) => {
-    const current = navigationStore.breadcrumbs
-    navigationStore.setBreadcrumbs([...current, breadcrumb])
+    const navigationStore = getNavigationStore()
+    if (navigationStore) {
+      const current = navigationStore.breadcrumbs
+      navigationStore.setBreadcrumbs([...current, breadcrumb])
+    }
   }
   
   // Remove last breadcrumb
   const popBreadcrumb = () => {
-    const current = navigationStore.breadcrumbs
-    if (current.length > 1) {
-      navigationStore.setBreadcrumbs(current.slice(0, -1))
+    const navigationStore = getNavigationStore()
+    if (navigationStore) {
+      const current = navigationStore.breadcrumbs
+      if (current.length > 1) {
+        navigationStore.setBreadcrumbs(current.slice(0, -1))
+      }
     }
   }
   
   // Clear all breadcrumbs
   const clearBreadcrumbs = () => {
-    navigationStore.clearBreadcrumbs()
+    const navigationStore = getNavigationStore()
+    if (navigationStore) {
+      navigationStore.clearBreadcrumbs()
+    }
   }
   
   // Auto-update on route change
@@ -107,7 +132,7 @@ export const useBreadcrumbs = () => {
   }, { immediate: true })
   
   return {
-    breadcrumbs: computed(() => navigationStore.breadcrumbs),
+    breadcrumbs: computed(() => getNavigationStore()?.breadcrumbs || []),
     setBreadcrumbs,
     addBreadcrumb,
     popBreadcrumb,

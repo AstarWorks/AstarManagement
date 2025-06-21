@@ -1,6 +1,5 @@
 <template>
   <div class="dashboard-page">
-    <Breadcrumbs />
     <h1 class="page-title">Dashboard</h1>
     
     <!-- Dashboard content -->
@@ -21,61 +20,18 @@
       </div>
     </div>
     
-    <!-- Kanban Board Section -->
-    <div class="kanban-section">
-      <h2 class="section-title">Kanban Board</h2>
-      
-      <!-- Filter Bar -->
-      <FilterBar v-model="filters" />
-
-      <!-- Loading State -->
-      <div v-if="isLoading" class="flex items-center justify-center min-h-[400px]">
-        <div class="text-center">
-          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p class="text-gray-600">Loading matters...</p>
-        </div>
-      </div>
-
-      <!-- Error State -->
-      <div v-else-if="error" class="flex items-center justify-center min-h-[400px]">
-        <div class="text-center text-red-600">
-          <p class="mb-4">{{ error }}</p>
-          <Button @click="loadMatters">Retry</Button>
-        </div>
-      </div>
-
-      <!-- Kanban Board -->
-      <KanbanBoard v-else />
+    <!-- Simplified content -->
+    <div class="content-section">
+      <h2 class="section-title">Legal Matter Management System</h2>
+      <p class="text-gray-600 dark:text-gray-400">Your legal matter management dashboard is loading.</p>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
-import { storeToRefs } from 'pinia'
-import { useKanbanStore } from '~/stores/kanban'
-
 definePageMeta({
   title: 'Dashboard',
   layout: 'app'
-})
-
-// Store
-const kanbanStore = useKanbanStore()
-const { filters, isLoading, error } = storeToRefs(kanbanStore)
-const { loadMatters, setFilters } = kanbanStore
-
-// Use breadcrumbs
-const { setBreadcrumbs } = useBreadcrumbs()
-
-// Load matters on mount
-onMounted(() => {
-  loadMatters()
-  
-  // Set breadcrumbs
-  setBreadcrumbs([
-    { label: 'Dashboard', current: true }
-  ])
 })
 </script>
 

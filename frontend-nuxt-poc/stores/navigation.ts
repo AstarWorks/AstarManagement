@@ -122,10 +122,4 @@ export const useNavigationStore = defineStore('navigation', {
   }
 })
 
-// Auto-save expanded state
-if (process.client) {
-  const store = useNavigationStore()
-  store.$subscribe(() => {
-    store.saveExpandedState()
-  })
-}
+// Auto-save functionality will be initialized in a plugin

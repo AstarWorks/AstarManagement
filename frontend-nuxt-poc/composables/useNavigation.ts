@@ -8,7 +8,16 @@
 export const useNavigation = () => {
   const router = useRouter()
   const route = useRoute()
-  const navigationStore = useNavigationStore()
+  
+  // Lazy access to navigation store to avoid Pinia initialization issues
+  const getNavigationStore = () => {
+    try {
+      return useNavigationStore()
+    } catch (error) {
+      console.warn('Navigation store not available:', error)
+      return null
+    }
+  }
   
   // Navigation state
   const isNavigating = ref(false)
@@ -47,13 +56,18 @@ export const useNavigation = () => {
     try {
       // Add to navigation history
       const targetPath = typeof to === 'string' ? to : (to as any).path || route.path
-      navigationStore.addToHistory(targetPath)
+      const navigationStore = getNavigationStore()
+      if (navigationStore) {
+        navigationStore.addToHistory(targetPath)
+      }
       
       // Perform navigation
       await router.push(to)
       
       // Close mobile menu if open
-      navigationStore.closeMobileMenu()
+      if (navigationStore) {
+        navigationStore.closeMobileMenu()
+      }
       
     } catch (error) {
       console.error('Navigation error:', error)
@@ -65,7 +79,8 @@ export const useNavigation = () => {
   
   // Go back with fallback
   const goBack = (fallback = '/') => {
-    const previousPath = navigationStore.goBack()
+    const navigationStore = getNavigationStore()
+    const previousPath = navigationStore?.goBack()
     
     if (previousPath) {
       router.push(previousPath)
@@ -129,7 +144,8 @@ export const useNavigation = () => {
   
   // Get breadcrumb trail for current route
   const getBreadcrumbTrail = () => {
-    return navigationStore.breadcrumbs
+    const navigationStore = getNavigationStore()
+    return navigationStore?.breadcrumbs || []
   }
   
   // Navigation guards
