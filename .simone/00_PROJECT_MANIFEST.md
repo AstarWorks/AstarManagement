@@ -1,10 +1,10 @@
 ---
 project_name: Aster Management
 current_milestone_id: M02
-highest_sprint_in_milestone: S05
-current_sprint_id: S05
+highest_sprint_in_milestone: S06
+current_sprint_id: S06
 status: active
-last_updated: 2025-06-21 14:12
+last_updated: 2025-06-21 19:53
 ---
 
 # Project Manifest: Aster Management
@@ -20,7 +20,7 @@ This project follows a milestone-based development approach.
 ## 2. Current Focus
 
 - **Milestone:** M02 - Frontend Framework Migration
-- **Sprint:** S05 - Migration Foundation and Planning
+- **Sprint:** S06 - Core Components Migration
 
 ## 3. Sprints in Current Milestone
 
@@ -101,6 +101,28 @@ This project follows a milestone-based development approach.
 **Documentation:**
 📋 Architecture Decision Records (T05_S05) - Low complexity
 
+### S06 Core Components Migration (🚧 IN PROGRESS)
+**Status:** In Progress - 13 tasks, 74 story points
+
+**Component Migration Tasks:**
+- ✅ TX01_S06: Layout Components Migration - Medium complexity (8 points) - COMPLETED
+- 📋 T02_S06: Migrate Form Components - High complexity (8 points)
+- 📋 T03_S06: Migrate UI Components - Medium complexity (5 points)
+- 📋 T04_S06: Migrate Data Display Components - Medium complexity (5 points)
+- 📋 T05_S06: Migrate Utility Components - Low complexity (3 points)
+- 📋 T06_S06: Migrate Error and Loading Components - Low complexity (3 points)
+
+**State Management Migration:**
+- 📋 T07_S06: Migrate Authentication Store - High complexity (8 points)
+- 📋 T08_S06: Migrate Kanban Store - High complexity (8 points)
+- 📋 T09_S06: Migrate UI and Settings Stores - Medium complexity (5 points)
+
+**Testing and Integration:**
+- 📋 T10_S06: Component Testing Setup - Medium complexity (5 points)
+- 📋 T11_S06: Integration Testing - High complexity (8 points)
+- 📋 T12_S06: Visual Regression Testing - Medium complexity (5 points)
+- 📋 T13_S06: Performance Benchmarking - Low complexity (3 points)
+
 ## 5. Key Documentation
 
 - [Architecture Documentation](./01_PROJECT_DOCS/ARCHITECTURE.md)
@@ -131,6 +153,6 @@ This project follows a milestone-based development approach.
 
 ## 7. Quick Links
 
-- **Current Sprint:** [S05 Sprint Folder](./03_SPRINTS/S05_M02_Migration_Foundation_and_Planning/)
-- **Active Tasks:** Check sprint folder for T##_S05_*.md files
+- **Current Sprint:** [S06 Sprint Folder](./03_SPRINTS/S06_M02_Core_Components_Migration/)
+- **Active Tasks:** Check sprint folder for T##_S06_*.md files
 - **Project Reviews:** [Latest Review](./10_STATE_OF_PROJECT/)
