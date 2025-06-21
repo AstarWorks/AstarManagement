@@ -1,0 +1,21 @@
+Component,Path,Type,Complexity,Dependencies,React Features,Vue Equivalent
+KanbanBoard,/components/kanban/KanbanBoard.tsx,Container,High,"@dnd-kit, Zustand, React Query",Hooks/Memo/Callbacks,Composition API + Vue Draggable
+MatterCard,/components/kanban/MatterCard.tsx,UI,Medium,"date-fns, Lucide",useState/useMemo,ref/computed
+FilterBar,/components/kanban/FilterBar.tsx,UI,Medium,Zustand,useState/useCallback/useEffect,ref/watch/computed
+KanbanColumn,/components/kanban/KanbanColumn.tsx,Container,Medium,@dnd-kit,Hooks/forwardRef,Composition API + slots
+CreateMatterForm,/components/forms/matter/CreateMatterForm.tsx,Form,High,"React Hook Form, Zod",useForm/Controller,VeeValidate + Zod
+EditMatterForm,/components/forms/matter/EditMatterForm.tsx,Form,High,"React Hook Form, Zod",useForm/Controller,VeeValidate + Zod
+AuditTimeline,/components/audit/AuditTimeline.tsx,UI,Medium,date-fns,useState/useEffect,ref/onMounted
+ErrorBoundary,/components/error/ErrorBoundary.tsx,Utility,Low,React ErrorBoundary,Class component,errorCaptured hook
+Button,/components/ui/button.tsx,UI,Low,class-variance-authority,forwardRef,defineComponent
+Card,/components/ui/card.tsx,UI,Low,None,forwardRef,defineComponent
+Dialog,/components/ui/dialog.tsx,UI,Medium,Radix UI,Context/forwardRef,Teleport + provide/inject
+Select,/components/ui/select.tsx,UI,Medium,Radix UI,Context/forwardRef,v-model + slots
+Badge,/components/ui/badge.tsx,UI,Low,class-variance-authority,Simple props,defineComponent
+Input,/components/ui/input.tsx,UI,Low,None,forwardRef,v-model
+Toast,/components/ui/toast.tsx,UI,Medium,State management,useReducer/Context,Pinia + Teleport
+Tabs,/components/ui/tabs.tsx,UI,Medium,Radix UI,Context/forwardRef,provide/inject + slots
+DropdownMenu,/components/ui/dropdown-menu.tsx,UI,Medium,Radix UI,Context/forwardRef,Floating UI + slots
+SearchHighlight,/components/search/SearchHighlight.tsx,UI,Low,None,useMemo,computed
+SyncStatusIndicator,/components/kanban/SyncStatusIndicator.tsx,UI,Low,Zustand,Custom hooks,Pinia store
+OfflineDetector,/components/error/OfflineDetector.tsx,Utility,Low,Custom hooks,useEffect,onMounted/onUnmounted
