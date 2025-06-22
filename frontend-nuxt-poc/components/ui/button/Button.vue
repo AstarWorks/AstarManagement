@@ -63,4 +63,7 @@ const props = withDefaults(defineProps<ButtonProps>(), {
   loading: false,
   asChild: false
 })
+
+// Export buttonVariants for use in other components
+export { buttonVariants }
 </script>
