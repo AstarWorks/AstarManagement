@@ -1,11 +1,27 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  // Use src directory for source files
+  srcDir: 'src/',
+  
   compatibilityDate: '2025-05-15',
   devtools: { enabled: true },
   
   typescript: {
     strict: true,
-    typeCheck: true
+    typeCheck: true,
+    shim: false
+  },
+  
+  vite: {
+    vue: {
+      script: {
+        defineModel: true,
+        propsDestructure: true
+      }
+    },
+    optimizeDeps: {
+      include: ['axios', 'date-fns', 'uuid', 'vee-validate', '@vee-validate/zod', 'zod']
+    }
   },
   
   modules: [
@@ -35,7 +51,7 @@ export default defineNuxtConfig({
 
   shadcn: {
     prefix: '',
-    componentDir: './components/ui'
+    componentDir: './src/components/ui'
   },
   
   app: {
@@ -67,12 +83,6 @@ export default defineNuxtConfig({
   nitro: {
     prerender: {
       routes: ['/']
-    }
-  },
-  
-  vite: {
-    optimizeDeps: {
-      include: ['axios', 'date-fns', 'uuid', 'vee-validate', '@vee-validate/zod', 'zod']
     }
   },
   

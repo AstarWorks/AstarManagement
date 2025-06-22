@@ -5,7 +5,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { themes } from '@storybook/theming'
 
 // Import global styles
-import '../assets/css/tailwind.css'
+import '../src/assets/css/main.css'
 
 // Setup app-level providers
 setup((app) => {

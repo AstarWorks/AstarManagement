@@ -3,9 +3,7 @@ import type { StorybookConfig } from '@storybook/vue3-vite'
 const config: StorybookConfig = {
   stories: [
     '../src/**/*.stories.@(js|jsx|ts|tsx|mdx)',
-    '../src/**/*.story.@(js|jsx|ts|tsx|mdx)',
-    '../components/**/*.stories.@(js|jsx|ts|tsx|mdx)',
-    '../components/**/*.story.@(js|jsx|ts|tsx|mdx)'
+    '../src/**/*.story.@(js|jsx|ts|tsx|mdx)'
   ],
   addons: [
     '@storybook/addon-essentials',
@@ -34,8 +32,8 @@ const config: StorybookConfig = {
     config.resolve = config.resolve || {}
     config.resolve.alias = {
       ...config.resolve.alias,
-      '~': new URL('../', import.meta.url).pathname,
-      '@': new URL('../', import.meta.url).pathname
+      '~': new URL('../src', import.meta.url).pathname,
+      '@': new URL('../src', import.meta.url).pathname
     }
     
     // Ensure CSS is handled properly
