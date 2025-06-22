@@ -1,5 +1,11 @@
 <template>
-  <div :class="cn('rounded-lg border shadow-sm', props.class)" style="background-color: hsl(var(--card)); color: hsl(var(--card-foreground));">
+  <div 
+    :class="cn(
+      'rounded-lg border bg-card text-card-foreground shadow-sm',
+      interactive && 'transition-all hover:shadow-md focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2',
+      props.class
+    )"
+  >
     <slot />
   </div>
 </template>
@@ -9,7 +15,10 @@ import { cn } from '~/lib/utils'
 
 interface CardProps {
   class?: string
+  interactive?: boolean
 }
 
-const props = defineProps<CardProps>()
+const props = withDefaults(defineProps<CardProps>(), {
+  interactive: false
+})
 </script>

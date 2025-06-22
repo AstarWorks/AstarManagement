@@ -4,7 +4,7 @@ current_milestone_id: M02
 highest_sprint_in_milestone: S06
 current_sprint_id: S06
 status: active
-last_updated: 2025-06-21 22:43
+last_updated: 2025-06-21 23:39
 ---
 
 # Project Manifest: Aster Management
@@ -107,8 +107,8 @@ This project follows a milestone-based development approach.
 **Component Migration Tasks:**
 - ✅ TX01_S06: Layout Components Migration - Medium complexity (8 points) - COMPLETED
 - ✅ TX02_S06: Navigation System Migration - Low complexity (5 points) - COMPLETED
-- 🚧 T03_S06: Shadcn-vue Setup and Core Configuration - Medium complexity (8 points) - IN PROGRESS
-- 📋 T04_S06: Migrate Data Display Components - Medium complexity (5 points)
+- ✅ TX03_S06: Shadcn-vue Setup and Core Configuration - Medium complexity (8 points) - COMPLETED
+- ✅ TX04A_S06: Basic UI Components (Button, Badge, Card) - Medium complexity (5 points) - COMPLETED
 - 📋 T05_S06: Migrate Utility Components - Low complexity (3 points)
 - 📋 T06_S06: Migrate Error and Loading Components - Low complexity (3 points)
 

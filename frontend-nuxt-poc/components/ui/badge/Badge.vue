@@ -1,12 +1,20 @@
 <template>
   <div :class="cn(badgeVariants({ variant }), props.class)">
-    <slot />
+    <component
+      v-if="icon"
+      :is="icon"
+      :class="cn('mr-1 h-3 w-3', iconClasses)"
+    />
+    <span :class="truncate ? 'truncate' : ''">
+      <slot />
+    </span>
   </div>
 </template>
 
 <script setup lang="ts">
 import { cva } from 'class-variance-authority'
 import type { VariantProps } from 'class-variance-authority'
+import type { Component } from 'vue'
 import { cn } from '~/lib/utils'
 
 const badgeVariants = cva(
@@ -34,9 +42,14 @@ type BadgeVariants = VariantProps<typeof badgeVariants>
 interface BadgeProps {
   class?: string
   variant?: BadgeVariants['variant']
+  icon?: Component
+  iconClasses?: string
+  truncate?: boolean
 }
 
 const props = withDefaults(defineProps<BadgeProps>(), {
-  variant: 'default'
+  variant: 'default',
+  iconClasses: '',
+  truncate: false
 })
 </script>
