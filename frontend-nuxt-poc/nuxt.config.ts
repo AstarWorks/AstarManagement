@@ -72,7 +72,18 @@ export default defineNuxtConfig({
   
   vite: {
     optimizeDeps: {
-      include: ['axios', 'date-fns', 'uuid']
+      include: ['axios', 'date-fns', 'uuid', 'vee-validate', '@vee-validate/zod', 'zod']
     }
-  }
+  },
+  
+  imports: {
+    dirs: ['composables/**', 'utils/**']
+  },
+  
+  components: [
+    {
+      path: '~/components',
+      pathPrefix: false
+    }
+  ]
 })
