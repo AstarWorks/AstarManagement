@@ -4,8 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working across 
 
 ## 📋 Project Overview
 
-- YOU MUST READ: @docs/80-archived/english/structure.md
-- You can 
+- YOU MUST READ: @.simone/01_PROJECT_DOCS/ARCHITECTURE.md
 
 ## 🧠 Proactive AI Assistance
 

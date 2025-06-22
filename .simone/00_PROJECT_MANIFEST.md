@@ -156,6 +156,9 @@ This project follows a milestone-based development approach.
 - [✅] [T006: Refactor Kanban Store Architecture](./04_GENERAL_TASKS/TX006_Refactor_Kanban_Store_Architecture.md) - Status: Completed
   - Split monolithic kanban-store.ts into focused, modular stores for better maintainability
   - Preserve all existing APIs and SSR compatibility while improving code organization
+- [✅] [TX007: Modernize Vue 3 Composition API Syntax](./04_GENERAL_TASKS/TX007_Modernize_Vue3_Composition_API_Syntax.md) - Status: Completed
+  - Modernize Nuxt.js codebase to use latest Vue 3 Composition API best practices and syntax patterns
+  - Fix missing imports, enhance composables with TypeScript, and implement consistent error handling
 
 ## 7. Quick Links
 
