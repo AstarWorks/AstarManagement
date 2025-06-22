@@ -4,6 +4,7 @@
     "": {
       "name": "nuxt-app",
       "dependencies": {
+        "@floating-ui/vue": "^1.1.6",
         "@nuxtjs/tailwindcss": "6",
         "@pinia/nuxt": "^0.11.1",
         "@vueuse/integrations": "^13.4.0",

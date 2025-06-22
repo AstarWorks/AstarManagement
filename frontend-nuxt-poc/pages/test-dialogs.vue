@@ -265,8 +265,8 @@ const formData = ref({
 
 // Status dialog data
 const statusTransition = ref<{
-  from: string
-  to: string
+  from: 'INVESTIGATION' | 'MEDIATION' | 'TRIAL'
+  to: 'RESEARCH' | 'SETTLEMENT' | 'CLOSED'
   matterId: string
   matterTitle: string
 } | null>(null)
