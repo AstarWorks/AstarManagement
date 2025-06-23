@@ -1,25 +1,29 @@
 <script setup lang="ts">
-import type { KanbanColumn } from '~/types/kanban'
-import type { Matter } from '~/types/matter'
+import type { KanbanColumn, MatterCard, ViewPreferences } from '~/types/kanban'
 import { Badge } from '~/components/ui/badge'
 import { Card, CardContent, CardHeader } from '~/components/ui/card'
+import MatterCardComponent from './MatterCard.vue'
+import { DEFAULT_VIEW_PREFERENCES } from '~/constants/kanban'
 
 interface Props {
   column: KanbanColumn
-  matters?: Matter[]
+  matters?: MatterCard[]
   showJapanese?: boolean
+  viewPreferences?: ViewPreferences
   className?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
   matters: () => [],
   showJapanese: true,
+  viewPreferences: () => DEFAULT_VIEW_PREFERENCES,
   className: ''
 })
 
 const emit = defineEmits<{
   headerClick: [column: KanbanColumn]
-  matterClick: [matter: Matter]
+  matterClick: [matter: MatterCard]
+  matterEdit: [matter: MatterCard]
 }>()
 
 // Computed properties
@@ -40,8 +44,12 @@ const handleHeaderClick = () => {
   emit('headerClick', props.column)
 }
 
-const handleMatterClick = (matter: Matter) => {
+const handleMatterClick = (matter: MatterCard) => {
   emit('matterClick', matter)
+}
+
+const handleMatterEdit = (matter: MatterCard) => {
+  emit('matterEdit', matter)
 }
 </script>
 
@@ -71,42 +79,15 @@ const handleMatterClick = (matter: Matter) => {
     <div class="column-body" :data-testid="`column-${column.id}`">
       <!-- Matter Cards -->
       <div v-if="matters.length > 0" class="matters-list">
-        <Card
+        <MatterCardComponent
           v-for="matter in matters"
           :key="matter.id"
-          class="matter-card"
-          tabindex="0"
-          role="button"
-          :aria-label="`Matter: ${matter.title}`"
-          @click="handleMatterClick(matter)"
-          @keydown.enter="handleMatterClick(matter)"
-          @keydown.space.prevent="handleMatterClick(matter)"
-        >
-          <CardHeader class="card-header">
-            <div class="matter-title">{{ matter.title }}</div>
-            <div class="matter-meta">
-              <span class="case-number">{{ matter.caseNumber }}</span>
-              <Badge 
-                :variant="matter.priority === 'high' ? 'destructive' : 
-                         matter.priority === 'medium' ? 'default' : 'secondary'"
-                class="priority-badge"
-              >
-                {{ matter.priority }}
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent class="card-content">
-            <div class="client-info">
-              <span class="client-name">{{ matter.clientName }}</span>
-            </div>
-            <div v-if="matter.assignedLawyer" class="lawyer-info">
-              <span class="lawyer-name">{{ matter.assignedLawyer }}</span>
-            </div>
-            <div v-if="matter.dueDate" class="due-date">
-              Due: {{ new Date(matter.dueDate).toLocaleDateString() }}
-            </div>
-          </CardContent>
-        </Card>
+          :matter="matter"
+          :viewPreferences="viewPreferences"
+          class="mb-3"
+          @click="handleMatterClick"
+          @edit="handleMatterEdit"
+        />
       </div>
 
       <!-- Empty State -->
@@ -159,51 +140,7 @@ const handleMatterClick = (matter: Matter) => {
   @apply space-y-3;
 }
 
-/* Matter cards */
-.matter-card {
-  @apply cursor-pointer transition-all duration-150;
-  @apply hover:shadow-md hover:scale-[1.02];
-  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
-  @apply active:scale-[0.98];
-}
-
-.card-header {
-  @apply p-3 pb-2;
-}
-
-.matter-title {
-  @apply text-sm font-medium text-gray-900 line-clamp-2 mb-2;
-}
-
-.matter-meta {
-  @apply flex items-center justify-between gap-2;
-}
-
-.case-number {
-  @apply text-xs text-gray-500 font-mono;
-}
-
-.priority-badge {
-  @apply text-xs;
-}
-
-.card-content {
-  @apply p-3 pt-0 space-y-1;
-}
-
-.client-info,
-.lawyer-info {
-  @apply text-xs text-gray-600;
-}
-
-.client-name,
-.lawyer-name {
-  @apply font-medium;
-}
-
-.due-date {
-  @apply text-xs text-orange-600 font-medium;
-}
+/* Removed old matter card styles as we're using the MatterCard component now */
 
 /* Empty state */
 .empty-state {

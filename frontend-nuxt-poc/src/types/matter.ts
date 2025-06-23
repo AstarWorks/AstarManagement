@@ -36,7 +36,7 @@ export interface FilterState {
 }
 
 export interface ViewPreferences {
-  cardSize: 'compact' | 'normal' | 'expanded'
+  cardSize: 'compact' | 'normal' | 'detailed'
   showAvatars: boolean
   showDueDates: boolean
   showPriority: boolean

@@ -44,5 +44,58 @@ export type MatterStatus =
   | 'SETTLEMENT'
   | 'CLOSED'
 
+// Enhanced Matter Card interface for kanban display
+export interface MatterCard {
+  id: string
+  caseNumber: string
+  title: string
+  description?: string
+  clientName: string
+  opponentName?: string
+  status: MatterStatus
+  priority: MatterPriority
+  dueDate?: string
+  createdAt: string
+  updatedAt: string
+  
+  // Assignment information with full user details
+  assignedLawyer?: {
+    id: string
+    name: string
+    avatar?: string
+    initials?: string
+  }
+  assignedClerk?: {
+    id: string
+    name: string
+    avatar?: string
+    initials?: string
+  }
+  
+  // Display enhancements
+  statusDuration?: number // days in current status
+  isOverdue?: boolean
+  relatedDocuments?: number
+  tags?: string[]
+  
+  // Search/highlight support
+  searchHighlights?: Record<string, string[]>
+  relevanceScore?: number
+}
+
+// Priority type for strong typing
+export type MatterPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
+
+// Matter Card Props
+export interface MatterCardProps {
+  matter: MatterCard
+  isDragging?: boolean
+  viewPreferences: ViewPreferences
+  searchTerms?: string[]
+  onClick?: () => void
+  onEdit?: () => void
+  className?: string
+}
+
 // Re-export from matter.ts for convenience
 export type { Matter, Priority, FilterState, ViewPreferences } from './matter'
