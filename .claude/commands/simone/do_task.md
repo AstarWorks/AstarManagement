@@ -2,7 +2,7 @@
 
 **IMPORTANT:** Follow from Top to Bottom - don't skip anything!
 
-**CREATE A TODO LIST** with exactly these 8 items
+**CREATE A TODO LIST** with exactly these 9 items
 
 1. Analyse scope from argument
 2. Identify task file
@@ -12,6 +12,7 @@
 6. Placeholder
 7. Execute Code review
 8. Finalize Task status
+9. Create commit for task changes
 
 ## 1 · Analyse scope from argument
 
@@ -90,3 +91,32 @@ Follow these steps for a Code Review (in order)
 
   - 🛠️ Use /project:simone:commit `TASK_ID` to commit the changes to git
   - 🧹 Use /clear to clear the context before starting the next Task
+
+## 9 · Create commit for task changes
+
+**Execute this step only after task completion is successful**
+
+### Commit Creation Process
+
+1. **Reference commit command**:
+- Consult `.claude/commands/simone/commit.md` for commit guidelines
+- Use the completed Task ID as the argument for commit context
+- Follow the established commit workflow
+
+2. **Execute commit process**:
+- Run the commit analysis and grouping process
+- Focus on changes related to the completed task
+- Create logical commits with appropriate messages
+- Include task ID in commit messages for traceability
+
+3. **Handle commit results**:
+- Verify all task-related changes are committed
+- Report commit status and any remaining uncommitted changes
+- Ensure repository is in a clean state
+
+### Implementation Notes
+
+- **Task Context**: Use the completed Task ID to filter relevant changes
+- **Commit Message Format**: Include task ID in conventional commit format
+- **Validation**: Ensure pre-commit hooks pass before finalizing commits
+- **User Notification**: Report commit results and any follow-up actions needed

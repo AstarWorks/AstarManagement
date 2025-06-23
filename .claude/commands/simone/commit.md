@@ -2,7 +2,7 @@
 
 Follow these instructions from top to bottom.
 
-## Create a TODO with EXACTLY these 6 items
+## Create a TODO with EXACTLY these 7 items
 
 1. Parse arguments and analyze git status
 2. Review changes and group by logical commits
@@ -10,6 +10,7 @@ Follow these instructions from top to bottom.
 4. Check if user approval is necessary
 5. Execute approved commits
 6. Report commit results
+7. Explore and execute next task if TaskID was provided
 
 ---
 
@@ -35,10 +36,10 @@ Follow these instructions from top to bottom.
 - General Tasks: `T<NNN>` format (e.g., T001, T002)
 - Completed General Tasks: `TX<NNN>` format (e.g., TX001, TX002)
 - Search for this task ID in:
-  - `.simone/03_SPRINTS/` directory (for sprint tasks)
-  - `.simone/04_GENERAL_TASKS/` directory (for general tasks)
-  - Task metadata in files (look for `task_id: T01_S02` in frontmatter)
-  - Git diff content (to see if code comments or commits reference the task)
+    - `.simone/03_SPRINTS/` directory (for sprint tasks)
+    - `.simone/04_GENERAL_TASKS/` directory (for general tasks)
+    - Task metadata in files (look for `task_id: T01_S02` in frontmatter)
+    - Git diff content (to see if code comments or commits reference the task)
 - Identify ALL files that were modified as part of this task's implementation
 - This includes: source code, tests, configuration, and the task documentation file itself
 
@@ -69,19 +70,19 @@ Follow these instructions from top to bottom.
 **If context provided in arguments**:
 
 1. **FILTER FIRST**: Separate changes into two groups:
-   - **Related to context**: Files that are part of the task/context implementation
-   - **Unrelated to context**: Everything else
+    - **Related to context**: Files that are part of the task/context implementation
+    - **Unrelated to context**: Everything else
 2. **FOCUS**: Only analyze the "related to context" group for the first commit
 3. **DEFER**: Keep the "unrelated" group for potential later commits (only if user requests)
 
 **Standard grouping logic** (for no-context or within-context grouping):
 
 - **Think about** which changes belong together logically:
-  - Task completion (group by task ID when applicable)
-  - Feature additions (group by feature scope)
-  - Configuration updates (group separately)
-  - Documentation updates (group by documentation type)
-  - Bug fixes (group by related functionality)
+    - Task completion (group by task ID when applicable)
+    - Feature additions (group by feature scope)
+    - Configuration updates (group separately)
+    - Documentation updates (group by documentation type)
+    - Bug fixes (group by related functionality)
 - **Think carefully** to ensure each commit represents one logical change that can be understood and potentially reverted independently
 - Avoid mixing unrelated changes in the same commit
 - Consider dependencies between changes when ordering commits
@@ -105,8 +106,8 @@ For the next commit to create:
 - **Context**: If applicable, which task/context this commit addresses
 - **Files**: List the specific files to be included
 - **Commit message**: Use conventional commit format, be clear and concise
-  - **CRITICAL:** Must not contain any attribution to Claude, Anthropic, or AI assistance
-  - If task-related, include task ID in message (e.g., "feat(agents): implement T01_S02 coordinator agent" or "fix(api): resolve T003 authentication issue")
+    - **CRITICAL:** Must not contain any attribution to Claude, Anthropic, or AI assistance
+    - If task-related, include task ID in message (e.g., "feat(agents): implement T01_S02 coordinator agent" or "fix(api): resolve T003 authentication issue")
 - **Reasoning**: Brief explanation of why these changes belong together
 
 ## 4 · Check if user approval is necessary
@@ -139,3 +140,38 @@ Provide summary:
 - **Files Committed**: Total count of files committed
 - **Remaining Changes**: Any uncommitted changes still pending
 - **Repository Status**: Current git status after commits
+
+## 7 · Explore and execute next task if TaskID was provided
+
+**Only execute this step if a TaskID was provided in the arguments**
+
+### Task Exploration Process
+
+1. **Identify the completed task**: Use the TaskID from the arguments to understand what was just completed
+2. **Search for next task**:
+    - Look in `.simone/03_SPRINTS/` directory for sprint tasks
+    - Look in `.simone/04_GENERAL_TASKS/` directory for general tasks
+    - Find the next logical task in sequence
+    - Consider task dependencies and completion status
+
+3. **Analyze next task**:
+    - Read the task file to understand requirements
+    - Check task status and dependencies
+    - Verify if it's ready to be executed
+
+4. **Reference do_task command**:
+    - Consult `.claude/commands/simone/do_task` for execution guidelines
+    - Follow the established task execution process
+    - Ensure proper task context and environment setup
+
+5. **Execute the next task**:
+    - Use the appropriate command or process as defined in `do_task`
+    - Maintain consistency with the project's task management workflow
+    - Report the start of the next task execution
+
+### Implementation Notes
+
+- **Sequential Logic**: Focus on the next task in the same sprint or general task sequence
+- **Dependency Check**: Ensure all prerequisites for the next task are met
+- **Context Continuity**: Maintain the context from the previous task completion
+- **User Notification**: Inform the user about the next task being initiated
