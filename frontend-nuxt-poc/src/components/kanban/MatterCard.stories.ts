@@ -277,6 +277,226 @@ export const MobileView: Story = {
   parameters: {
     viewport: {
       defaultViewport: 'mobile1'
+    },
+    docs: {
+      description: {
+        story: 'Mobile-optimized matter card with compact layout and touch-friendly interactions.'
+      }
+    }
+  }
+}
+
+export const MobileSwipeActions: Story = {
+  args: {
+    matter: baseMatter,
+    viewPreferences: DEFAULT_VIEW_PREFERENCES
+  },
+  parameters: {
+    viewport: {
+      defaultViewport: 'mobile1'
+    },
+    docs: {
+      description: {
+        story: 'Demonstrates swipe-to-reveal actions on mobile. Swipe left for complete/edit actions, swipe right for archive/cancel.'
+      }
+    }
+  },
+  render: (args) => ({
+    components: { MatterCard },
+    setup() {
+      const swipeAction = ref<string | null>(null)
+      
+      const handleSwipeReveal = (direction: string, actions: string[]) => {
+        swipeAction.value = `Revealed ${direction} actions: ${actions.join(', ')}`
+        setTimeout(() => {
+          swipeAction.value = null
+        }, 3000)
+      }
+      
+      const handleAction = (action: string) => {
+        swipeAction.value = `Executed: ${action}`
+        setTimeout(() => {
+          swipeAction.value = null
+        }, 2000)
+      }
+      
+      return { args, swipeAction, handleSwipeReveal, handleAction }
+    },
+    template: `
+      <div style="width: 100vw; height: 100vh; background: #f8fafc; padding: 1rem; position: relative;">
+        <div style="max-width: 400px; margin: 0 auto;">
+          <div style="margin-bottom: 1rem; padding: 12px; background: rgba(0,0,0,0.8); color: white; border-radius: 8px; font-size: 14px;">
+            📱 Swipe left for actions: Complete, Edit<br>
+            📱 Swipe right for actions: Archive, Cancel
+          </div>
+          
+          <MatterCard 
+            v-bind="args"
+            @swipe-reveal="handleSwipeReveal"
+            @complete="() => handleAction('Complete')"
+            @edit="() => handleAction('Edit')"
+            @archive="() => handleAction('Archive')"
+            @cancel="() => handleAction('Cancel')"
+          />
+        </div>
+        
+        <!-- Feedback overlay -->
+        <div 
+          v-if="swipeAction"
+          style="
+            position: fixed; 
+            top: 50%; 
+            left: 50%; 
+            transform: translate(-50%, -50%);
+            background: #10b981;
+            color: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            font-weight: 500;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+          "
+        >
+          {{ swipeAction }}
+        </div>
+      </div>
+    `
+  })
+}
+
+export const TouchInteractions: Story = {
+  args: {
+    matter: baseMatter,
+    viewPreferences: DEFAULT_VIEW_PREFERENCES
+  },
+  parameters: {
+    viewport: {
+      defaultViewport: 'mobile1'
+    },
+    docs: {
+      description: {
+        story: 'Touch interaction patterns including press, long press, and haptic feedback responses.'
+      }
+    }
+  },
+  render: (args) => ({
+    components: { MatterCard },
+    setup() {
+      const interactions = ref<string[]>([])
+      
+      const addInteraction = (type: string) => {
+        interactions.value.unshift(`${new Date().toLocaleTimeString()}: ${type}`)
+        if (interactions.value.length > 5) {
+          interactions.value.pop()
+        }
+      }
+      
+      const handlePress = () => addInteraction('Touch Press')
+      const handleLongPress = () => addInteraction('Long Press (Context Menu)')
+      const handleRelease = () => addInteraction('Touch Release')
+      const handleHover = () => addInteraction('Hover/Touch Move')
+      
+      return { 
+        args, 
+        interactions, 
+        handlePress, 
+        handleLongPress, 
+        handleRelease, 
+        handleHover 
+      }
+    },
+    template: `
+      <div style="width: 100vw; height: 100vh; background: #f8fafc; padding: 1rem; position: relative;">
+        <div style="max-width: 400px; margin: 0 auto;">
+          <div style="margin-bottom: 1rem; padding: 12px; background: rgba(0,0,0,0.8); color: white; border-radius: 8px; font-size: 14px;">
+            🎯 Touch Interactions Test<br>
+            • Tap: Regular selection<br>
+            • Long press: Context menu<br>
+            • Hover: Preview state
+          </div>
+          
+          <MatterCard 
+            v-bind="args"
+            @mousedown="handlePress"
+            @touchstart="handlePress"
+            @long-press="handleLongPress"
+            @mouseup="handleRelease"
+            @touchend="handleRelease"
+            @mouseenter="handleHover"
+          />
+          
+          <!-- Interaction log -->
+          <div 
+            v-if="interactions.length > 0"
+            style="
+              margin-top: 1rem;
+              padding: 12px;
+              background: white;
+              border-radius: 8px;
+              border: 1px solid #e5e7eb;
+              font-size: 12px;
+              font-family: monospace;
+            "
+          >
+            <div style="font-weight: 600; margin-bottom: 8px;">📝 Interaction Log:</div>
+            <div v-for="interaction in interactions" :key="interaction" style="margin-bottom: 4px;">
+              {{ interaction }}
+            </div>
+          </div>
+        </div>
+      </div>
+    `
+  })
+}
+
+export const MobilePriorityVariations: Story = {
+  render: () => ({
+    components: { MatterCard },
+    setup() {
+      const priorities: Array<'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'> = ['LOW', 'MEDIUM', 'HIGH', 'URGENT']
+      const matters = priorities.map((priority, index) => ({
+        ...baseMatter,
+        id: `mobile-priority-${index}`,
+        priority,
+        title: `${priority} Priority Mobile Matter`,
+        caseNumber: `2025-MOB-${String(index + 1).padStart(3, '0')}`
+      }))
+      
+      return { 
+        matters, 
+        viewPreferences: {
+          ...DEFAULT_VIEW_PREFERENCES,
+          cardSize: 'compact'
+        }
+      }
+    },
+    template: `
+      <div style="width: 100vw; height: 100vh; background: #f8fafc; padding: 1rem; overflow-y: auto;">
+        <div style="max-width: 400px; margin: 0 auto;">
+          <div style="margin-bottom: 1rem; padding: 12px; background: rgba(0,0,0,0.8); color: white; border-radius: 8px; font-size: 14px; text-align: center;">
+            📱 Mobile Priority Variations
+          </div>
+          
+          <div style="space-y: 12px;">
+            <div v-for="matter in matters" :key="matter.id" style="margin-bottom: 12px;">
+              <MatterCard
+                :matter="matter"
+                :viewPreferences="viewPreferences"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    `
+  }),
+  parameters: {
+    viewport: {
+      defaultViewport: 'mobile1'
+    },
+    docs: {
+      description: {
+        story: 'All priority levels displayed in mobile-optimized compact cards.'
+      }
     }
   }
 }

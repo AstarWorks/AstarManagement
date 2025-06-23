@@ -1,8 +1,9 @@
 <script setup lang="ts">
 // 1. Imports - external libraries first
-import { computed, toRefs } from 'vue'
+import { ref, computed, toRefs, watch } from 'vue'
 import { format, isAfter, parseISO } from 'date-fns'
-import { Calendar, Clock, User, AlertTriangle, AlertCircle, Info, Minus, FileText, MoreVertical } from 'lucide-vue-next'
+import { Calendar, Clock, User, AlertTriangle, AlertCircle, Info, Minus, FileText, MoreVertical, Check, X, Archive } from 'lucide-vue-next'
+import { useBreakpoints } from '@vueuse/core'
 
 // 2. Internal imports
 import type { MatterCard, ViewPreferences, MatterPriority } from '~/types/kanban'
@@ -12,6 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
 import { Button } from '~/components/ui/button'
 import { cn } from '~/lib/utils'
 import { useAccessibility } from '~/composables/useAccessibility'
+import { useTouchGestures, useMobileInteractions } from '~/composables/useTouchGestures'
 
 // 3. Priority configuration with icons
 type PriorityConfig = {
@@ -40,11 +42,62 @@ const emit = defineEmits<{
   click: [matter: MatterCard]
   edit: [matter: MatterCard]
   statusChange: [matterId: string, newStatus: string]
+  archive: [matter: MatterCard]
+  complete: [matter: MatterCard]
+  swipeAction: [action: string, matter: MatterCard]
 }>()
 
-// 6. Reactive state and computed properties
+// 6. Template refs
+const cardRef = ref<HTMLElement>()
+
+// 7. Reactive state and computed properties
 const { matter, viewPreferences, isDragging } = toRefs(props)
 const { announceUpdate } = useAccessibility()
+
+// Mobile detection and interactions
+const breakpoints = useBreakpoints({
+  mobile: 0,
+  tablet: 768,
+  desktop: 1024,
+})
+
+const isMobile = breakpoints.smaller('tablet')
+const { isTouchDevice, useTouchClick } = useMobileInteractions()
+
+// Touch gestures for the card
+const {
+  isPressed,
+  isLongPress,
+  swipeDirection,
+  dragOffset,
+  velocity,
+  reset: resetGestures
+} = useTouchGestures(cardRef)
+
+// Swipe actions state
+const showSwipeActions = ref(false)
+const swipeActionType = ref<'left' | 'right' | null>(null)
+
+// Watch for swipe gestures
+watch(swipeDirection, (direction) => {
+  if (!isMobile.value || !direction || isDragging.value) return
+  
+  if (direction === 'left' || direction === 'right') {
+    showSwipeActions.value = true
+    swipeActionType.value = direction
+    emit('swipeAction', direction, matter.value)
+  }
+})
+
+// Watch for long press to show context menu
+watch(isLongPress, (pressed) => {
+  if (!isMobile.value || !pressed || isDragging.value) return
+  
+  // Trigger haptic feedback and show mobile context menu
+  showSwipeActions.value = true
+  swipeActionType.value = 'left' // Default to left actions
+  resetGestures()
+})
 
 // Priority configuration
 const PRIORITY_COLORS: Record<MatterPriority, PriorityConfig> = {
@@ -100,8 +153,22 @@ const cardClasses = computed(() => cn(
   isDragging.value && 'opacity-50 shadow-xl z-50 cursor-grabbing',
   !isDragging.value && 'cursor-grab',
   isOverdue.value && 'ring-1 ring-red-200 bg-red-50/30',
+  isMobile.value && 'touch-manipulation active:scale-[0.98]',
+  isPressed.value && !isDragging.value && 'scale-[0.98] shadow-lg',
+  showSwipeActions.value && 'transform',
   props.className
 ))
+
+// Swipe transform style
+const swipeTransform = computed(() => {
+  if (!showSwipeActions.value || !isMobile.value) return {}
+  
+  const offset = swipeActionType.value === 'left' ? -80 : 80
+  return {
+    transform: `translateX(${offset}px)`,
+    transition: 'transform 0.3s ease'
+  }
+})
 
 // Helper functions
 const formatDate = (dateString: string): string => {
@@ -121,14 +188,34 @@ const getInitials = (name: string): string => {
     .slice(0, 2)
 }
 
-// Event handlers
-const handleClick = () => {
-  emit('click', matter.value)
-}
+// Event handlers with mobile optimization
+const handleClick = useTouchClick(() => {
+  if (!showSwipeActions.value) {
+    emit('click', matter.value)
+  }
+})
 
 const handleEdit = (e: Event) => {
   e.stopPropagation()
   emit('edit', matter.value)
+}
+
+// Mobile swipe action handlers
+const handleComplete = () => {
+  emit('complete', matter.value)
+  showSwipeActions.value = false
+  announceUpdate(`Matter ${matter.value.caseNumber} marked as complete`)
+}
+
+const handleArchive = () => {
+  emit('archive', matter.value)
+  showSwipeActions.value = false
+  announceUpdate(`Matter ${matter.value.caseNumber} archived`)
+}
+
+const cancelSwipeActions = () => {
+  showSwipeActions.value = false
+  swipeActionType.value = null
 }
 
 // Accessibility announcement
@@ -161,27 +248,99 @@ const dragAttributes = computed(() => ({
 </script>
 
 <template>
-  <Card
-    :class="cardClasses"
-    v-bind="dragAttributes"
-    @click="handleClick"
-    :aria-label="cardLabel"
-    role="button"
-    tabindex="0"
-    @keydown.enter="handleClick"
-    @keydown.space.prevent="handleClick"
-  >
-    <!-- Drag Handle -->
-    <div 
-      class="absolute top-2 left-2 opacity-0 hover:opacity-40 transition-opacity"
-      aria-hidden="true"
-    >
-      <div class="flex flex-col gap-0.5">
-        <div class="w-1 h-1 bg-gray-400 rounded-full" />
-        <div class="w-1 h-1 bg-gray-400 rounded-full" />
-        <div class="w-1 h-1 bg-gray-400 rounded-full" />
+  <div class="matter-card-wrapper relative">
+    <!-- Mobile Swipe Actions Background -->
+    <transition name="swipe-actions">
+      <div 
+        v-if="isMobile && showSwipeActions"
+        class="swipe-actions-container absolute inset-0 flex items-center"
+        @click="cancelSwipeActions"
+      >
+        <!-- Left swipe actions (Complete/Edit) -->
+        <div 
+          v-if="swipeActionType === 'left'"
+          class="swipe-actions-left absolute right-0 flex items-center gap-2 pr-4"
+        >
+          <Button
+            size="icon"
+            variant="default"
+            class="h-10 w-10 rounded-full bg-green-500 hover:bg-green-600"
+            @click.stop="handleComplete"
+            :aria-label="`Complete matter ${matter.caseNumber}`"
+          >
+            <Check class="h-5 w-5 text-white" />
+          </Button>
+          <Button
+            size="icon"
+            variant="secondary"
+            class="h-10 w-10 rounded-full"
+            @click.stop="handleEdit"
+            :aria-label="`Edit matter ${matter.caseNumber}`"
+          >
+            <MoreVertical class="h-5 w-5" />
+          </Button>
+        </div>
+        
+        <!-- Right swipe actions (Archive/Cancel) -->
+        <div 
+          v-if="swipeActionType === 'right'"
+          class="swipe-actions-right absolute left-0 flex items-center gap-2 pl-4"
+        >
+          <Button
+            size="icon"
+            variant="destructive"
+            class="h-10 w-10 rounded-full"
+            @click.stop="handleArchive"
+            :aria-label="`Archive matter ${matter.caseNumber}`"
+          >
+            <Archive class="h-5 w-5" />
+          </Button>
+          <Button
+            size="icon"
+            variant="outline"
+            class="h-10 w-10 rounded-full"
+            @click.stop="cancelSwipeActions"
+            aria-label="Cancel action"
+          >
+            <X class="h-5 w-5" />
+          </Button>
+        </div>
       </div>
-    </div>
+    </transition>
+
+    <!-- Main Card -->
+    <Card
+      ref="cardRef"
+      :class="cardClasses"
+      :style="swipeTransform"
+      v-bind="dragAttributes"
+      @click="handleClick"
+      :aria-label="cardLabel"
+      role="button"
+      tabindex="0"
+      @keydown.enter="handleClick"
+      @keydown.space.prevent="handleClick"
+    >
+      <!-- Mobile drag indicator -->
+      <div 
+        v-if="isMobile && isPressed && !isDragging"
+        class="absolute inset-0 bg-primary/5 rounded-lg pointer-events-none"
+      />
+
+      <!-- Drag Handle -->
+      <div 
+        :class="[
+          'absolute top-2 left-2 transition-opacity',
+          isMobile ? 'opacity-20' : 'opacity-0 hover:opacity-40'
+        ]"
+        aria-hidden="true"
+      >
+        <div class="flex flex-col gap-0.5">
+          <div class="w-1 h-1 bg-gray-400 rounded-full" />
+          <div class="w-1 h-1 bg-gray-400 rounded-full" />
+          <div class="w-1 h-1 bg-gray-400 rounded-full" />
+        </div>
+      </div>
 
     <!-- Card Header -->
     <CardHeader class="pb-2 pt-3">
@@ -343,6 +502,7 @@ const dragAttributes = computed(() => ({
       </div>
     </CardContent>
   </Card>
+  </div>
 </template>
 
 <style scoped>
@@ -373,6 +533,85 @@ const dragAttributes = computed(() => ({
   outline-offset: 2px;
 }
 
+/* Mobile-specific styles */
+.matter-card-wrapper {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Swipe actions container */
+.swipe-actions-container {
+  background: rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(2px);
+  z-index: 10;
+}
+
+/* Swipe actions transitions */
+.swipe-actions-enter-active,
+.swipe-actions-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.swipe-actions-enter-from,
+.swipe-actions-leave-to {
+  opacity: 0;
+}
+
+/* Mobile touch optimizations */
+@media (max-width: 768px) {
+  .card {
+    /* Increase touch target size */
+    min-height: 88px;
+    /* Optimize for touch */
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  
+  /* Remove hover effects on touch devices */
+  @media (hover: none) {
+    .card:hover {
+      transform: none !important;
+      box-shadow: none !important;
+    }
+  }
+  
+  /* Larger text for mobile readability */
+  .text-xs {
+    font-size: 0.8125rem;
+  }
+  
+  .text-sm {
+    font-size: 0.9375rem;
+  }
+  
+  /* Increase spacing for touch targets */
+  .gap-1 {
+    gap: 0.375rem;
+  }
+  
+  .gap-2 {
+    gap: 0.625rem;
+  }
+  
+  /* Optimize avatar size for mobile */
+  .avatar-xs {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+/* Landscape mode adjustments */
+@media (max-width: 768px) and (orientation: landscape) {
+  .card {
+    min-height: 72px;
+  }
+  
+  /* Hide less important elements in landscape */
+  .tags-container {
+    display: none;
+  }
+}
+
 /* High contrast mode support */
 @media (prefers-contrast: high) {
   .card {
@@ -382,6 +621,10 @@ const dragAttributes = computed(() => ({
   .badge {
     font-weight: bold;
     border-width: 2px;
+  }
+  
+  .swipe-actions-container {
+    background: rgba(0, 0, 0, 0.1);
   }
 }
 
@@ -396,8 +639,17 @@ const dragAttributes = computed(() => ({
   }
   
   .matter-card-enter-active,
-  .matter-card-leave-active {
+  .matter-card-leave-active,
+  .swipe-actions-enter-active,
+  .swipe-actions-leave-active {
     transition: none;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .swipe-actions-container {
+    background: rgba(255, 255, 255, 0.05);
   }
 }
 
@@ -410,8 +662,28 @@ const dragAttributes = computed(() => ({
   }
   
   .hover\:opacity-40,
-  .group-hover\:opacity-100 {
+  .group-hover\:opacity-100,
+  .swipe-actions-container {
     display: none;
+  }
+}
+
+/* Touch gesture visual feedback */
+.touch-manipulation {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Active state for mobile */
+.active\:scale-\[0\.98\]:active {
+  transform: scale(0.98);
+}
+
+/* Ensure smooth animations on mobile */
+@supports (will-change: transform) {
+  .card {
+    will-change: transform;
   }
 }
 </style>

@@ -1,4 +1,5 @@
 import { config } from '@vue/test-utils'
+import { vi } from 'vitest'
 
 // Global test setup
 config.global.stubs = {

@@ -1,251 +1,245 @@
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, readonly, type Ref, type ComputedRef } from 'vue'
+import { useSwipe, usePointerSwipe, type SwipeDirection } from '@vueuse/core'
+import { useGesture, type Handler } from '@vueuse/gesture'
+import type { GestureState, Vector2 } from '@vueuse/gesture'
 
-/**
- * Composable for handling touch gestures and mobile-specific drag-and-drop behavior
- * Provides mobile detection, touch configuration, and gesture optimization
- */
-export function useTouchGestures() {
-  // Reactive state
-  const isMobile = ref(false)
-  const isTablet = ref(false)
-  const touchStartTime = ref(0)
-  const touchDevice = ref<'desktop' | 'tablet' | 'mobile'>('desktop')
+export interface TouchGestureOptions {
+  threshold?: number
+  swipeThreshold?: number
+  longPressTime?: number
+  preventDefaultTouch?: boolean
+  enableHapticFeedback?: boolean
+}
 
-  /**
-   * Detect device type based on user agent and screen size
-   */
-  const detectDeviceType = () => {
-    const userAgent = navigator.userAgent.toLowerCase()
-    const screenWidth = window.innerWidth
+export interface TouchGestureResult {
+  isPressed: Ref<boolean>
+  isPinching: Ref<boolean>
+  isLongPress: Ref<boolean>
+  swipeDirection: Ref<SwipeDirection | null>
+  pinchScale: Ref<number>
+  dragPosition: Ref<Vector2>
+  dragOffset: Ref<Vector2>
+  velocity: ComputedRef<number>
+  reset: () => void
+}
+
+const DEFAULT_OPTIONS: TouchGestureOptions = {
+  threshold: 10,
+  swipeThreshold: 50,
+  longPressTime: 500,
+  preventDefaultTouch: true,
+  enableHapticFeedback: true
+}
+
+export function useTouchGestures(
+  target: Ref<HTMLElement | null>,
+  options: TouchGestureOptions = {}
+): TouchGestureResult {
+  const opts = { ...DEFAULT_OPTIONS, ...options }
+  
+  // State refs
+  const isPressed = ref(false)
+  const isPinching = ref(false)
+  const isLongPress = ref(false)
+  const swipeDirection = ref<SwipeDirection | null>(null)
+  const pinchScale = ref(1)
+  const dragPosition = ref<Vector2>([0, 0])
+  const dragOffset = ref<Vector2>([0, 0])
+  const initialPinchDistance = ref(0)
+  const lastVelocity = ref<Vector2>([0, 0])
+  
+  // Long press timer
+  let longPressTimer: NodeJS.Timeout | null = null
+  
+  // Computed velocity
+  const velocity = computed(() => {
+    const [vx, vy] = lastVelocity.value
+    return Math.sqrt(vx * vx + vy * vy)
+  })
+  
+  // Swipe detection using VueUse
+  const { direction, lengthX, lengthY } = useSwipe(target, {
+    threshold: opts.swipeThreshold,
+    onSwipe() {
+      swipeDirection.value = direction.value
+      triggerHapticFeedback()
+    },
+    onSwipeEnd() {
+      setTimeout(() => {
+        swipeDirection.value = null
+      }, 100)
+    }
+  })
+  
+  // Gesture handlers
+  const dragHandler: Handler<'drag'> = (state) => {
+    if (state.first) {
+      isPressed.value = true
+      startLongPressTimer()
+    }
     
-    // Mobile detection
-    const mobileRegex = /android|iphone|ipod|blackberry|iemobile|opera mini/i
-    const tabletRegex = /ipad|android.*tablet|kindle|silk/i
+    if (state.last) {
+      isPressed.value = false
+      cancelLongPressTimer()
+      isLongPress.value = false
+    }
     
-    isMobile.value = mobileRegex.test(userAgent) || screenWidth < 768
-    isTablet.value = tabletRegex.test(userAgent) || (screenWidth >= 768 && screenWidth < 1024)
+    dragPosition.value = state.xy
+    dragOffset.value = state.offset
+    lastVelocity.value = state.velocity
     
-    // Set device type
-    if (isMobile.value) {
-      touchDevice.value = 'mobile'
-    } else if (isTablet.value) {
-      touchDevice.value = 'tablet'
-    } else {
-      touchDevice.value = 'desktop'
+    if (opts.preventDefaultTouch && state.event) {
+      state.event.preventDefault()
     }
   }
-
-  /**
-   * Computed drag delay based on device type
-   * Mobile devices need longer delay to distinguish between scroll and drag
-   */
-  const dragDelay = computed(() => {
-    switch (touchDevice.value) {
-      case 'mobile':
-        return 200 // Longer delay for mobile to prevent accidental drags
-      case 'tablet':
-        return 100 // Medium delay for tablets
-      default:
-        return 0 // No delay for desktop
+  
+  const pinchHandler: Handler<'pinch'> = (state) => {
+    if (state.first) {
+      isPinching.value = true
+      initialPinchDistance.value = state.da[0]
     }
-  })
-
-  /**
-   * Computed touch start threshold
-   * Distance in pixels before drag is initiated
-   */
-  const touchStartThreshold = computed(() => {
-    switch (touchDevice.value) {
-      case 'mobile':
-        return 15 // Higher threshold for mobile
-      case 'tablet':
-        return 10 // Medium threshold for tablets
-      default:
-        return 5 // Lower threshold for desktop
+    
+    if (state.last) {
+      isPinching.value = false
+      pinchScale.value = 1
     }
-  })
-
-  /**
-   * Computed fallback tolerance for touch devices
-   * Distance in pixels before fallback mode is activated
-   */
-  const fallbackTolerance = computed(() => {
-    return touchDevice.value !== 'desktop' ? 5 : 0
-  })
-
-  /**
-   * Check if touch events should be enabled
-   */
-  const shouldUseTouchEvents = computed(() => {
-    return isMobile.value || isTablet.value
-  })
-
-  /**
-   * Get Sortable.js configuration optimized for current device
-   */
-  const getSortableConfig = () => {
-    const baseConfig = {
-      animation: 150,
-      ghostClass: 'drag-ghost',
-      chosenClass: 'drag-chosen',
-      dragClass: 'drag-active',
-      forceFallback: shouldUseTouchEvents.value,
-      fallbackClass: 'drag-fallback',
-      removeCloneOnHide: true,
-      preventOnFilter: false,
-      scrollSensitivity: 30,
-      scrollSpeed: 10
+    
+    if (isPinching.value && initialPinchDistance.value > 0) {
+      pinchScale.value = state.da[0] / initialPinchDistance.value
     }
-
-    // Touch-specific configuration
-    if (shouldUseTouchEvents.value) {
-      return {
-        ...baseConfig,
-        delay: dragDelay.value,
-        delayOnTouchStart: true,
-        touchStartThreshold: touchStartThreshold.value,
-        fallbackTolerance: fallbackTolerance.value,
-        // Prevent scrolling during drag on mobile
-        dragoverBubble: false,
-        // Touch-specific scroll settings
-        scrollSensitivity: 50,
-        scrollSpeed: 20
+    
+    if (opts.preventDefaultTouch && state.event) {
+      state.event.preventDefault()
+    }
+  }
+  
+  // Long press detection
+  const startLongPressTimer = () => {
+    cancelLongPressTimer()
+    longPressTimer = setTimeout(() => {
+      if (isPressed.value && !isPinching.value) {
+        isLongPress.value = true
+        triggerHapticFeedback('medium')
       }
-    }
-
-    return baseConfig
+    }, opts.longPressTime)
   }
-
-  /**
-   * Handle touch start for custom gesture detection
-   * @param event - Touch start event
-   */
-  const onTouchStart = (event: TouchEvent) => {
-    touchStartTime.value = Date.now()
-    
-    // Store initial touch position for gesture detection
-    if (event.touches.length === 1) {
-      const touch = event.touches[0]
-      // Could store touch position for custom gesture detection
+  
+  const cancelLongPressTimer = () => {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer)
+      longPressTimer = null
     }
   }
-
-  /**
-   * Handle touch move for scroll vs drag conflict resolution
-   * @param event - Touch move event
-   */
-  const onTouchMove = (event: TouchEvent) => {
-    // This is handled by Sortable.js, but we can add custom logic here
-    // For example, preventing default behavior during drag operations
-  }
-
-  /**
-   * Handle touch end for gesture completion
-   * @param event - Touch end event
-   */
-  const onTouchEnd = (event: TouchEvent) => {
-    const touchDuration = Date.now() - touchStartTime.value
-    touchStartTime.value = 0
+  
+  // Haptic feedback
+  const triggerHapticFeedback = (style: 'light' | 'medium' | 'heavy' = 'light') => {
+    if (!opts.enableHapticFeedback) return
     
-    // Could implement custom gesture recognition here
-    // For example, distinguishing between tap, long press, and swipe
-  }
-
-  /**
-   * Optimize scroll behavior for touch devices
-   */
-  const optimizeScrolling = () => {
-    if (shouldUseTouchEvents.value) {
-      // Enable momentum scrolling on iOS
-      document.body.style.webkitOverflowScrolling = 'touch'
-      
-      // Prevent overscroll bounce on mobile
-      document.body.style.overscrollBehavior = 'none'
+    if ('vibrate' in navigator) {
+      const duration = style === 'light' ? 10 : style === 'medium' ? 20 : 30
+      navigator.vibrate(duration)
     }
   }
-
-  /**
-   * Add touch-specific CSS classes for styling
-   */
-  const addTouchClasses = () => {
-    document.documentElement.classList.add(`device-${touchDevice.value}`)
-    
-    if (shouldUseTouchEvents.value) {
-      document.documentElement.classList.add('touch-device')
-    } else {
-      document.documentElement.classList.add('no-touch')
+  
+  // Apply gesture handlers
+  useGesture(
+    {
+      onDrag: dragHandler,
+      onPinch: pinchHandler
+    },
+    {
+      target,
+      eventOptions: { passive: !opts.preventDefaultTouch }
     }
+  )
+  
+  // Reset function
+  const reset = () => {
+    isPressed.value = false
+    isPinching.value = false
+    isLongPress.value = false
+    swipeDirection.value = null
+    pinchScale.value = 1
+    dragPosition.value = [0, 0]
+    dragOffset.value = [0, 0]
+    lastVelocity.value = [0, 0]
+    cancelLongPressTimer()
   }
-
-  /**
-   * Remove touch-specific CSS classes
-   */
-  const removeTouchClasses = () => {
-    document.documentElement.classList.remove(
-      'device-mobile',
-      'device-tablet', 
-      'device-desktop',
-      'touch-device',
-      'no-touch'
-    )
-  }
-
-  /**
-   * Handle window resize to re-detect device type
-   */
-  const onResize = () => {
-    detectDeviceType()
-    addTouchClasses()
-    optimizeScrolling()
-  }
-
-  // Lifecycle hooks
-  onMounted(() => {
-    detectDeviceType()
-    addTouchClasses()
-    optimizeScrolling()
-    
-    // Listen for resize events
-    window.addEventListener('resize', onResize)
-    
-    // Add touch event listeners if needed
-    if (shouldUseTouchEvents.value) {
-      document.addEventListener('touchstart', onTouchStart, { passive: true })
-      document.addEventListener('touchmove', onTouchMove, { passive: false })
-      document.addEventListener('touchend', onTouchEnd, { passive: true })
-    }
-  })
-
+  
+  // Cleanup on unmount
   onUnmounted(() => {
-    // Clean up event listeners
-    window.removeEventListener('resize', onResize)
-    document.removeEventListener('touchstart', onTouchStart)
-    document.removeEventListener('touchmove', onTouchMove)
-    document.removeEventListener('touchend', onTouchEnd)
-    
-    // Remove CSS classes
-    removeTouchClasses()
+    cancelLongPressTimer()
   })
-
+  
   return {
-    // Device detection
-    isMobile: readonly(isMobile),
-    isTablet: readonly(isTablet),
-    touchDevice: readonly(touchDevice),
-    shouldUseTouchEvents: readonly(shouldUseTouchEvents),
+    isPressed: readonly(isPressed),
+    isPinching: readonly(isPinching),
+    isLongPress: readonly(isLongPress),
+    swipeDirection: readonly(swipeDirection),
+    pinchScale: readonly(pinchScale),
+    dragPosition: readonly(dragPosition),
+    dragOffset: readonly(dragOffset),
+    velocity,
+    reset
+  }
+}
+
+// Additional composable for mobile-specific interactions
+export function useMobileInteractions() {
+  const isTouchDevice = ref('ontouchstart' in window)
+  const orientation = ref<'portrait' | 'landscape'>('portrait')
+  const isIOS = ref(/iPad|iPhone|iPod/.test(navigator.userAgent))
+  const isAndroid = ref(/Android/.test(navigator.userAgent))
+  
+  // Update orientation
+  const updateOrientation = () => {
+    orientation.value = window.innerHeight > window.innerWidth ? 'portrait' : 'landscape'
+  }
+  
+  // Safe area detection for iOS
+  const safeAreaInsets = computed(() => {
+    if (!isIOS.value) return { top: 0, bottom: 0, left: 0, right: 0 }
     
-    // Configuration
-    dragDelay: readonly(dragDelay),
-    touchStartThreshold: readonly(touchStartThreshold),
-    fallbackTolerance: readonly(fallbackTolerance),
+    const style = getComputedStyle(document.documentElement)
+    return {
+      top: parseInt(style.getPropertyValue('--sat') || '0'),
+      bottom: parseInt(style.getPropertyValue('--sab') || '0'),
+      left: parseInt(style.getPropertyValue('--sal') || '0'),
+      right: parseInt(style.getPropertyValue('--sar') || '0')
+    }
+  })
+  
+  // Touch-friendly click handler with prevention of double-tap zoom
+  const useTouchClick = (handler: () => void, delay = 300) => {
+    let lastTap = 0
     
-    // Methods
-    getSortableConfig,
-    detectDeviceType,
-    
-    // Event handlers
-    onTouchStart,
-    onTouchMove,
-    onTouchEnd
+    return () => {
+      const now = Date.now()
+      if (now - lastTap < delay) {
+        return // Prevent double tap
+      }
+      lastTap = now
+      handler()
+    }
+  }
+  
+  onMounted(() => {
+    updateOrientation()
+    window.addEventListener('orientationchange', updateOrientation)
+    window.addEventListener('resize', updateOrientation)
+  })
+  
+  onUnmounted(() => {
+    window.removeEventListener('orientationchange', updateOrientation)
+    window.removeEventListener('resize', updateOrientation)
+  })
+  
+  return {
+    isTouchDevice: readonly(isTouchDevice),
+    orientation: readonly(orientation),
+    isIOS: readonly(isIOS),
+    isAndroid: readonly(isAndroid),
+    safeAreaInsets,
+    useTouchClick
   }
 }

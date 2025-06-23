@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/vue3'
 import KanbanColumn from './KanbanColumn.vue'
 import { DEFAULT_KANBAN_COLUMNS } from '~/constants/kanban'
 import type { Matter } from '~/types/matter'
+import { ref } from 'vue'
 
 // Mock matters for the column
 const mockMatters: Matter[] = [
@@ -265,6 +266,377 @@ export const Interactive: Story = {
         @header-click="handleHeaderClick"
         @matter-click="handleMatterClick"
       />
+    `
+  })
+}
+
+// Mobile-specific stories
+export const MobileView: Story = {
+  args: {
+    column: DEFAULT_KANBAN_COLUMNS[0],
+    matters: mockMatters.slice(0, 3),
+    showJapanese: true
+  },
+  parameters: {
+    viewport: {
+      defaultViewport: 'mobile1'
+    },
+    docs: {
+      description: {
+        story: 'Mobile-optimized column view with touch interactions, swipe gestures, and collapsible design.'
+      }
+    }
+  },
+  decorators: [
+    (story) => ({
+      components: { story },
+      template: '<div style="width: 100vw; height: 100vh; background: #f8fafc;"><story /></div>'
+    })
+  ]
+}
+
+export const MobileCollapsed: Story = {
+  args: {
+    column: DEFAULT_KANBAN_COLUMNS[0],
+    matters: mockMatters,
+    showJapanese: true
+  },
+  parameters: {
+    viewport: {
+      defaultViewport: 'mobile1'
+    },
+    docs: {
+      description: {
+        story: 'Column in collapsed state on mobile - tap header to expand. Shows collapse indicator and optimized touch targets.'
+      }
+    }
+  },
+  render: (args) => ({
+    components: { KanbanColumn },
+    setup() {
+      const isCollapsed = ref(true)
+      
+      const handleToggleCollapse = () => {
+        isCollapsed.value = !isCollapsed.value
+      }
+      
+      return { args, isCollapsed, handleToggleCollapse }
+    },
+    template: `
+      <div style="width: 100vw; height: 100vh; background: #f8fafc; padding: 1rem;">
+        <KanbanColumn 
+          v-bind="args"
+          :class="{ 'collapsed-mobile': isCollapsed }"
+          @header-click="handleToggleCollapse"
+        />
+      </div>
+    `
+  })
+}
+
+export const MobileSwipeActions: Story = {
+  args: {
+    column: DEFAULT_KANBAN_COLUMNS[0],
+    matters: mockMatters.slice(0, 2),
+    showJapanese: true
+  },
+  parameters: {
+    viewport: {
+      defaultViewport: 'mobile1'
+    },
+    docs: {
+      description: {
+        story: 'Demonstrates swipe gesture detection and swipe hints for mobile interaction. Swipe left/right on the column area to trigger actions.'
+      }
+    }
+  },
+  render: (args) => ({
+    components: { KanbanColumn },
+    setup() {
+      const swipeAction = ref<string | null>(null)
+      
+      const handleSwipeAction = (direction: string, column: any) => {
+        swipeAction.value = `Swiped ${direction} on ${column.title}`
+        setTimeout(() => {
+          swipeAction.value = null
+        }, 3000)
+      }
+      
+      const handleLongPress = (column: any) => {
+        swipeAction.value = `Long pressed on ${column.title}`
+        setTimeout(() => {
+          swipeAction.value = null
+        }, 3000)
+      }
+      
+      return { args, swipeAction, handleSwipeAction, handleLongPress }
+    },
+    template: `
+      <div style="width: 100vw; height: 100vh; background: #f8fafc; padding: 1rem; position: relative;">
+        <KanbanColumn 
+          v-bind="args"
+          @swipe-action="handleSwipeAction"
+          @column-collapse="handleLongPress"
+        />
+        
+        <!-- Feedback overlay -->
+        <div 
+          v-if="swipeAction"
+          style="
+            position: fixed; 
+            top: 20px; 
+            left: 50%; 
+            transform: translateX(-50%);
+            background: #10b981;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 500;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+          "
+        >
+          {{ swipeAction }}
+        </div>
+      </div>
+    `
+  })
+}
+
+export const TabletView: Story = {
+  args: {
+    column: DEFAULT_KANBAN_COLUMNS[0],
+    matters: mockMatters,
+    showJapanese: true
+  },
+  parameters: {
+    viewport: {
+      defaultViewport: 'tablet'
+    },
+    docs: {
+      description: {
+        story: 'Tablet-optimized view with hybrid touch and pointer interactions. Shows transition between mobile and desktop patterns.'
+      }
+    }
+  },
+  decorators: [
+    (story) => ({
+      components: { story },
+      template: '<div style="width: 100vw; height: 100vh; background: #f8fafc; padding: 2rem;"><story /></div>'
+    })
+  ]
+}
+
+export const iOSSafeArea: Story = {
+  args: {
+    column: DEFAULT_KANBAN_COLUMNS[0],
+    matters: mockMatters.slice(0, 4),
+    showJapanese: true
+  },
+  parameters: {
+    viewport: {
+      defaultViewport: 'mobile1'
+    },
+    docs: {
+      description: {
+        story: 'iOS device simulation with safe area insets. Shows proper padding for notch and home indicator areas.'
+      }
+    }
+  },
+  decorators: [
+    (story) => ({
+      components: { story },
+      template: `
+        <div 
+          style="
+            width: 100vw; 
+            height: 100vh; 
+            background: #f8fafc;
+            padding-top: 44px;
+            padding-bottom: 34px;
+            position: relative;
+          "
+        >
+          <!-- Simulated iOS status bar -->
+          <div 
+            style="
+              position: absolute;
+              top: 0;
+              left: 0;
+              right: 0;
+              height: 44px;
+              background: #000;
+              color: white;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 14px;
+              font-weight: 600;
+            "
+          >
+            📱 iOS Safe Area (Top: 44px)
+          </div>
+          
+          <story />
+          
+          <!-- Simulated iOS home indicator -->
+          <div 
+            style="
+              position: absolute;
+              bottom: 8px;
+              left: 50%;
+              transform: translateX(-50%);
+              width: 134px;
+              height: 5px;
+              background: #000;
+              border-radius: 3px;
+              opacity: 0.3;
+            "
+          />
+          <div 
+            style="
+              position: absolute;
+              bottom: 0;
+              left: 0;
+              right: 0;
+              height: 34px;
+              background: rgba(0,0,0,0.05);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 12px;
+              color: #666;
+            "
+          >
+            Safe Area (Bottom: 34px)
+          </div>
+        </div>
+      `
+    })
+  ]
+}
+
+export const PerformanceOptimized: Story = {
+  args: {
+    column: DEFAULT_KANBAN_COLUMNS[0],
+    matters: Array.from({ length: 20 }, (_, i) => ({
+      ...mockMatters[i % mockMatters.length],
+      id: `perf-matter-${i + 1}`,
+      caseNumber: `2025-PERF-${String(i + 1).padStart(4, '0')}`,
+      title: `Performance Test Matter ${i + 1}`,
+      priority: (['high', 'medium', 'low', 'urgent'] as const)[i % 4]
+    })),
+    showJapanese: true
+  },
+  parameters: {
+    viewport: {
+      defaultViewport: 'mobile1'
+    },
+    docs: {
+      description: {
+        story: 'Performance-optimized column with 20 matters. Demonstrates virtual scrolling, lazy loading, and GPU acceleration for smooth mobile experience.'
+      }
+    }
+  },
+  decorators: [
+    (story) => ({
+      components: { story },
+      template: `
+        <div style="width: 100vw; height: 100vh; background: #f8fafc;">
+          <div style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.8); color: white; padding: 8px 12px; border-radius: 4px; font-size: 12px; z-index: 100;">
+            📊 20 matters • Virtual scroll • GPU accelerated
+          </div>
+          <story />
+        </div>
+      `
+    })
+  ]
+}
+
+export const AccessibilityDemo: Story = {
+  args: {
+    column: DEFAULT_KANBAN_COLUMNS[0],
+    matters: mockMatters.slice(0, 3),
+    showJapanese: true
+  },
+  parameters: {
+    viewport: {
+      defaultViewport: 'mobile1'
+    },
+    docs: {
+      description: {
+        story: 'Accessibility-focused demo showing keyboard navigation, screen reader support, and high contrast compatibility.'
+      }
+    }
+  },
+  render: (args) => ({
+    components: { KanbanColumn },
+    setup() {
+      const announcements = ref<string[]>([])
+      
+      const handleKeyboardNavigation = (direction: string, matter: any) => {
+        const announcement = `Navigated ${direction} to ${matter.title}`
+        announcements.value.push(announcement)
+        if (announcements.value.length > 3) {
+          announcements.value.shift()
+        }
+      }
+      
+      return { args, announcements, handleKeyboardNavigation }
+    },
+    template: `
+      <div style="width: 100vw; height: 100vh; background: #f8fafc; position: relative;">
+        <!-- Accessibility info panel -->
+        <div 
+          style="
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            max-width: 200px;
+            z-index: 100;
+          "
+        >
+          <div style="font-weight: 600; margin-bottom: 8px;">🔍 Accessibility Features:</div>
+          <ul style="margin: 0; padding-left: 16px; line-height: 1.4;">
+            <li>Keyboard navigation (↑↓)</li>
+            <li>Screen reader support</li>
+            <li>High contrast compatible</li>
+            <li>Touch-friendly targets</li>
+            <li>ARIA labels & roles</li>
+          </ul>
+        </div>
+        
+        <KanbanColumn 
+          v-bind="args"
+          @keyboard-navigation="handleKeyboardNavigation"
+        />
+        
+        <!-- Screen reader announcements -->
+        <div
+          v-if="announcements.length > 0"
+          style="
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: #10b981;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+          "
+        >
+          <div style="font-weight: 600; margin-bottom: 4px;">Screen Reader:</div>
+          <div v-for="announcement in announcements" :key="announcement">
+            {{ announcement }}
+          </div>
+        </div>
+      </div>
     `
   })
 }

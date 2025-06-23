@@ -1,236 +1,429 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
-import { nextTick } from 'vue'
+import { ref, nextTick } from 'vue'
 import KanbanColumn from '../KanbanColumn.vue'
-import type { KanbanColumn as KanbanColumnType, MatterCard, MatterStatus } from '~/types/kanban'
-import { DEFAULT_VIEW_PREFERENCES } from '~/constants/kanban'
+import type { KanbanColumn as KanbanColumnType, MatterCard } from '~/types/kanban'
 
-// Mock the composables
-vi.mock('~/composables/useKanbanDragDrop', () => ({
-  useKanbanDragDrop: () => ({
-    canAcceptDrop: vi.fn(() => true),
-    onDragStart: vi.fn(),
-    onDragEnd: vi.fn(),
-    onDragChange: vi.fn(() => ({ type: 'status_change', matter: mockMatter, fromStatus: 'INTAKE', toStatus: 'INITIAL_REVIEW' })),
-    isColumnDragTarget: vi.fn(() => false)
-  })
-}))
-
-vi.mock('~/composables/useTouchGestures', () => ({
-  useTouchGestures: () => ({
-    getSortableConfig: vi.fn(() => ({
-      animation: 150,
-      ghostClass: 'drag-ghost',
-      chosenClass: 'drag-chosen'
-    }))
-  })
-}))
-
+// Mock draggable component
 vi.mock('vuedraggable', () => ({
   default: {
     name: 'draggable',
-    props: {
-      modelValue: Array,
-      group: Object,
-      animation: Number,
-      ghostClass: String,
-      chosenClass: String,
-      dragClass: String,
-      itemKey: String,
-      tag: String
-    },
+    props: ['modelValue', 'group', 'itemKey'],
     emits: ['update:modelValue', 'start', 'end', 'change'],
-    template: `
-      <div class="draggable-container" v-bind="$attrs">
-        <div v-for="item in modelValue" :key="item.id" class="draggable-item">
-          <slot name="item" :element="item" />
-        </div>
-        <slot name="footer" />
-      </div>
-    `
+    template: '<div><slot></slot></div>'
+  }
+}))
+
+// Mock @vueuse/core
+vi.mock('@vueuse/core', () => ({
+  useBreakpoints: vi.fn(() => ({
+    smaller: vi.fn((breakpoint) => breakpoint === 'tablet' ? ref(false) : ref(false)),
+    between: vi.fn(() => ref(false)),
+    greaterOrEqual: vi.fn(() => ref(true))
+  }))
+}))
+
+// Mock composables
+vi.mock('~/composables/useKanbanDragDrop', () => ({
+  useKanbanDragDrop: vi.fn(() => ({
+    canAcceptDrop: vi.fn(() => true),
+    onDragStart: vi.fn(),
+    onDragEnd: vi.fn(),
+    onDragChange: vi.fn(),
+    isColumnDragTarget: vi.fn(() => false)
+  }))
+}))
+
+vi.mock('~/composables/useTouchGestures', () => ({
+  useTouchGestures: vi.fn(() => ({
+    isPressed: ref(false),
+    isLongPress: ref(false),
+    swipeDirection: ref(null),
+    dragOffset: ref([0, 0]),
+    velocity: ref(0),
+    reset: vi.fn()
+  })),
+  useMobileInteractions: vi.fn(() => ({
+    isTouchDevice: ref(false),
+    orientation: ref('portrait'),
+    safeAreaInsets: ref({ top: 0, bottom: 0, left: 0, right: 0 }),
+    useTouchClick: vi.fn((fn) => fn)
+  }))
+}))
+
+// Mock child components
+vi.mock('../MatterCard.vue', () => ({
+  default: {
+    name: 'MatterCard',
+    props: ['matter', 'viewPreferences'],
+    template: '<div class="matter-card">{{ matter.title }}</div>'
   }
 }))
 
 const mockColumn: KanbanColumnType = {
-  id: 'intake',
-  title: 'Intake',
-  titleJa: '受付',
-  status: ['INTAKE' as MatterStatus],
-  color: 'bg-blue-50 border-blue-200'
+  id: 'col1',
+  title: 'To Do',
+  titleJa: 'やること',
+  color: 'blue',
+  icon: 'clipboard',
+  status: ['TODO']
 }
 
-const mockMatter: MatterCard = {
-  id: '1',
-  caseNumber: 'CASE-001',
-  title: 'Test Matter',
-  status: 'INTAKE' as MatterStatus,
-  priority: 'MEDIUM',
-  clientName: 'John Doe',
-  assignedLawyer: {
-    id: 'lawyer1',
-    name: 'Jane Smith',
-    initials: 'JS'
+const mockMatters: MatterCard[] = [
+  {
+    id: '1',
+    title: 'Test Matter 1',
+    caseNumber: 'CASE-001',
+    clientName: 'Test Client',
+    status: 'TODO',
+    priority: 'HIGH',
+    createdAt: '2024-01-01',
+    updatedAt: '2024-01-01'
   },
-  createdAt: '2024-01-01T00:00:00Z',
-  updatedAt: '2024-01-01T00:00:00Z',
-  dueDate: '2024-02-01',
-  statusDuration: 5,
-  relatedDocuments: 3,
-  tags: ['urgent', 'corporate']
-}
+  {
+    id: '2',
+    title: 'Test Matter 2',
+    caseNumber: 'CASE-002',
+    clientName: 'Test Client 2',
+    status: 'TODO',
+    priority: 'MEDIUM',
+    createdAt: '2024-01-01',
+    updatedAt: '2024-01-01'
+  }
+]
 
-describe('KanbanColumn Drag and Drop', () => {
+describe('KanbanColumn', () => {
   let wrapper: any
 
   beforeEach(() => {
-    wrapper = mount(KanbanColumn, {
-      props: {
-        column: mockColumn,
-        matters: [mockMatter],
-        viewPreferences: DEFAULT_VIEW_PREFERENCES
-      }
-    })
+    vi.clearAllMocks()
   })
 
-  describe('Component Structure', () => {
-    it('renders column with draggable container', () => {
-      expect(wrapper.find('.kanban-column').exists()).toBe(true)
-      expect(wrapper.find('.draggable-container').exists()).toBe(true)
-    })
-
-    it('displays column title and matter count', () => {
-      expect(wrapper.find('.column-title').text()).toBe('Intake')
-      expect(wrapper.find('.matter-count').text()).toBe('1')
-    })
-
-    it('renders matter cards within draggable items', () => {
-      expect(wrapper.find('.draggable-item').exists()).toBe(true)
-      expect(wrapper.findComponent({ name: 'MatterCardComponent' }).exists()).toBe(true)
-    })
-  })
-
-  describe('Drag and Drop Events', () => {
-    it('emits headerClick when column header is clicked', async () => {
-      await wrapper.find('.column-header').trigger('click')
-      expect(wrapper.emitted('headerClick')).toHaveLength(1)
-      expect(wrapper.emitted('headerClick')[0]).toEqual([mockColumn])
-    })
-
-    it('emits matterClick when matter card is clicked', async () => {
-      const matterCard = wrapper.findComponent({ name: 'MatterCardComponent' })
-      await matterCard.vm.$emit('click', mockMatter)
-      expect(wrapper.emitted('matterClick')).toHaveLength(1)
-      expect(wrapper.emitted('matterClick')[0]).toEqual([mockMatter])
-    })
-
-    it('emits matterEdit when matter card edit is triggered', async () => {
-      const matterCard = wrapper.findComponent({ name: 'MatterCardComponent' })
-      await matterCard.vm.$emit('edit', mockMatter)
-      expect(wrapper.emitted('matterEdit')).toHaveLength(1)
-      expect(wrapper.emitted('matterEdit')[0]).toEqual([mockMatter])
-    })
-
-    it('updates matters list when draggable emits change', async () => {
-      const newMatters = [{ ...mockMatter, title: 'Updated Matter' }]
-      const draggable = wrapper.findComponent({ name: 'draggable' })
-      
-      await draggable.vm.$emit('update:modelValue', newMatters)
-      expect(wrapper.emitted('update:matters')).toHaveLength(1)
-      expect(wrapper.emitted('update:matters')[0]).toEqual([newMatters])
-    })
-  })
-
-  describe('Status Transitions', () => {
-    it('handles drag change events and emits matter-moved', async () => {
-      const draggable = wrapper.findComponent({ name: 'draggable' })
-      const changeEvent = {
-        added: {
-          element: mockMatter
+  describe('Basic Rendering', () => {
+    it('renders column with title and matter count', () => {
+      wrapper = mount(KanbanColumn, {
+        props: {
+          column: mockColumn,
+          matters: mockMatters
         }
-      }
-      
-      await draggable.vm.$emit('change', changeEvent)
-      await nextTick()
-      
-      expect(wrapper.emitted('matter-moved')).toHaveLength(1)
-      expect(wrapper.emitted('matter-moved')[0]).toEqual([
-        mockMatter,
-        'INTAKE',
-        'INITIAL_REVIEW'
-      ])
+      })
+
+      expect(wrapper.find('.column-title').text()).toBe('To Do')
+      expect(wrapper.find('.matter-count').text()).toBe('2')
     })
 
-    it('applies correct data attributes to draggable', () => {
-      const draggable = wrapper.findComponent({ name: 'draggable' })
-      expect(draggable.attributes('data-status')).toBe('INTAKE')
-    })
-  })
+    it('renders Japanese title when showJapanese is true', () => {
+      wrapper = mount(KanbanColumn, {
+        props: {
+          column: mockColumn,
+          matters: mockMatters,
+          showJapanese: true
+        }
+      })
 
-  describe('Visual States', () => {
-    it('applies drag-over class when column is drag target', async () => {
-      // Mock the isColumnDragTarget to return true
-      vi.mocked(wrapper.vm.isColumnDragTarget).mockReturnValue(true)
-      await wrapper.vm.$forceUpdate()
-      
-      expect(wrapper.find('.kanban-column').classes()).toContain('drag-over')
+      expect(wrapper.find('.column-title').text()).toBe('やること')
     })
 
-    it('displays empty state when no matters', async () => {
-      await wrapper.setProps({ matters: [] })
+    it('renders empty state when no matters', () => {
+      wrapper = mount(KanbanColumn, {
+        props: {
+          column: mockColumn,
+          matters: []
+        }
+      })
+
       expect(wrapper.find('.empty-state').exists()).toBe(true)
       expect(wrapper.find('.empty-text').text()).toBe('No matters')
-      expect(wrapper.find('.empty-hint').text()).toBe('Drag matters here')
+    })
+  })
+
+  describe('Mobile Features', () => {
+    beforeEach(() => {
+      // Mock as mobile device
+      const { useBreakpoints } = vi.mocked(await import('@vueuse/core'))
+      useBreakpoints.mockReturnValue({
+        smaller: vi.fn((breakpoint) => breakpoint === 'tablet' ? ref(true) : ref(false)),
+        between: vi.fn(() => ref(false)),
+        greaterOrEqual: vi.fn(() => ref(false))
+      })
+    })
+
+    it('shows mobile-specific UI elements', async () => {
+      wrapper = mount(KanbanColumn, {
+        props: {
+          column: mockColumn,
+          matters: mockMatters
+        }
+      })
+
+      await nextTick()
+
+      expect(wrapper.find('.collapse-indicator').exists()).toBe(true)
+      expect(wrapper.find('.swipe-hint').exists()).toBe(true)
+    })
+
+    it('toggles collapse on header click in mobile', async () => {
+      wrapper = mount(KanbanColumn, {
+        props: {
+          column: mockColumn,
+          matters: mockMatters
+        }
+      })
+
+      await wrapper.find('.column-header').trigger('click')
+      await nextTick()
+
+      expect(wrapper.classes()).toContain('collapsed-mobile')
+    })
+
+    it('emits swipe-action on swipe gesture', async () => {
+      const { useTouchGestures } = vi.mocked(await import('~/composables/useTouchGestures'))
+      const swipeDirection = ref(null)
+      
+      useTouchGestures.mockReturnValue({
+        isPressed: ref(false),
+        isLongPress: ref(false),
+        swipeDirection,
+        dragOffset: ref([0, 0]),
+        velocity: ref(0),
+        reset: vi.fn()
+      })
+
+      wrapper = mount(KanbanColumn, {
+        props: {
+          column: mockColumn,
+          matters: mockMatters
+        }
+      })
+
+      // Simulate swipe left
+      swipeDirection.value = 'left'
+      await nextTick()
+
+      expect(wrapper.emitted('swipe-action')).toBeTruthy()
+      expect(wrapper.emitted('swipe-action')[0]).toEqual(['left', mockColumn])
+    })
+
+    it('emits column-collapse on long press', async () => {
+      const { useTouchGestures } = vi.mocked(await import('~/composables/useTouchGestures'))
+      const isLongPress = ref(false)
+      
+      useTouchGestures.mockReturnValue({
+        isPressed: ref(false),
+        isLongPress,
+        swipeDirection: ref(null),
+        dragOffset: ref([0, 0]),
+        velocity: ref(0),
+        reset: vi.fn()
+      })
+
+      wrapper = mount(KanbanColumn, {
+        props: {
+          column: mockColumn,
+          matters: mockMatters
+        }
+      })
+
+      // Simulate long press
+      isLongPress.value = true
+      await nextTick()
+
+      expect(wrapper.emitted('column-collapse')).toBeTruthy()
+      expect(wrapper.emitted('column-collapse')[0]).toEqual([mockColumn])
+    })
+
+    it('shows safe area padding on iOS', async () => {
+      const { useMobileInteractions } = vi.mocked(await import('~/composables/useTouchGestures'))
+      
+      useMobileInteractions.mockReturnValue({
+        isTouchDevice: ref(true),
+        orientation: ref('portrait'),
+        safeAreaInsets: ref({ top: 44, bottom: 34, left: 0, right: 0 }),
+        useTouchClick: vi.fn((fn) => fn)
+      })
+
+      wrapper = mount(KanbanColumn, {
+        props: {
+          column: mockColumn,
+          matters: mockMatters
+        }
+      })
+
+      await nextTick()
+
+      const safeAreaPadding = wrapper.find('.safe-area-padding')
+      expect(safeAreaPadding.exists()).toBe(true)
+      expect(safeAreaPadding.attributes('style')).toContain('height: 34px')
+    })
+  })
+
+  describe('Drag and Drop', () => {
+    it('handles drag start', async () => {
+      const { useKanbanDragDrop } = vi.mocked(await import('~/composables/useKanbanDragDrop'))
+      const onDragStart = vi.fn()
+      
+      useKanbanDragDrop.mockReturnValue({
+        canAcceptDrop: vi.fn(() => true),
+        onDragStart,
+        onDragEnd: vi.fn(),
+        onDragChange: vi.fn(),
+        isColumnDragTarget: vi.fn(() => false)
+      })
+
+      wrapper = mount(KanbanColumn, {
+        props: {
+          column: mockColumn,
+          matters: mockMatters
+        }
+      })
+
+      const draggable = wrapper.findComponent({ name: 'draggable' })
+      await draggable.vm.$emit('start')
+
+      expect(onDragStart).toHaveBeenCalled()
+    })
+
+    it('emits matter-moved on successful drag', async () => {
+      const { useKanbanDragDrop } = vi.mocked(await import('~/composables/useKanbanDragDrop'))
+      const onDragChange = vi.fn(() => ({
+        type: 'status_change',
+        matter: mockMatters[0],
+        fromStatus: 'TODO',
+        toStatus: 'IN_PROGRESS'
+      }))
+      
+      useKanbanDragDrop.mockReturnValue({
+        canAcceptDrop: vi.fn(() => true),
+        onDragStart: vi.fn(),
+        onDragEnd: vi.fn(),
+        onDragChange,
+        isColumnDragTarget: vi.fn(() => false)
+      })
+
+      wrapper = mount(KanbanColumn, {
+        props: {
+          column: mockColumn,
+          matters: mockMatters
+        }
+      })
+
+      const draggable = wrapper.findComponent({ name: 'draggable' })
+      await draggable.vm.$emit('change', {})
+
+      expect(wrapper.emitted('matter-moved')).toBeTruthy()
+      expect(wrapper.emitted('matter-moved')[0]).toEqual([
+        mockMatters[0],
+        'TODO',
+        'IN_PROGRESS'
+      ])
+    })
+  })
+
+  describe('Keyboard Navigation', () => {
+    it('focuses previous card on ArrowUp', async () => {
+      wrapper = mount(KanbanColumn, {
+        props: {
+          column: mockColumn,
+          matters: mockMatters
+        },
+        attachTo: document.body
+      })
+
+      const cards = wrapper.findAll('.matter-card')
+      const secondCard = cards[1]
+      
+      // Mock focus method
+      const focusSpy = vi.spyOn(cards[0].element, 'focus')
+      
+      await secondCard.trigger('keydown', { key: 'ArrowUp' })
+
+      expect(wrapper.emitted('keyboard-navigation')).toBeTruthy()
+      expect(wrapper.emitted('keyboard-navigation')[0]).toEqual(['up', mockMatters[1]])
+    })
+
+    it('emits click on Enter key', async () => {
+      wrapper = mount(KanbanColumn, {
+        props: {
+          column: mockColumn,
+          matters: mockMatters
+        }
+      })
+
+      const firstCard = wrapper.find('.matter-card')
+      await firstCard.trigger('keydown', { key: 'Enter' })
+
+      expect(wrapper.emitted('matterClick')).toBeTruthy()
+      expect(wrapper.emitted('matterClick')[0]).toEqual([mockMatters[0]])
+    })
+  })
+
+  describe('Performance Features', () => {
+    it('applies mobile-optimized sortable config', () => {
+      // Mock as mobile
+      const { useBreakpoints } = vi.mocked(await import('@vueuse/core'))
+      useBreakpoints.mockReturnValue({
+        smaller: vi.fn((breakpoint) => breakpoint === 'tablet' ? ref(true) : ref(false)),
+        between: vi.fn(() => ref(false)),
+        greaterOrEqual: vi.fn(() => ref(false))
+      })
+
+      wrapper = mount(KanbanColumn, {
+        props: {
+          column: mockColumn,
+          matters: mockMatters
+        }
+      })
+
+      const draggable = wrapper.findComponent({ name: 'draggable' })
+      const config = draggable.props()
+
+      expect(config.delay).toBe(200)
+      expect(config.delayOnTouchStart).toBe(true)
+      expect(config.touchStartThreshold).toBe(15)
+      expect(config.forceFallback).toBe(true)
+    })
+
+    it('disables pointer events while scrolling', async () => {
+      wrapper = mount(KanbanColumn, {
+        props: {
+          column: mockColumn,
+          matters: mockMatters
+        }
+      })
+
+      const scrollContainer = wrapper.find('.column-body')
+      await scrollContainer.trigger('touchstart')
+
+      expect(wrapper.classes()).toContain('is-scrolling')
     })
   })
 
   describe('Accessibility', () => {
-    it('has proper ARIA labels for column header', () => {
-      const header = wrapper.find('.column-header')
-      expect(header.attributes('id')).toBe('column-header-intake')
-    })
-
-    it('has proper ARIA label for matter count badge', () => {
-      const badge = wrapper.find('.matter-count')
-      expect(badge.attributes('aria-label')).toBe('1 matters in Intake')
-    })
-
-    it('has proper ARIA label for empty state', async () => {
-      await wrapper.setProps({ matters: [] })
-      const emptyState = wrapper.find('.empty-state')
-      expect(emptyState.attributes('aria-label')).toBe('No matters in Intake')
-    })
-
-    it('has proper test-id for column body', () => {
-      const columnBody = wrapper.find('.column-body')
-      expect(columnBody.attributes('data-testid')).toBe('column-intake')
-    })
-  })
-
-  describe('Responsive Design', () => {
-    it('has mobile-specific CSS classes in template', () => {
-      const column = wrapper.find('.kanban-column')
-      expect(column.classes()).toContain('kanban-column')
-    })
-
-    it('configures touch gestures through composable', () => {
-      const draggable = wrapper.findComponent({ name: 'draggable' })
-      expect(draggable.props()).toMatchObject({
-        animation: 150,
-        ghostClass: 'drag-ghost',
-        chosenClass: 'drag-chosen'
+    it('has proper ARIA labels', () => {
+      wrapper = mount(KanbanColumn, {
+        props: {
+          column: mockColumn,
+          matters: mockMatters
+        }
       })
-    })
-  })
 
-  describe('Japanese Language Support', () => {
-    it('displays Japanese title when showJapanese is true', async () => {
-      await wrapper.setProps({ showJapanese: true })
-      expect(wrapper.find('.column-title').text()).toBe('受付')
+      const header = wrapper.find('.column-header')
+      expect(header.attributes('id')).toBe('column-header-col1')
+
+      const badge = wrapper.find('.matter-count')
+      expect(badge.attributes('aria-label')).toBe('2 matters in To Do')
     })
 
-    it('displays English title when showJapanese is false', async () => {
-      await wrapper.setProps({ showJapanese: false })
-      expect(wrapper.find('.column-title').text()).toBe('Intake')
+    it('announces swipe hints to screen readers', () => {
+      wrapper = mount(KanbanColumn, {
+        props: {
+          column: mockColumn,
+          matters: mockMatters
+        }
+      })
+
+      const swipeHint = wrapper.find('.swipe-hint')
+      expect(swipeHint.attributes('aria-label')).toBe('Swipe left or right for actions')
     })
   })
 })

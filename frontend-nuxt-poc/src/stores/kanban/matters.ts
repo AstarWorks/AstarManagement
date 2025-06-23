@@ -265,6 +265,48 @@ export const useMatterStore = defineStore('kanban-matters', () => {
     )
   }
 
+  // Card operations for compatibility with real-time updates
+  const cards = computed(() => matters.value)
+  
+  const addCard = async (card: Matter) => {
+    // If card already exists, update it
+    const existingIndex = matters.value.findIndex(m => m.id === card.id)
+    if (existingIndex !== -1) {
+      matters.value[existingIndex] = card
+    } else {
+      matters.value.push(card)
+    }
+  }
+  
+  const updateCard = async (cardId: string, updates: Partial<Matter>) => {
+    const index = matters.value.findIndex(m => m.id === cardId)
+    if (index !== -1) {
+      matters.value[index] = {
+        ...matters.value[index],
+        ...updates,
+        updatedAt: new Date().toISOString()
+      }
+    }
+  }
+  
+  const removeCard = async (cardId: string) => {
+    const index = matters.value.findIndex(m => m.id === cardId)
+    if (index !== -1) {
+      matters.value.splice(index, 1)
+    }
+  }
+  
+  const moveCard = async (cardId: string, fromColumn: string, toColumn: string, newIndex?: number) => {
+    const matter = matters.value.find(m => m.id === cardId)
+    if (matter) {
+      matter.status = toColumn as MatterStatus
+      matter.updatedAt = new Date().toISOString()
+      if (newIndex !== undefined) {
+        matter.sortOrder = newIndex
+      }
+    }
+  }
+
   // Conflict Resolution
   const handleConflictResolution = (
     localMatters: Matter[],
@@ -396,6 +438,13 @@ export const useMatterStore = defineStore('kanban-matters', () => {
     moveMatter,
     batchUpdateMatters,
     handleConflictResolution,
+    
+    // Card operations (for real-time updates compatibility)
+    cards,
+    addCard,
+    updateCard,
+    removeCard,
+    moveCard,
     
     // Getters
     mattersByStatus,

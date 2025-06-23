@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed, readonly, onMounted, onUnmounted, nextTick } from 'vue'
 import type { Matter, MatterStatus } from '~/types/kanban'
+import { useMatterStore } from './matters'
 
 export interface SyncStatus {
   status: 'idle' | 'syncing' | 'error' | 'offline'
@@ -284,9 +285,9 @@ export const useRealTimeStore = defineStore('kanban-real-time', () => {
     switch (event.type) {
       case 'matter_updated':
       case 'matter_created':
-        const matterStore = useMatterStore()
         // Update local matter if not from current user
         if (event.userId !== getCurrentUserId()) {
+          const matterStore = useMatterStore()
           matterStore.updateMatter(event.data.id, event.data)
         }
         break

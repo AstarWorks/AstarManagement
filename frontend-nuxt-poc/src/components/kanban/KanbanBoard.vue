@@ -1,11 +1,15 @@
 <script setup lang="ts">
 // 1. Imports - external libraries first, then internal
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
 import type { KanbanColumn, KanbanBoardProps } from '~/types/kanban'
 import type { Matter } from '~/types/matter'
 import { DEFAULT_KANBAN_COLUMNS, BREAKPOINTS } from '~/constants/kanban'
 import { useKanbanColumns } from '~/composables/useKanbanColumns'
+import { useKanbanRealTime } from '~/composables/useKanbanRealTime'
+import { useRealTimeStore } from '~/stores/kanban/real-time'
 import { ScrollArea, ScrollBar } from '~/components/ui/scroll-area'
+import ConnectionStatus from '~/components/realtime/ConnectionStatus.vue'
+import UpdateIndicator from '~/components/realtime/UpdateIndicator.vue'
 
 // 2. Props definition with TypeScript and defaults
 interface Props {
@@ -38,6 +42,10 @@ const boardRef = ref<HTMLElement>()
 // 5. Setup composables
 const mattersRef = ref(props.matters)
 const { mattersByColumn, columnsWithCounts } = useKanbanColumns(mattersRef)
+
+// Real-time updates setup
+const realTimeStore = useRealTimeStore()
+const { updates, loading: rtLoading, lastUpdated, start: startRealTime, stop: stopRealTime } = useKanbanRealTime()
 
 // 6. Computed properties
 const displayColumns = computed(() => 
@@ -97,6 +105,16 @@ onMounted(() => {
   watch(() => props.matters, (newMatters) => {
     mattersRef.value = newMatters
   }, { immediate: true })
+  
+  // Start real-time updates if online
+  if (realTimeStore.isOnline) {
+    startRealTime()
+  }
+})
+
+onUnmounted(() => {
+  // Clean up real-time updates
+  stopRealTime()
 })
 </script>
 
@@ -106,13 +124,16 @@ onMounted(() => {
     <header class="board-header">
       <div class="board-title-section">
         <h1 class="board-title">{{ title }}</h1>
-        <button
-          class="language-toggle"
-          @click="toggleLanguage"
-          :aria-label="showJapanese ? 'Switch to English' : 'Switch to Japanese'"
-        >
-          {{ showJapanese ? 'EN' : 'JA' }}
-        </button>
+        <div class="header-actions">
+          <ConnectionStatus />
+          <button
+            class="language-toggle"
+            @click="toggleLanguage"
+            :aria-label="showJapanese ? 'Switch to English' : 'Switch to Japanese'"
+          >
+            {{ showJapanese ? 'EN' : 'JA' }}
+          </button>
+        </div>
       </div>
       
       <!-- Column summary for screen readers -->
@@ -134,18 +155,23 @@ onMounted(() => {
           role="tablist"
           aria-label="Matter status columns"
         >
-          <KanbanColumn
+          <UpdateIndicator
             v-for="column in displayColumns"
             :key="column.id"
-            :column="column"
-            :matters="mattersByColumn[column.id] || []"
-            :show-japanese="showJapanese"
-            :style="columnStyle"
-            class="flex-shrink-0"
-            role="tabpanel"
-            :aria-labelledby="`column-header-${column.id}`"
-            @header-click="handleColumnHeaderClick(column)"
-          />
+            :is-updating="rtLoading"
+            :last-update="lastUpdated"
+          >
+            <KanbanColumn
+              :column="column"
+              :matters="mattersByColumn[column.id] || []"
+              :show-japanese="showJapanese"
+              :style="columnStyle"
+              class="flex-shrink-0"
+              role="tabpanel"
+              :aria-labelledby="`column-header-${column.id}`"
+              @header-click="handleColumnHeaderClick(column)"
+            />
+          </UpdateIndicator>
         </div>
         <ScrollBar orientation="horizontal" />
       </ScrollArea>
@@ -220,6 +246,10 @@ onMounted(() => {
 
 .board-title {
   @apply text-xl font-semibold text-gray-900;
+}
+
+.header-actions {
+  @apply flex items-center gap-3;
 }
 
 .language-toggle {
