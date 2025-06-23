@@ -7,7 +7,7 @@ description: Migrate Zustand kanban store to Pinia with composition API patterns
 type: development
 priority: high
 estimated_effort: 6 hours
-status: in_progress
+status: completed
 dependencies:
   - T01_S07_Kanban_Layout_Foundation
   - T02_S07_Matter_Card_Component
