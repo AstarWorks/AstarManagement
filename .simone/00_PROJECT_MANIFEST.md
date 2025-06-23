@@ -1,10 +1,10 @@
 ---
 project_name: Aster Management
 current_milestone_id: M02
-highest_sprint_in_milestone: S06
-current_sprint_id: S06
+highest_sprint_in_milestone: S07
+current_sprint_id: S07
 status: active
-last_updated: 2025-06-22 09:52
+last_updated: 2025-06-22 17:05
 ---
 
 # Project Manifest: Aster Management
@@ -20,7 +20,7 @@ This project follows a milestone-based development approach.
 ## 2. Current Focus
 
 - **Milestone:** M02 - Frontend Framework Migration
-- **Sprint:** S06 - Core Components Migration
+- **Sprint:** S07 - Nuxt Kanban Dashboard Implementation
 
 ## 3. Sprints in Current Milestone
 
@@ -129,6 +129,21 @@ This project follows a milestone-based development approach.
 - 📋 T12_S06: Visual Regression Testing - Medium complexity (5 points)
 - 📋 T13_S06: Performance Benchmarking - Low complexity (3 points)
 
+### S07 Nuxt Kanban Dashboard Implementation (📋 READY)
+
+Implement comprehensive kanban dashboard for Nuxt.js/Vue 3 that matches React/Next.js functionality while leveraging migrated Vue components from S06.
+
+- ✅ TX01_S07: Kanban Layout Foundation - Medium complexity (8 points) - COMPLETED
+- 📋 T02_S07: Matter Card Component - Medium complexity (6 points)
+- 📋 T03_S07: Vue Drag Drop Implementation - Medium complexity (8 points)
+- 📋 T04_S07: Pinia Store Integration - Medium complexity (7 points)
+- 📋 T05_S07: Filters Search Vue - Low complexity (5 points)
+- 📋 T06_S07: Real Time Updates - Medium complexity (6 points)
+- 📋 T07_S07: Mobile Responsive Vue - Low complexity (4 points)
+- 📋 T08_S07: SSR Optimization - Medium complexity (6 points)
+
+*Total tasks: 8 (50 story points)*
+
 ## 5. Key Documentation
 
 - [Architecture Documentation](./01_PROJECT_DOCS/ARCHITECTURE.md)
@@ -162,6 +177,6 @@ This project follows a milestone-based development approach.
 
 ## 7. Quick Links
 
-- **Current Sprint:** [S06 Sprint Folder](./03_SPRINTS/S06_M02_Core_Components_Migration/)
-- **Active Tasks:** Check sprint folder for T##_S06_*.md files
+- **Current Sprint:** [S07 Sprint Folder](./03_SPRINTS/S07_M02_Nuxt_Kanban_Dashboard/)
+- **Active Tasks:** Check sprint folder for T##_S07_*.md files
 - **Project Reviews:** [Latest Review](./10_STATE_OF_PROJECT/)
