@@ -5,7 +5,7 @@ import { useKanbanStore as useModularKanbanStore } from './kanban/index'
 
 // Legacy store for backward compatibility
 // TODO: Remove after migration to modular stores is complete
-export const useKanbanStore = defineStore('kanban', () => {
+export const useKanbanLegacyStore = defineStore('kanban-legacy', () => {
   // Delegate to the new modular store system
   const modularStore = useModularKanbanStore()
   

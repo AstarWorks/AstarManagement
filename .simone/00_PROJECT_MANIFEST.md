@@ -135,8 +135,8 @@ Implement comprehensive kanban dashboard for Nuxt.js/Vue 3 that matches React/Ne
 
 - ✅ TX01_S07: Kanban Layout Foundation - Medium complexity (8 points) - COMPLETED
 - ✅ TX02_S07: Matter Card Component - Medium complexity (6 points) - COMPLETED
-- 📋 T03_S07: Vue Drag Drop Implementation - Medium complexity (8 points)
-- 📋 T04_S07: Pinia Store Integration - Medium complexity (7 points)
+- ✅ TX03_S07: Vue Drag Drop Implementation - Medium complexity (8 points) - COMPLETED
+- 🚧 T04_S07: Pinia Store Integration - Medium complexity (7 points) - IN PROGRESS
 - 📋 T05_S07: Filters Search Vue - Low complexity (5 points)
 - 📋 T06_S07: Real Time Updates - Medium complexity (6 points)
 - 📋 T07_S07: Mobile Responsive Vue - Low complexity (4 points)
