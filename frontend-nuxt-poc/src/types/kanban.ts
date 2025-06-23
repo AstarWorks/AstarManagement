@@ -90,7 +90,7 @@ export type MatterPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
 export interface MatterCardProps {
   matter: MatterCard
   isDragging?: boolean
-  viewPreferences: ViewPreferences
+  viewPreferences: import('~/types/matter').ViewPreferences
   searchTerms?: string[]
   onClick?: () => void
   onEdit?: () => void
