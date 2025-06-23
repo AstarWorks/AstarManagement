@@ -1,1 +1,2 @@
-export { default as Button, buttonVariants } from './Button.vue'
+export { default as Button } from './Button.vue'
+export { buttonVariants } from '~/lib/button-variants'
