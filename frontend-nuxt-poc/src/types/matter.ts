@@ -33,6 +33,31 @@ export interface FilterState {
   selectedPriorities: Priority[]
   selectedStatuses: MatterStatus[]
   showClosed: boolean
+  searchMode: 'fuzzy' | 'exact' | 'field'
+  dateRange?: {
+    start: Date
+    end: Date
+  }
+  customFields?: Record<string, any>
+}
+
+export interface SearchSuggestion {
+  id: string
+  value: string
+  type: 'case' | 'client' | 'lawyer' | 'tag'
+  count: number
+  highlight?: string
+  category?: string
+}
+
+export interface FilterStats {
+  totalMatters: number
+  filteredCount: number
+  activeFiltersCount: number
+  performance: {
+    lastFilterTime: number
+    averageFilterTime: number
+  }
 }
 
 export interface ViewPreferences {
