@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col sm:flex-row gap-3 p-4 bg-white border-b">
+  <div class="flex flex-col sm:flex-row gap-3 p-4 bg-card border-b border-border">
     <!-- Search Input -->
     <div class="flex-1 max-w-md">
       <Input
@@ -13,22 +13,32 @@
     <!-- Filters -->
     <div class="flex flex-wrap gap-2">
       <!-- Status Filter -->
-      <Select v-model="statusFilter" class="w-40">
-        <option value="">All Statuses</option>
-        <option value="new">New</option>
-        <option value="in_progress">In Progress</option>
-        <option value="review">Review</option>
-        <option value="waiting">Waiting</option>
-        <option value="completed">Completed</option>
+      <Select v-model="statusFilter">
+        <SelectTrigger class="w-40">
+          <SelectValue placeholder="All Statuses" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="">All Statuses</SelectItem>
+          <SelectItem value="new">New</SelectItem>
+          <SelectItem value="in_progress">In Progress</SelectItem>
+          <SelectItem value="review">Review</SelectItem>
+          <SelectItem value="waiting">Waiting</SelectItem>
+          <SelectItem value="completed">Completed</SelectItem>
+        </SelectContent>
       </Select>
 
       <!-- Priority Filter -->
-      <Select v-model="priorityFilter" class="w-40">
-        <option value="">All Priorities</option>
-        <option value="low">Low</option>
-        <option value="medium">Medium</option>
-        <option value="high">High</option>
-        <option value="urgent">Urgent</option>
+      <Select v-model="priorityFilter">
+        <SelectTrigger class="w-40">
+          <SelectValue placeholder="All Priorities" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="">All Priorities</SelectItem>
+          <SelectItem value="low">Low</SelectItem>
+          <SelectItem value="medium">Medium</SelectItem>
+          <SelectItem value="high">High</SelectItem>
+          <SelectItem value="urgent">Urgent</SelectItem>
+        </SelectContent>
       </Select>
 
       <!-- Clear Filters Button -->
@@ -47,6 +57,9 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useDebounce } from '@vueuse/core'
+import { Input } from '~/components/ui/input'
+import { Button } from '~/components/ui/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 import type { FilterState, MatterStatus, Priority } from '~/types/matter'
 
 interface Props {

@@ -7,8 +7,9 @@
     <div class="sidebar-header">
       <Scale class="sidebar-logo" />
       <span v-if="!isCollapsed" class="sidebar-title">Aster</span>
-      <button 
-        class="collapse-button"
+      <Button 
+        variant="ghost"
+        size="sm"
         @click="toggleCollapse"
         :aria-label="isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
       >
@@ -16,7 +17,7 @@
           class="size-4 transition-transform"
           :class="{ 'rotate-180': isCollapsed }"
         />
-      </button>
+      </Button>
     </div>
 
     <!-- Main navigation -->
@@ -26,25 +27,27 @@
 
     <!-- Bottom section -->
     <div class="sidebar-bottom">
-      <button 
-        class="nav-item"
-        :class="{ 'nav-item--collapsed': isCollapsed }"
+      <Button 
+        variant="ghost"
+        size="sm"
+        :class="cn('nav-item', { 'nav-item--collapsed': isCollapsed })"
         @click="showHelp"
         :title="isCollapsed ? 'Help & Support' : undefined"
       >
         <HelpCircle class="nav-icon" />
         <span v-if="!isCollapsed" class="nav-label">Help & Support</span>
-      </button>
+      </Button>
       
-      <button 
-        class="nav-item"
-        :class="{ 'nav-item--collapsed': isCollapsed }"
+      <Button 
+        variant="ghost"
+        size="sm"
+        :class="cn('nav-item', { 'nav-item--collapsed': isCollapsed })"
         @click="showSettings"
         :title="isCollapsed ? 'Settings' : undefined"
       >
         <Settings class="nav-icon" />
         <span v-if="!isCollapsed" class="nav-label">Settings</span>
-      </button>
+      </Button>
     </div>
   </aside>
 </template>
@@ -72,6 +75,8 @@ import {
   Inbox,
   Clock
 } from 'lucide-vue-next'
+import { Button } from '~/components/ui/button'
+import { cn } from '~/lib/utils'
 
 const route = useRoute()
 const router = useRouter()
@@ -130,7 +135,7 @@ onMounted(() => {
 
 <style scoped>
 .app-sidebar {
-  @apply flex flex-col h-full bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800;
+  @apply flex flex-col h-full bg-background border-r border-border;
   @apply transition-all duration-300 ease-in-out;
   width: 240px;
 }
@@ -140,7 +145,7 @@ onMounted(() => {
 }
 
 .sidebar-header {
-  @apply flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800;
+  @apply flex items-center justify-between p-4 border-b border-border;
 }
 
 .sidebar-logo {
@@ -148,12 +153,7 @@ onMounted(() => {
 }
 
 .sidebar-title {
-  @apply font-bold text-xl text-gray-900 dark:text-gray-100;
-}
-
-.collapse-button {
-  @apply p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors;
-  @apply focus:outline-none focus:ring-2 focus:ring-primary;
+  @apply font-bold text-xl text-foreground;
 }
 
 .sidebar-nav {
@@ -165,13 +165,13 @@ onMounted(() => {
 }
 
 .section-label {
-  @apply px-4 mb-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider;
+  @apply px-4 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider;
 }
 
 .nav-item {
   @apply relative flex items-center gap-3 w-full px-4 py-2.5 text-sm font-medium;
-  @apply text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100;
-  @apply hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors;
+  @apply text-muted-foreground hover:text-foreground;
+  @apply hover:bg-accent transition-colors;
   @apply focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary;
 }
 
@@ -197,7 +197,7 @@ onMounted(() => {
 }
 
 .nav-badge--default {
-  @apply bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300;
+  @apply bg-muted text-muted-foreground;
 }
 
 .nav-badge--primary {
@@ -205,11 +205,11 @@ onMounted(() => {
 }
 
 .nav-badge--warning {
-  @apply bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300;
+  @apply bg-warning/20 text-warning-foreground;
 }
 
 .sidebar-bottom {
-  @apply border-t border-gray-200 dark:border-gray-800 p-4;
+  @apply border-t border-border p-4;
 }
 
 /* Custom scrollbar for navigation */
@@ -222,14 +222,14 @@ onMounted(() => {
 }
 
 .sidebar-nav::-webkit-scrollbar-thumb {
-  @apply bg-gray-300 dark:bg-gray-700 rounded;
+  @apply bg-border rounded;
 }
 
 /* Tooltip for collapsed state */
 .nav-item--collapsed:hover::after {
   content: attr(title);
-  @apply absolute left-full ml-2 px-2 py-1 text-xs bg-gray-900 dark:bg-gray-700 text-white rounded;
-  @apply whitespace-nowrap z-50;
+  @apply absolute left-full ml-2 px-2 py-1 text-xs bg-popover text-popover-foreground border border-border rounded;
+  @apply whitespace-nowrap z-50 shadow-md;
   pointer-events: none;
 }
 

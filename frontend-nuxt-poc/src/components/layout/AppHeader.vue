@@ -3,14 +3,15 @@
     <div class="header-container">
       <!-- Logo and brand -->
       <div class="header-brand">
-        <button 
+        <Button 
           v-if="showMenuToggle"
-          class="menu-toggle"
+          variant="ghost"
+          size="sm"
           @click="toggleSidebar"
           aria-label="Toggle sidebar"
         >
-          <Menu class="size-6" />
-        </button>
+          <Menu class="size-4" />
+        </Button>
         
         <NuxtLink to="/" class="brand-link">
           <Scale class="size-6 text-primary" />
@@ -35,39 +36,46 @@
       <!-- Right section -->
       <div class="header-actions">
         <!-- Notifications -->
-        <button 
-          class="action-button"
+        <Button 
+          variant="ghost"
+          size="sm"
           @click="showNotifications = !showNotifications"
           aria-label="Notifications"
+          class="relative"
         >
-          <Bell class="size-5" />
-          <span v-if="unreadCount > 0" class="notification-badge">
+          <Bell class="size-4" />
+          <Badge v-if="unreadCount > 0" class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 text-xs">
             {{ unreadCount > 9 ? '9+' : unreadCount }}
-          </span>
-        </button>
+          </Badge>
+        </Button>
 
         <!-- Theme toggle -->
-        <button 
-          class="action-button"
+        <Button 
+          variant="ghost"
+          size="sm"
           @click="toggleTheme"
           :aria-label="`Switch to ${isDark ? 'light' : 'dark'} mode`"
         >
-          <Sun v-if="isDark" class="size-5" />
-          <Moon v-else class="size-5" />
-        </button>
+          <Sun v-if="isDark" class="size-4" />
+          <Moon v-else class="size-4" />
+        </Button>
 
         <!-- User menu -->
         <div class="user-menu-container">
-          <button 
-            class="user-menu-trigger"
+          <Button 
+            variant="ghost"
+            size="sm"
             @click="showUserMenu = !showUserMenu"
             aria-label="User menu"
+            class="gap-2"
           >
-            <div class="user-avatar">
-              <User class="size-5" />
-            </div>
-            <ChevronDown class="size-4 ml-1 hidden sm:block" />
-          </button>
+            <AvatarRoot class="h-6 w-6">
+              <AvatarFallback>
+                <User class="size-4" />
+              </AvatarFallback>
+            </AvatarRoot>
+            <ChevronDown class="size-4 hidden sm:block" />
+          </Button>
 
           <!-- User dropdown menu -->
           <Transition name="dropdown">
@@ -91,10 +99,10 @@
               
               <div class="dropdown-divider" />
               
-              <button class="dropdown-item text-red-600" @click="handleLogout">
+              <Button variant="ghost" size="sm" class="w-full justify-start text-destructive hover:text-destructive" @click="handleLogout">
                 <LogOut class="size-4 mr-2" />
                 Logout
-              </button>
+              </Button>
             </div>
           </Transition>
         </div>
@@ -143,6 +151,9 @@ import {
   FileText,
   Users
 } from 'lucide-vue-next'
+import { Button } from '~/components/ui/button'
+import { Badge } from '~/components/ui/badge'
+import { AvatarRoot, AvatarFallback } from '~/components/ui/avatar'
 
 interface Props {
   showMenuToggle?: boolean
@@ -223,7 +234,7 @@ onMounted(() => {
 
 <style scoped>
 .app-header {
-  @apply sticky top-0 z-40 w-full bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800;
+  @apply sticky top-0 z-40 w-full bg-background border-b border-border;
 }
 
 .header-container {
@@ -234,14 +245,9 @@ onMounted(() => {
   @apply flex items-center gap-3;
 }
 
-.menu-toggle {
-  @apply p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors;
-  @apply focus:outline-none focus:ring-2 focus:ring-primary;
-}
-
 .brand-link {
   @apply flex items-center gap-2 font-semibold text-lg;
-  @apply text-gray-900 dark:text-gray-100 hover:text-primary transition-colors;
+  @apply text-foreground hover:text-primary transition-colors;
 }
 
 .brand-text {
@@ -254,8 +260,8 @@ onMounted(() => {
 
 .nav-link {
   @apply flex items-center px-3 py-2 rounded-md text-sm font-medium;
-  @apply text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100;
-  @apply hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors;
+  @apply text-muted-foreground hover:text-foreground;
+  @apply hover:bg-accent transition-colors;
 }
 
 .nav-link--active {
@@ -266,65 +272,47 @@ onMounted(() => {
   @apply flex items-center gap-2;
 }
 
-.action-button {
-  @apply relative p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors;
-  @apply focus:outline-none focus:ring-2 focus:ring-primary;
-}
-
-.notification-badge {
-  @apply absolute -top-1 -right-1 min-w-[20px] h-5 px-1 flex items-center justify-center;
-  @apply bg-red-500 text-white text-xs font-bold rounded-full;
-}
 
 .user-menu-container {
   @apply relative ml-2;
 }
 
-.user-menu-trigger {
-  @apply flex items-center gap-2 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800;
-  @apply focus:outline-none focus:ring-2 focus:ring-primary transition-colors;
-}
-
-.user-avatar {
-  @apply w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center;
-}
-
 .user-dropdown {
   @apply absolute right-0 mt-2 w-56 rounded-md shadow-lg;
-  @apply bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700;
+  @apply bg-popover border border-border;
   @apply overflow-hidden;
 }
 
 .dropdown-header {
-  @apply px-4 py-3 bg-gray-50 dark:bg-gray-900;
+  @apply px-4 py-3 bg-muted;
 }
 
 .user-name {
-  @apply font-medium text-gray-900 dark:text-gray-100;
+  @apply font-medium text-foreground;
 }
 
 .user-email {
-  @apply text-sm text-gray-500 dark:text-gray-400;
+  @apply text-sm text-muted-foreground;
 }
 
 .dropdown-divider {
-  @apply border-t border-gray-200 dark:border-gray-700;
+  @apply border-t border-border;
 }
 
 .dropdown-item {
-  @apply flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300;
-  @apply hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors;
+  @apply flex items-center w-full px-4 py-2 text-sm text-foreground;
+  @apply hover:bg-accent transition-colors;
 }
 
 .mobile-nav {
-  @apply md:hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900;
+  @apply md:hidden border-t border-border bg-background;
 }
 
 .mobile-nav-link {
   @apply flex items-center px-4 py-3 text-sm font-medium;
-  @apply text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100;
-  @apply hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors;
-  @apply border-b border-gray-100 dark:border-gray-800;
+  @apply text-muted-foreground hover:text-foreground;
+  @apply hover:bg-accent transition-colors;
+  @apply border-b border-border;
 }
 
 .mobile-nav-link--active {
