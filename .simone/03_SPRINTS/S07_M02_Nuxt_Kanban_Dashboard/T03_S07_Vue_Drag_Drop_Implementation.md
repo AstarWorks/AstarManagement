@@ -1,3 +1,27 @@
+---
+task_id: T03_S07
+sprint_id: S07
+milestone_id: M02
+name: Vue 3 Drag-and-Drop Implementation for Kanban Board
+type: development
+status: completed
+priority: high
+complexity: medium
+estimated_hours: 8
+dependencies:
+  - T01_S07 (Kanban Layout Foundation)
+  - T02_S07 (Matter Card Component)
+assignee: unassigned
+labels:
+  - vue-migration
+  - kanban
+  - drag-drop
+  - mobile
+  - performance
+last_updated: 2025-06-23 05:38
+completed_date: 2025-06-23 05:38
+---
+
 # T03_S07_Vue_Drag_Drop_Implementation.md
 
 ## Task: Vue 3 Drag-and-Drop Implementation for Kanban Board
