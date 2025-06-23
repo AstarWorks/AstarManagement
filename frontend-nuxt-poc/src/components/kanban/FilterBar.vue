@@ -144,7 +144,7 @@
                       <Checkbox
                         :id="`lawyer-${lawyer.id}`"
                         :checked="selectedLawyers.includes(lawyer.id)"
-                        @update:checked="(checked) => toggleLawyer(lawyer.id, checked)"
+                        @update:checked="(checked: boolean) => toggleLawyer(lawyer.id, checked)"
                       />
                       <Label 
                         :for="`lawyer-${lawyer.id}`" 
@@ -174,7 +174,7 @@
                 <Checkbox
                   :id="`priority-${priority.value}`"
                   :checked="selectedPriorities.includes(priority.value)"
-                  @update:checked="(checked) => togglePriority(priority.value, checked)"
+                  @update:checked="(checked: boolean) => togglePriority(priority.value, checked)"
                 />
                 <Label 
                   :for="`priority-${priority.value}`" 
@@ -202,7 +202,7 @@
                 <Checkbox
                   :id="`status-${status.value}`"
                   :checked="selectedStatuses.includes(status.value)"
-                  @update:checked="(checked) => toggleStatus(status.value, checked)"
+                  @update:checked="(checked: boolean) => toggleStatus(status.value, checked)"
                 />
                 <Label 
                   :for="`status-${status.value}`" 
@@ -220,7 +220,7 @@
               <Checkbox
                 id="show-closed"
                 :checked="showClosed"
-                @update:checked="(checked) => updateFilters({ showClosed: checked })"
+                @update:checked="(checked: boolean) => updateFilters({ showClosed: checked })"
               />
               <Label for="show-closed" class="text-sm cursor-pointer">
                 Show Closed/Archived
