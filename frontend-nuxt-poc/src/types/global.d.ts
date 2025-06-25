@@ -5,6 +5,9 @@
  * used throughout the application.
  */
 
+import type { QueryClient } from '@tanstack/vue-query'
+import type { QueryKeys } from './query'
+
 declare global {
   interface Window {
     $nuxt?: {
@@ -20,6 +23,27 @@ declare global {
         error: (title: string, message: string) => void
       }
     }
+    __QUERY_CLIENT__?: QueryClient
+  }
+}
+
+/**
+ * Vue component augmentations
+ */
+declare module 'vue' {
+  interface ComponentCustomProperties {
+    $queryClient: QueryClient
+    $queryKeys: QueryKeys
+  }
+}
+
+/**
+ * Nuxt app augmentations
+ */
+declare module '#app' {
+  interface NuxtApp {
+    $queryClient: QueryClient
+    $queryKeys: QueryKeys
   }
 }
 

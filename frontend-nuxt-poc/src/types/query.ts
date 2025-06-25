@@ -7,7 +7,10 @@
 
 import type { QueryKey } from '@tanstack/vue-query'
 import type { MaybeRef } from 'vue'
-import type { Matter, MatterStatus, MatterPriority } from './matter'
+import type { MatterStatus, MatterPriority } from './matter'
+
+// Re-export Matter from matter.ts to fix import issues
+export type { Matter } from './matter'
 
 /**
  * Query Key Factory
@@ -169,3 +172,8 @@ export type QueryOptions<TData = unknown, TError = QueryError> = {
   refetchOnWindowFocus?: boolean | 'always'
   retry?: boolean | number | ((failureCount: number, error: TError) => boolean)
 }
+
+/**
+ * Type for the query keys factory
+ */
+export type QueryKeys = typeof queryKeys

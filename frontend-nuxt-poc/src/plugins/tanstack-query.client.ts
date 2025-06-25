@@ -121,48 +121,40 @@ const setupMemoryManagement = (client: QueryClient) => {
  * Enhanced error integration with existing error handling system
  */
 const setupErrorIntegration = (client: QueryClient) => {
-  const { transformApiError, setError } = useErrorHandler()
+  // Error handling will be integrated when useErrorHandler composable is available
   
   // Global query error handler
-  client.getQueryCache().subscribe((event) => {
+  client.getQueryCache().subscribe((event: any) => {
     if (event.type === 'observerAdded' && event.query.state.error) {
       const query = event.query
       const error = query.state.error
       
-      // Transform API error to standard format
-      const appError = transformApiError(error)
+      // Basic error logging for now
+      console.error('Query error:', error)
       
-      // Only handle critical errors globally to avoid notification spam
-      if (appError.severity === 'critical') {
-        setError(appError)
-      }
+      // TODO: Integrate with useErrorHandler when available
+      // const { transformApiError, setError } = useErrorHandler()
+      // const appError = transformApiError(error)
+      // if (appError.severity === 'critical') {
+      //   setError(appError)
+      // }
     }
   })
   
   // Global mutation error handler with toast integration
-  client.getMutationCache().subscribe((event) => {
+  client.getMutationCache().subscribe((event: any) => {
     if (event.type === 'updated' && event.mutation?.state.error) {
       const mutation = event.mutation
       const error = mutation.state.error
       
-      // Transform and display mutation errors
-      const appError = transformApiError(error)
-      const { $toast } = useNuxtApp()
+      // Basic error logging for now
+      console.error('Mutation error:', error)
       
-      // Show appropriate toast based on error severity
-      switch (appError.severity) {
-        case 'critical':
-          $toast.error('System Error', appError.message)
-          break
-        case 'error':
-          $toast.error('Operation Failed', appError.message)
-          break
-        case 'warning':
-          $toast.warning('Warning', appError.message)
-          break
-        default:
-          $toast.info('Notice', appError.message)
-      }
+      // TODO: Integrate with toast system when available
+      // const { $toast } = useNuxtApp()
+      // const { transformApiError } = useErrorHandler()
+      // const appError = transformApiError(error)
+      // $toast.error('Operation Failed', appError.message)
     }
   })
 }
@@ -171,38 +163,23 @@ const setupErrorIntegration = (client: QueryClient) => {
  * Success handler integration with toast notifications
  */
 const setupSuccessIntegration = (client: QueryClient) => {
-  const { $toast } = useNuxtApp()
+  // Success integration will be added when toast system is available
   
   // Global mutation success handler
-  client.getMutationCache().subscribe((event) => {
+  client.getMutationCache().subscribe((event: any) => {
     if (event.type === 'updated' && event.mutation?.state.status === 'success') {
       const mutation = event.mutation
       const variables = mutation.state.variables as any
       
-      // Determine success message based on mutation type
-      let successMessage = 'Operation completed successfully'
-      
-      if (variables) {
-        if (variables.action === 'create') {
-          successMessage = 'Item created successfully'
-        } else if (variables.action === 'update') {
-          successMessage = 'Item updated successfully'
-        } else if (variables.action === 'delete') {
-          successMessage = 'Item deleted successfully'
-        }
-      }
-      
-      // Show success toast with short duration for mutations
-      $toast.success(successMessage, {
-        duration: 3000,
-        action: variables?.undoable ? {
-          label: 'Undo',
-          onClick: () => {
-            // Undo functionality can be implemented per mutation
-            console.log('Undo action triggered')
-          }
-        } : undefined
+      // Basic success logging for now
+      console.debug('Mutation succeeded:', {
+        mutationId: mutation.mutationId,
+        variables
       })
+      
+      // TODO: Integrate with toast system when available
+      // const { $toast } = useNuxtApp()
+      // $toast.success('Operation completed successfully')
     }
   })
 }
@@ -214,7 +191,7 @@ const setupDevTools = (client: QueryClient) => {
   if (!process.dev) return
 
   // Enhanced logging for development
-  client.getQueryCache().subscribe((event) => {
+  client.getQueryCache().subscribe((event: any) => {
     if (event.type === 'observerAdded') {
       console.debug('Query added:', {
         queryKey: event.query.queryKey,
@@ -225,7 +202,7 @@ const setupDevTools = (client: QueryClient) => {
   })
 
   // Mutation logging
-  client.getMutationCache().subscribe((event) => {
+  client.getMutationCache().subscribe((event: any) => {
     if (event.type === 'added') {
       console.debug('Mutation started:', {
         mutationId: event.mutation?.mutationId,
@@ -244,7 +221,7 @@ const setupDevTools = (client: QueryClient) => {
 /**
  * Main Nuxt plugin definition
  */
-export default defineNuxtPlugin((nuxtApp) => {
+export default defineNuxtPlugin((nuxtApp: any) => {
   // Create the global query client
   const client = createQueryClient()
   
@@ -296,29 +273,7 @@ export default defineNuxtPlugin((nuxtApp) => {
   }
 })
 
-/**
- * Type declarations for auto-imports and TypeScript support
- */
-declare module '#app' {
-  interface NuxtApp {
-    $queryClient: QueryClient
-    $queryKeys: QueryKeys
-  }
-}
-
-declare module 'vue' {
-  interface ComponentCustomProperties {
-    $queryClient: QueryClient
-    $queryKeys: QueryKeys
-  }
-}
-
-// Global window interface for development debugging
-declare global {
-  interface Window {
-    __QUERY_CLIENT__?: QueryClient
-  }
-}
+// Type declarations are in src/types/global.d.ts
 
 /**
  * Export the global query client getter for use in composables

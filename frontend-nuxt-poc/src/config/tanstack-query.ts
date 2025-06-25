@@ -193,7 +193,7 @@ export const queryClientConfig: QueryClientConfig = {
   // Query cache configuration
   queryCache: {
     // Global error handler for queries
-    onError: (error: any, query) => {
+    onError: (error: any, query: any) => {
       console.error(`Query failed [${query.queryHash}]:`, error)
       
       // Don't show toast for background refetch errors
@@ -201,19 +201,18 @@ export const queryClientConfig: QueryClientConfig = {
         return
       }
       
-      // Use global error handling for user-facing errors
-      const { transformApiError } = useErrorHandler()
-      const appError = transformApiError(error)
+      // Error handling will be integrated when useErrorHandler is available
+      // const { transformApiError } = useErrorHandler()
+      // const appError = transformApiError(error)
       
-      // Only show critical errors to avoid notification spam
-      if (appError.severity === 'critical') {
-        const { $toast } = useNuxtApp()
-        $toast.error('System Error', appError.message)
+      // Basic error logging for now
+      if (error?.response?.status >= 500) {
+        console.error('Critical system error:', error)
       }
     },
     
     // Memory management
-    onSuccess: (data, query) => {
+    onSuccess: (data: any, query: any) => {
       // Log successful queries in development
       if (process.dev) {
         console.debug(`Query succeeded [${query.queryHash}]:`, {
@@ -227,19 +226,20 @@ export const queryClientConfig: QueryClientConfig = {
   // Mutation cache configuration
   mutationCache: {
     // Global error handler for mutations
-    onError: (error: any, variables, context, mutation) => {
+    onError: (error: any, variables: any, context: any, mutation: any) => {
       console.error(`Mutation failed [${mutation.mutationId}]:`, error)
       
-      // Show user-friendly error message for all mutation failures
-      const { transformApiError } = useErrorHandler()
-      const appError = transformApiError(error)
-      
-      const { $toast } = useNuxtApp()
-      $toast.error('Operation Failed', appError.message)
+      // Basic error handling for now
+      // Toast integration will be added when useNuxtApp is available in this context
+      console.error('Mutation error details:', {
+        error: error?.message || error,
+        variables,
+        context
+      })
     },
     
     // Global success handler for mutations
-    onSuccess: (data, variables, context, mutation) => {
+    onSuccess: (data: any, variables: any, context: any, mutation: any) => {
       // Show success message for mutations (can be overridden per mutation)
       if (process.dev) {
         console.debug(`Mutation succeeded [${mutation.mutationId}]:`, {
@@ -334,4 +334,5 @@ export const QUERY_CONFIGS = {
 
 // Query keys are exported from types/query.ts to avoid duplication
 // This ensures consistent cache management across the application
-export { queryKeys, type QueryKeys } from '~/types/query'
+export { queryKeys } from '~/types/query'
+export type { QueryKeys } from '~/types/query'
