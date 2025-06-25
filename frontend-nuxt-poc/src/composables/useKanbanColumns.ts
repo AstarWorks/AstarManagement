@@ -1,13 +1,36 @@
-import type { KanbanColumn } from '~/types/kanban'
+import type { KanbanColumn, MatterCard } from '~/types/kanban'
 import type { Matter } from '~/types/matter'
 import { DEFAULT_KANBAN_COLUMNS } from '~/constants/kanban'
+
+// Convert Matter to MatterCard format
+function matterToCard(matter: Matter): MatterCard {
+  return {
+    ...matter,
+    assignedLawyer: matter.assignedLawyer ? (
+      typeof matter.assignedLawyer === 'string' ? {
+        id: matter.assignedLawyer,
+        name: matter.assignedLawyer,
+        initials: matter.assignedLawyer.split(' ').map((n: string) => n[0]).join('').toUpperCase()
+      } : {
+        id: matter.assignedLawyer.id,
+        name: matter.assignedLawyer.name,
+        initials: matter.assignedLawyer.initials
+      }
+    ) : undefined,
+    assignedClerk: undefined, // Not available in Matter type
+    statusDuration: undefined,
+    isOverdue: matter.dueDate ? new Date(matter.dueDate) < new Date() : false,
+    searchHighlights: {},
+    relevanceScore: 0
+  }
+}
 
 export function useKanbanColumns(matters: Ref<Matter[]>) {
   const columns = ref<KanbanColumn[]>(DEFAULT_KANBAN_COLUMNS)
   
   // Group matters by column based on status mapping
   const mattersByColumn = computed(() => {
-    const grouped: Record<string, Matter[]> = {}
+    const grouped: Record<string, MatterCard[]> = {}
     
     // Initialize each column with empty array
     columns.value.forEach(column => {
@@ -15,12 +38,12 @@ export function useKanbanColumns(matters: Ref<Matter[]>) {
     })
     
     // Group matters into columns based on status
-    matters.value.forEach(matter => {
+    matters.value.forEach((matter: Matter) => {
       const column = columns.value.find(col => 
-        col.status.includes(matter.status as any)
+        col.status === matter.status
       )
       if (column) {
-        grouped[column.id].push(matter)
+        grouped[column.id].push(matterToCard(matter))
       }
     })
     

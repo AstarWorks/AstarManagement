@@ -23,7 +23,6 @@ describe('MatterCard', () => {
     showPriority: true,
     showDueDates: true,
     showTags: true,
-    showSearchHighlights: false,
     groupBy: 'status'
   }
 

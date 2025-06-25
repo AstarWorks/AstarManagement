@@ -166,12 +166,18 @@ const applyFilters = () => {
 
 const resetFilters = () => {
   localFilters.value = {
+    searchQuery: '',
+    selectedLawyers: [],
+    selectedPriorities: [],
+    selectedStatuses: [],
+    showClosed: false,
+    searchMode: 'fuzzy' as const,
     search: '',
     priority: [],
     status: [],
     assigneeIds: [],
     tags: [],
-    dateRange: null
+    dateRange: undefined
   }
   emit('reset')
 }

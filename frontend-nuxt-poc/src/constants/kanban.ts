@@ -10,10 +10,11 @@ export const MATTER_STATUSES: MatterStatus[] = [
   'CLOSED'
 ]
 
-export const DEFAULT_COLUMNS: KanbanColumn[] = [
+export const DEFAULT_KANBAN_COLUMNS: KanbanColumn[] = [
   {
     id: 'intake',
     title: 'Intake',
+    titleJa: '受付',
     status: 'INTAKE',
     color: '#ef4444',
     order: 0,
@@ -25,6 +26,7 @@ export const DEFAULT_COLUMNS: KanbanColumn[] = [
   {
     id: 'initial-review',
     title: 'Initial Review',
+    titleJa: '初回確認',
     status: 'INITIAL_REVIEW',
     color: '#f97316',
     order: 1,
@@ -36,6 +38,7 @@ export const DEFAULT_COLUMNS: KanbanColumn[] = [
   {
     id: 'in-progress',
     title: 'In Progress',
+    titleJa: '進行中',
     status: 'IN_PROGRESS',
     color: '#3b82f6',
     order: 2,
@@ -47,6 +50,7 @@ export const DEFAULT_COLUMNS: KanbanColumn[] = [
   {
     id: 'review',
     title: 'Review',
+    titleJa: 'レビュー',
     status: 'REVIEW',
     color: '#8b5cf6',
     order: 3,
@@ -58,6 +62,7 @@ export const DEFAULT_COLUMNS: KanbanColumn[] = [
   {
     id: 'waiting-client',
     title: 'Waiting for Client',
+    titleJa: 'クライアント待ち',
     status: 'WAITING_CLIENT',
     color: '#f59e0b',
     order: 4,
@@ -69,6 +74,7 @@ export const DEFAULT_COLUMNS: KanbanColumn[] = [
   {
     id: 'ready-filing',
     title: 'Ready for Filing',
+    titleJa: '申請準備完了',
     status: 'READY_FILING',
     color: '#10b981',
     order: 5,
@@ -80,6 +86,7 @@ export const DEFAULT_COLUMNS: KanbanColumn[] = [
   {
     id: 'closed',
     title: 'Closed',
+    titleJa: '完了',
     status: 'CLOSED',
     color: '#6b7280',
     order: 6,
@@ -106,3 +113,21 @@ export const PRIORITY_ORDER = {
   MEDIUM: 2,
   LOW: 1
 } as const
+
+// Breakpoints for responsive design
+export const BREAKPOINTS = {
+  mobile: 640,
+  tablet: 768,
+  desktop: 1024,
+  wide: 1280
+} as const
+
+// Default view preferences for the kanban board
+export const DEFAULT_VIEW_PREFERENCES = {
+  cardSize: 'normal' as const,
+  showAvatars: true,
+  showDueDates: true,
+  showPriority: true,
+  showTags: true,
+  groupBy: 'status' as const
+}

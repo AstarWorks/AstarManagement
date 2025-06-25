@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import KanbanColumn from '../KanbanColumn.vue'
-import type { KanbanColumn as KanbanColumnType, MatterCard } from '~/types/kanban'
+import type { KanbanColumn as KanbanColumnType, MatterCard, MatterStatus } from '~/types/kanban'
 import { DEFAULT_VIEW_PREFERENCES } from '~/constants/kanban'
 
 describe('Kanban Drag-Drop Integration', () => {
@@ -10,15 +10,23 @@ describe('Kanban Drag-Drop Integration', () => {
       id: 'intake',
       title: 'Intake',
       titleJa: '受付',
-      status: ['INTAKE'],
-      color: 'bg-blue-50'
+      status: 'INTAKE' as MatterStatus,
+      color: 'bg-blue-50',
+      order: 0,
+      visible: true,
+      acceptsDrop: true,
+      currentItemCount: 0
     },
     {
       id: 'review',
       title: 'Initial Review',
       titleJa: '初期レビュー',
-      status: ['INITIAL_REVIEW'],
-      color: 'bg-orange-50'
+      status: 'INITIAL_REVIEW' as MatterStatus,
+      color: 'bg-orange-50',
+      order: 1,
+      visible: true,
+      acceptsDrop: true,
+      currentItemCount: 0
     }
   ]
 

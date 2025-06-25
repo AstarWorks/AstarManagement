@@ -123,7 +123,7 @@ export const useRealTimeStore = defineStore('kanban-real-time', () => {
       await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 1000))
       
       // Detect conflicts (simplified for demo)
-      const conflicts = detectConflicts(matterStore.matters, syncStatus.value.lastSyncTime)
+      const conflicts = detectConflicts([...matterStore.matters], syncStatus.value.lastSyncTime)
       
       if (conflicts.length > 0) {
         conflictQueue.value.push(...conflicts)

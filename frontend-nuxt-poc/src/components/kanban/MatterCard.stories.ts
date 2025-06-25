@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3'
+import { ref } from 'vue'
 import MatterCard from './MatterCard.vue'
 import { DEFAULT_VIEW_PREFERENCES } from '~/constants/kanban'
 import type { MatterCard as MatterCardType } from '~/types/kanban'
@@ -20,27 +21,15 @@ const meta: Meta<typeof MatterCard> = {
     })
   ],
   argTypes: {
-    'matter.priority': {
-      control: 'select',
-      options: ['LOW', 'MEDIUM', 'HIGH', 'URGENT']
+    matter: {
+      control: 'object',
+      description: 'Matter data for the card'
     },
-    'viewPreferences.cardSize': {
-      control: 'select', 
-      options: ['compact', 'normal', 'expanded']
+    viewPreferences: {
+      control: 'object',
+      description: 'View preferences for the card'
     },
     isDragging: {
-      control: 'boolean'
-    },
-    'viewPreferences.showAvatars': {
-      control: 'boolean'
-    },
-    'viewPreferences.showDueDates': {
-      control: 'boolean'
-    },
-    'viewPreferences.showPriority': {
-      control: 'boolean'
-    },
-    'viewPreferences.showTags': {
       control: 'boolean'
     }
   },

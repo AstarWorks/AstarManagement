@@ -1,4 +1,5 @@
 import { computed } from 'vue'
+import type { Matter } from '~/types/matter'
 import { useBoardStore } from './board'
 import { useMatterStore } from './matters'
 import { useSearchStore } from './search'
@@ -123,8 +124,9 @@ export const useKanbanStore = () => {
     // Apply UI preference filters
     const { viewPreferences } = uiStore
     
-    // Group matters by the selected grouping
-    const grouped = matters.reduce((groups, matter) => {
+    // Group matters by the selected grouping (create mutable copy)
+    const mutableMatters = [...matters]
+    const grouped = mutableMatters.reduce((groups, matter) => {
       let groupKey: string
       
       switch (viewPreferences.groupBy) {
@@ -134,12 +136,10 @@ export const useKanbanStore = () => {
         case 'priority':
           groupKey = matter.priority
           break
-        case 'assignee':
-          groupKey = matter.assignedLawyer?.name || 'Unassigned'
+        case 'lawyer':
+          groupKey = typeof matter.assignedLawyer === 'string' ? matter.assignedLawyer : matter.assignedLawyer?.name || 'Unassigned'
           break
-        case 'client':
-          groupKey = matter.clientName
-          break
+        case 'none':
         default:
           groupKey = matter.status
       }
@@ -150,17 +150,17 @@ export const useKanbanStore = () => {
       groups[groupKey].push(matter)
       
       return groups
-    }, {} as Record<string, typeof matters>)
+    }, {} as Record<string, Matter[]>)
     
     // Sort within each group
     Object.keys(grouped).forEach(key => {
-      grouped[key].sort((a, b) => {
+      grouped[key].sort((a: Matter, b: Matter) => {
         const { sortBy, sortOrder } = viewPreferences
         let aValue: any, bValue: any
         
         switch (sortBy) {
           case 'priority':
-            const priorityOrder = { 'URGENT': 4, 'HIGH': 3, 'MEDIUM': 2, 'LOW': 1 }
+            const priorityOrder: Record<string, number> = { 'URGENT': 4, 'HIGH': 3, 'MEDIUM': 2, 'LOW': 1 }
             aValue = priorityOrder[a.priority] || 0
             bValue = priorityOrder[b.priority] || 0
             break
@@ -207,7 +207,7 @@ export const useKanbanStore = () => {
       }).length,
       assignedToMe: matters.filter(m => {
         // TODO: Replace with actual current user check
-        return m.assignedLawyer?.id === 'current-user-id'
+        return typeof m.assignedLawyer === 'object' && m.assignedLawyer?.id === 'current-user-id'
       }).length
     }
   })
@@ -285,6 +285,7 @@ export const useKanbanStore = () => {
     matters: matterStore.matters,
     mattersByStatus: matterStore.mattersByStatus,
     filteredMatters: getFilteredMatters,
+    isLoading: matterStore.loadingStatus,
 
     // Search state
     searchQuery: searchStore.filters,

@@ -5,6 +5,9 @@ import { useKanbanDragDrop } from '~/composables/useKanbanDragDrop'
 import { useTouchGestures } from '~/composables/useTouchGestures'
 import { useBreakpoints } from '@vueuse/core'
 
+// Development mode flag
+const $dev = process.env.NODE_ENV === 'development'
+
 // Props for progressive enhancement
 interface Props {
   matters: MatterCard[]
@@ -164,11 +167,11 @@ const dragOverlayStyle = computed(() => {
   }
   
   return {
-    position: 'fixed',
+    position: 'fixed' as const,
     left: `${dragStartPosition.value.x + dragOffset.value.x}px`,
     top: `${dragStartPosition.value.y + dragOffset.value.y}px`,
     zIndex: 1000,
-    pointerEvents: 'none',
+    pointerEvents: 'none' as const,
     transform: 'rotate(5deg)',
     opacity: 0.9
   }

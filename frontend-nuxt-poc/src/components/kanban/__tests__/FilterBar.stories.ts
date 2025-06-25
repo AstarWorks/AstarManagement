@@ -1,12 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/vue3'
 import { ref } from 'vue'
 import FilterBar from '../FilterBar.vue'
-import type { FilterState, MatterCard, MatterPriority, MatterStatus } from '~/types/matter'
+import type { FilterState, MatterCard, MatterPriority, MatterStatus } from '~/types/kanban'
 
 // Mock data generators
 const generateMockMatters = (count: number): MatterCard[] => {
-  const statuses: MatterStatus[] = ['draft', 'active', 'on_hold', 'completed', 'archived']
-  const priorities: MatterPriority[] = ['low', 'medium', 'high', 'urgent']
+  const statuses: MatterStatus[] = ['INTAKE', 'INITIAL_REVIEW', 'IN_PROGRESS', 'REVIEW', 'READY_FILING']
+  const priorities: MatterPriority[] = ['LOW', 'MEDIUM', 'HIGH', 'URGENT']
   const lawyers = ['田中弁護士', '佐藤弁護士', '山田弁護士', '中村弁護士', '小林弁護士']
   const clients = ['ABC商事', 'XYZ銀行', '123不動産', 'DEF製薬', 'GHI建設']
 
@@ -343,8 +343,8 @@ export const FilterPersistence: Story = {
       const filters = ref<FilterState>({
         searchQuery: 'Test persistence',
         selectedLawyers: ['田中弁護士', '佐藤弁護士'],
-        selectedPriorities: ['high', 'urgent'],
-        selectedStatuses: ['active'],
+        selectedPriorities: ['HIGH', 'URGENT'],
+        selectedStatuses: ['INITIAL_REVIEW'],
         showClosed: false,
         searchMode: 'fuzzy'
       })

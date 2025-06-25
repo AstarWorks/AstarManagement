@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed, readonly, watch } from 'vue'
 import { debounce } from 'lodash-es'
 import type { Matter, MatterStatus, MatterPriority } from '~/types/kanban'
+import { useMatterStore } from './matters'
 
 export interface SearchFilters {
   query: string
@@ -67,7 +68,7 @@ export const useSearchStore = defineStore('kanban-search', () => {
   const quickFilters = ref<Array<{ id: string; label: string; filters: Partial<SearchFilters> }>>([
     { id: 'overdue', label: 'Overdue', filters: { dateRange: { from: null, to: new Date().toISOString().split('T')[0], field: 'dueDate' } } },
     { id: 'high-priority', label: 'High Priority', filters: { priorities: ['HIGH', 'URGENT'] } },
-    { id: 'active', label: 'Active', filters: { statuses: ['FILED', 'DISCOVERY', 'TRIAL_PREP'] } },
+    { id: 'active', label: 'Active', filters: { statuses: ['IN_PROGRESS', 'REVIEW', 'WAITING_CLIENT'] } },
     { id: 'recent', label: 'Recent', filters: { dateRange: { from: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], to: null, field: 'createdAt' } } }
   ])
 
@@ -106,7 +107,9 @@ export const useSearchStore = defineStore('kanban-search', () => {
       // Limit cache size
       if (searchCache.value.size > 50) {
         const firstKey = searchCache.value.keys().next().value
-        searchCache.value.delete(firstKey)
+        if (firstKey) {
+          searchCache.value.delete(firstKey)
+        }
       }
       
       return searchResult
@@ -131,7 +134,7 @@ export const useSearchStore = defineStore('kanban-search', () => {
           matter.clientName,
           matter.opponentName,
           matter.description,
-          matter.assignedLawyer?.name,
+          typeof matter.assignedLawyer === 'string' ? matter.assignedLawyer : matter.assignedLawyer?.name,
           matter.assignedClerk?.name,
           ...(matter.tags || [])
         ].filter(Boolean).join(' ').toLowerCase()
@@ -157,7 +160,7 @@ export const useSearchStore = defineStore('kanban-search', () => {
     // Apply lawyer filters
     if (searchFilters.lawyers.length > 0) {
       filteredMatters = filteredMatters.filter(matter =>
-        matter.assignedLawyer && searchFilters.lawyers.includes(matter.assignedLawyer.id)
+        matter.assignedLawyer && typeof matter.assignedLawyer === 'object' && searchFilters.lawyers.includes(matter.assignedLawyer.id)
       )
     }
 
@@ -205,7 +208,7 @@ export const useSearchStore = defineStore('kanban-search', () => {
       lawyers: filteredMatters
         .filter(m => m.assignedLawyer)
         .reduce((acc, m) => {
-          const lawyer = m.assignedLawyer!.name
+          const lawyer = typeof m.assignedLawyer === 'string' ? m.assignedLawyer : m.assignedLawyer!.name
           acc[lawyer] = (acc[lawyer] || 0) + 1
           return acc
         }, {} as Record<string, number>),
@@ -222,11 +225,11 @@ export const useSearchStore = defineStore('kanban-search', () => {
       matters: filteredMatters,
       totalCount: filteredMatters.length,
       facets: {
-        statuses: Object.entries(facets.statuses).map(([status, count]) => ({ status: status as MatterStatus, count })),
-        priorities: Object.entries(facets.priorities).map(([priority, count]) => ({ priority: priority as MatterPriority, count })),
-        lawyers: Object.entries(facets.lawyers).map(([lawyer, count]) => ({ lawyer, count })),
-        clients: Object.entries(facets.clients).map(([client, count]) => ({ client, count })),
-        tags: Object.entries(facets.tags).map(([tag, count]) => ({ tag, count }))
+        statuses: Object.entries(facets.statuses).map(([status, count]) => ({ status: status as MatterStatus, count: count as number })),
+        priorities: Object.entries(facets.priorities).map(([priority, count]) => ({ priority: priority as MatterPriority, count: count as number })),
+        lawyers: Object.entries(facets.lawyers).map(([lawyer, count]) => ({ lawyer, count: count as number })),
+        clients: Object.entries(facets.clients).map(([client, count]) => ({ client, count: count as number })),
+        tags: Object.entries(facets.tags).map(([tag, count]) => ({ tag, count: count as number }))
       }
     }
   }
@@ -280,9 +283,9 @@ export const useSearchStore = defineStore('kanban-search', () => {
 
     // Matter title suggestions
     matters
-      .filter(m => m.title.toLowerCase().includes(lowercaseQuery))
+      .filter((m: Matter) => m.title.toLowerCase().includes(lowercaseQuery))
       .slice(0, 5)
-      .forEach(matter => {
+      .forEach((matter: Matter) => {
         suggestions.push({
           id: `matter-${matter.id}`,
           type: 'matter',
@@ -292,12 +295,12 @@ export const useSearchStore = defineStore('kanban-search', () => {
       })
 
     // Client suggestions
-    const clients = [...new Set(matters.map(m => m.clientName))]
-      .filter(client => client.toLowerCase().includes(lowercaseQuery))
+    const clients = [...new Set(matters.map((m: Matter) => m.clientName))]
+      .filter((client: string) => client.toLowerCase().includes(lowercaseQuery))
       .slice(0, 3)
     
-    clients.forEach(client => {
-      const count = matters.filter(m => m.clientName === client).length
+    clients.forEach((client: string) => {
+      const count = matters.filter((m: Matter) => m.clientName === client).length
       suggestions.push({
         id: `client-${client}`,
         type: 'client',
@@ -307,12 +310,17 @@ export const useSearchStore = defineStore('kanban-search', () => {
     })
 
     // Lawyer suggestions
-    const lawyers = [...new Set(matters.filter(m => m.assignedLawyer).map(m => m.assignedLawyer!.name))]
-      .filter(lawyer => lawyer.toLowerCase().includes(lowercaseQuery))
+    const lawyers = [...new Set(matters.filter((m: Matter) => m.assignedLawyer).map((m: Matter) => 
+      typeof m.assignedLawyer === 'string' ? m.assignedLawyer : m.assignedLawyer!.name
+    ))]
+      .filter((lawyer: string) => lawyer.toLowerCase().includes(lowercaseQuery))
       .slice(0, 3)
     
-    lawyers.forEach(lawyer => {
-      const count = matters.filter(m => m.assignedLawyer?.name === lawyer).length
+    lawyers.forEach((lawyer: string) => {
+      const count = matters.filter((m: Matter) => {
+        const lawyerName = typeof m.assignedLawyer === 'string' ? m.assignedLawyer : m.assignedLawyer?.name
+        return lawyerName === lawyer
+      }).length
       suggestions.push({
         id: `lawyer-${lawyer}`,
         type: 'lawyer',
@@ -323,9 +331,9 @@ export const useSearchStore = defineStore('kanban-search', () => {
 
     // Case number suggestions
     matters
-      .filter(m => m.caseNumber.toLowerCase().includes(lowercaseQuery))
+      .filter((m: Matter) => m.caseNumber.toLowerCase().includes(lowercaseQuery))
       .slice(0, 3)
-      .forEach(matter => {
+      .forEach((matter: Matter) => {
         suggestions.push({
           id: `case-${matter.id}`,
           type: 'case_number',
@@ -404,16 +412,19 @@ export const useSearchStore = defineStore('kanban-search', () => {
   }
 
   // Auto-suggest on query change
+  const debouncedGenerateSuggestions = debounce(async (query: string) => {
+    if (query.trim().length >= 2) {
+      searchSuggestions.value = await generateSuggestions(query)
+    } else {
+      searchSuggestions.value = []
+    }
+  }, 150)
+
   watch(
     () => filters.value.query,
-    async (newQuery) => {
-      if (newQuery.trim().length >= 2) {
-        searchSuggestions.value = await generateSuggestions(newQuery)
-      } else {
-        searchSuggestions.value = []
-      }
-    },
-    { debounce: 150 }
+    (newQuery) => {
+      debouncedGenerateSuggestions(newQuery)
+    }
   )
 
   // Helper functions

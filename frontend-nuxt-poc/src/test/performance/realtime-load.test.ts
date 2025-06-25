@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { useKanbanStore } from '~/stores/kanban'
 import { useRealTimeStore } from '~/stores/kanban/real-time'
+import type { MatterStatus } from '~/types/kanban'
 
 describe('Real-Time Performance', () => {
   beforeEach(() => {
@@ -17,13 +18,15 @@ describe('Real-Time Performance', () => {
       id: `card-${i}`,
       title: `Card ${i}`,
       description: `Description for card ${i}`,
-      status: 'todo' as const,
-      priority: 'medium' as const,
+      caseNumber: `CASE-${i}`,
+      clientName: `Client ${i}`,
+      status: 'INTAKE' as const,
+      priority: 'MEDIUM' as const,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }))
     
-    kanbanStore.cards = initialCards
+    initialCards.forEach(card => kanbanStore._modularStore.stores.matters.addCard(card))
     
     // Generate rapid updates
     const updates = Array.from({ length: 100 }, (_, i) => ({
@@ -43,7 +46,7 @@ describe('Real-Time Performance', () => {
     
     // Process all updates
     updates.forEach(update => {
-      realTimeStore.handleRealtimeEvent(update)
+      realTimeStore.handleRealtimeUpdate(update)
     })
     
     const endTime = performance.now()
@@ -59,33 +62,26 @@ describe('Real-Time Performance', () => {
   it('should efficiently handle concurrent card movements', () => {
     const kanbanStore = useKanbanStore()
     
-    // Create initial board state
-    kanbanStore.columns = [
-      { id: 'todo', title: 'To Do', order: 0 },
-      { id: 'in-progress', title: 'In Progress', order: 1 },
-      { id: 'done', title: 'Done', order: 2 }
-    ]
-    
     // Add cards to columns
     const cards = Array.from({ length: 30 }, (_, i) => ({
       id: `card-${i}`,
       title: `Card ${i}`,
       description: '',
-      status: i < 10 ? 'todo' : i < 20 ? 'in-progress' : 'done',
-      priority: 'medium' as const,
-      columnId: i < 10 ? 'todo' : i < 20 ? 'in-progress' : 'done',
-      order: i % 10,
+      caseNumber: `CASE-${i}`,
+      clientName: `Client ${i}`,
+      status: (i < 10 ? 'INTAKE' : i < 20 ? 'INITIAL_REVIEW' : 'IN_PROGRESS') as MatterStatus,
+      priority: 'MEDIUM' as const,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }))
     
-    kanbanStore.cards = cards
+    cards.forEach(card => kanbanStore._modularStore.stores.matters.addCard(card))
     
     // Simulate 50 concurrent card movements
     const movements = Array.from({ length: 50 }, (_, i) => ({
       cardId: `card-${i % 30}`,
-      fromColumn: cards[i % 30].columnId,
-      toColumn: ['todo', 'in-progress', 'done'][Math.floor(Math.random() * 3)],
+      fromColumn: cards[i % 30].status,
+      toColumn: ['INTAKE', 'INITIAL_REVIEW', 'FILED'][Math.floor(Math.random() * 3)],
       newOrder: Math.floor(Math.random() * 10)
     }))
     
@@ -93,7 +89,7 @@ describe('Real-Time Performance', () => {
     
     movements.forEach(move => {
       if (move.fromColumn !== move.toColumn) {
-        kanbanStore.moveCard(move.cardId, move.fromColumn, move.toColumn, move.newOrder)
+        kanbanStore._modularStore.stores.matters.moveCard(move.cardId, move.fromColumn, move.toColumn)
       }
     })
     
@@ -120,7 +116,7 @@ describe('Real-Time Performance', () => {
     const startTime = performance.now()
     
     events.forEach(event => {
-      realTimeStore.realtimeEvents.unshift(event)
+      realTimeStore.addEvent(event)
     })
     
     // Access recent events (should be optimized)
@@ -146,7 +142,7 @@ describe('Real-Time Performance', () => {
       changes: {
         title: `Batch Updated Card ${i}`,
         description: `Updated description ${i}`,
-        priority: ['low', 'medium', 'high'][i % 3],
+        priority: (['LOW', 'MEDIUM', 'HIGH'][i % 3]) as any,
         updatedAt: new Date().toISOString()
       }
     }))
@@ -155,7 +151,7 @@ describe('Real-Time Performance', () => {
     
     // Process updates in batch
     batchUpdates.forEach(({ id, changes }) => {
-      kanbanStore.updateCard(id, changes)
+      kanbanStore._modularStore.stores.matters.updateCard(id, changes)
     })
     
     const endTime = performance.now()

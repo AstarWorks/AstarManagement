@@ -175,7 +175,7 @@ export const useUIPreferencesStore = defineStore('kanban-ui-preferences', () => 
   }
 
   const toggleGroupBy = () => {
-    const options: ViewPreferences['groupBy'][] = ['status', 'priority', 'assignee', 'client']
+    const options: ViewPreferences['groupBy'][] = ['status', 'priority', 'lawyer', 'none']
     const currentIndex = options.indexOf(viewPreferences.value.groupBy)
     const nextIndex = (currentIndex + 1) % options.length
     updateViewPreferences({ groupBy: options[nextIndex] })

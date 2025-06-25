@@ -48,7 +48,7 @@ const emit = defineEmits<{
 }>()
 
 // 6. Template refs
-const cardRef = ref<HTMLElement>()
+const cardRef = ref<HTMLElement | null>(null)
 
 // 7. Reactive state and computed properties
 const { matter, viewPreferences, isDragging } = toRefs(props)
@@ -447,7 +447,7 @@ const dragAttributes = computed(() => ({
               :aria-label="`Assigned lawyer: ${matter.assignedLawyer.name}`"
             >
               <AvatarImage 
-                :src="matter.assignedLawyer.avatar" 
+                :src="matter.assignedLawyer.avatar || ''" 
                 :alt="matter.assignedLawyer.name"
               />
               <AvatarFallback class="text-xs bg-blue-100 text-blue-700">
@@ -461,7 +461,7 @@ const dragAttributes = computed(() => ({
               :aria-label="`Assigned clerk: ${matter.assignedClerk.name}`"
             >
               <AvatarImage 
-                :src="matter.assignedClerk.avatar"
+                :src="matter.assignedClerk.avatar || ''"
                 :alt="matter.assignedClerk.name" 
               />
               <AvatarFallback class="text-xs bg-green-100 text-green-700">

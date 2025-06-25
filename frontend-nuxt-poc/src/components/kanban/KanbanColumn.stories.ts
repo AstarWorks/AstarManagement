@@ -1,11 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/vue3'
 import KanbanColumn from './KanbanColumn.vue'
 import { DEFAULT_KANBAN_COLUMNS } from '~/constants/kanban'
-import type { Matter } from '~/types/matter'
+import type { MatterCard, MatterPriority } from '~/types/kanban'
 import { ref } from 'vue'
 
 // Mock matters for the column
-const mockMatters: Matter[] = [
+const mockMatters: MatterCard[] = [
   {
     id: 'matter-1',
     caseNumber: '2025-CV-0001',
@@ -13,9 +13,13 @@ const mockMatters: Matter[] = [
     description: 'Commercial contract disagreement requiring urgent review and potential litigation',
     clientName: 'ABC Corporation',
     opponentName: 'XYZ Holdings',
-    assignedLawyer: 'Jane Smith',
+    assignedLawyer: {
+      id: 'lawyer-1',
+      name: 'Jane Smith',
+      initials: 'JS'
+    },
     status: 'INTAKE',
-    priority: 'high',
+    priority: 'HIGH' as MatterPriority,
     dueDate: '2025-07-15',
     createdAt: '2025-06-01T10:00:00Z',
     updatedAt: '2025-06-22T16:00:00Z',
@@ -28,9 +32,13 @@ const mockMatters: Matter[] = [
     title: 'Personal Injury Claim',
     description: 'Slip and fall incident at commercial property',
     clientName: 'John Doe',
-    assignedLawyer: 'Robert Johnson',
+    assignedLawyer: {
+      id: 'lawyer-2',
+      name: 'Robert Johnson',
+      initials: 'RJ'
+    },
     status: 'INTAKE',
-    priority: 'medium',
+    priority: 'MEDIUM' as MatterPriority,
     dueDate: '2025-08-01',
     createdAt: '2025-06-10T14:30:00Z',
     updatedAt: '2025-06-22T16:00:00Z',
@@ -43,9 +51,13 @@ const mockMatters: Matter[] = [
     title: 'Employment Law Issue',
     description: 'Wrongful termination claim',
     clientName: 'Sarah Wilson',
-    assignedLawyer: 'Emily Brown',
+    assignedLawyer: {
+      id: 'lawyer-3',
+      name: 'Emily Brown',
+      initials: 'EB'
+    },
     status: 'INTAKE',
-    priority: 'urgent',
+    priority: 'URGENT' as MatterPriority,
     dueDate: '2025-07-01',
     createdAt: '2025-06-05T09:15:00Z',
     updatedAt: '2025-06-22T16:00:00Z',
@@ -146,8 +158,8 @@ export const InCourt: Story = {
     matters: [
       {
         ...mockMatters[2],
-        status: 'TRIAL',
-        priority: 'urgent',
+        status: 'IN_PROGRESS',
+        priority: 'URGENT' as MatterPriority,
         title: 'High-Stakes Litigation Case',
         dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString() // 2 days from now
       }
@@ -163,7 +175,7 @@ export const Settlement: Story = {
     matters: [
       {
         ...mockMatters[1],
-        status: 'SETTLEMENT',
+        status: 'REVIEW',
         title: 'Mediation in Progress',
         description: 'Settlement negotiations ongoing with opposing counsel'
       }
@@ -182,7 +194,7 @@ export const Closed: Story = {
         status: 'CLOSED',
         title: 'Successfully Resolved Case',
         description: 'Favorable settlement reached for client',
-        priority: 'low'
+        priority: 'LOW' as MatterPriority
       }
     ],
     showJapanese: true
@@ -198,7 +210,7 @@ export const ManyMatters: Story = {
       id: `matter-${i + 1}`,
       caseNumber: `2025-CV-${String(i + 1).padStart(4, '0')}`,
       title: `Matter ${i + 1}: ${['Contract Review', 'Personal Injury', 'Employment Dispute', 'Real Estate Transaction', 'Family Law'][i % 5]}`,
-      priority: (['high', 'medium', 'low', 'urgent'] as const)[i % 4]
+      priority: (['HIGH', 'MEDIUM', 'LOW', 'URGENT'] as const)[i % 4]
     })),
     showJapanese: true
   }
@@ -208,7 +220,7 @@ export const ManyMatters: Story = {
 export const HighPriorityMatters: Story = {
   args: {
     column: DEFAULT_KANBAN_COLUMNS[0],
-    matters: mockMatters.map(matter => ({ ...matter, priority: 'high' as const })),
+    matters: mockMatters.map(matter => ({ ...matter, priority: 'HIGH' as const })),
     showJapanese: true
   }
 }
@@ -216,7 +228,7 @@ export const HighPriorityMatters: Story = {
 export const UrgentMatters: Story = {
   args: {
     column: DEFAULT_KANBAN_COLUMNS[0],
-    matters: mockMatters.map(matter => ({ ...matter, priority: 'urgent' as const })),
+    matters: mockMatters.map(matter => ({ ...matter, priority: 'URGENT' as const })),
     showJapanese: true
   }
 }
@@ -524,7 +536,7 @@ export const PerformanceOptimized: Story = {
       id: `perf-matter-${i + 1}`,
       caseNumber: `2025-PERF-${String(i + 1).padStart(4, '0')}`,
       title: `Performance Test Matter ${i + 1}`,
-      priority: (['high', 'medium', 'low', 'urgent'] as const)[i % 4]
+      priority: (['HIGH', 'MEDIUM', 'LOW', 'URGENT'] as const)[i % 4]
     })),
     showJapanese: true
   },

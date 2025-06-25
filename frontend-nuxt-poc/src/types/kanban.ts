@@ -2,11 +2,14 @@
 export interface KanbanColumn {
   id: string
   title: string
-  titleJa: string
-  status: MatterStatus[]
+  titleJa?: string
+  status: MatterStatus
   color: string
   order: number
-  isHidden?: boolean
+  visible: boolean
+  acceptsDrop: boolean
+  maxItems?: number
+  currentItemCount: number
 }
 
 export interface KanbanBoardProps {
@@ -29,19 +32,14 @@ export interface KanbanBoardEmits {
   tabChange: [index: number]
 }
 
-// Updated MatterStatus for 7 Japanese columns
+// Updated MatterStatus for 7-status workflow
 export type MatterStatus = 
   | 'INTAKE'
   | 'INITIAL_REVIEW'
-  | 'INVESTIGATION'
-  | 'RESEARCH'
-  | 'DRAFT_PLEADINGS'
-  | 'FILED'
-  | 'DISCOVERY'
-  | 'TRIAL_PREP'
-  | 'TRIAL'
-  | 'MEDIATION'
-  | 'SETTLEMENT'
+  | 'IN_PROGRESS'
+  | 'REVIEW'
+  | 'WAITING_CLIENT'
+  | 'READY_FILING'
   | 'CLOSED'
 
 // Enhanced Matter Card interface for kanban display
@@ -76,7 +74,7 @@ export interface MatterCard {
   statusDuration?: number // days in current status
   isOverdue?: boolean
   relatedDocuments?: number
-  tags?: string[]
+  tags?: readonly string[] | string[]
   
   // Search/highlight support
   searchHighlights?: Record<string, string[]>

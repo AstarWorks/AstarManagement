@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useBoardStore } from '../board'
-import type { KanbanColumn, DragContext } from '../board'
+import type { DragContext } from '../board'
+import type { KanbanColumn } from '~/types/kanban'
 
 describe('Board Store', () => {
   let store: ReturnType<typeof useBoardStore>
@@ -25,7 +26,7 @@ describe('Board Store', () => {
       const store = useBoardStore()
       const expectedStatuses = ['INTAKE', 'INITIAL_REVIEW', 'IN_PROGRESS', 'REVIEW', 'WAITING_CLIENT', 'READY_FILING', 'CLOSED']
       
-      store.columns.forEach((column, index) => {
+      store.columns.forEach((column: KanbanColumn, index: number) => {
         expect(column.status).toBe(expectedStatuses[index])
         expect(column.visible).toBe(true)
         expect(column.acceptsDrop).toBe(true)

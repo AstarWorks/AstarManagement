@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+// @ts-ignore - @pinia/testing types may not be fully aligned
 import { createTestingPinia } from '@pinia/testing'
-import { nextTick } from 'vue'
+import { nextTick, ref } from 'vue'
 import KanbanBoard from '~/components/kanban/KanbanBoard.vue'
 import { useKanbanStore } from '~/stores/kanban'
 import { useRealTimeStore } from '~/stores/kanban/real-time'
@@ -12,6 +13,7 @@ vi.mock('~/composables/useKanbanRealTime', () => ({
   useKanbanRealTime: () => ({
     updates: ref([]),
     loading: ref(false),
+    error: ref(null),
     lastUpdated: ref(new Date()),
     start: vi.fn(),
     stop: vi.fn(),
@@ -140,6 +142,7 @@ describe('Kanban Real-Time Integration', () => {
     vi.mocked(useKanbanRealTime).mockReturnValue({
       updates: ref([]),
       loading: ref(false),
+      error: ref(null),
       lastUpdated: ref(new Date()),
       start: startMock,
       stop: vi.fn(),
@@ -173,6 +176,7 @@ describe('Kanban Real-Time Integration', () => {
     vi.mocked(useKanbanRealTime).mockReturnValue({
       updates: ref([]),
       loading: ref(false),
+      error: ref(null),
       lastUpdated: ref(new Date()),
       start: vi.fn(),
       stop: stopMock,

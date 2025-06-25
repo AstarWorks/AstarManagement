@@ -213,8 +213,8 @@ export const useMatterStore = defineStore('kanban-matters', () => {
 
     return updateMatter(matterId, {
       status: newStatus,
-      statusUpdatedAt: new Date().toISOString(),
-      ...(newIndex !== undefined && { sortOrder: newIndex })
+      updatedAt: new Date().toISOString(),
+      ...(newIndex !== undefined && { statusDuration: newIndex })
     })
   }
 
@@ -302,7 +302,7 @@ export const useMatterStore = defineStore('kanban-matters', () => {
       matter.status = toColumn as MatterStatus
       matter.updatedAt = new Date().toISOString()
       if (newIndex !== undefined) {
-        matter.sortOrder = newIndex
+        matter.statusDuration = newIndex
       }
     }
   }
@@ -396,7 +396,7 @@ export const useMatterStore = defineStore('kanban-matters', () => {
 
   const getMattersByLawyer = computed(() => {
     return (lawyerId: string) => 
-      matters.value.filter(m => m.assignedLawyer?.id === lawyerId)
+      matters.value.filter(m => typeof m.assignedLawyer === 'object' && m.assignedLawyer?.id === lawyerId)
   })
 
   const getMattersByPriority = computed(() => {
@@ -461,7 +461,7 @@ export const useMatterStore = defineStore('kanban-matters', () => {
 
 // Demo data generator (enhanced from original)
 function generateDemoMatters(): Matter[] {
-  const statuses: MatterStatus[] = ['INTAKE', 'INITIAL_REVIEW', 'FILED', 'DISCOVERY', 'TRIAL_PREP', 'TRIAL', 'SETTLEMENT', 'COMPLETED', 'CLOSED']
+  const statuses: MatterStatus[] = ['INTAKE', 'INITIAL_REVIEW', 'IN_PROGRESS', 'REVIEW', 'WAITING_CLIENT', 'READY_FILING', 'CLOSED']
   const priorities: MatterPriority[] = ['LOW', 'MEDIUM', 'HIGH', 'URGENT']
   const lawyers = [
     { id: 'lawyer1', name: 'Sarah Johnson', initials: 'SJ' },

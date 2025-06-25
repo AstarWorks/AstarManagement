@@ -328,6 +328,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/comp
 import { useAdvancedSearch } from '~/composables/useAdvancedSearch'
 import { useFilterPersistence } from '~/composables/useFilterPersistence'
 
+// Stores
+import { useKanbanStore } from '~/stores/kanban/index'
+
 // Types
 import type { FilterState, Priority, MatterStatus, SearchSuggestion, Matter } from '~/types/matter'
 
@@ -357,7 +360,8 @@ const emit = defineEmits<{
 
 // Store integration
 const kanbanStore = useKanbanStore()
-const { filteredMatters, isLoading } = storeToRefs(kanbanStore)
+const filteredMatters = kanbanStore.filteredMatters
+const isLoading = kanbanStore.isLoading
 
 // Composables
 const {
@@ -429,13 +433,16 @@ const availableLawyers = computed(() => {
   
   props.matters.forEach(matter => {
     if (matter.assignedLawyer) {
-      const existing = lawyerMap.get(matter.assignedLawyer)
+      const lawyerId = typeof matter.assignedLawyer === 'string' ? matter.assignedLawyer : matter.assignedLawyer.id
+      const lawyerName = typeof matter.assignedLawyer === 'string' ? matter.assignedLawyer : matter.assignedLawyer.name
+      
+      const existing = lawyerMap.get(lawyerId)
       if (existing) {
         existing.caseCount++
       } else {
-        lawyerMap.set(matter.assignedLawyer, {
-          id: matter.assignedLawyer,
-          name: matter.assignedLawyer,
+        lawyerMap.set(lawyerId, {
+          id: lawyerId,
+          name: lawyerName,
           caseCount: 1
         })
       }

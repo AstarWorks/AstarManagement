@@ -22,14 +22,6 @@ const meta: Meta<typeof MobileKanbanNav> = {
       control: 'text',
       description: 'Currently active column ID'
     },
-    showActionBar: {
-      control: 'boolean',
-      description: 'Show action bar with search, filter, and add buttons'
-    },
-    showScrollIndicators: {
-      control: 'boolean',
-      description: 'Show scroll indicators for tab navigation'
-    }
   },
   tags: ['autodocs']
 }
@@ -39,21 +31,19 @@ type Story = StoryObj<typeof meta>
 
 // Mock columns data
 const mockColumns = [
-  { id: 'intake', title: 'Initial Consultation', titleJa: '初回相談', color: 'blue', count: 5 },
-  { id: 'prep', title: 'Document Preparation', titleJa: '書類準備', color: 'yellow', count: 3 },
-  { id: 'filed', title: 'Filed', titleJa: '提出済み', color: 'green', count: 8 },
-  { id: 'progress', title: 'In Progress', titleJa: '進行中', color: 'purple', count: 12 },
-  { id: 'court', title: 'In Court', titleJa: '法廷審理', color: 'red', count: 2 },
-  { id: 'settlement', title: 'Settlement Discussion', titleJa: '和解協議', color: 'orange', count: 4 },
-  { id: 'closed', title: 'Closed', titleJa: '終了', color: 'gray', count: 15 }
+  { id: 'intake', title: 'Initial Consultation', titleJa: '初回相談', status: 'INTAKE' as const, color: 'blue', order: 0, visible: true, acceptsDrop: true, currentItemCount: 5 },
+  { id: 'prep', title: 'Document Preparation', titleJa: '書類準備', status: 'INITIAL_REVIEW' as const, color: 'yellow', order: 1, visible: true, acceptsDrop: true, currentItemCount: 3 },
+  { id: 'filed', title: 'Filed', titleJa: '提出済み', status: 'IN_PROGRESS' as const, color: 'green', order: 2, visible: true, acceptsDrop: true, currentItemCount: 8 },
+  { id: 'progress', title: 'In Progress', titleJa: '進行中', status: 'REVIEW' as const, color: 'purple', order: 3, visible: true, acceptsDrop: true, currentItemCount: 12 },
+  { id: 'court', title: 'In Court', titleJa: '法廷審理', status: 'WAITING_CLIENT' as const, color: 'red', order: 4, visible: true, acceptsDrop: true, currentItemCount: 2 },
+  { id: 'settlement', title: 'Settlement Discussion', titleJa: '和解協議', status: 'READY_FILING' as const, color: 'orange', order: 5, visible: true, acceptsDrop: true, currentItemCount: 4 },
+  { id: 'closed', title: 'Closed', titleJa: '終了', status: 'CLOSED' as const, color: 'gray', order: 6, visible: true, acceptsDrop: true, currentItemCount: 15 }
 ]
 
 export const Default: Story = {
   args: {
     columns: mockColumns,
     activeColumnId: 'progress',
-    showActionBar: true,
-    showScrollIndicators: true
   },
   parameters: {
     viewport: {
@@ -146,8 +136,6 @@ export const JapaneseLabels: Story = {
   args: {
     columns: mockColumns,
     activeColumnId: 'court',
-    showActionBar: true,
-    showScrollIndicators: true,
     showJapanese: true
   },
   parameters: {
@@ -166,8 +154,6 @@ export const MinimalView: Story = {
   args: {
     columns: mockColumns.slice(0, 4), // Fewer columns
     activeColumnId: 'prep',
-    showActionBar: false,
-    showScrollIndicators: false
   },
   parameters: {
     viewport: {
@@ -185,14 +171,12 @@ export const ManyColumns: Story = {
   args: {
     columns: [
       ...mockColumns,
-      { id: 'review', title: 'Document Review', titleJa: '書類審査', color: 'indigo', count: 6 },
-      { id: 'negotiation', title: 'Negotiation', titleJa: '交渉', color: 'pink', count: 3 },
-      { id: 'appeal', title: 'Appeal Process', titleJa: '控訴手続き', color: 'teal', count: 1 },
-      { id: 'enforcement', title: 'Enforcement', titleJa: '執行', color: 'amber', count: 2 }
+      { id: 'review', title: 'Document Review', titleJa: '書類審査', status: 'REVIEW' as const, color: 'indigo', order: 7, visible: true, acceptsDrop: true, currentItemCount: 6 },
+      { id: 'negotiation', title: 'Negotiation', titleJa: '交渉', status: 'IN_PROGRESS' as const, color: 'pink', order: 8, visible: true, acceptsDrop: true, currentItemCount: 3 },
+      { id: 'appeal', title: 'Appeal Process', titleJa: '控訴手続き', status: 'WAITING_CLIENT' as const, color: 'teal', order: 9, visible: true, acceptsDrop: true, currentItemCount: 1 },
+      { id: 'enforcement', title: 'Enforcement', titleJa: '執行', status: 'READY_FILING' as const, color: 'amber', order: 10, visible: true, acceptsDrop: true, currentItemCount: 2 }
     ],
     activeColumnId: 'negotiation',
-    showActionBar: true,
-    showScrollIndicators: true
   },
   parameters: {
     viewport: {
@@ -210,8 +194,6 @@ export const LandscapeOrientation: Story = {
   args: {
     columns: mockColumns,
     activeColumnId: 'settlement',
-    showActionBar: true,
-    showScrollIndicators: true
   },
   parameters: {
     viewport: {
@@ -229,8 +211,6 @@ export const TabletView: Story = {
   args: {
     columns: mockColumns,
     activeColumnId: 'filed',
-    showActionBar: true,
-    showScrollIndicators: true
   },
   parameters: {
     viewport: {
@@ -255,7 +235,7 @@ export const AccessibilityDemo: Story = {
         activeColumn.value = columnId
         const column = args.columns.find(c => c.id === columnId)
         if (column) {
-          announcements.value.unshift(`Switched to ${column.title} column with ${column.count} matters`)
+          announcements.value.unshift(`Switched to ${column.title} column with ${column.currentItemCount} matters`)
           if (announcements.value.length > 3) {
             announcements.value.pop()
           }
@@ -355,12 +335,14 @@ export const PerformanceTest: Story = {
       id: `column-${i}`,
       title: `Column ${i + 1}`,
       titleJa: `列${i + 1}`,
+      status: (['INTAKE', 'INITIAL_REVIEW', 'IN_PROGRESS', 'REVIEW', 'WAITING_CLIENT', 'READY_FILING', 'CLOSED'] as const)[i % 7],
       color: ['blue', 'green', 'yellow', 'red', 'purple', 'orange', 'gray'][i % 7],
-      count: Math.floor(Math.random() * 20) + 1
+      order: i,
+      visible: true,
+      acceptsDrop: true,
+      currentItemCount: Math.floor(Math.random() * 20) + 1
     })),
     activeColumnId: 'column-7',
-    showActionBar: true,
-    showScrollIndicators: true
   },
   parameters: {
     viewport: {

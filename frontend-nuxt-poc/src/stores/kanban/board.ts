@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed, readonly } from 'vue'
-import type { KanbanBoard, KanbanColumn, MatterStatus } from '~/types/kanban'
-import { DEFAULT_COLUMNS } from '~/constants/kanban'
+import type { KanbanColumn, MatterStatus } from '~/types/kanban'
+import { DEFAULT_KANBAN_COLUMNS } from '~/constants/kanban'
 
 export interface DragContext {
   activeId: string | null
@@ -14,7 +14,7 @@ export interface DragContext {
 
 export const useBoardStore = defineStore('kanban-board', () => {
   // State
-  const board = ref<KanbanBoard | null>(null)
+  const board = ref<any | null>(null)
   const columns = ref<KanbanColumn[]>([])
   
   // Initialize board on store creation
@@ -34,9 +34,9 @@ export const useBoardStore = defineStore('kanban-board', () => {
   })
 
   // Actions
-  const initializeBoard = (boardData?: Partial<KanbanBoard>) => {
+  const initializeBoard = (boardData?: Partial<any>) => {
     // Reset columns to fresh defaults (deep copy to avoid mutation)
-    columns.value = DEFAULT_COLUMNS.map(col => ({ ...col }))
+    columns.value = DEFAULT_KANBAN_COLUMNS.map((col: any) => ({ ...col }))
     
     board.value = {
       id: boardData?.id || 'default-board',
@@ -68,7 +68,7 @@ export const useBoardStore = defineStore('kanban-board', () => {
       activeId: typeof item === 'string' ? item : item?.id,
       isDragging: true,
       draggedItem: item,
-      dragStartTime: new Date(),
+      dragStartTime: Date.now(),
       dragPreview: null
     })
     
@@ -102,7 +102,7 @@ export const useBoardStore = defineStore('kanban-board', () => {
     return context
   }
 
-  const updateBoardSettings = (settings: Partial<KanbanBoard['settings']>) => {
+  const updateBoardSettings = (settings: Partial<any>) => {
     if (board.value) {
       board.value.settings = {
         ...board.value.settings,
@@ -224,7 +224,7 @@ export const useBoardStore = defineStore('kanban-board', () => {
   
   const dragDuration = computed(() => {
     if (!dragContext.value.dragStartTime) return 0
-    return Date.now() - dragContext.value.dragStartTime.getTime()
+    return Date.now() - dragContext.value.dragStartTime
   })
 
   const visibleColumns = computed(() => {

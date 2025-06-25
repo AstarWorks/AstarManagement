@@ -1,22 +1,7 @@
 import { ref, computed, readonly } from 'vue'
 import type { MatterCard, MatterStatus } from '~/types/kanban'
+import { MATTER_STATUS_TRANSITIONS } from '~/constants/kanban'
 import { useAccessibility } from '~/composables/useAccessibility'
-
-// Status transition rules - defines which status changes are allowed
-const MATTER_STATUS_TRANSITIONS: Record<MatterStatus, MatterStatus[]> = {
-  INTAKE: ['INITIAL_REVIEW', 'CLOSED'],
-  INITIAL_REVIEW: ['INVESTIGATION', 'RESEARCH', 'CLOSED'],
-  INVESTIGATION: ['RESEARCH', 'DRAFT_PLEADINGS', 'CLOSED'],
-  RESEARCH: ['DRAFT_PLEADINGS', 'INVESTIGATION', 'CLOSED'],
-  DRAFT_PLEADINGS: ['FILED', 'RESEARCH', 'CLOSED'],
-  FILED: ['DISCOVERY', 'TRIAL_PREP', 'MEDIATION', 'CLOSED'],
-  DISCOVERY: ['TRIAL_PREP', 'MEDIATION', 'SETTLEMENT', 'CLOSED'],
-  TRIAL_PREP: ['TRIAL', 'MEDIATION', 'SETTLEMENT', 'CLOSED'],
-  TRIAL: ['SETTLEMENT', 'CLOSED'],
-  MEDIATION: ['SETTLEMENT', 'TRIAL_PREP', 'CLOSED'],
-  SETTLEMENT: ['CLOSED'],
-  CLOSED: []
-}
 
 /**
  * Composable for handling Kanban drag-and-drop operations

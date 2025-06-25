@@ -60,7 +60,9 @@ const mockUIStore = {
   exportPreferences: vi.fn(),
   resetViewPreferences: vi.fn(),
   resetLayoutPreferences: vi.fn(),
-  toggleCompactMode: vi.fn()
+  toggleCompactMode: vi.fn(),
+  loadPreferences: vi.fn(),
+  savePreferences: vi.fn()
 }
 
 const mockRealTimeStore = {
@@ -342,7 +344,7 @@ describe('Unified Kanban Store', () => {
       const filtered = store.filteredMatters
       
       expect(Object.keys(filtered)).toContain('INTAKE')
-      expect(filtered.INTAKE).toHaveLength(1)
+      expect(filtered.value.INTAKE).toHaveLength(1)
     })
 
     it('should group matters by status', () => {
@@ -351,8 +353,8 @@ describe('Unified Kanban Store', () => {
       
       const filtered = store.filteredMatters
       
-      expect(filtered.INTAKE).toHaveLength(1)
-      expect(filtered.IN_PROGRESS).toHaveLength(1)
+      expect(filtered.value.INTAKE).toHaveLength(1)
+      expect(filtered.value.IN_PROGRESS).toHaveLength(1)
     })
 
     it('should group matters by priority', () => {
@@ -361,8 +363,8 @@ describe('Unified Kanban Store', () => {
       
       const filtered = store.filteredMatters
       
-      expect(filtered.HIGH).toHaveLength(1)
-      expect(filtered.MEDIUM).toHaveLength(1)
+      expect(filtered.value.HIGH).toHaveLength(1)
+      expect(filtered.value.MEDIUM).toHaveLength(1)
     })
 
     it('should group matters by assignee', () => {

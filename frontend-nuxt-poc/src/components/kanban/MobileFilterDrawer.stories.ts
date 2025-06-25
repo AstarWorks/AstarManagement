@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/vue3'
 import MobileFilterDrawer from './MobileFilterDrawer.vue'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import type { FilterState } from '~/types/matter'
+import type { MatterPriority, MatterStatus } from '~/types/kanban'
 
 const meta: Meta<typeof MobileFilterDrawer> = {
   title: 'Kanban/Mobile/MobileFilterDrawer',
@@ -40,12 +41,18 @@ type Story = StoryObj<typeof meta>
 
 // Mock data
 const mockFilters: FilterState = {
+  searchQuery: '',
+  selectedLawyers: [],
+  selectedPriorities: [],
+  selectedStatuses: [],
+  showClosed: false,
+  searchMode: 'fuzzy' as const,
   search: '',
   priority: [],
   status: [],
   assigneeIds: [],
   tags: [],
-  dateRange: null,
+  dateRange: undefined,
   showCompleted: false
 }
 
@@ -211,14 +218,20 @@ export const WithActiveFilters: Story = {
   args: {
     modelValue: true,
     filters: {
+      searchQuery: 'contract dispute',
+      selectedLawyers: ['lawyer1', 'lawyer2'],
+      selectedPriorities: ['HIGH', 'URGENT'] as MatterPriority[],
+      selectedStatuses: ['INTAKE', 'IN_PROGRESS'] as MatterStatus[],
+      showClosed: false,
+      searchMode: 'fuzzy' as const,
       search: 'contract dispute',
       priority: ['HIGH', 'URGENT'],
       status: ['ACTIVE', 'PENDING'],
       assigneeIds: ['lawyer1', 'lawyer2'],
       tags: ['Contract', 'Commercial', 'Urgent'],
       dateRange: {
-        start: '2025-06-01',
-        end: '2025-07-31'
+        start: new Date('2025-06-01'),
+        end: new Date('2025-07-31')
       },
       showCompleted: false
     },
@@ -356,12 +369,18 @@ export const LandscapeMode: Story = {
   args: {
     modelValue: true,
     filters: {
+      searchQuery: 'legal case',
+      selectedLawyers: [],
+      selectedPriorities: ['HIGH'] as MatterPriority[],
+      selectedStatuses: ['INTAKE'] as MatterStatus[],
+      showClosed: false,
+      searchMode: 'fuzzy' as const,
       search: 'legal case',
       priority: ['HIGH'],
       status: ['ACTIVE'],
       assigneeIds: [],
       tags: ['Contract'],
-      dateRange: null,
+      dateRange: undefined,
       showCompleted: false
     },
     availableTags: mockTags,

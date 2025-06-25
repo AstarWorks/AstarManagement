@@ -38,8 +38,8 @@ const emit = defineEmits<{
 }>()
 
 // Template refs
-const columnRef = ref<HTMLElement>()
-const scrollContainerRef = ref<HTMLElement>()
+const columnRef = ref<HTMLElement | null>(null)
+const scrollContainerRef = ref<HTMLElement | null>(null)
 
 // Responsive breakpoints
 const breakpoints = useBreakpoints({
@@ -96,7 +96,7 @@ watch(isLongPress, (pressed) => {
 })
 
 // Get the first status from the column for validation
-const columnStatus = computed(() => props.column.status[0])
+const columnStatus = computed(() => props.column.status as MatterStatus)
 
 // Computed properties
 const columnTitle = computed(() => 
@@ -186,10 +186,13 @@ const handleMatterEdit = (matter: MatterCard) => {
 
 // Drag and drop event handlers
 const handleDragChange = (event: any) => {
-  const result = onDragChange(event, columnStatus.value)
+  const status = columnStatus.value
+  if (!status) return
   
-  if (result?.type === 'status_change') {
-    emit('matter-moved', result.matter, result.fromStatus, result.toStatus)
+  const result = onDragChange(event, status)
+  
+  if (result && result.type === 'status_change') {
+    emit('matter-moved', result.matter, result.fromStatus as MatterStatus, result.toStatus as MatterStatus)
   }
 }
 
@@ -211,12 +214,13 @@ const handleScrollEnd = () => {
 
 // Keyboard navigation for accessibility
 const handleKeyboardNavigation = (event: KeyboardEvent, matter: MatterCard, index: number) => {
+  const target = event.currentTarget as HTMLElement
   switch (event.key) {
     case 'ArrowUp':
       event.preventDefault()
-      if (index > 0) {
+      if (index > 0 && target.parentElement) {
         // Focus previous matter card
-        const previousCard = event.currentTarget?.parentElement?.previousElementSibling?.querySelector('[tabindex]') as HTMLElement
+        const previousCard = target.parentElement.previousElementSibling?.querySelector('[tabindex]') as HTMLElement
         previousCard?.focus()
       }
       emit('keyboard-navigation', 'up', matter)
@@ -224,9 +228,9 @@ const handleKeyboardNavigation = (event: KeyboardEvent, matter: MatterCard, inde
       
     case 'ArrowDown':
       event.preventDefault()
-      if (index < props.matters.length - 1) {
+      if (index < props.matters.length - 1 && target.parentElement) {
         // Focus next matter card
-        const nextCard = event.currentTarget?.parentElement?.nextElementSibling?.querySelector('[tabindex]') as HTMLElement
+        const nextCard = target.parentElement.nextElementSibling?.querySelector('[tabindex]') as HTMLElement
         nextCard?.focus()
       }
       emit('keyboard-navigation', 'down', matter)

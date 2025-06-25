@@ -234,7 +234,6 @@ onMounted(() => {
             <Badge 
               variant="secondary"
               class="tab-count"
-              :class="{ 'active-count': index === activeTabIndex }"
             >
               {{ getMatterCount(column) }}
             </Badge>
