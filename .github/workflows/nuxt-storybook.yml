@@ -1,0 +1,485 @@
+name: Nuxt Storybook Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'frontend-nuxt-poc/**'
+      - '.github/workflows/nuxt-storybook.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'frontend-nuxt-poc/**'
+      - '.github/workflows/nuxt-storybook.yml'
+  workflow_dispatch:
+    inputs:
+      update_baselines:
+        description: 'Update visual regression baselines'
+        type: boolean
+        default: false
+
+env:
+  NODE_VERSION: '20'
+  BUN_VERSION: '1.2.16'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  storybook-build:
+    name: Build Storybook
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            frontend-nuxt-poc/node_modules
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-bun-${{ hashFiles('frontend-nuxt-poc/bun.lock') }}-storybook
+          restore-keys: |
+            ${{ runner.os }}-bun-${{ hashFiles('frontend-nuxt-poc/bun.lock') }}-
+            ${{ runner.os }}-bun-
+
+      - name: Install dependencies
+        working-directory: frontend-nuxt-poc
+        run: bun install --frozen-lockfile
+
+      - name: Build Storybook
+        working-directory: frontend-nuxt-poc
+        run: bun run build-storybook --quiet
+
+      - name: Upload Storybook build
+        uses: actions/upload-artifact@v4
+        with:
+          name: storybook-build-${{ github.run_id }}
+          path: frontend-nuxt-poc/storybook-static/
+          retention-days: 1
+
+  interaction-tests:
+    name: Storybook Interaction Tests
+    runs-on: ubuntu-latest
+    needs: [storybook-build]
+    timeout-minutes: 20
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3] # Split tests across shards for performance
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            frontend-nuxt-poc/node_modules
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-bun-${{ hashFiles('frontend-nuxt-poc/bun.lock') }}-storybook
+          restore-keys: |
+            ${{ runner.os }}-bun-${{ hashFiles('frontend-nuxt-poc/bun.lock') }}-
+            ${{ runner.os }}-bun-
+
+      - name: Install dependencies
+        working-directory: frontend-nuxt-poc
+        run: bun install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        working-directory: frontend-nuxt-poc
+        run: bunx playwright install --with-deps chromium
+
+      - name: Download Storybook build
+        uses: actions/download-artifact@v4
+        with:
+          name: storybook-build-${{ github.run_id }}
+          path: frontend-nuxt-poc/storybook-static/
+
+      - name: Start Storybook server
+        working-directory: frontend-nuxt-poc
+        run: |
+          bun run storybook:serve &
+          echo $! > storybook.pid
+          # Wait for server to be ready
+          timeout 60 bash -c 'until curl -f http://localhost:6006 > /dev/null 2>&1; do sleep 1; done'
+
+      - name: Run Storybook interaction tests
+        working-directory: frontend-nuxt-poc
+        run: |
+          bun run test-storybook:ci \
+            --shard=${{ matrix.shard }}/3 \
+            --reporters=json,junit \
+            --coverage
+        env:
+          CI: true
+
+      - name: Stop Storybook server
+        if: always()
+        working-directory: frontend-nuxt-poc
+        run: |
+          if [ -f storybook.pid ]; then
+            kill $(cat storybook.pid) || true
+            rm storybook.pid
+          fi
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: storybook-test-results-shard-${{ matrix.shard }}-${{ github.run_id }}
+          path: |
+            frontend-nuxt-poc/test-results/
+            frontend-nuxt-poc/coverage/
+          retention-days: 7
+
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: storybook-test-artifacts-shard-${{ matrix.shard }}-${{ github.run_id }}
+          path: |
+            frontend-nuxt-poc/test-runner-junit.xml
+            frontend-nuxt-poc/test-results.json
+          retention-days: 7
+
+  visual-regression-storybook:
+    name: Storybook Visual Tests
+    runs-on: ubuntu-latest
+    needs: [storybook-build]
+    timeout-minutes: 25
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            frontend-nuxt-poc/node_modules
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-bun-${{ hashFiles('frontend-nuxt-poc/bun.lock') }}-storybook-visual
+          restore-keys: |
+            ${{ runner.os }}-bun-${{ hashFiles('frontend-nuxt-poc/bun.lock') }}-
+            ${{ runner.os }}-bun-
+
+      - name: Install dependencies
+        working-directory: frontend-nuxt-poc
+        run: bun install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        working-directory: frontend-nuxt-poc
+        run: bunx playwright install --with-deps chromium
+
+      - name: Download Storybook build
+        uses: actions/download-artifact@v4
+        with:
+          name: storybook-build-${{ github.run_id }}
+          path: frontend-nuxt-poc/storybook-static/
+
+      - name: Start Storybook server
+        working-directory: frontend-nuxt-poc
+        run: |
+          bun run storybook:serve &
+          echo $! > storybook.pid
+          # Wait for server to be ready with retries
+          timeout 60 bash -c 'until curl -f http://localhost:6006 > /dev/null 2>&1; do sleep 1; done'
+
+      - name: Run visual regression tests
+        working-directory: frontend-nuxt-poc
+        run: |
+          if [[ "${{ github.event.inputs.update_baselines }}" == "true" && "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "Updating visual baselines..."
+            bun run visual:update-baselines
+          else
+            echo "Running visual regression tests..."
+            bun run visual:test
+          fi
+        env:
+          CI: true
+
+      - name: Stop Storybook server
+        if: always()
+        working-directory: frontend-nuxt-poc
+        run: |
+          if [ -f storybook.pid ]; then
+            kill $(cat storybook.pid) || true
+            rm storybook.pid
+          fi
+
+      - name: Upload visual test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: storybook-visual-results-${{ github.run_id }}
+          path: |
+            frontend-nuxt-poc/visual-tests/
+            frontend-nuxt-poc/test-results/
+          retention-days: 14
+
+      - name: Upload visual baselines (if updated)
+        uses: actions/upload-artifact@v4
+        if: github.event.inputs.update_baselines == 'true' && github.ref == 'refs/heads/main'
+        with:
+          name: updated-visual-baselines-${{ github.run_id }}
+          path: frontend-nuxt-poc/visual-tests/baselines/
+          retention-days: 30
+
+      - name: Commit updated baselines
+        if: github.event.inputs.update_baselines == 'true' && github.ref == 'refs/heads/main'
+        working-directory: frontend-nuxt-poc
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add visual-tests/baselines/
+          git diff --staged --quiet || git commit -m "chore: update Storybook visual regression baselines [skip ci]"
+          git push
+
+  accessibility-tests:
+    name: Storybook Accessibility Tests
+    runs-on: ubuntu-latest
+    needs: [storybook-build]
+    timeout-minutes: 15
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            frontend-nuxt-poc/node_modules
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-bun-${{ hashFiles('frontend-nuxt-poc/bun.lock') }}-storybook
+          restore-keys: |
+            ${{ runner.os }}-bun-${{ hashFiles('frontend-nuxt-poc/bun.lock') }}-
+            ${{ runner.os }}-bun-
+
+      - name: Install dependencies
+        working-directory: frontend-nuxt-poc
+        run: bun install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        working-directory: frontend-nuxt-poc
+        run: bunx playwright install --with-deps chromium
+
+      - name: Download Storybook build
+        uses: actions/download-artifact@v4
+        with:
+          name: storybook-build-${{ github.run_id }}
+          path: frontend-nuxt-poc/storybook-static/
+
+      - name: Start Storybook server
+        working-directory: frontend-nuxt-poc
+        run: |
+          bun run storybook:serve &
+          echo $! > storybook.pid
+          timeout 60 bash -c 'until curl -f http://localhost:6006 > /dev/null 2>&1; do sleep 1; done'
+
+      - name: Run accessibility tests
+        working-directory: frontend-nuxt-poc
+        run: |
+          bun run test-storybook:ci \
+            --stories-json \
+            --maxWorkers=1 \
+            --junit \
+            --coverage=false
+        env:
+          CI: true
+          TEST_RUNNER_OPTIONS: '--accessibility'
+
+      - name: Stop Storybook server
+        if: always()
+        working-directory: frontend-nuxt-poc
+        run: |
+          if [ -f storybook.pid ]; then
+            kill $(cat storybook.pid) || true
+            rm storybook.pid
+          fi
+
+      - name: Upload accessibility results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: storybook-a11y-results-${{ github.run_id }}
+          path: |
+            frontend-nuxt-poc/test-results/
+            frontend-nuxt-poc/accessibility-report/
+          retention-days: 7
+
+  storybook-deploy:
+    name: Deploy Storybook
+    runs-on: ubuntu-latest
+    needs: [interaction-tests, visual-regression-storybook, accessibility-tests]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download Storybook build
+        uses: actions/download-artifact@v4
+        with:
+          name: storybook-build-${{ github.run_id }}
+          path: frontend-nuxt-poc/storybook-static/
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: frontend-nuxt-poc/storybook-static
+          destination_dir: storybook
+          commit_message: 'Deploy Storybook to GitHub Pages'
+
+  summary:
+    name: Storybook Test Summary
+    runs-on: ubuntu-latest
+    needs: [interaction-tests, visual-regression-storybook, accessibility-tests]
+    if: always()
+    
+    steps:
+      - name: Generate summary
+        run: |
+          echo "## 📚 Storybook Test Results Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Test Suite | Status | Details |" >> $GITHUB_STEP_SUMMARY
+          echo "|------------|--------|---------|" >> $GITHUB_STEP_SUMMARY
+          
+          # Interaction Tests
+          interaction_status="${{ needs.interaction-tests.result }}"
+          if [[ "$interaction_status" == "success" ]]; then
+            echo "| 🎭 Interaction Tests | ✅ Passed | All component interactions working correctly |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| 🎭 Interaction Tests | ❌ Failed | Component interaction issues detected |" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Visual Regression
+          visual_status="${{ needs.visual-regression-storybook.result }}"
+          if [[ "$visual_status" == "success" ]]; then
+            echo "| 👁️ Visual Regression | ✅ Passed | No visual changes detected |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| 👁️ Visual Regression | ❌ Failed | Visual changes detected - review required |" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Accessibility Tests
+          a11y_status="${{ needs.accessibility-tests.result }}"
+          if [[ "$a11y_status" == "success" ]]; then
+            echo "| ♿ Accessibility | ✅ Passed | All components meet WCAG standards |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| ♿ Accessibility | ❌ Failed | Accessibility issues found |" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Overall status
+          if [[ "$interaction_status" == "success" && "$visual_status" == "success" && "$a11y_status" == "success" ]]; then
+            echo "🎉 **All Storybook tests passed!** Components are ready for production use." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 📖 Storybook Deployment" >> $GITHUB_STEP_SUMMARY
+            if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+              echo "- Storybook will be deployed to: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/storybook/" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "- Storybook deployment only occurs on main branch pushes" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "⚠️ **Some Storybook tests failed.** Please review the failing jobs:" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            if [[ "$interaction_status" != "success" ]]; then
+              echo "- 🔧 Fix component interaction issues" >> $GITHUB_STEP_SUMMARY
+            fi
+            if [[ "$visual_status" != "success" ]]; then
+              echo "- 🎨 Review visual changes and update baselines if intentional" >> $GITHUB_STEP_SUMMARY
+            fi
+            if [[ "$a11y_status" != "success" ]]; then
+              echo "- ♿ Address accessibility violations" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔍 Useful Commands" >> $GITHUB_STEP_SUMMARY
+          echo "```bash" >> $GITHUB_STEP_SUMMARY
+          echo "# Run Storybook locally" >> $GITHUB_STEP_SUMMARY
+          echo "bun storybook" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "# Run interaction tests" >> $GITHUB_STEP_SUMMARY
+          echo "bun test-storybook" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "# Update visual baselines" >> $GITHUB_STEP_SUMMARY
+          echo "bun run visual:update-baselines" >> $GITHUB_STEP_SUMMARY
+          echo "```" >> $GITHUB_STEP_SUMMARY
+
+      - name: Post PR comment with results
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request' && always()
+        with:
+          script: |
+            const interactionStatus = '${{ needs.interaction-tests.result }}';
+            const visualStatus = '${{ needs.visual-regression-storybook.result }}';
+            const a11yStatus = '${{ needs.accessibility-tests.result }}';
+            
+            const getStatusIcon = (status) => status === 'success' ? '✅' : '❌';
+            const getStatusText = (status) => status === 'success' ? 'Passed' : 'Failed';
+            
+            const allPassed = interactionStatus === 'success' && 
+                             visualStatus === 'success' && 
+                             a11yStatus === 'success';
+            
+            const body = `
+            ## 📚 Storybook Test Results
+            
+            | Test Suite | Status |
+            |------------|--------|
+            | 🎭 Interaction Tests | ${getStatusIcon(interactionStatus)} ${getStatusText(interactionStatus)} |
+            | 👁️ Visual Regression | ${getStatusIcon(visualStatus)} ${getStatusText(visualStatus)} |
+            | ♿ Accessibility | ${getStatusIcon(a11yStatus)} ${getStatusText(a11yStatus)} |
+            
+            ${allPassed 
+              ? '🎉 **All Storybook tests passed!** Your components look great and work perfectly.' 
+              : '⚠️ **Some tests failed.** Please check the detailed results and fix any issues.'
+            }
+            
+            ### 🔗 Quick Links
+            - 📊 [View detailed test results](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            - 📖 [Storybook Documentation](https://storybook.js.org/docs)
+            - 🎨 [Visual Testing Guide](visual-tests/README.md)
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
