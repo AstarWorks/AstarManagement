@@ -24,6 +24,7 @@ import {
   queryKeys,
   type QueryKeys
 } from '~/config/tanstack-query'
+import { useErrorHandler } from '~/composables/useErrorHandler'
 
 /**
  * Global query client instance

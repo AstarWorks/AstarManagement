@@ -332,40 +332,6 @@ export const QUERY_CONFIGS = {
   }
 } as const
 
-/**
- * Query key factory for consistent cache management
- * Ensures proper cache invalidation patterns
- */
-export const queryKeys = {
-  all: ['matters'] as const,
-  lists: () => [...queryKeys.all, 'list'] as const,
-  list: (filters?: any) => [...queryKeys.lists(), { filters }] as const,
-  details: () => [...queryKeys.all, 'detail'] as const,
-  detail: (id: string) => [...queryKeys.details(), id] as const,
-  infinite: (filters?: any) => [...queryKeys.all, 'infinite', { filters }] as const,
-  
-  // Static data
-  static: {
-    all: ['static'] as const,
-    statuses: () => [...queryKeys.static.all, 'statuses'] as const,
-    priorities: () => [...queryKeys.static.all, 'priorities'] as const,
-    categories: () => [...queryKeys.static.all, 'categories'] as const
-  },
-  
-  // Search
-  search: {
-    all: ['search'] as const,
-    matters: (query: string, filters?: any) => 
-      [...queryKeys.search.all, 'matters', { query, filters }] as const
-  },
-  
-  // User data
-  user: {
-    all: ['user'] as const,
-    profile: () => [...queryKeys.user.all, 'profile'] as const,
-    settings: () => [...queryKeys.user.all, 'settings'] as const,
-    notifications: () => [...queryKeys.user.all, 'notifications'] as const
-  }
-} as const
-
-export type QueryKeys = typeof queryKeys
+// Query keys are exported from types/query.ts to avoid duplication
+// This ensures consistent cache management across the application
+export { queryKeys, type QueryKeys } from '~/types/query'
