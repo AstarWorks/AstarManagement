@@ -55,7 +55,8 @@ export default defineNuxtConfig({
         'vee-validate', 
         '@vee-validate/zod', 
         'zod',
-        'lucide-vue-next'
+        'lucide-vue-next',
+        '@tanstack/vue-query'
       ]
     },
     
