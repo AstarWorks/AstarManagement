@@ -5,7 +5,7 @@
  * This is the Vue/Nuxt equivalent of the React ToastProvider.
  */
 
-import { defineNuxtPlugin } from '#app'
+// Note: Importing defineNuxtPlugin from global auto-imports instead of '#app'
 import { reactive } from 'vue'
 
 export interface Toast {
@@ -86,12 +86,13 @@ export default defineNuxtPlugin(() => {
 })
 
 // Type declarations for auto-imports
-declare module '#app' {
-  interface NuxtApp {
-    $toast: typeof toast
-    $toastState: ToastState
-  }
-}
+// Note: Commenting out '#app' module declaration due to TypeScript resolution issues
+// declare module '#app' {
+//   interface NuxtApp {
+//     $toast: typeof toast
+//     $toastState: ToastState
+//   }
+// }
 
 declare module 'vue' {
   interface ComponentCustomProperties {

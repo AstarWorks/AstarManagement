@@ -6,7 +6,7 @@
  * This is the Vue/Nuxt equivalent of the React ServiceWorkerProvider.
  */
 
-import { defineNuxtPlugin } from '#app'
+// Note: Importing defineNuxtPlugin from global auto-imports instead of '#app'
 import { ref } from 'vue'
 
 export default defineNuxtPlugin(() => {
@@ -157,18 +157,19 @@ export default defineNuxtPlugin(() => {
 })
 
 // Type declarations
-declare module '#app' {
-  interface NuxtApp {
-    $serviceWorker: {
-      isSupported: boolean
-      isUpdateAvailable: Ref<boolean>
-      isOffline: Ref<boolean>
-      registration: Ref<ServiceWorkerRegistration | null>
-      update: () => Promise<void>
-      skipWaiting: () => Promise<void>
-    }
-  }
-}
+// Note: Commenting out '#app' module declaration due to TypeScript resolution issues
+// declare module '#app' {
+//   interface NuxtApp {
+//     $serviceWorker: {
+//       isSupported: boolean
+//       isUpdateAvailable: Ref<boolean>
+//       isOffline: Ref<boolean>
+//       registration: Ref<ServiceWorkerRegistration | null>
+//       update: () => Promise<void>
+//       skipWaiting: () => Promise<void>
+//     }
+//   }
+// }
 
 declare module 'vue' {
   interface ComponentCustomProperties {

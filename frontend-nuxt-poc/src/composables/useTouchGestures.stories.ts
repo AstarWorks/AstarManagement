@@ -1,11 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/vue3'
-import { ref, onMounted, watch, computed } from 'vue'
+import { ref, onMounted, watch, computed, defineComponent } from 'vue'
 import { useTouchGestures, useMobileInteractions } from './useTouchGestures'
 
-const TouchGestureDemo = {
+const TouchGestureDemo = defineComponent({
   name: 'TouchGestureDemo',
   setup() {
-    const demoRef = ref<HTMLElement>()
+    const demoRef = ref<HTMLElement | null>(null)
     const events = ref<string[]>([])
     
     const addEvent = (event: string) => {
@@ -28,8 +28,7 @@ const TouchGestureDemo = {
     } = useTouchGestures(demoRef, {
       enableHapticFeedback: true,
       longPressTime: 500,
-      swipeThreshold: 50,
-      pinchThreshold: 0.1
+      swipeThreshold: 50
     })
     
     const {
@@ -276,7 +275,7 @@ const TouchGestureDemo = {
       </div>
     </div>
   `
-}
+})
 
 const meta: Meta<typeof TouchGestureDemo> = {
   title: 'Composables/useTouchGestures',
@@ -348,15 +347,15 @@ export const DesktopFallback: Story = {
 }
 
 // Component for gesture-specific demos
-const GestureSpecificDemo = {
+const GestureSpecificDemo = defineComponent({
   name: 'GestureSpecificDemo',
   props: {
     gestureType: String,
     title: String,
     description: String
   },
-  setup(props) {
-    const demoRef = ref<HTMLElement>()
+  setup(props: any) {
+    const demoRef = ref<HTMLElement | null>(null)
     const gestureState = ref('')
     const gestureData = ref<any>({})
     
@@ -503,7 +502,7 @@ const GestureSpecificDemo = {
       </div>
     </div>
   `
-}
+})
 
 export const DragGesture: Story = {
   render: () => ({

@@ -1,5 +1,5 @@
 import { ref, computed, onMounted, onUnmounted, readonly, type Ref, type ComputedRef } from 'vue'
-import { useSwipe, usePointerSwipe, type SwipeDirection } from '@vueuse/core'
+import { useSwipe, usePointerSwipe, type UseSwipeDirection as SwipeDirection } from '@vueuse/core'
 import { useGesture, type Handler } from '@vueuse/gesture'
 import type { GestureState, Vector2 } from '@vueuse/gesture'
 
@@ -86,7 +86,7 @@ export function useTouchGestures(
     
     dragPosition.value = state.xy
     dragOffset.value = state.offset
-    lastVelocity.value = state.velocity
+    lastVelocity.value = state.velocity as unknown as Vector2
     
     if (opts.preventDefaultTouch && state.event) {
       state.event.preventDefault()
@@ -148,9 +148,9 @@ export function useTouchGestures(
       onPinch: pinchHandler
     },
     {
-      target,
+      domTarget: target,
       eventOptions: { passive: !opts.preventDefaultTouch }
-    }
+    } as any
   )
   
   // Reset function
@@ -177,8 +177,8 @@ export function useTouchGestures(
     isLongPress: readonly(isLongPress),
     swipeDirection: readonly(swipeDirection),
     pinchScale: readonly(pinchScale),
-    dragPosition: readonly(dragPosition),
-    dragOffset: readonly(dragOffset),
+    dragPosition: readonly(dragPosition) as Readonly<Ref<Vector2>>,
+    dragOffset: readonly(dragOffset) as Readonly<Ref<Vector2>>,
     velocity,
     reset
   }

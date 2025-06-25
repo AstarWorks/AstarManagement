@@ -1,5 +1,5 @@
 import { ref, computed, readonly } from 'vue'
-import type { Ref } from 'vue'
+import type { Ref, UnwrapRef } from 'vue'
 
 export interface OptimisticUpdate<T> {
   id: string
@@ -16,7 +16,7 @@ export interface OptimisticUpdate<T> {
  * 
  * @returns Object containing pending updates and management methods
  */
-export function useOptimisticUpdates<T>() {
+export function useOptimisticUpdates<T extends Record<string, any>>() {
   const pendingUpdates = ref<Map<string, OptimisticUpdate<T>>>(new Map())
   
   /**
@@ -26,7 +26,7 @@ export function useOptimisticUpdates<T>() {
    * @param update - The optimistic update to add
    */
   const addOptimisticUpdate = (update: OptimisticUpdate<T>) => {
-    pendingUpdates.value.set(update.id, update)
+    pendingUpdates.value.set(update.id, update as any)
   }
   
   /**
@@ -39,7 +39,7 @@ export function useOptimisticUpdates<T>() {
   const confirmUpdate = (id: string, serverData: T) => {
     const update = pendingUpdates.value.get(id)
     if (update) {
-      update.serverData = serverData
+      update.serverData = serverData as any
       update.status = 'confirmed'
       pendingUpdates.value.delete(id)
     }
