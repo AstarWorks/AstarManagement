@@ -4,7 +4,7 @@ current_milestone_id: M02
 highest_sprint_in_milestone: S07
 current_sprint_id: S07
 status: active
-last_updated: 2025-06-24 09:35
+last_updated: 2025-06-25 17:47
 ---
 
 # Project Manifest: Aster Management
@@ -151,8 +151,8 @@ Replace client-side state management with TanStack Query for robust server state
 - ✅ TX01_S08: TanStack Query Setup - Medium complexity (6 points) - COMPLETED [2025-06-25 15:30]
 - ✅ TX02_S08: Query Client Configuration - Low complexity (4 points) - COMPLETED [2025-06-25 16:01]
 - ✅ TX03_S08: Core Queries Setup - Medium complexity (6 points) - COMPLETED [2025-06-25 16:17]
-- 🚧 T04_S08: Basic Mutations - Medium complexity (6 points) - IN PROGRESS [2025-06-25 16:28]
-- 📋 T05_S08: Optimistic Drag Drop - Medium complexity (8 points)
+- ✅ T04_S08: Basic Mutations - Medium complexity (6 points) - COMPLETED [2025-06-25 17:15]
+- ✅ T05_S08: Optimistic Drag Drop - Medium complexity (8 points) - COMPLETED [2025-06-25 17:47]
 - 📋 T06_S08: Query Invalidation Strategies - Medium complexity (6 points)
 - 📋 T07_S08: Offline Support - Medium complexity (7 points)
 - 📋 T08_S08: Background Sync - Medium complexity (6 points)

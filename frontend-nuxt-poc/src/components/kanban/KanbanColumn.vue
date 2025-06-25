@@ -6,7 +6,7 @@ import type { KanbanColumn, MatterCard, ViewPreferences, MatterStatus } from '~/
 import { Badge } from '~/components/ui/badge'
 import MatterCardComponent from './MatterCard.vue'
 import { DEFAULT_VIEW_PREFERENCES } from '~/constants/kanban'
-import { useKanbanDragDrop } from '~/composables/useKanbanDragDrop'
+import { useKanbanDragDropEnhanced } from '~/composables/useKanbanDragDropEnhanced'
 import { useTouchGestures, useMobileInteractions } from '~/composables/useTouchGestures'
 
 interface Props {
@@ -66,8 +66,19 @@ const {
   reset: resetGestures
 } = useTouchGestures(columnRef)
 
-// Drag and drop functionality
-const { canAcceptDrop, onDragStart, onDragEnd, onDragChange, isColumnDragTarget } = useKanbanDragDrop()
+// Enhanced drag and drop functionality with TanStack Query mutations
+const { 
+  canAcceptDrop, 
+  onDragStart, 
+  onDragEnd, 
+  onDragChange, 
+  isColumnDragTarget,
+  isMatterProcessing,
+  isAnyMutationPending,
+  performanceMetrics,
+  averageDragTime,
+  successRate
+} = useKanbanDragDropEnhanced()
 
 // Mobile-specific state
 const isCollapsedMobile = ref(props.isCollapsed)
@@ -117,7 +128,10 @@ const columnClasses = computed(() => [
     'collapsed-mobile': isCollapsedMobile.value && isMobile.value,
     'orientation-landscape': orientation.value === 'landscape',
     'is-pressed': isPressed.value,
-    'is-scrolling': isScrolling.value
+    'is-scrolling': isScrolling.value,
+    'mutations-pending': showLoadingOverlay.value,
+    'high-performance': successRate.value > 90,
+    'performance-warning': successRate.value < 80 && successRate.value > 0
   }
 ])
 
@@ -126,6 +140,10 @@ const matters = computed({
   get: () => props.matters,
   set: (value) => emit('update:matters', value)
 })
+
+// Enhanced loading state with mutation tracking
+const showLoadingOverlay = computed(() => isAnyMutationPending.value)
+const showPerformanceMetrics = computed(() => performanceMetrics.value.totalOperations > 0)
 
 // Mobile-optimized sortable configuration
 const sortableConfig = computed(() => {
@@ -184,15 +202,31 @@ const handleMatterEdit = (matter: MatterCard) => {
   emit('matterEdit', matter)
 }
 
-// Drag and drop event handlers
-const handleDragChange = (event: any) => {
+// Enhanced drag and drop event handlers with mutation support
+const handleDragChange = async (event: any) => {
   const status = columnStatus.value
   if (!status) return
   
-  const result = onDragChange(event, status)
-  
-  if (result && result.type === 'status_change') {
-    emit('matter-moved', result.matter, result.fromStatus as MatterStatus, result.toStatus as MatterStatus)
+  try {
+    const result = await onDragChange(event, status)
+    
+    if (result && result.success) {
+      if (result.type === 'status_change') {
+        emit('matter-moved', result.matter, result.fromStatus as MatterStatus, result.toStatus as MatterStatus)
+      }
+      
+      // Log successful operation for performance tracking
+      console.debug('Drag operation completed successfully:', {
+        type: result.type,
+        matterId: result.matter.id,
+        optimistic: result.optimistic
+      })
+    } else if (result === false) {
+      // Handle failed drag operation
+      console.warn('Drag operation failed or was invalid')
+    }
+  } catch (error) {
+    console.error('Drag change handler error:', error)
   }
 }
 
@@ -305,13 +339,36 @@ const onCollapseLeave = (el: Element) => {
           <h2 class="column-title">
             {{ columnTitle }}
           </h2>
-          <Badge 
-            variant="secondary" 
-            class="matter-count"
-            :aria-label="`${matterCount} matters in ${columnTitle}`"
-          >
-            {{ matterCount }}
-          </Badge>
+          <div class="header-badges">
+            <Badge 
+              variant="secondary" 
+              class="matter-count"
+              :aria-label="`${matterCount} matters in ${columnTitle}`"
+            >
+              {{ matterCount }}
+            </Badge>
+            
+            <!-- Mutation status indicator -->
+            <Badge 
+              v-if="showLoadingOverlay"
+              variant="outline"
+              class="mutation-indicator"
+              aria-label="Processing updates"
+            >
+              <span class="loading-spinner" />
+              Syncing
+            </Badge>
+            
+            <!-- Performance indicator -->
+            <Badge 
+              v-if="showPerformanceMetrics && !showLoadingOverlay"
+              :variant="successRate > 90 ? 'default' : successRate < 80 ? 'destructive' : 'secondary'"
+              class="performance-indicator"
+              :aria-label="`Success rate: ${successRate}%, Average time: ${averageDragTime}ms`"
+            >
+              {{ successRate }}%
+            </Badge>
+          </div>
         </div>
         
         <!-- Mobile collapse indicator -->
@@ -382,7 +439,7 @@ const onCollapseLeave = (el: Element) => {
           @change="handleDragChange"
         >
           <template #item="{ element: matter, index }">
-            <div class="matter-item">
+            <div class="matter-item" :class="{ 'processing': isMatterProcessing(matter) }">
               <MatterCardComponent
                 :matter="matter"
                 :viewPreferences="viewPreferences"
@@ -392,9 +449,22 @@ const onCollapseLeave = (el: Element) => {
                 :tabindex="0"
                 :class="{ 
                   'touch-optimized': isTouchDevice,
-                  'mobile-card': isMobile
+                  'mobile-card': isMobile,
+                  'matter-processing': isMatterProcessing(matter)
                 }"
+                :aria-busy="isMatterProcessing(matter)"
               />
+              
+              <!-- Processing overlay for individual matters -->
+              <transition name="fade">
+                <div 
+                  v-if="isMatterProcessing(matter)"
+                  class="matter-processing-overlay"
+                  aria-hidden="true"
+                >
+                  <span class="processing-spinner" />
+                </div>
+              </transition>
             </div>
           </template>
           
@@ -492,8 +562,26 @@ const onCollapseLeave = (el: Element) => {
   @apply text-sm font-semibold text-gray-900 truncate;
 }
 
+.header-badges {
+  @apply flex items-center gap-2;
+}
+
 .matter-count {
   @apply text-xs font-medium flex-shrink-0;
+}
+
+.mutation-indicator {
+  @apply text-xs flex items-center gap-1;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.performance-indicator {
+  @apply text-xs font-mono cursor-help;
+}
+
+.loading-spinner {
+  @apply w-3 h-3 border border-transparent border-t-current rounded-full;
+  animation: spin 1s linear infinite;
 }
 
 /* Mobile collapse indicator */
@@ -558,7 +646,21 @@ const onCollapseLeave = (el: Element) => {
 
 /* Matter item wrapper */
 .matter-item {
-  @apply mb-3;
+  @apply mb-3 relative;
+}
+
+.matter-item.processing {
+  @apply opacity-75;
+}
+
+.matter-processing-overlay {
+  @apply absolute inset-0 bg-white/80 rounded-lg flex items-center justify-center z-10;
+  backdrop-filter: blur(1px);
+}
+
+.processing-spinner {
+  @apply w-4 h-4 border-2 border-gray-300 border-t-primary rounded-full;
+  animation: spin 1s linear infinite;
 }
 
 .mobile-device .matter-item {
@@ -611,6 +713,20 @@ const onCollapseLeave = (el: Element) => {
 .kanban-column.drag-over {
   background: hsl(var(--primary) / 0.05);
   border-color: hsl(var(--primary));
+}
+
+/* Column mutation states */
+.kanban-column.mutations-pending {
+  border-color: hsl(var(--warning));
+  box-shadow: 0 0 0 1px hsl(var(--warning) / 0.2);
+}
+
+.kanban-column.high-performance {
+  border-color: hsl(var(--success));
+}
+
+.kanban-column.performance-warning {
+  border-color: hsl(var(--destructive) / 0.5);
 }
 
 /* Empty state */
