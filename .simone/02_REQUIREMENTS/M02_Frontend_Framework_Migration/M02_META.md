@@ -78,20 +78,23 @@ This milestone encompasses the complete migration of the Aster Management fronte
 - Search and filtering
 - Real-time updates
 
-### S08: Feature Migration - Advanced Features
-- Audit timeline
-- Advanced search
-- Status transitions
-- Error handling and notifications
+### S08: TanStack Query Integration for Kanban
+- TanStack Query setup and configuration
+- Query and mutation implementations
+- Optimistic updates for drag-and-drop
+- Background sync and offline support
+- Component migration to TanStack Query
 
-### S09: Integration and Testing
-- API integration finalization
-- E2E test suite migration
-- Performance optimization
-- Security audit
+### S09: Nuxt Testing and Documentation
+- Unit testing infrastructure with Vitest
+- Integration and E2E test suites
+- Visual regression testing
+- Performance testing and benchmarks
+- Comprehensive developer documentation
 
-### S10: Deployment and Cutover
-- Production deployment strategy
-- Feature flag configuration
-- Monitoring setup
-- Team training and documentation
+### S10: Production Deployment and Cutover
+- Production infrastructure setup
+- CI/CD pipeline with blue-green deployment
+- Monitoring and observability
+- Feature flags for gradual rollout
+- Team training and migration execution

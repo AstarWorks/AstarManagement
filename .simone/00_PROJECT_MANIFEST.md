@@ -144,6 +144,59 @@ Implement comprehensive kanban dashboard for Nuxt.js/Vue 3 that matches React/Ne
 
 *Total tasks: 8 (50 story points)*
 
+### S08 TanStack Query Integration for Kanban (🚧 IN PROGRESS)
+
+Replace client-side state management with TanStack Query for robust server state management, optimistic updates, and real-time synchronization.
+
+- ✅ TX01_S08: TanStack Query Setup - Medium complexity (6 points) - COMPLETED [2025-06-25 15:30]
+- 📋 T02_S08: Query Client Configuration - Low complexity (4 points)
+- 📋 T03_S08: Core Queries Setup - Medium complexity (6 points)
+- 📋 T04_S08: Basic Mutations - Medium complexity (6 points)
+- 📋 T05_S08: Optimistic Drag Drop - Medium complexity (8 points)
+- 📋 T06_S08: Query Invalidation Strategies - Medium complexity (6 points)
+- 📋 T07_S08: Offline Support - Medium complexity (7 points)
+- 📋 T08_S08: Background Sync - Medium complexity (6 points)
+- 📋 T09_S08: Component Migration - Medium complexity (8 points)
+- 📋 T10_S08: DevTools Performance - Low complexity (5 points)
+- 📋 T11_S08: Advanced Queries Search - Medium complexity (6 points)
+- 📋 T12_S08: Drag Drop Mutations - Medium complexity (6 points)
+
+*Total tasks: 12 (74 story points)*
+
+### S09 Nuxt Testing and Documentation (📋 READY)
+
+Establish comprehensive testing coverage and documentation for the migrated Nuxt.js frontend.
+
+- 📋 T01_S09: Unit Testing Setup - Medium complexity (6 points)
+- 📋 T02_S09: Integration Testing - Medium complexity (8 points)
+- 📋 T03_S09: E2E Test Suite - High complexity (10 points)
+- 📋 T04_S09: Kanban Component Tests - Medium complexity (8 points)
+- 📋 T05_S09: Form Component Tests - Medium complexity (6 points)
+- 📋 T06_S09: Visual Regression Testing - Medium complexity (7 points)
+- 📋 T07_S09: Performance Testing - Medium complexity (6 points)
+- 📋 T08_S09: Developer Documentation - Medium complexity (8 points)
+- 📋 T09_S09: Migration Guide - Medium complexity (7 points)
+- 📋 T10_S09: API Documentation - Low complexity (5 points)
+
+*Total tasks: 10 (71 story points)*
+
+### S10 Production Deployment and Cutover (📋 READY)
+
+Deploy Nuxt.js frontend to production with zero downtime and complete migration from Next.js.
+
+- 📋 T01_S10: Production Infrastructure - High complexity (10 points)
+- 📋 T02_S10: CDN Configuration - Medium complexity (6 points)
+- 📋 T03_S10: CI CD Pipeline - Medium complexity (8 points)
+- 📋 T04_S10: Blue Green Deployment - High complexity (10 points)
+- 📋 T05_S10: Monitoring Setup - Medium complexity (7 points)
+- 📋 T06_S10: Performance Monitoring - Medium complexity (6 points)
+- 📋 T07_S10: Feature Flags - Medium complexity (7 points)
+- 📋 T08_S10: Rollback Procedures - Medium complexity (6 points)
+- 📋 T09_S10: Migration Execution - Medium complexity (8 points)
+- 📋 T10_S10: Team Training - Low complexity (5 points)
+
+*Total tasks: 10 (73 story points)*
+
 ## 5. Key Documentation
 
 - [Architecture Documentation](./01_PROJECT_DOCS/ARCHITECTURE.md)
