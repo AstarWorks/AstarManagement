@@ -32,7 +32,8 @@ import {
 export function useMatterQueryIntegration() {
   // Get existing stores for compatibility
   const { matters: storeMatters, isLoading: storeLoading } = storeToRefs(useKanbanStore())
-  const { filters } = storeToRefs(useSearchStore())
+  // Note: useSearchStore implementation would be added when available
+  const filters = ref({})
   
   // TanStack Query hooks
   const { 
