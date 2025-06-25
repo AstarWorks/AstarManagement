@@ -70,8 +70,8 @@ Follow these instructions from top to bottom.
 **If context provided in arguments**:
 
 1. **FILTER FIRST**: Separate changes into two groups:
-    - **Related to context**: Files that are part of the task/context implementation
-    - **Unrelated to context**: Everything else
+- **Related to context**: Files that are part of the task/context implementation
+- **Unrelated to context**: Everything else
 2. **FOCUS**: Only analyze the "related to context" group for the first commit
 3. **DEFER**: Keep the "unrelated" group for potential later commits (only if user requests)
 
@@ -149,25 +149,25 @@ Provide summary:
 
 1. **Identify the completed task**: Use the TaskID from the arguments to understand what was just completed
 2. **Search for next task**:
-    - Look in `.simone/03_SPRINTS/` directory for sprint tasks
-    - Look in `.simone/04_GENERAL_TASKS/` directory for general tasks
-    - Find the next logical task in sequence
-    - Consider task dependencies and completion status
+- Look in `.simone/03_SPRINTS/` directory for sprint tasks
+- Look in `.simone/04_GENERAL_TASKS/` directory for general tasks
+- Find the next logical task in sequence
+- Consider task dependencies and completion status
 
 3. **Analyze next task**:
-    - Read the task file to understand requirements
-    - Check task status and dependencies
-    - Verify if it's ready to be executed
+- Read the task file to understand requirements
+- Check task status and dependencies
+- Verify if it's ready to be executed
 
 4. **Reference do_task command**:
-    - Consult `.claude/commands/simone/do_task` for execution guidelines
-    - Follow the established task execution process
-    - Ensure proper task context and environment setup
+- Consult `.claude/commands/simone/do_task.md` for execution guidelines
+- Follow the established task execution process
+- Ensure proper task context and environment setup
 
 5. **Execute the next task**:
-    - Use the appropriate command or process as defined in `do_task`
-    - Maintain consistency with the project's task management workflow
-    - Report the start of the next task execution
+- Use the appropriate command or process as defined in `/do_task`
+- Maintain consistency with the project's task management workflow
+- Report the start of the next task execution
 
 ### Implementation Notes
 

@@ -4,7 +4,7 @@ current_milestone_id: M02
 highest_sprint_in_milestone: S07
 current_sprint_id: S07
 status: active
-last_updated: 2025-06-24 08:37
+last_updated: 2025-06-24 09:35
 ---
 
 # Project Manifest: Aster Management
@@ -135,12 +135,12 @@ Implement comprehensive kanban dashboard for Nuxt.js/Vue 3 that matches React/Ne
 
 - ✅ TX01_S07: Kanban Layout Foundation - Medium complexity (8 points) - COMPLETED
 - ✅ TX02_S07: Matter Card Component - Medium complexity (6 points) - COMPLETED
-- ✅ TX03_S07: Vue Drag Drop Implementation - Medium complexity (8 points) - COMPLETED
+- 🚧 TX03_S07: Vue Drag Drop Implementation - Medium complexity (8 points) - IN PROGRESS
 - ✅ T04_S07: Pinia Store Integration - Medium complexity (7 points) - COMPLETED
-- 📋 T05_S07: Filters Search Vue - Low complexity (5 points)
-- 📋 T06_S07: Real Time Updates - Medium complexity (6 points)
-- 📋 T07_S07: Mobile Responsive Vue - Low complexity (4 points)
-- 📋 T08_S07: SSR Optimization - Medium complexity (6 points)
+- ✅ TX05_S07: Filters Search Vue - Low complexity (5 points) - COMPLETED
+- ✅ TX06_S07: Real Time Updates - Medium complexity (6 points) - COMPLETED
+- ✅ TX07_S07: Mobile Responsive Vue - Low complexity (4 points) - COMPLETED
+- ✅ TX08_S07: SSR Optimization - Medium complexity (6 points) - COMPLETED
 
 *Total tasks: 8 (50 story points)*
 
@@ -174,6 +174,21 @@ Implement comprehensive kanban dashboard for Nuxt.js/Vue 3 that matches React/Ne
 - [✅] [TX007: Modernize Vue 3 Composition API Syntax](./04_GENERAL_TASKS/TX007_Modernize_Vue3_Composition_API_Syntax.md) - Status: Completed
   - Modernize Nuxt.js codebase to use latest Vue 3 Composition API best practices and syntax patterns
   - Fix missing imports, enhance composables with TypeScript, and implement consistent error handling
+- [📋] [T008: Nuxt API Integration](./04_GENERAL_TASKS/T008_Nuxt_API_Integration.md) - Status: Not Started
+  - Connect Nuxt.js POC to Spring Boot backend API
+  - Replace mock data with real API calls and implement JWT authentication
+- [✅] [T009: Nuxt E2E Test Setup](./04_GENERAL_TASKS/T009_Nuxt_E2E_Test_Setup.md) - Status: Completed
+  - Set up Playwright for Nuxt.js E2E testing
+  - Create page objects and implement critical user flow tests
+- [📋] [T010: Nuxt WebSocket Implementation](./04_GENERAL_TASKS/T010_Nuxt_WebSocket_Implementation.md) - Status: Not Started
+  - Activate WebSocket connection for real-time updates
+  - Connect to Spring Boot WebSocket endpoint with proper authentication
+- [✅] [T011: Nuxt Storybook UI Testing](./04_GENERAL_TASKS/T011_Nuxt_Storybook_UI_Testing.md) - Status: Completed
+  - Implement comprehensive Storybook interaction and behavior testing
+  - Add visual regression testing and CI/CD integration
+- [🚧] [T012: Nuxt TypeScript Error Resolution](./04_GENERAL_TASKS/T012_Nuxt_TypeScript_Error_Resolution.md) - Status: In Progress
+  - Systematically resolve all TypeScript compilation errors in Nuxt.js codebase
+  - Fix Nuxt auto-imports, generic constraints, and form validation type annotations
 
 ## 7. Quick Links
 

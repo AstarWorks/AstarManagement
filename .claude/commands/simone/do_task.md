@@ -104,10 +104,11 @@ Follow these steps for a Code Review (in order)
 - Follow the established commit workflow
 
 2. **Execute commit process**:
-- Run the commit analysis and grouping process
-- Focus on changes related to the completed task
-- Create logical commits with appropriate messages
-- Include task ID in commit messages for traceability
+  - Use the appropriate command or process as defined in `/commit`
+  - Run the commit analysis and grouping process
+  - Focus on changes related to the completed task
+  - Create logical commits with appropriate messages
+  - Include task ID in commit messages for traceability
 
 3. **Handle commit results**:
 - Verify all task-related changes are committed
