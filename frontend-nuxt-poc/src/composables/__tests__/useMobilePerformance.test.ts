@@ -4,12 +4,12 @@ import { useMobilePerformance, useKanbanPerformance } from '../useMobilePerforma
 
 // Mock @vueuse/core
 vi.mock('@vueuse/core', () => ({
-  useIntersectionObserver: vi.fn((target, callback, options) => ({
+  useIntersectionObserver: vi.fn((target: any, callback: any, options: any) => ({
     stop: vi.fn()
   })),
-  useThrottleFn: vi.fn((fn, ms) => fn),
-  useDebounce: vi.fn((fn, ms) => fn),
-  useRafFn: vi.fn((fn) => ({
+  useThrottleFn: vi.fn((fn: any, ms: any) => fn),
+  useDebounce: vi.fn((fn: any, ms: any) => fn),
+  useRafFn: vi.fn((fn: any) => ({
     pause: vi.fn(),
     resume: vi.fn()
   }))
@@ -32,7 +32,7 @@ Object.defineProperty(global, 'performance', {
 })
 
 // Mock requestAnimationFrame
-global.requestAnimationFrame = vi.fn((cb) => {
+global.requestAnimationFrame = vi.fn((cb: FrameRequestCallback) => {
   setTimeout(cb, 0)
   return 1
 })
@@ -120,7 +120,11 @@ describe('useMobilePerformance', () => {
   describe('Virtual Scrolling', () => {
     it('calculates visible range correctly', () => {
       const containerRef = ref(document.createElement('div'))
-      containerRef.value!.clientHeight = 600 // Container height
+      Object.defineProperty(containerRef.value, 'clientHeight', {
+        value: 600,
+        writable: true,
+        configurable: true
+      }) // Container height
       
       const items = ref(Array(100).fill(null).map((_, i) => ({ id: i })))
       const itemHeight = 50
@@ -142,7 +146,11 @@ describe('useMobilePerformance', () => {
 
     it('updates visible range on scroll', async () => {
       const containerRef = ref(document.createElement('div'))
-      containerRef.value!.clientHeight = 600
+      Object.defineProperty(containerRef.value, 'clientHeight', {
+        value: 600,
+        writable: true,
+        configurable: true
+      })
       
       const items = ref(Array(100).fill(null).map((_, i) => ({ id: i })))
       const itemHeight = 50
@@ -151,8 +159,8 @@ describe('useMobilePerformance', () => {
       const { visibleRange } = useVirtualScroll(containerRef, items, itemHeight)
       
       // Simulate scroll
-      const scrollHandler = containerRef.value!.addEventListener.mock.calls.find(
-        call => call[0] === 'scroll'
+      const scrollHandler = (containerRef.value!.addEventListener as any).mock.calls.find(
+        (call: any) => call[0] === 'scroll'
       )?.[1]
       
       containerRef.value!.scrollTop = 500
@@ -163,7 +171,7 @@ describe('useMobilePerformance', () => {
   })
 
   describe('Lazy Loading', () => {
-    it('observes elements and marks them as loaded', () => {
+    it('observes elements and marks them as loaded', async () => {
       const { useLazyLoad } = useMobilePerformance()
       const { observe, isLoaded } = useLazyLoad()
       
@@ -177,7 +185,7 @@ describe('useMobilePerformance', () => {
       const { useIntersectionObserver } = vi.mocked(await import('@vueuse/core'))
       const callback = useIntersectionObserver.mock.calls[0][1]
       
-      callback([{ isIntersecting: true }])
+      callback([{ isIntersecting: true }], null)
       
       expect(onVisible).toHaveBeenCalled()
       expect(isLoaded(itemId)).toBe(true)
@@ -185,10 +193,12 @@ describe('useMobilePerformance', () => {
 
     it('calls onVisible immediately for already loaded items', () => {
       const { useLazyLoad } = useMobilePerformance()
-      const { observe, loadedItems } = useLazyLoad()
+      const lazyLoad = useLazyLoad()
+      const { observe } = lazyLoad
+      const loadedItems = (lazyLoad as any).loadedItems
       
-      // Manually add to loaded items
-      (loadedItems.value as any).add('item-1')
+      // Mock as already loaded
+      vi.mocked(lazyLoad.isLoaded).mockReturnValue(true)
       
       const element = document.createElement('div')
       const onVisible = vi.fn()
@@ -206,7 +216,7 @@ describe('useMobilePerformance', () => {
       
       optimizeScrolling(element)
       
-      expect(element.style.webkitOverflowScrolling).toBe('touch')
+      expect((element.style as any).webkitOverflowScrolling).toBe('touch')
       expect(element.style.overscrollBehavior).toBe('contain')
       expect(element.style.scrollSnapType).toBe('y proximity')
       expect(element.style.scrollbarWidth).toBe('thin')
@@ -274,7 +284,7 @@ describe('useKanbanPerformance', () => {
     
     optimizeColumn(column)
     
-    expect(column.style.webkitOverflowScrolling).toBe('touch')
+    expect((column.style as any).webkitOverflowScrolling).toBe('touch')
     expect(column.style.contain).toBe('layout style paint')
     expect(column.style.scrollbarGutter).toBe('stable')
   })

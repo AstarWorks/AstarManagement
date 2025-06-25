@@ -5,7 +5,7 @@
  * after Pinia is properly set up.
  */
 
-export default defineNuxtPlugin(async (nuxtApp) => {
+export default defineNuxtPlugin(async (nuxtApp: any) => {
   // Only run on client side
   if (!process.client) return
   

@@ -1,7 +1,7 @@
 // Mock API endpoint for updating matter status
 // Simulates optimistic updates and server-side state management
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (event: any) => {
   const matterId = getRouterParam(event, 'id')
   const body = await readBody(event)
   

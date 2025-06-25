@@ -9,7 +9,7 @@ import { useModalStore } from '~/stores/modal'
  * - Route-based modal persistence
  * - History state management
  */
-export default defineNuxtPlugin((nuxtApp) => {
+export default defineNuxtPlugin((nuxtApp: any) => {
   const modalStore = useModalStore()
   const router = useRouter()
   
@@ -19,7 +19,7 @@ export default defineNuxtPlugin((nuxtApp) => {
   /**
    * Handle route changes - close non-persistent modals
    */
-  router.beforeEach((to, from) => {
+  router.beforeEach((to: any, from: any) => {
     // Only close modals if this is a real navigation (not programmatic)
     if (!isProgrammaticNavigation) {
       const closedCount = modalStore.handleRouteChange()

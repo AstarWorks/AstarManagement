@@ -105,12 +105,13 @@ describe('useTouchGestures', () => {
       expect(result.velocity.value).toBe(0)
     })
 
-    it('detects drag gestures', () => {
+    it('detects drag gestures', async () => {
       const { useGesture } = vi.mocked(await import('@vueuse/gesture'))
       const dragHandler = vi.fn()
       
       useGesture.mockImplementation((handlers: any) => {
         dragHandler.mockImplementation(handlers.onDrag)
+        return {} as any
       })
       
       const result = useTouchGestures(targetRef)
@@ -142,12 +143,13 @@ describe('useTouchGestures', () => {
       expect(result.isPressed.value).toBe(false)
     })
 
-    it('detects pinch gestures', () => {
+    it('detects pinch gestures', async () => {
       const { useGesture } = vi.mocked(await import('@vueuse/gesture'))
       const pinchHandler = vi.fn()
       
       useGesture.mockImplementation((handlers: any) => {
         pinchHandler.mockImplementation(handlers.onPinch)
+        return {} as any
       })
       
       const result = useTouchGestures(targetRef)
@@ -195,6 +197,7 @@ describe('useTouchGestures', () => {
       
       useGesture.mockImplementation((handlers: any) => {
         dragHandler.mockImplementation(handlers.onDrag)
+        return {} as any
       })
       
       // Start press
@@ -216,12 +219,13 @@ describe('useTouchGestures', () => {
       vi.useRealTimers()
     })
 
-    it('calculates velocity correctly', () => {
+    it('calculates velocity correctly', async () => {
       const { useGesture } = vi.mocked(await import('@vueuse/gesture'))
       const dragHandler = vi.fn()
       
       useGesture.mockImplementation((handlers: any) => {
         dragHandler.mockImplementation(handlers.onDrag)
+        return {} as any
       })
       
       const result = useTouchGestures(targetRef)
@@ -306,7 +310,7 @@ describe('useTouchGestures', () => {
       
       // Simulate resize event
       const resizeHandler = mockWindow.addEventListener.mock.calls.find(
-        call => call[0] === 'resize'
+        (call: any[]) => call[0] === 'resize'
       )?.[1]
       
       if (resizeHandler) {
@@ -344,7 +348,7 @@ describe('useTouchGestures', () => {
       
       // Mock CSS env values
       mockWindow.getComputedStyle.mockReturnValue({
-        getPropertyValue: vi.fn((prop) => {
+        getPropertyValue: vi.fn((prop: string) => {
           if (prop === '--sat') return '44'
           if (prop === '--sab') return '34'
           if (prop === '--sal') return '0'

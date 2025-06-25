@@ -120,7 +120,8 @@ export const useAdvancedSearch = () => {
             case 'client':
               return matter.clientName.toLowerCase().includes(value.toLowerCase())
             case 'lawyer':
-              return matter.assignedLawyer?.toLowerCase().includes(value.toLowerCase())
+              const lawyerName = typeof matter.assignedLawyer === 'string' ? matter.assignedLawyer : matter.assignedLawyer?.name
+              return lawyerName?.toLowerCase().includes(value.toLowerCase())
             case 'status':
               return matter.status.toLowerCase() === value.toLowerCase()
             case 'priority':
@@ -238,15 +239,16 @@ export const useAdvancedSearch = () => {
       }
 
       // Lawyers
-      if (matter.assignedLawyer?.toLowerCase().includes(queryLower)) {
-        const key = `lawyer-${matter.assignedLawyer}`
+      const lawyerName = typeof matter.assignedLawyer === 'string' ? matter.assignedLawyer : matter.assignedLawyer?.name
+      if (lawyerName?.toLowerCase().includes(queryLower)) {
+        const key = `lawyer-${lawyerName}`
         const existing = suggestionMap.get(key)
         if (existing) {
           existing.count++
         } else {
           suggestionMap.set(key, {
             id: key,
-            value: matter.assignedLawyer,
+            value: lawyerName,
             type: 'lawyer',
             count: 1,
             category: 'Lawyers'

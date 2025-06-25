@@ -12,7 +12,7 @@ const mockLocalStorage = vi.fn(() => mockLocalStorageValue)
 
 vi.mock('@vueuse/core', () => ({
   useLocalStorage: mockLocalStorage,
-  watch: vi.fn((source, callback) => {
+  watch: vi.fn((source: any, callback: any) => {
     // Simulate immediate execution for testing
     callback(source.value)
   })
@@ -182,7 +182,7 @@ describe('useFilterPersistence', () => {
     })
 
     it('should toggle priority selection', () => {
-      const priority: Priority = 'high'
+      const priority: Priority = 'HIGH'
       
       persistenceComposable.togglePriority(priority)
       expect(persistenceComposable.currentFilters.value.selectedPriorities).toContain(priority)
@@ -192,7 +192,7 @@ describe('useFilterPersistence', () => {
     })
 
     it('should toggle status selection', () => {
-      const status: MatterStatus = 'in_progress'
+      const status: MatterStatus = 'IN_PROGRESS'
       
       persistenceComposable.toggleStatus(status)
       expect(persistenceComposable.currentFilters.value.selectedStatuses).toContain(status)

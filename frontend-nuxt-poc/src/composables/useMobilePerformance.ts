@@ -1,5 +1,5 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useIntersectionObserver, useThrottleFn, useDebounce, useRafFn } from '@vueuse/core'
+import { useIntersectionObserver, useThrottleFn, useDebounceFn, useRafFn } from '@vueuse/core'
 
 export interface PerformanceOptions {
   enableVirtualScroll?: boolean
@@ -153,7 +153,7 @@ export function useMobilePerformance(options: PerformanceOptions = {}) {
   // Touch-optimized scroll
   const optimizeScrolling = (element: HTMLElement) => {
     // Enable momentum scrolling
-    element.style.webkitOverflowScrolling = 'touch'
+    ;(element.style as any).webkitOverflowScrolling = 'touch'
     element.style.overscrollBehavior = 'contain'
     
     // Prevent scroll chaining
@@ -176,13 +176,13 @@ export function useMobilePerformance(options: PerformanceOptions = {}) {
   // Throttled/debounced utilities
   const throttle = <T extends (...args: any[]) => any>(
     fn: T,
-    ms: number = opts.throttleMs
+    ms: number = opts.throttleMs || 150
   ) => useThrottleFn(fn, ms)
   
   const debounce = <T extends (...args: any[]) => any>(
     fn: T,
-    ms: number = opts.debounceMs
-  ) => useDebounce(fn, ms)
+    ms: number = opts.debounceMs || 300
+  ) => useDebounceFn(fn, ms)
   
   // Performance monitoring
   const startPerformanceMeasure = (name: string) => {
@@ -255,7 +255,7 @@ export function useKanbanPerformance() {
   // Optimize column scrolling
   const optimizeColumn = (columnElement: HTMLElement) => {
     // Enable momentum scrolling
-    columnElement.style.webkitOverflowScrolling = 'touch'
+    ;(columnElement.style as any).webkitOverflowScrolling = 'touch'
     
     // Contain layout
     columnElement.style.contain = 'layout style paint'

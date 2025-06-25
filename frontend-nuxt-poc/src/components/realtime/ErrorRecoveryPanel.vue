@@ -2,6 +2,7 @@
 import { ref, computed, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRealTimeStore } from '~/stores/kanban/real-time'
+import { cn } from '~/lib/utils'
 import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '~/components/ui/card'
@@ -103,7 +104,13 @@ const connectionColor = computed(() => {
   }
 })
 
-const failedOperationsList = computed(() => {
+interface FailedOperation {
+  id: string
+  type: 'create' | 'update' | 'delete'
+  failedAt: Date
+}
+
+const failedOperationsList = computed<FailedOperation[]>(() => {
   // Mock failed operations for demo - in real implementation this would come from store
   return []
 })
@@ -260,7 +267,7 @@ watch([hasErrors, isOffline], ([errors, offline]) => {
 
 <template>
   <div v-if="shouldShowPanel" class="error-recovery-panel">
-    <Card :class="[
+    <Card :class="cn(
       'w-full max-w-md mx-auto shadow-lg border-l-4',
       {
         'border-l-red-500': connectionStatus === 'error',
@@ -268,7 +275,7 @@ watch([hasErrors, isOffline], ([errors, offline]) => {
         'border-l-blue-500': connectionStatus === 'syncing',
         'border-l-green-500': connectionStatus === 'connected'
       }
-    ]">
+    )">
       <CardHeader class="pb-3">
         <div class="flex items-center gap-3">
           <component 

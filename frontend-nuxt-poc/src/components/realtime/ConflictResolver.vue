@@ -63,7 +63,7 @@ const setResolution = (conflictId: string, resolution: 'local' | 'remote') => {
       </DialogHeader>
       
       <div class="space-y-4">
-        <Alert variant="warning">
+        <Alert variant="destructive">
           <AlertCircle class="h-4 w-4" />
           <AlertDescription>
             {{ conflicts.length }} conflict(s) detected. Choose which version to keep.

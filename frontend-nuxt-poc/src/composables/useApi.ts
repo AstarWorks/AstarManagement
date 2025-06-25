@@ -34,7 +34,7 @@ export const useApi = () => {
   
   // Create axios instance
   const apiClient: AxiosInstance = axios.create({
-    baseURL: config.public.apiUrl,
+    baseURL: config.public.apiUrl as string,
     timeout: 30000,
     headers: {
       'Content-Type': 'application/json',

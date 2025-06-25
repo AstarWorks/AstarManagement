@@ -5,11 +5,9 @@
  * This is the Vue/Nuxt equivalent of the React ErrorBoundary and ErrorToastProvider.
  */
 
-import { defineNuxtPlugin } from '#app'
-
-export default defineNuxtPlugin((nuxtApp) => {
+export default defineNuxtPlugin((nuxtApp: any) => {
   // Handle Vue errors
-  nuxtApp.vueApp.config.errorHandler = (error, instance, info) => {
+  nuxtApp.vueApp.config.errorHandler = (error: any, instance: any, info: any) => {
     console.error('Vue Error:', error)
     console.error('Error Info:', info)
     
@@ -83,15 +81,15 @@ export default defineNuxtPlugin((nuxtApp) => {
 })
 
 // Type declarations
-declare module '#app' {
-  interface NuxtApp {
-    $handleError: (error: unknown, context?: string) => void
-    $wrapAsync: <T extends (...args: any[]) => Promise<any>>(
-      fn: T,
-      context?: string
-    ) => T
-  }
-}
+// declare module '#app' {
+//   interface NuxtApp {
+//     $handleError: (error: unknown, context?: string) => void
+//     $wrapAsync: <T extends (...args: any[]) => Promise<any>>(
+//       fn: T,
+//       context?: string
+//     ) => T
+//   }
+// }
 
 declare module 'vue' {
   interface ComponentCustomProperties {

@@ -89,7 +89,7 @@
 
             <ConditionalField
               name="barNumber"
-              :show-when="(values) => values.role === 'lawyer'"
+              :show-when="(values: any) => values.role === 'lawyer'"
             >
               <FormInput
                 name="barNumber"
@@ -101,7 +101,7 @@
 
             <ConditionalField
               name="department"
-              :show-when="(values) => values.role === 'clerk'"
+              :show-when="(values: any) => values.role === 'clerk'"
             >
               <FormSelect
                 name="department"
@@ -158,7 +158,7 @@
 
             <ConditionalField
               name="marketingConsent"
-              :show-when="(values) => values.subscribeNewsletter"
+              :show-when="(values: any) => values.subscribeNewsletter"
             >
               <FormCheckbox
                 name="marketingConsent"

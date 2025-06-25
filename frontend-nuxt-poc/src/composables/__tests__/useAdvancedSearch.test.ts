@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { ref, nextTick } from 'vue'
 import { useAdvancedSearch } from '../useAdvancedSearch'
 import type { Matter, SearchSuggestion } from '~/types/matter'
+import type { MatterStatus, MatterPriority } from '~/types/kanban'
 
 // Mock VueUse composables
 const mockWatchDebounced = vi.fn()
@@ -29,8 +30,8 @@ const sampleMatters: Matter[] = [
     clientName: 'ABC Corporation',
     opponentName: 'XYZ Company',
     assignedLawyer: 'John Smith',
-    status: 'in_progress',
-    priority: 'high',
+    status: 'IN_PROGRESS' as MatterStatus,
+    priority: 'HIGH' as MatterPriority,
     dueDate: '2024-01-15',
     createdAt: '2024-01-01T10:00:00Z',
     updatedAt: '2024-01-10T15:30:00Z',
@@ -44,8 +45,8 @@ const sampleMatters: Matter[] = [
     clientName: 'Jane Doe',
     opponentName: 'Insurance Company',
     assignedLawyer: 'Sarah Johnson',
-    status: 'new',
-    priority: 'medium',
+    status: 'INTAKE' as MatterStatus,
+    priority: 'MEDIUM' as MatterPriority,
     dueDate: '2024-01-20',
     createdAt: '2024-01-05T09:00:00Z',
     updatedAt: '2024-01-08T11:15:00Z',
@@ -59,8 +60,8 @@ const sampleMatters: Matter[] = [
     clientName: 'Robert Brown',
     opponentName: 'Corporate Inc',
     assignedLawyer: 'John Smith',
-    status: 'review',
-    priority: 'low',
+    status: 'REVIEW' as MatterStatus,
+    priority: 'LOW' as MatterPriority,
     dueDate: '2024-02-01',
     createdAt: '2024-01-12T14:00:00Z',
     updatedAt: '2024-01-15T09:45:00Z',

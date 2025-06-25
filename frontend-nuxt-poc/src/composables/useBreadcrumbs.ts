@@ -38,7 +38,7 @@ export const useBreadcrumbs = () => {
     const segments = route.path.split('/').filter(Boolean)
     let currentPath = ''
     
-    segments.forEach((segment, index) => {
+    segments.forEach((segment: string, index: number) => {
       currentPath += `/${segment}`
       const isLast = index === segments.length - 1
       
@@ -66,7 +66,7 @@ export const useBreadcrumbs = () => {
           // Fallback to segment name
           const label = segment
             .split('-')
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
             .join(' ')
             
           breadcrumbs.push({

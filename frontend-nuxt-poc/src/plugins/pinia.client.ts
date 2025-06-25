@@ -5,7 +5,7 @@
  * and provides store hydration for SSR compatibility.
  */
 
-export default defineNuxtPlugin(async (nuxtApp) => {
+export default defineNuxtPlugin(async (nuxtApp: any) => {
   // Ensure Pinia is available before other plugins try to use stores
   const { $pinia } = nuxtApp
   

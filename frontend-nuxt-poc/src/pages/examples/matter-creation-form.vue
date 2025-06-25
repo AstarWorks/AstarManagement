@@ -28,7 +28,7 @@
             
             <ConditionalField
               name="existingClientId"
-              :show-when="(values) => values.clientType === 'existing'"
+              :show-when="(values: any) => values.clientType === 'existing'"
             >
               <FormSelect
                 name="existingClientId"
@@ -44,7 +44,7 @@
           <!-- New Client Fields -->
           <ConditionalField
             name="newClientInfo"
-            :show-when="(values) => values.clientType === 'new'"
+            :show-when="(values: any) => values.clientType === 'new'"
           >
             <div class="space-y-6">
               <h3 class="text-lg font-semibold border-b pb-2">New Client Information</h3>
@@ -60,7 +60,7 @@
               <!-- Individual Client Fields -->
               <ConditionalField
                 name="individualFields"
-                :show-when="(values) => values.clientEntityType === 'individual'"
+                :show-when="(values: any) => values.clientEntityType === 'individual'"
               >
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormInput name="firstName" label="First Name" required />
@@ -73,7 +73,7 @@
               <!-- Corporate Client Fields -->
               <ConditionalField
                 name="corporateFields"
-                :show-when="(values) => values.clientEntityType === 'corporate'"
+                :show-when="(values: any) => values.clientEntityType === 'corporate'"
               >
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormInput name="companyName" label="Company Name" required />
@@ -222,7 +222,7 @@
               
               <ConditionalField
                 name="hourlyRate"
-                :show-when="(values) => values.billingType === 'hourly'"
+                :show-when="(values: any) => values.billingType === 'hourly'"
               >
                 <FormInput
                   name="hourlyRate"
@@ -235,7 +235,7 @@
               
               <ConditionalField
                 name="flatFee"
-                :show-when="(values) => values.billingType === 'flat'"
+                :show-when="(values: any) => values.billingType === 'flat'"
               >
                 <FormInput
                   name="flatFee"

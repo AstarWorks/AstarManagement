@@ -5,7 +5,7 @@
  * current user has the required roles to access specific pages.
  */
 
-export default defineNuxtRouteMiddleware((to, from) => {
+export default defineNuxtRouteMiddleware((to: RouteLocationNormalized, from: RouteLocationNormalized) => {
   // Skip RBAC check for public routes
   if (to.meta.requiresAuth === false) {
     return

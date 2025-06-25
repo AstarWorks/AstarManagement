@@ -4,7 +4,9 @@ import { defineComponent, h } from 'vue'
 import { useRealTimeUpdates } from '../useRealTimeUpdates'
 
 // Mock $fetch
-const mockFetch = vi.fn()
+const mockFetch = vi.fn() as any
+mockFetch.raw = vi.fn()
+mockFetch.create = vi.fn(() => mockFetch)
 global.$fetch = mockFetch
 
 // Helper component for testing composables with lifecycle hooks

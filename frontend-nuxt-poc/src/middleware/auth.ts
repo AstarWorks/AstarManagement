@@ -5,7 +5,7 @@
  * unauthenticated users to the login page with return URL.
  */
 
-export default defineNuxtRouteMiddleware((to, from) => {
+export default defineNuxtRouteMiddleware((to: RouteLocationNormalized, from: RouteLocationNormalized) => {
   // Skip auth check for public routes
   const publicRoutes = ['/login', '/register', '/forgot-password', '/reset-password']
   if (publicRoutes.includes(to.path)) {

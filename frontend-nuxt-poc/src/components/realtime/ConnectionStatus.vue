@@ -14,14 +14,14 @@ const statusConfig = computed(() => {
   switch (syncStatus.value.status) {
     case 'idle':
       return { 
-        variant: 'success' as const, 
+        variant: 'default' as const, 
         label: 'Connected', 
         icon: Wifi,
         spin: false
       }
     case 'syncing':
       return { 
-        variant: 'warning' as const, 
+        variant: 'secondary' as const, 
         label: 'Syncing...', 
         icon: Loader2,
         spin: true

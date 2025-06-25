@@ -59,10 +59,10 @@ describe('useKanbanDragDrop', () => {
 
     it('prevents invalid status transitions', () => {
       // INTAKE -> TRIAL should not be allowed
-      expect(composable.canDropInColumn(mockMatter, 'TRIAL')).toBe(false)
+      expect(composable.canDropInColumn(mockMatter, 'IN_PROGRESS')).toBe(false)
       
       // INTAKE -> SETTLEMENT should not be allowed
-      expect(composable.canDropInColumn(mockMatter, 'SETTLEMENT')).toBe(false)
+      expect(composable.canDropInColumn(mockMatter, 'REVIEW')).toBe(false)
     })
 
     it('returns correct available statuses for current status', () => {
@@ -80,9 +80,9 @@ describe('useKanbanDragDrop', () => {
     it('handles complex transition chains', () => {
       // Test FILED status transitions
       const filedMatter = { ...mockMatter, status: 'FILED' as MatterStatus }
-      expect(composable.canDropInColumn(filedMatter, 'DISCOVERY')).toBe(true)
-      expect(composable.canDropInColumn(filedMatter, 'TRIAL_PREP')).toBe(true)
-      expect(composable.canDropInColumn(filedMatter, 'MEDIATION')).toBe(true)
+      expect(composable.canDropInColumn(filedMatter, 'INITIAL_REVIEW')).toBe(true)
+      expect(composable.canDropInColumn(filedMatter, 'READY_FILING')).toBe(true)
+      expect(composable.canDropInColumn(filedMatter, 'WAITING_CLIENT')).toBe(true)
       expect(composable.canDropInColumn(filedMatter, 'CLOSED')).toBe(true)
       expect(composable.canDropInColumn(filedMatter, 'INTAKE')).toBe(false)
     })
@@ -180,7 +180,7 @@ describe('useKanbanDragDrop', () => {
       }
 
       // Try to move from INTAKE to TRIAL (invalid)
-      const result = composable.onDragChange(changeEvent, 'TRIAL')
+      const result = composable.onDragChange(changeEvent, 'IN_PROGRESS')
       expect(result).toBe(false)
     })
   })
@@ -197,7 +197,7 @@ describe('useKanbanDragDrop', () => {
       composable.onDragStart(mockDragEvent)
 
       const validTarget = { dataset: { status: 'INITIAL_REVIEW' } }
-      const invalidTarget = { dataset: { status: 'TRIAL' } }
+      const invalidTarget = { dataset: { status: 'IN_PROGRESS' } }
 
       expect(composable.canAcceptDrop(validTarget, null, null)).toBe(true)
       expect(composable.canAcceptDrop(invalidTarget, null, null)).toBe(false)

@@ -1,3 +1,12 @@
+// Import the types we need from kanban.ts
+import type { MatterStatus, MatterPriority } from './kanban'
+
+export interface LawyerInfo {
+  id: string
+  name: string
+  initials: string
+}
+
 export interface Matter {
   id: string
   caseNumber: string
@@ -5,32 +14,30 @@ export interface Matter {
   description?: string
   clientName: string
   opponentName?: string
-  assignedLawyer?: string
+  assignedLawyer?: string | LawyerInfo
+  assignedClerk?: LawyerInfo
   status: MatterStatus
-  priority: Priority
+  priority: MatterPriority
   dueDate?: string
   createdAt: string
   updatedAt: string
   lastActivity?: string
   relatedDocuments?: number
-  tags?: string[]
+  tags?: readonly string[] | string[]
+  statusDuration?: number
+  isOverdue?: boolean
+  searchHighlights?: Record<string, any>
+  relevanceScore?: number
 }
 
-export type MatterStatus = 
-  | 'new'
-  | 'in_progress'
-  | 'review'
-  | 'waiting'
-  | 'completed'
-  | 'archived'
-  | 'cancelled'
-
-export type Priority = 'low' | 'medium' | 'high' | 'urgent'
+// Re-export for backward compatibility
+export type { MatterStatus, MatterPriority }
+export type Priority = MatterPriority
 
 export interface FilterState {
   searchQuery: string
   selectedLawyers: string[]
-  selectedPriorities: Priority[]
+  selectedPriorities: MatterPriority[]
   selectedStatuses: MatterStatus[]
   showClosed: boolean
   searchMode: 'fuzzy' | 'exact' | 'field'
@@ -39,6 +46,13 @@ export interface FilterState {
     end: Date
   }
   customFields?: Record<string, any>
+  // Additional properties used by mobile filter drawer
+  search?: string
+  priority?: string[]
+  status?: string[]
+  assigneeIds?: string[]
+  tags?: string[]
+  showCompleted?: boolean
 }
 
 export interface SearchSuggestion {
@@ -67,4 +81,6 @@ export interface ViewPreferences {
   showPriority: boolean
   showTags: boolean
   groupBy: 'status' | 'priority' | 'lawyer' | 'none'
+  sortBy?: 'priority' | 'dueDate' | 'createdAt' | 'title' | 'updatedAt'
+  sortOrder?: 'asc' | 'desc'
 }

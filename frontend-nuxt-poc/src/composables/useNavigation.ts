@@ -5,6 +5,8 @@
  * route transitions, progress indicators, and history management.
  */
 
+import type { RouteLocationNormalized, NavigationGuardNext } from 'vue-router'
+
 export const useNavigation = () => {
   const router = useRouter()
   const route = useRoute()
@@ -149,8 +151,8 @@ export const useNavigation = () => {
   }
   
   // Navigation guards
-  const addBeforeNavigationGuard = (guard: (to: any, from: any) => boolean | Promise<boolean>) => {
-    return router.beforeEach(async (to, from, next) => {
+  const addBeforeNavigationGuard = (guard: (to: RouteLocationNormalized, from: RouteLocationNormalized) => boolean | Promise<boolean>) => {
+    return router.beforeEach(async (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
       try {
         const canNavigate = await guard(to, from)
         if (canNavigate) {

@@ -1,7 +1,7 @@
 // Mock API endpoint for Kanban matters data
 // In production, this would connect to the Spring Boot backend
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (event: any) => {
   // Simulate realistic API response time for SSR optimization testing
   await new Promise(resolve => setTimeout(resolve, 50))
   

@@ -1,5 +1,8 @@
 <script setup lang="ts">
 // 1. Server-side data fetching with error handling and caching
+import KanbanBoardSSR from "~/components/kanban/KanbanBoardSSR.vue";
+import KanbanBoardInteractive from "~/components/kanban/KanbanBoardInteractive.vue";
+
 const { data: matters, error, pending, refresh } = await useFetch('/api/matters', {
   key: 'kanban-matters',
   server: true,
@@ -10,11 +13,11 @@ const { data: matters, error, pending, refresh } = await useFetch('/api/matters'
     createdAt: new Date(matter.createdAt),
     updatedAt: new Date(matter.updatedAt)
   })),
-  onRequestError({ request, options, error }) {
+  onRequestError({ request, options, error }: any) {
     // Handle server-side fetch errors
     console.error('Server fetch error:', error)
   },
-  onResponseError({ request, response, options }) {
+  onResponseError({ request, response, options }: any) {
     // Handle API response errors
     console.error('API response error:', response.status)
   }
@@ -22,6 +25,7 @@ const { data: matters, error, pending, refresh } = await useFetch('/api/matters'
 
 // 2. Hydration-safe reactive state
 const isClient = process.client
+const isDev = process.dev || false
 const isHydrated = ref(false)
 
 // 3. Progressive enhancement state
@@ -80,8 +84,8 @@ onMounted(() => {
       if (webVitals.onCLS) {
         webVitals.onCLS((metric: any) => { performanceMetrics.value.cls = metric.value })
       }
-      if (webVitals.onFID) {
-        webVitals.onFID((metric: any) => { /* Track FID */ })
+      if (webVitals.onINP) {
+        webVitals.onINP((metric: any) => { /* Track INP (replaces FID) */ })
       }
       if (webVitals.onFCP) {
         webVitals.onFCP((metric: any) => { performanceMetrics.value.fcp = metric.value })
@@ -114,7 +118,7 @@ const columns = ref<{ id: string; label: string; labelEn: string }[]>([
 // 9. Event handlers
 const handleMatterMove = async (matterId: string, newStatus: string) => {
   // Optimistic update
-  const matterIndex = matters.value.findIndex(m => m.id === matterId)
+  const matterIndex = matters.value.findIndex((m: any) => m.id === matterId)
   if (matterIndex !== -1) {
     matters.value[matterIndex].status = newStatus
   }
@@ -133,7 +137,7 @@ const handleMatterMove = async (matterId: string, newStatus: string) => {
 const handleRealTimeUpdate = (updates: any[]) => {
   // Handle real-time updates
   updates.forEach(update => {
-    const matterIndex = matters.value.findIndex(m => m.id === update.id)
+    const matterIndex = matters.value.findIndex((m: any) => m.id === update.id)
     if (matterIndex !== -1) {
       matters.value[matterIndex] = { ...matters.value[matterIndex], ...update }
     }
@@ -208,7 +212,7 @@ definePageMeta({
     </main>
 
     <!-- Performance monitoring (development only) -->
-    <div v-if="$dev && isClient" class="performance-monitor">
+    <div v-if="isDev && isClient" class="performance-monitor">
       <details>
         <summary>Performance Metrics</summary>
         <pre>{{ performanceMetrics }}</pre>

@@ -37,7 +37,7 @@ const legacyRouteMap: Record<string, string> = {
   '/auth/reset': '/reset-password'
 }
 
-export default defineNuxtRouteMiddleware((to, from) => {
+export default defineNuxtRouteMiddleware((to: RouteLocationNormalized, from: RouteLocationNormalized) => {
   const path = to.path
   
   // Check if this is a legacy route that needs redirection
