@@ -1,8 +1,29 @@
 {
   // https://nuxt.com/docs/guide/concepts/typescript
   "extends": "./.nuxt/tsconfig.json",
-  "vueCompilerOptions": {
-    // Disable strict template type checking for slot props
-    "strictTemplates": false
-  }
+  "compilerOptions": {
+    "types": ["vitest/globals", "@types/node"],
+    "skipLibCheck": true,
+    "allowJs": true,
+    "paths": {
+      "#imports": ["./.nuxt/imports"],
+      "~/*": ["./src/*"],
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": [
+    ".nuxt/imports.d.ts",
+    ".nuxt/components.d.ts",
+    "vitest-env.d.ts",
+    "src/global.d.ts",
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    ".nuxt",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "test/**/*"
+  ]
 }
