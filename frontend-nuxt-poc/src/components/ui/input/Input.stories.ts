@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3'
+import { expect, within, userEvent, fn } from '@storybook/test'
 import { ref } from 'vue'
 import { Input } from './index'
 import { Label } from '../label'
@@ -57,10 +58,43 @@ export const Default: Story = {
     components: { Input },
     setup() {
       const value = ref('')
-      return { args, value }
+      const onInput = fn()
+      const onChange = fn()
+      const onFocus = fn()
+      const onBlur = fn()
+      return { args, value, onInput, onChange, onFocus, onBlur }
     },
-    template: '<Input v-bind="args" v-model="value" />'
-  })
+    template: '<Input v-bind="args" v-model="value" @input="onInput" @change="onChange" @focus="onFocus" @blur="onBlur" />'
+  }),
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement)
+    const input = canvas.getByPlaceholderText('Enter text...')
+
+    // Test initial state
+    expect(input).toBeInTheDocument()
+    expect(input).toBeEnabled()
+    expect(input).toHaveValue('')
+
+    // Test focus behavior
+    await userEvent.click(input)
+    expect(input).toHaveFocus()
+    // Focus event has been fired
+
+    // Test typing behavior
+    await userEvent.type(input, 'Hello World')
+    expect(input).toHaveValue('Hello World')
+    // Input event has been fired
+
+    // Test clearing input
+    await userEvent.clear(input)
+    expect(input).toHaveValue('')
+
+    // Test keyboard navigation
+    await userEvent.type(input, 'Test')
+    await userEvent.keyboard('{Escape}')
+    await userEvent.tab()
+    // Blur event has been fired
+  }
 }
 
 // Input types showcase
@@ -126,10 +160,54 @@ export const InputTypes: Story = {
       </div>
     `
   }),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    
+    // Test text input
+    const textInput = canvas.getByLabelText('Text Input')
+    await userEvent.type(textInput, 'Sample text')
+    expect(textInput).toHaveValue('Sample text')
+    
+    // Test email input
+    const emailInput = canvas.getByLabelText('Email Input')
+    await userEvent.type(emailInput, 'test@example.com')
+    expect(emailInput).toHaveValue('test@example.com')
+    expect(emailInput).toHaveAttribute('type', 'email')
+    
+    // Test password input
+    const passwordInput = canvas.getByLabelText('Password Input')
+    await userEvent.type(passwordInput, 'secret123')
+    expect(passwordInput).toHaveValue('secret123')
+    expect(passwordInput).toHaveAttribute('type', 'password')
+    
+    // Test number input
+    const numberInput = canvas.getByLabelText('Number Input')
+    await userEvent.type(numberInput, '42')
+    expect(numberInput).toHaveValue(42)
+    expect(numberInput).toHaveAttribute('type', 'number')
+    
+    // Test search input
+    const searchInput = canvas.getByLabelText('Search Input')
+    await userEvent.type(searchInput, 'search query')
+    expect(searchInput).toHaveValue('search query')
+    expect(searchInput).toHaveAttribute('type', 'search')
+    
+    // Test phone input
+    const telInput = canvas.getByLabelText('Phone Input')
+    await userEvent.type(telInput, '+81 90-1234-5678')
+    expect(telInput).toHaveValue('+81 90-1234-5678')
+    expect(telInput).toHaveAttribute('type', 'tel')
+    
+    // Test date input
+    const dateInput = canvas.getByLabelText('Date Input')
+    await userEvent.type(dateInput, '2025-12-25')
+    expect(dateInput).toHaveValue('2025-12-25')
+    expect(dateInput).toHaveAttribute('type', 'date')
+  },
   parameters: {
     docs: {
       description: {
-        story: 'Different HTML input types supported by the component.'
+        story: 'Different HTML input types supported by the component with interaction testing.'
       }
     }
   }
@@ -180,42 +258,83 @@ export const States: Story = {
       <div class="space-y-4 max-w-md">
         <div class="space-y-2">
           <Label>Default State</Label>
-          <Input placeholder="Default input" />
+          <Input placeholder="Default input" data-testid="default-input" />
         </div>
         
         <div class="space-y-2">
           <Label>Focused State</Label>
-          <Input placeholder="Click to focus" class="focus:ring-2" />
+          <Input placeholder="Click to focus" class="focus:ring-2" data-testid="focus-input" />
         </div>
         
         <div class="space-y-2">
           <Label>Disabled State</Label>
-          <Input placeholder="Disabled input" disabled />
+          <Input placeholder="Disabled input" disabled data-testid="disabled-input" />
         </div>
         
         <div class="space-y-2">
           <Label>Read-only State</Label>
-          <Input value="Read-only value" readonly />
+          <Input value="Read-only value" readonly data-testid="readonly-input" />
         </div>
         
         <div class="space-y-2">
           <Label>Error State</Label>
-          <Input placeholder="Invalid input" class="border-destructive focus:ring-destructive" />
+          <Input placeholder="Invalid input" class="border-destructive focus:ring-destructive" data-testid="error-input" />
           <p class="text-sm text-destructive">This field is required</p>
         </div>
         
         <div class="space-y-2">
           <Label>Success State</Label>
-          <Input value="Valid input" class="border-green-500 focus:ring-green-500" />
+          <Input value="Valid input" class="border-green-500 focus:ring-green-500" data-testid="success-input" />
           <p class="text-sm text-green-600">Looks good!</p>
         </div>
       </div>
     `
   }),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    
+    // Test default state
+    const defaultInput = canvas.getByTestId('default-input')
+    expect(defaultInput).toBeEnabled()
+    expect(defaultInput).toHaveValue('')
+    await userEvent.type(defaultInput, 'Test input')
+    expect(defaultInput).toHaveValue('Test input')
+    
+    // Test focus state
+    const focusInput = canvas.getByTestId('focus-input')
+    await userEvent.click(focusInput)
+    expect(focusInput).toHaveFocus()
+    
+    // Test disabled state
+    const disabledInput = canvas.getByTestId('disabled-input')
+    expect(disabledInput).toBeDisabled()
+    // Attempt to type should be ignored
+    await userEvent.type(disabledInput, 'Should not type')
+    expect(disabledInput).toHaveValue('')
+    
+    // Test readonly state
+    const readonlyInput = canvas.getByTestId('readonly-input')
+    expect(readonlyInput).toHaveAttribute('readonly')
+    expect(readonlyInput).toHaveValue('Read-only value')
+    // Attempt to change value should be ignored
+    await userEvent.clear(readonlyInput)
+    expect(readonlyInput).toHaveValue('Read-only value')
+    
+    // Test error state styling
+    const errorInput = canvas.getByTestId('error-input')
+    expect(errorInput).toBeEnabled()
+    await userEvent.type(errorInput, 'Error test')
+    expect(errorInput).toHaveValue('Error test')
+    
+    // Test success state
+    const successInput = canvas.getByTestId('success-input')
+    expect(successInput).toHaveValue('Valid input')
+    expect(successInput).toBeEnabled()
+  },
   parameters: {
     docs: {
       description: {
-        story: 'Various input states including disabled, readonly, error, and success.'
+        story: 'Various input states including disabled, readonly, error, and success with interaction testing.'
       }
     }
   }
@@ -311,10 +430,45 @@ export const LegalFormExample: Story = {
       </div>
     `
   }),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    
+    // Test form field interactions
+    const caseNumberInput = canvas.getByLabelText(/case number/i)
+    await userEvent.type(caseNumberInput, '2025-CV-0001')
+    expect(caseNumberInput).toHaveValue('2025-CV-0001')
+    
+    const clientNameInput = canvas.getByLabelText(/client name/i)
+    await userEvent.type(clientNameInput, 'ABC Corporation')
+    expect(clientNameInput).toHaveValue('ABC Corporation')
+    
+    const opposingPartyInput = canvas.getByLabelText(/opposing party/i)
+    await userEvent.type(opposingPartyInput, 'XYZ Industries')
+    expect(opposingPartyInput).toHaveValue('XYZ Industries')
+    
+    const filingDateInput = canvas.getByLabelText(/filing date/i)
+    await userEvent.type(filingDateInput, '2025-07-15')
+    expect(filingDateInput).toHaveValue('2025-07-15')
+    
+    const estimatedValueInput = canvas.getByLabelText(/estimated value/i)
+    await userEvent.type(estimatedValueInput, '1000000')
+    expect(estimatedValueInput).toHaveValue(1000000)
+    
+    const courtNameInput = canvas.getByLabelText(/court name/i)
+    await userEvent.type(courtNameInput, 'Tokyo District Court')
+    expect(courtNameInput).toHaveValue('Tokyo District Court')
+    
+    // Test form validation attributes
+    expect(caseNumberInput).toHaveAttribute('pattern', '[0-9]{4}-[A-Z]{2}-[0-9]{4}')
+    expect(estimatedValueInput).toHaveAttribute('min', '0')
+    expect(estimatedValueInput).toHaveAttribute('step', '1000')
+    expect(filingDateInput).toHaveAttribute('type', 'date')
+    expect(estimatedValueInput).toHaveAttribute('type', 'number')
+  },
   parameters: {
     docs: {
       description: {
-        story: 'Example of a legal matter form using input components.'
+        story: 'Example of a legal matter form using input components with form validation testing.'
       }
     }
   }

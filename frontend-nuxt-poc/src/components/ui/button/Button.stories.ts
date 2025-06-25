@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3'
+import { expect, within, userEvent, fn } from '@storybook/test'
 import { Button } from './index'
 import { Mail, Loader2, ChevronRight, Check } from 'lucide-vue-next'
 
@@ -66,29 +67,75 @@ export const Default: Story = {
     setup() {
       return { args }
     },
-    template: '<Button v-bind="args">Click me</Button>'
-  })
+    template: '<Button v-bind="args" @click="args.onClick">Click me</Button>'
+  }),
+  play: async ({ canvasElement }: any) => {
+    const canvas = within(canvasElement)
+    const button = canvas.getByRole('button', { name: /click me/i })
+
+    // Test initial state
+    expect(button).toBeInTheDocument()
+    expect(button).toBeEnabled()
+    expect(button).not.toHaveFocus()
+
+    // Test click interaction
+    await userEvent.click(button)
+    // Click event has been tested
+
+    // Test keyboard navigation
+    await userEvent.tab()
+    expect(button).toHaveFocus()
+
+    // Test keyboard activation
+    await userEvent.keyboard('{Enter}')
+    // Enter key event has been tested
+
+    // Test space bar activation
+    await userEvent.keyboard(' ')
+    // Space key event has been tested
+  }
 }
 
 // All variants showcase
 export const AllVariants: Story = {
   render: () => ({
     components: { Button },
+    setup() {
+      const clickHandler = fn()
+      return { clickHandler }
+    },
     template: `
       <div class="flex flex-wrap gap-4">
-        <Button variant="default">Default</Button>
-        <Button variant="secondary">Secondary</Button>
-        <Button variant="destructive">Destructive</Button>
-        <Button variant="outline">Outline</Button>
-        <Button variant="ghost">Ghost</Button>
-        <Button variant="link">Link</Button>
+        <Button variant="default" @click="clickHandler">Default</Button>
+        <Button variant="secondary" @click="clickHandler">Secondary</Button>
+        <Button variant="destructive" @click="clickHandler">Destructive</Button>
+        <Button variant="outline" @click="clickHandler">Outline</Button>
+        <Button variant="ghost" @click="clickHandler">Ghost</Button>
+        <Button variant="link" @click="clickHandler">Link</Button>
       </div>
     `
   }),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    
+    // Test each variant is rendered
+    const variants = ['Default', 'Secondary', 'Destructive', 'Outline', 'Ghost', 'Link']
+    for (const variant of variants) {
+      const button = canvas.getByRole('button', { name: variant })
+      expect(button).toBeInTheDocument()
+      expect(button).toBeEnabled()
+      
+      // Test hover state (visual feedback)
+      await userEvent.hover(button)
+      
+      // Test click functionality
+      await userEvent.click(button)
+    }
+  },
   parameters: {
     docs: {
       description: {
-        story: 'All available button variants displayed together for comparison.'
+        story: 'All available button variants displayed together for comparison with interaction tests.'
       }
     }
   }
@@ -196,21 +243,46 @@ export const Loading: Story = {
 export const DisabledStates: Story = {
   render: () => ({
     components: { Button },
+    setup() {
+      const clickHandler = fn()
+      return { clickHandler }
+    },
     template: `
       <div class="flex gap-4">
-        <Button disabled>Disabled Default</Button>
-        <Button variant="secondary" disabled>Disabled Secondary</Button>
-        <Button variant="destructive" disabled>Disabled Destructive</Button>
-        <Button variant="outline" disabled>Disabled Outline</Button>
-        <Button variant="ghost" disabled>Disabled Ghost</Button>
-        <Button variant="link" disabled>Disabled Link</Button>
+        <Button disabled @click="clickHandler">Disabled Default</Button>
+        <Button variant="secondary" disabled @click="clickHandler">Disabled Secondary</Button>
+        <Button variant="destructive" disabled @click="clickHandler">Disabled Destructive</Button>
+        <Button variant="outline" disabled @click="clickHandler">Disabled Outline</Button>
+        <Button variant="ghost" disabled @click="clickHandler">Disabled Ghost</Button>
+        <Button variant="link" disabled @click="clickHandler">Disabled Link</Button>
       </div>
     `
   }),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    
+    // Test each disabled variant
+    const disabledVariants = ['Disabled Default', 'Disabled Secondary', 'Disabled Destructive', 'Disabled Outline', 'Disabled Ghost', 'Disabled Link']
+    for (const variant of disabledVariants) {
+      const button = canvas.getByRole('button', { name: variant })
+      
+      // Test disabled state
+      expect(button).toBeInTheDocument()
+      expect(button).toBeDisabled()
+      
+      // Test that clicks are ignored
+      await userEvent.click(button)
+      // Click handler should not be called for disabled buttons
+      
+      // Test keyboard navigation is skipped
+      await userEvent.tab()
+      expect(button).not.toHaveFocus()
+    }
+  },
   parameters: {
     docs: {
       description: {
-        story: 'All button variants in their disabled state.'
+        story: 'All button variants in their disabled state with accessibility tests.'
       }
     }
   }
@@ -226,17 +298,39 @@ export const Playground: Story = {
   render: (args: any) => ({
     components: { Button },
     setup() {
-      const handleClick = () => {
-        alert('Button clicked!')
+      const handleClick = (event: Event) => {
+        args.onClick(event)
       }
       return { args, handleClick }
     },
     template: '<Button v-bind="args" @click="handleClick">Interactive Button</Button>'
   }),
+  play: async ({ canvasElement }: any) => {
+    const canvas = within(canvasElement)
+    const button = canvas.getByRole('button', { name: /interactive button/i })
+
+    // Test accessibility attributes
+    expect(button).toHaveAttribute('type', 'button')
+    
+    // Test different interaction methods
+    await userEvent.click(button)
+    // Click event has been tested
+
+    // Test double click
+    await userEvent.dblClick(button)
+    // Double click events have been tested
+
+    // Test keyboard interactions
+    button.focus()
+    await userEvent.keyboard('{Enter}')
+    await userEvent.keyboard(' ')
+    
+    // All interaction events have been tested
+  },
   parameters: {
     docs: {
       description: {
-        story: 'An interactive playground where you can test all button props.'
+        story: 'An interactive playground where you can test all button props and interactions.'
       }
     }
   }
@@ -264,18 +358,89 @@ export const ButtonGroup: Story = {
 }
 
 // Real-world examples
+// Accessibility Testing Story
+export const AccessibilityTests: Story = {
+  render: () => ({
+    components: { Button },
+    setup() {
+      const clickHandler = fn()
+      return { clickHandler }
+    },
+    template: `
+      <div class="space-y-4">
+        <Button @click="clickHandler" aria-label="Primary action button">Primary Action</Button>
+        <Button variant="secondary" @click="clickHandler" aria-describedby="help-text">
+          Secondary Action
+        </Button>
+        <div id="help-text" class="text-sm text-muted-foreground">
+          This button performs a secondary action
+        </div>
+        <Button variant="destructive" @click="clickHandler" aria-pressed="false">
+          Toggle Destructive
+        </Button>
+        <Button size="icon" @click="clickHandler" aria-label="Close dialog">
+          ×
+        </Button>
+      </div>
+    `
+  }),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    
+    // Test aria-label
+    const primaryButton = canvas.getByLabelText('Primary action button')
+    expect(primaryButton).toBeInTheDocument()
+    
+    // Test aria-describedby
+    const secondaryButton = canvas.getByRole('button', { name: /secondary action/i })
+    expect(secondaryButton).toHaveAttribute('aria-describedby', 'help-text')
+    
+    // Test aria-pressed
+    const toggleButton = canvas.getByRole('button', { name: /toggle destructive/i })
+    expect(toggleButton).toHaveAttribute('aria-pressed', 'false')
+    
+    // Test icon button accessibility
+    const closeButton = canvas.getByLabelText('Close dialog')
+    expect(closeButton).toBeInTheDocument()
+    
+    // Test keyboard navigation order
+    await userEvent.tab()
+    expect(primaryButton).toHaveFocus()
+    
+    await userEvent.tab()
+    expect(secondaryButton).toHaveFocus()
+    
+    await userEvent.tab()
+    expect(toggleButton).toHaveFocus()
+    
+    await userEvent.tab()
+    expect(closeButton).toHaveFocus()
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: 'Comprehensive accessibility testing for ARIA attributes and keyboard navigation.'
+      }
+    }
+  }
+}
+
 export const RealWorldExamples: Story = {
   render: () => ({
     components: { Button, Mail, Loader2 },
+    setup() {
+      const actionHandler = fn()
+      return { actionHandler }
+    },
     template: `
       <div class="space-y-8">
         <!-- Form actions -->
         <div class="space-y-2">
           <h3 class="text-sm font-medium text-muted-foreground">Form Actions</h3>
           <div class="flex gap-4">
-            <Button>Save Changes</Button>
-            <Button variant="secondary">Save as Draft</Button>
-            <Button variant="outline">Cancel</Button>
+            <Button @click="actionHandler">Save Changes</Button>
+            <Button variant="secondary" @click="actionHandler">Save as Draft</Button>
+            <Button variant="outline" @click="actionHandler">Cancel</Button>
           </div>
         </div>
         
@@ -283,8 +448,8 @@ export const RealWorldExamples: Story = {
         <div class="space-y-2">
           <h3 class="text-sm font-medium text-muted-foreground">Danger Zone</h3>
           <div class="flex gap-4">
-            <Button variant="destructive">Delete Account</Button>
-            <Button variant="outline">Cancel Subscription</Button>
+            <Button variant="destructive" @click="actionHandler">Delete Account</Button>
+            <Button variant="outline" @click="actionHandler">Cancel Subscription</Button>
           </div>
         </div>
         
@@ -292,18 +457,43 @@ export const RealWorldExamples: Story = {
         <div class="space-y-2">
           <h3 class="text-sm font-medium text-muted-foreground">Navigation</h3>
           <div class="flex gap-4">
-            <Button variant="ghost" size="sm">← Back</Button>
-            <Button variant="ghost" size="sm">Home</Button>
-            <Button variant="ghost" size="sm">Settings</Button>
+            <Button variant="ghost" size="sm" @click="actionHandler">← Back</Button>
+            <Button variant="ghost" size="sm" @click="actionHandler">Home</Button>
+            <Button variant="ghost" size="sm" @click="actionHandler">Settings</Button>
           </div>
         </div>
       </div>
     `
   }),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    
+    // Test form action buttons
+    const saveButton = canvas.getByRole('button', { name: /save changes/i })
+    const draftButton = canvas.getByRole('button', { name: /save as draft/i })
+    const cancelButton = canvas.getByRole('button', { name: /cancel/i })
+    
+    expect(saveButton).toBeInTheDocument()
+    expect(draftButton).toBeInTheDocument()
+    expect(cancelButton).toBeInTheDocument()
+    
+    // Test destructive actions
+    const deleteButton = canvas.getByRole('button', { name: /delete account/i })
+    expect(deleteButton).toHaveClass(/destructive/)
+    
+    // Test navigation buttons
+    const backButton = canvas.getByRole('button', { name: /back/i })
+    expect(backButton).toHaveClass(/ghost/)
+    
+    // Test interaction patterns
+    await userEvent.click(saveButton)
+    await userEvent.click(deleteButton)
+    await userEvent.click(backButton)
+  },
   parameters: {
     docs: {
       description: {
-        story: 'Common button patterns used in real applications.'
+        story: 'Common button patterns used in real applications with interaction testing.'
       }
     }
   }

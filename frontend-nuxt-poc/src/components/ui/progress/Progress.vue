@@ -28,7 +28,7 @@ const percentage = computed(() => {
     role="progressbar"
     :aria-valuemin="0"
     :aria-valuemax="max"
-    :aria-valuenow="value"
+    :aria-valuenow="value ?? undefined"
   >
     <div
       class="h-full w-full flex-1 bg-primary transition-all duration-200 ease-in-out"
