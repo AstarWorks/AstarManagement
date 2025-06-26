@@ -2,9 +2,9 @@
 project_name: Aster Management
 current_milestone_id: M02
 highest_sprint_in_milestone: S07
-current_sprint_id: S07
+current_sprint_id: S08
 status: active
-last_updated: 2025-06-25 17:47
+last_updated: 2025-06-26 03:23
 ---
 
 # Project Manifest: Aster Management
@@ -158,7 +158,7 @@ Replace client-side state management with TanStack Query for robust server state
 - 📋 T08_S08: Background Sync - Medium complexity (6 points)
 - 📋 T09_S08: Component Migration - Medium complexity (8 points)
 - 📋 T10_S08: DevTools Performance - Low complexity (5 points)
-- 📋 T11_S08: Advanced Queries Search - Medium complexity (6 points)
+- 🚫 T11_S08: Advanced Queries Search - Medium complexity (6 points) - BLOCKED (Missing API endpoints)
 - 📋 T12_S08: Drag Drop Mutations - Medium complexity (6 points)
 
 *Total tasks: 12 (74 story points)*

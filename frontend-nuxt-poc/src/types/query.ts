@@ -25,38 +25,52 @@ export const queryKeys = {
   details: () => [...queryKeys.all, 'detail'] as const,
   detail: (id: MaybeRef<string>) => [...queryKeys.details(), id] as const,
   
+  // Infinite queries
+  infinite: (filters?: MaybeRef<MatterFilters>) => [...queryKeys.all, 'infinite', { filters }] as const,
+  
   // Sub-resources
   documents: (matterId: MaybeRef<string>) => [...queryKeys.detail(matterId), 'documents'] as const,
   timeline: (matterId: MaybeRef<string>) => [...queryKeys.detail(matterId), 'timeline'] as const,
   activities: (matterId: MaybeRef<string>) => [...queryKeys.detail(matterId), 'activities'] as const,
   
   // Statistics and aggregates
-  statistics: () => [...queryKeys.all, 'statistics'] as const,
-  statusCounts: () => [...queryKeys.statistics(), 'status-counts'] as const,
-  priorityCounts: () => [...queryKeys.statistics(), 'priority-counts'] as const,
+  statistics: (filters?: MaybeRef<MatterFilters>) => [...queryKeys.all, 'statistics', { filters }] as const,
+  statusCounts: (filters?: MaybeRef<MatterFilters>) => [...queryKeys.all, 'status-counts', { filters }] as const,
+  priorityCounts: (filters?: MaybeRef<MatterFilters>) => [...queryKeys.all, 'priority-counts', { filters }] as const,
   
-  // Search
-  search: (query: MaybeRef<string>) => [...queryKeys.all, 'search', { query }] as const,
+  // Search and suggestions
+  search: (query: MaybeRef<string>, filters?: MaybeRef<MatterFilters>) => 
+    [...queryKeys.all, 'search', { query, filters }] as const,
+  suggestions: (query: MaybeRef<string>) => [...queryKeys.all, 'suggestions', { query }] as const,
+  
+  // Filter management
+  filterPreferences: (userId: MaybeRef<string>) => [...queryKeys.all, 'filter-preferences', userId] as const,
   
   // User-specific
   userMatters: (userId: MaybeRef<string>) => [...queryKeys.all, 'user', userId] as const,
   assignedMatters: (lawyerId: MaybeRef<string>) => [...queryKeys.all, 'assigned', lawyerId] as const,
+  
+  // Real-time subscriptions
+  subscription: (type: string, params?: Record<string, any>) => 
+    [...queryKeys.all, 'subscription', type, params] as const,
 } as const
 
 /**
  * Filter options for matter queries
  */
 export interface MatterFilters {
-  status?: MatterStatus[]
-  priority?: MatterPriority[]
-  assignedLawyer?: string
+  status?: string | string[]
+  priority?: string | string[]
+  assigneeId?: string
   clientId?: string
   search?: string
-  dateFrom?: Date
-  dateTo?: Date
+  dateFrom?: string
+  dateTo?: string
   tags?: string[]
-  sort?: 'createdAt' | 'updatedAt' | 'dueDate' | 'priority'
+  sort?: 'createdAt' | 'updatedAt' | 'dueDate' | 'priority' | 'title'
   order?: 'asc' | 'desc'
+  limit?: number
+  page?: number
 }
 
 /**
@@ -97,6 +111,117 @@ export interface MatterDetailQueryOptions {
   includeTimeline?: boolean
   includeActivities?: boolean
   enabled?: MaybeRef<boolean>
+}
+
+/**
+ * Search suggestion structure
+ */
+export interface SearchSuggestion {
+  id: string
+  text: string
+  type: 'matter' | 'client' | 'tag' | 'status' | 'priority'
+  count?: number
+  relevance?: number
+}
+
+/**
+ * Matter statistics for dashboard and analytics
+ */
+export interface MatterStatistics {
+  total: number
+  byStatus: Record<string, number>
+  byPriority: Record<string, number>
+  byAssignee: Record<string, number>
+  recentActivity: number
+  overdue: number
+  dueToday: number
+  dueThisWeek: number
+  averageResolutionTime: number
+  trends: {
+    period: string
+    created: number
+    completed: number
+    overdue: number
+  }[]
+}
+
+/**
+ * Filter state management
+ */
+export interface FilterState {
+  id: string
+  userId: string
+  name: string
+  filters: MatterFilters
+  isDefault: boolean
+  isPublic: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+/**
+ * Query error structure
+ */
+export interface QueryError {
+  message: string
+  code?: string
+  status?: number
+  details?: Record<string, any>
+}
+
+/**
+ * Input types for mutations
+ */
+export interface CreateMatterInput {
+  title: string
+  description?: string
+  status?: string
+  priority?: string
+  assigneeId?: string
+  clientId?: string
+  dueDate?: string
+  tags?: string[]
+}
+
+export interface UpdateMatterInput {
+  title?: string
+  description?: string
+  status?: string
+  priority?: string
+  assigneeId?: string
+  clientId?: string
+  dueDate?: string
+  tags?: string[]
+}
+
+export interface MoveMatterInput {
+  matterId: string
+  newStatus: string
+  position?: number
+}
+
+/**
+ * Subscription event types for real-time updates
+ */
+export interface SubscriptionEvent {
+  type: 'matter_created' | 'matter_updated' | 'matter_deleted' | 'matter_moved'
+  payload: {
+    matterId: string
+    matter?: Matter
+    changes?: Partial<Matter>
+    userId: string
+    timestamp: string
+  }
+}
+
+/**
+ * Query persistence options
+ */
+export interface QueryPersistenceOptions {
+  cacheTime?: number
+  maxAge?: number
+  compression?: boolean
+  encryption?: boolean
 }
 
 /**
