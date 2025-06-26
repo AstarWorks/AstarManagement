@@ -105,4 +105,8 @@ export default defineConfig({
     toHaveScreenshot: { threshold: 0.1 },
     toMatchSnapshot: { threshold: 0.1 },
   },
+
+  /* Global setup and teardown */
+  globalSetup: require.resolve('./e2e/global-setup.ts'),
+  globalTeardown: require.resolve('./e2e/global-teardown.ts'),
 })
