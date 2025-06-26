@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useSwipe } from '@vueuse/core'
 import type { KanbanColumn } from '~/types/kanban'
 import { cn } from '~/lib/utils'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { Filter, Plus, Search } from 'lucide-vue-next'
+import { useStatusCountsQuery } from '~/composables/useMattersQuery'
 
 interface Props {
   columns: KanbanColumn[]
@@ -13,12 +14,14 @@ interface Props {
   showJapanese?: boolean
   filterCount?: number
   canAddMatter?: boolean
+  useQueryData?: boolean // Enable TanStack Query integration
 }
 
 const props = withDefaults(defineProps<Props>(), {
   showJapanese: true,
   filterCount: 0,
-  canAddMatter: true
+  canAddMatter: true,
+  useQueryData: true
 })
 
 const emit = defineEmits<{
@@ -36,6 +39,12 @@ const tabsContainerRef = ref<HTMLElement>()
 const activeTabIndex = ref(0)
 const isScrolling = ref(false)
 const showScrollIndicator = ref({ left: false, right: false })
+
+// TanStack Query for status counts
+const { data: statusCounts, isLoading: countsLoading } = useStatusCountsQuery({
+  enabled: props.useQueryData,
+  refetchInterval: 30000 // Refresh every 30 seconds
+})
 
 // Find active column index
 const activeColumnIndex = computed(() => 
@@ -130,9 +139,19 @@ const getColumnTitle = (column: KanbanColumn) => {
 
 // Get matter count for column
 const getMatterCount = (column: KanbanColumn) => {
-  // This would typically come from a store or prop
-  return 0 // Placeholder
+  if (!props.useQueryData || !statusCounts.value) {
+    return 0
+  }
+  return statusCounts.value[column.id] || 0
 }
+
+// Total matters count
+const totalMatters = computed(() => {
+  if (!props.useQueryData || !statusCounts.value) {
+    return 0
+  }
+  return Object.values(statusCounts.value).reduce((sum, count) => sum + count, 0)
+})
 
 // Initialize
 onMounted(() => {
@@ -181,6 +200,15 @@ onMounted(() => {
             {{ filterCount }}
           </Badge>
         </Button>
+        
+        <!-- Total Count Badge -->
+        <Badge 
+          v-if="useQueryData && totalMatters > 0"
+          variant="outline"
+          class="total-badge"
+        >
+          Total: {{ totalMatters }}
+        </Badge>
         
         <!-- Add Matter Button -->
         <Button
@@ -234,6 +262,9 @@ onMounted(() => {
             <Badge 
               variant="secondary"
               class="tab-count"
+              :class="{
+                'animate-pulse': countsLoading && useQueryData
+              }"
             >
               {{ getMatterCount(column) }}
             </Badge>
@@ -285,6 +316,10 @@ onMounted(() => {
 
 .add-button {
   @apply ml-auto;
+}
+
+.total-badge {
+  @apply ml-auto mr-2 text-xs;
 }
 
 /* Tabs Wrapper */

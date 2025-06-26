@@ -7,39 +7,58 @@ import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
 import { Skeleton } from '~/components/ui/skeleton'
 import { Calendar, Clock, User, AlertTriangle, AlertCircle, Info, Minus } from 'lucide-vue-next'
 import { cn } from '~/lib/utils'
+import { useKanbanMattersQuery } from '~/composables/useKanbanQuery'
+import { DEFAULT_KANBAN_COLUMNS } from '~/constants/kanban'
 
 // Props for SSR-optimized Kanban board
 interface Props {
-  matters: MatterCard[]
-  columns: { id: string; label: string; labelEn: string }[]
+  filters?: any // MatterFilters
   showJapanese?: boolean
-  loading?: boolean
   viewMode?: 'compact' | 'normal' | 'detailed'
+  ssrMatters?: MatterCard[] // Optional pre-fetched data for SSR
+  ssrStatusCounts?: Record<string, number> // Optional pre-fetched counts
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  filters: undefined,
   showJapanese: true,
-  loading: false,
-  viewMode: 'normal'
+  viewMode: 'normal',
+  ssrMatters: undefined,
+  ssrStatusCounts: undefined
 })
 
-// Computed properties for server-side rendering optimization
-const mattersByStatus = computed(() => {
-  const grouped: Record<string, MatterCard[]> = {}
-  
-  // Initialize all columns with empty arrays
-  props.columns.forEach(column => {
-    grouped[column.id] = []
-  })
-  
-  // Group matters by status
-  props.matters.forEach(matter => {
-    if (grouped[matter.status]) {
-      grouped[matter.status].push(matter)
-    }
-  })
-  
-  return grouped
+// Use TanStack Query with SSR support
+const {
+  matterCards,
+  mattersByStatus,
+  columnsWithCounts,
+  isLoading,
+  isError,
+  error
+} = useKanbanMattersQuery(props.filters, {
+  // Use SSR data if available
+  initialData: props.ssrMatters ? {
+    data: props.ssrMatters,
+    total: props.ssrMatters.length,
+    page: 1,
+    pageSize: 100
+  } : undefined,
+  staleTime: props.ssrMatters ? 5 * 60 * 1000 : 0 // 5 minutes if SSR data
+})
+
+// Use SSR data or query data
+const matters = computed(() => props.ssrMatters || matterCards.value)
+const loading = computed(() => !props.ssrMatters && isLoading.value)
+
+// Columns configuration
+const columns = computed(() => {
+  return DEFAULT_KANBAN_COLUMNS.map(col => ({
+    id: col.id,
+    label: col.titleJa,
+    labelEn: col.title,
+    color: col.color,
+    count: props.ssrStatusCounts?.[col.id] || columnsWithCounts.value.find(c => c.id === col.id)?.count || 0
+  }))
 })
 
 // Priority configuration for consistent styling
@@ -106,6 +125,7 @@ const isServerSafe = (value: any) => {
         :key="column.id"
         class="kanban-column"
         :data-column-id="column.id"
+        :class="column.color"
       >
         <!-- Column header -->
         <div class="column-header">
@@ -114,7 +134,7 @@ const isServerSafe = (value: any) => {
           </h2>
           <div class="column-count">
             <span class="count-badge">
-              {{ mattersByStatus[column.id]?.length || 0 }}
+              {{ column.count }}
             </span>
           </div>
         </div>
@@ -125,6 +145,15 @@ const isServerSafe = (value: any) => {
           <template v-if="loading">
             <div v-for="i in 3" :key="`skeleton-${i}`" class="matter-skeleton">
               <Skeleton class="h-24 w-full" />
+            </div>
+          </template>
+
+          <!-- Error state -->
+          <template v-else-if="isError">
+            <div class="error-state">
+              <p class="text-sm text-destructive text-center py-4">
+                Failed to load matters
+              </p>
             </div>
           </template>
 
@@ -295,7 +324,7 @@ const isServerSafe = (value: any) => {
 
           <!-- Empty state -->
           <div
-            v-if="!loading && (!mattersByStatus[column.id] || mattersByStatus[column.id].length === 0)"
+            v-if="!loading && !isError && (!mattersByStatus[column.id] || mattersByStatus[column.id].length === 0)"
             class="empty-column"
           >
             <p class="text-sm text-muted-foreground text-center py-8">
@@ -404,6 +433,13 @@ const isServerSafe = (value: any) => {
 }
 
 .empty-column {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.error-state {
   flex: 1;
   display: flex;
   align-items: center;

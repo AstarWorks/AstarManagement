@@ -1,27 +1,37 @@
 <script setup lang="ts">
-// 1. Server-side data fetching with error handling and caching
+// 1. Import components and utilities
+import KanbanBoard from "~/components/kanban/KanbanBoard.vue";
 import KanbanBoardSSR from "~/components/kanban/KanbanBoardSSR.vue";
 import KanbanBoardInteractive from "~/components/kanban/KanbanBoardInteractive.vue";
+import { useKanbanMattersQuery, usePrefetchKanbanData } from '~/composables/useKanbanQuery';
+import { useQueryClient } from '@tanstack/vue-query';
+import type { MatterFilters } from '~/types/query';
 
-const { data: matters, error, pending, refresh } = await useFetch('/api/matters', {
-  key: 'kanban-matters',
-  server: true,
-  default: () => [],
-  transform: (data: any[]) => data.map(matter => ({
-    ...matter,
-    // Transform data for client-side compatibility
-    createdAt: new Date(matter.createdAt),
-    updatedAt: new Date(matter.updatedAt)
-  })),
-  onRequestError({ request, options, error }: any) {
-    // Handle server-side fetch errors
-    console.error('Server fetch error:', error)
-  },
-  onResponseError({ request, response, options }: any) {
-    // Handle API response errors
-    console.error('API response error:', response.status)
-  }
-})
+// 2. Setup query client and filters
+const queryClient = useQueryClient();
+const route = useRoute();
+
+// Build filters from query params
+const filters = computed<MatterFilters>(() => ({
+  status: route.query.status ? [route.query.status as string] : undefined,
+  priority: route.query.priority ? [route.query.priority as string] : undefined,
+  search: route.query.search as string || undefined
+}));
+
+// 3. Use TanStack Query for data fetching
+const {
+  matterCards: matters,
+  isLoading: pending,
+  isError,
+  error,
+  refetch: refresh
+} = useKanbanMattersQuery(filters);
+
+// 4. Prefetch data on mount for better performance
+const { prefetchAll } = usePrefetchKanbanData();
+onMounted(() => {
+  prefetchAll();
+});
 
 // 2. Hydration-safe reactive state
 const isClient = process.client
@@ -105,43 +115,20 @@ onMounted(() => {
 
 // 8. Kanban configuration
 const showJapanese = ref(true)
-const columns = ref<{ id: string; label: string; labelEn: string }[]>([
-  { id: 'intake', label: '受付', labelEn: 'Intake' },
-  { id: 'investigation', label: '調査', labelEn: 'Investigation' },
-  { id: 'negotiation', label: '交渉', labelEn: 'Negotiation' },
-  { id: 'litigation', label: '訴訟', labelEn: 'Litigation' },
-  { id: 'settlement', label: '和解', labelEn: 'Settlement' },
-  { id: 'collection', label: '回収', labelEn: 'Collection' },
-  { id: 'closed', label: '完了', labelEn: 'Closed' }
-])
 
 // 9. Event handlers
-const handleMatterMove = async (matterId: string, newStatus: string) => {
-  // Optimistic update
-  const matterIndex = matters.value.findIndex((m: any) => m.id === matterId)
-  if (matterIndex !== -1) {
-    matters.value[matterIndex].status = newStatus
-  }
-  
-  try {
-    await $fetch(`/api/matters/${matterId}`, {
-      method: 'PATCH',
-      body: { status: newStatus }
-    })
-  } catch (error) {
-    // Revert optimistic update on error
-    await refresh()
-  }
+const handleMatterMove = async (matterId: string, newStatus: string, oldStatus: string) => {
+  // The TanStack Query mutations handle optimistic updates automatically
+  // Just invalidate queries to refresh data
+  await queryClient.invalidateQueries({ queryKey: ['matters'] })
+  await queryClient.invalidateQueries({ queryKey: ['kanban'] })
 }
 
 const handleRealTimeUpdate = (updates: any[]) => {
-  // Handle real-time updates
-  updates.forEach(update => {
-    const matterIndex = matters.value.findIndex((m: any) => m.id === update.id)
-    if (matterIndex !== -1) {
-      matters.value[matterIndex] = { ...matters.value[matterIndex], ...update }
-    }
-  })
+  // Invalidate relevant queries when real-time updates arrive
+  // TanStack Query will handle the actual data updates
+  queryClient.invalidateQueries({ queryKey: ['matters'] })
+  queryClient.invalidateQueries({ queryKey: ['kanban'] })
 }
 
 // Define page meta for SEO and routing
@@ -167,9 +154,9 @@ definePageMeta({
     </header>
 
     <!-- Error boundary for SSR failures -->
-    <div v-if="error" class="error-boundary" role="alert">
+    <div v-if="isError" class="error-boundary" role="alert">
       <h2>Dashboard Loading Error</h2>
-      <p>{{ error.message || 'Failed to load dashboard data' }}</p>
+      <p>{{ error?.message || 'Failed to load dashboard data' }}</p>
       <button @click="refresh()" class="retry-button">
         Retry Loading
       </button>
@@ -179,33 +166,21 @@ definePageMeta({
     <main v-else class="dashboard-content">
       <!-- Server-rendered static content -->
       <div class="kanban-board-container">
-        <!-- Always render the board structure server-side -->
-        <KanbanBoardSSR
-          :matters="matters || []"
-          :columns="columns"
+        <!-- TanStack Query-powered Kanban Board -->
+        <KanbanBoard
+          :filters="filters"
           :show-japanese="showJapanese"
-          :loading="pending"
+          class="h-full"
         />
         
-        <!-- Progressive enhancement for interactive features -->
+        <!-- SSR fallback for initial render -->
         <ClientOnly>
-          <KanbanBoardInteractive
-            v-if="isHydrated && matters"
-            :matters="matters"
-            :drag-enabled="isDragEnabled"
-            :real-time-enabled="isRealTimeEnabled"
-            @matter-move="handleMatterMove"
-            @real-time-update="handleRealTimeUpdate"
-          />
-          
-          <!-- Fallback for non-JS environments -->
           <template #fallback>
-            <div class="no-js-message">
-              <p>Interactive features require JavaScript</p>
-              <noscript>
-                <p>Please enable JavaScript for full functionality</p>
-              </noscript>
-            </div>
+            <KanbanBoardSSR
+              :filters="filters"
+              :show-japanese="showJapanese"
+              :ssr-matters="matters || []"
+            />
           </template>
         </ClientOnly>
       </div>

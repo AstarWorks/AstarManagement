@@ -1,22 +1,25 @@
 <script setup lang="ts">
-import { ref, nextTick, onMounted, onUnmounted, computed } from 'vue'
+import { ref, nextTick, onMounted, onUnmounted, computed, watch } from 'vue'
 import type { MatterCard } from '~/types/kanban'
-import { useKanbanDragDrop } from '~/composables/useKanbanDragDrop'
+import { useKanbanDragDropEnhanced } from '~/composables/useKanbanDragDropEnhanced'
 import { useTouchGestures } from '~/composables/useTouchGestures'
 import { useBreakpoints } from '@vueuse/core'
+import { useKanbanMattersQuery, useKanbanRealTimeQuery } from '~/composables/useKanbanQuery'
+import { useQueryClient } from '@tanstack/vue-query'
 
 // Development mode flag
 const $dev = process.env.NODE_ENV === 'development'
 
 // Props for progressive enhancement
 interface Props {
-  matters: MatterCard[]
+  filters?: any // MatterFilters
   dragEnabled?: boolean
   realTimeEnabled?: boolean
   touchGesturesEnabled?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  filters: undefined,
   dragEnabled: true,
   realTimeEnabled: true,
   touchGesturesEnabled: true
@@ -39,7 +42,29 @@ const breakpoints = useBreakpoints({
 
 const isMobile = breakpoints.smaller('tablet')
 
-// Drag and drop functionality
+// Query client for cache management
+const queryClient = useQueryClient()
+
+// TanStack Query data fetching
+const {
+  matterCards,
+  mattersByStatus,
+  isLoading,
+  isError,
+  error,
+  refetch
+} = useKanbanMattersQuery(props.filters)
+
+// Real-time updates with TanStack Query
+const {
+  isConnected,
+  lastUpdate,
+  pendingUpdates,
+  syncNow,
+  subscribeToUpdates
+} = useKanbanRealTimeQuery()
+
+// Enhanced drag and drop with TanStack Query mutations
 const kanbanContainer = ref<HTMLElement>()
 const {
   isDragging,
@@ -47,9 +72,14 @@ const {
   dragOverColumn,
   onDragStart,
   onDragEnd,
+  onDragChange,
   onDragOver,
-  onDragLeave
-} = useKanbanDragDrop()
+  onDragLeave,
+  isMatterProcessing,
+  performanceMetrics,
+  averageDragTime,
+  successRate
+} = useKanbanDragDropEnhanced()
 
 // Additional drag state for interactive overlay
 const dragStartPosition = ref<{ x: number; y: number } | null>(null)
@@ -106,57 +136,29 @@ const cleanupTouchGestures = () => {
   // Cleanup touch gesture listeners if needed
 }
 
-// Real-time updates
-const realTimeConnection = ref<WebSocket | null>(null)
-const isConnected = ref(false)
+// Real-time updates subscription
+let unsubscribeRealTime: (() => void) | null = null
 
 const setupRealTime = () => {
-  if (!props.realTimeEnabled || typeof window === 'undefined') return
+  if (!props.realTimeEnabled || !isConnected.value) return
   
-  try {
-    // Setup WebSocket connection for real-time updates
-    const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/api/ws/kanban`
-    realTimeConnection.value = new WebSocket(wsUrl)
-    
-    realTimeConnection.value.onopen = () => {
-      isConnected.value = true
-      console.log('Real-time connection established')
+  // Subscribe to real-time updates using TanStack Query integration
+  unsubscribeRealTime = subscribeToUpdates((update) => {
+    // Invalidate relevant queries based on update type
+    if (update.type === 'matter_update') {
+      queryClient.invalidateQueries({ queryKey: ['matters'] })
+    } else if (update.type === 'status_change') {
+      queryClient.invalidateQueries({ queryKey: ['kanban'] })
     }
     
-    realTimeConnection.value.onmessage = (event) => {
-      try {
-        const updates = JSON.parse(event.data)
-        emit('realTimeUpdate', updates)
-      } catch (error) {
-        console.error('Error parsing real-time update:', error)
-      }
-    }
-    
-    realTimeConnection.value.onclose = () => {
-      isConnected.value = false
-      console.log('Real-time connection closed')
-      
-      // Attempt to reconnect after 5 seconds
-      setTimeout(() => {
-        if (props.realTimeEnabled) {
-          setupRealTime()
-        }
-      }, 5000)
-    }
-    
-    realTimeConnection.value.onerror = (error) => {
-      console.error('Real-time connection error:', error)
-    }
-  } catch (error) {
-    console.error('Failed to setup real-time connection:', error)
-  }
+    emit('realTimeUpdate', [update])
+  })
 }
 
 const cleanupRealTime = () => {
-  if (realTimeConnection.value) {
-    realTimeConnection.value.close()
-    realTimeConnection.value = null
-    isConnected.value = false
+  if (unsubscribeRealTime) {
+    unsubscribeRealTime()
+    unsubscribeRealTime = null
   }
 }
 
@@ -236,7 +238,7 @@ const announceToScreenReader = (message: string) => {
 
 // Handle matter movement with accessibility announcement
 const handleMatterMoved = (matterId: string, newStatus: string, oldStatus: string) => {
-  const matter = props.matters.find(m => m.id === matterId)
+  const matter = matterCards.value.find(m => m.id === matterId)
   if (matter) {
     announceToScreenReader(
       `Matter ${matter.caseNumber} moved from ${oldStatus} to ${newStatus}`
@@ -244,6 +246,19 @@ const handleMatterMoved = (matterId: string, newStatus: string, oldStatus: strin
   }
   emit('matterMove', matterId, newStatus, oldStatus)
 }
+
+// Watch for filter changes
+watch(() => props.filters, () => {
+  refetch()
+}, { deep: true })
+
+// Performance monitoring
+const performanceStats = computed(() => ({
+  avgDragTime: averageDragTime.value,
+  successRate: successRate.value,
+  totalOps: performanceMetrics.value.totalOperations,
+  failedOps: performanceMetrics.value.failedOperations
+}))
 </script>
 
 <template>
@@ -330,6 +345,9 @@ const handleMatterMoved = (matterId: string, newStatus: string, oldStatus: strin
         <div>Drag Active: {{ isDragging }}</div>
         <div>Real-time: {{ isConnected ? 'Connected' : 'Disconnected' }}</div>
         <div>Touch: {{ isMobile ? 'Mobile' : 'Desktop' }}</div>
+        <div>Queries: {{ isLoading ? 'Loading' : 'Ready' }}</div>
+        <div>Avg Drag: {{ performanceStats.avgDragTime }}ms</div>
+        <div>Success: {{ performanceStats.successRate }}%</div>
       </div>
     </div>
 

@@ -4,9 +4,8 @@ import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
 import type { KanbanColumn, KanbanBoardProps } from '~/types/kanban'
 import type { Matter } from '~/types/matter'
 import { DEFAULT_KANBAN_COLUMNS, BREAKPOINTS } from '~/constants/kanban'
-import { useKanbanColumns } from '~/composables/useKanbanColumns'
-import { useKanbanRealTime } from '~/composables/useKanbanRealTime'
-import { useRealTimeStore } from '~/stores/kanban/real-time'
+import { useKanbanMattersQuery, useKanbanRealTimeQuery } from '~/composables/useKanbanQuery'
+import { useQueryClient } from '@tanstack/vue-query'
 import { ScrollArea, ScrollBar } from '~/components/ui/scroll-area'
 import ConnectionStatus from '~/components/realtime/ConnectionStatus.vue'
 import UpdateIndicator from '~/components/realtime/UpdateIndicator.vue'
@@ -17,14 +16,14 @@ interface Props {
   columns?: KanbanColumn[]
   showJapanese?: boolean
   className?: string
-  matters?: Matter[]
+  filters?: any // MatterFilters type
 }
 
 const props = withDefaults(defineProps<Props>(), {
   title: 'Matter Management Board',
   showJapanese: true,
   className: '',
-  matters: () => []
+  filters: undefined
 })
 
 // 3. Emits definition
@@ -36,16 +35,33 @@ const emit = defineEmits<{
 
 // 4. Reactive state using Composition API
 const activeTabIndex = ref(0)
-const isLoading = ref(false)
 const boardRef = ref<HTMLElement>()
+const queryClient = useQueryClient()
 
-// 5. Setup composables
-const mattersRef = ref(props.matters)
-const { mattersByColumn, columnsWithCounts } = useKanbanColumns(mattersRef)
+// 5. Setup TanStack Query composables
+const {
+  data: matterCards,
+  mattersByStatus,
+  columnsWithCounts,
+  isLoading,
+  isError,
+  error,
+  refetch
+} = useKanbanMattersQuery(props.filters)
 
-// Real-time updates setup
-const realTimeStore = useRealTimeStore()
-const { updates, loading: rtLoading, lastUpdated, start: startRealTime, stop: stopRealTime } = useKanbanRealTime()
+// Real-time updates with TanStack Query
+const {
+  isConnected,
+  lastUpdate,
+  pendingUpdates,
+  syncNow,
+  subscribeToUpdates
+} = useKanbanRealTimeQuery()
+
+// Alias for backward compatibility
+const mattersByColumn = mattersByStatus
+const rtLoading = computed(() => pendingUpdates.value > 0)
+const lastUpdated = lastUpdate
 
 // 6. Computed properties
 const displayColumns = computed(() => 
@@ -100,21 +116,29 @@ const handleColumnHeaderClick = (column: KanbanColumn) => {
 }
 
 // 8. Lifecycle hooks
+let unsubscribe: (() => void) | null = null
+
 onMounted(() => {
-  // Update matters when props change
-  watch(() => props.matters, (newMatters) => {
-    mattersRef.value = newMatters
-  }, { immediate: true })
-  
-  // Start real-time updates if online
-  if (realTimeStore.isOnline) {
-    startRealTime()
+  // Subscribe to real-time updates
+  if (isConnected.value) {
+    unsubscribe = subscribeToUpdates((update) => {
+      // Handle real-time updates by invalidating queries
+      queryClient.invalidateQueries({ queryKey: ['matters'] })
+      queryClient.invalidateQueries({ queryKey: ['kanban'] })
+    })
   }
+  
+  // Watch for filter changes
+  watch(() => props.filters, () => {
+    refetch()
+  }, { deep: true })
 })
 
 onUnmounted(() => {
-  // Clean up real-time updates
-  stopRealTime()
+  // Clean up real-time subscription
+  if (unsubscribe) {
+    unsubscribe()
+  }
 })
 </script>
 
@@ -125,7 +149,16 @@ onUnmounted(() => {
       <div class="board-title-section">
         <h1 class="board-title">{{ title }}</h1>
         <div class="header-actions">
-          <ConnectionStatus />
+          <ConnectionStatus :is-connected="isConnected" />
+          <button
+            v-if="pendingUpdates > 0"
+            class="sync-button"
+            @click="syncNow"
+            :aria-label="`${pendingUpdates} pending updates. Click to sync.`"
+          >
+            <span class="sync-icon">🔄</span>
+            {{ pendingUpdates }}
+          </button>
           <button
             class="language-toggle"
             @click="toggleLanguage"
@@ -227,6 +260,17 @@ onUnmounted(() => {
         <span class="loading-text">Loading matters...</span>
       </div>
     </div>
+    
+    <!-- Error State -->
+    <div v-if="isError && !isLoading" class="error-overlay">
+      <div class="error-content">
+        <span class="error-icon">⚠️</span>
+        <p class="error-message">{{ error?.message || 'Failed to load matters' }}</p>
+        <button @click="refetch" class="retry-button">
+          Retry
+        </button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -255,6 +299,16 @@ onUnmounted(() => {
 .language-toggle {
   @apply px-3 py-1 text-sm font-medium text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors;
   @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+}
+
+.sync-button {
+  @apply flex items-center gap-1 px-3 py-1 text-sm font-medium text-blue-600 bg-blue-50 rounded-md;
+  @apply hover:bg-blue-100 transition-colors;
+  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+}
+
+.sync-icon {
+  @apply inline-block animate-spin;
 }
 
 /* Desktop layout */
@@ -324,6 +378,29 @@ onUnmounted(() => {
 
 .loading-text {
   @apply text-sm text-gray-600;
+}
+
+/* Error state */
+.error-overlay {
+  @apply absolute inset-0 bg-white flex items-center justify-center;
+  z-index: 50;
+}
+
+.error-content {
+  @apply text-center p-6 max-w-md;
+}
+
+.error-icon {
+  @apply text-4xl mb-4 block;
+}
+
+.error-message {
+  @apply text-gray-700 mb-4;
+}
+
+.retry-button {
+  @apply px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700;
+  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
 }
 
 /* Responsive Design */
