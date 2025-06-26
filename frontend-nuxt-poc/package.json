@@ -48,7 +48,19 @@
     "test:coverage:merge": "nyc merge coverage coverage/merged-coverage.json",
     "test:coverage:report": "nyc report --reporter=html --reporter=text --reporter=lcov",
     "test:all": "bun run test:run && bun run test:e2e && bun run test-storybook:ci",
-    "test:ci": "bun run lint && bun run typecheck && bun run test:all"
+    "test:ci": "bun run lint && bun run typecheck && bun run test:all",
+    "analyze": "nuxt analyze",
+    "perf:lighthouse": "lhci autorun",
+    "perf:lighthouse:mobile": "lhci autorun --collect.settings.preset=mobile",
+    "perf:lighthouse:desktop": "lhci autorun --collect.settings.preset=desktop",
+    "perf:bundle": "nuxt analyze",
+    "perf:bundle:visualize": "nuxt analyze --open",
+    "perf:k6": "k6 run k6/load-test.js",
+    "perf:k6:stress": "k6 run k6/stress-test.js",
+    "perf:k6:spike": "k6 run k6/spike-test.js",
+    "perf:memory": "node scripts/memory-profiler.js",
+    "perf:test": "vitest run tests/performance/",
+    "perf:all": "bun run perf:lighthouse && bun run perf:bundle && bun run perf:test"
   },
   "dependencies": {
     "@floating-ui/vue": "^1.1.6",
@@ -79,6 +91,7 @@
     "zod": "^3.25.67"
   },
   "devDependencies": {
+    "@lhci/cli": "^0.15.1",
     "@nuxt/devtools": "^2.5.0",
     "@nuxt/eslint-config": "^0.7.2",
     "@nuxt/test-utils": "^3.19.1",
@@ -110,6 +123,7 @@
     "eslint": "^9.17.0",
     "eslint-plugin-vue": "^9.32.0",
     "happy-dom": "^18.0.1",
+    "lighthouse": "^12.6.1",
     "nyc": "^17.1.0",
     "playwright": "^1.53.1",
     "storybook": "^8.6.14",

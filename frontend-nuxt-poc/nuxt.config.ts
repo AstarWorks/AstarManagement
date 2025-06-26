@@ -40,7 +40,14 @@ export default defineNuxtConfig({
           drop_console: process.env.NODE_ENV === 'production',
           drop_debugger: process.env.NODE_ENV === 'production'
         }
-      }
+      },
+      
+      // Enable source maps for production debugging
+      sourcemap: process.env.NODE_ENV === 'development' ? true : 'hidden',
+      
+      // Bundle size reporting
+      reportCompressedSize: true,
+      chunkSizeWarningLimit: 500 // 500KB warning threshold
     },
     
     // Development optimizations
@@ -143,6 +150,16 @@ export default defineNuxtConfig({
     
     // Tree shaking for better performance
     treeshakeClientOnly: true
+  },
+  
+  // Bundle analysis configuration
+  analyze: {
+    analyzerMode: 'static',
+    generateStatsFile: true,
+    statsFilename: 'stats.json',
+    openAnalyzer: false,
+    logLevel: 'info',
+    defaultSizes: 'gzip'
   },
   
   css: ['~/assets/css/main.css'],
