@@ -305,26 +305,126 @@ export default defineEventHandler(async (event: any) => {
     }
   ]
   
-  // Add query parameter filtering for optimization
+  // Enhanced query parameter handling for advanced features
   const query = getQuery(event)
   let filteredMatters = mockMatters
   
+  // Basic filtering
   if (query.status) {
-    filteredMatters = mockMatters.filter(matter => matter.status === query.status)
+    filteredMatters = filteredMatters.filter(matter => matter.status === query.status)
   }
   
   if (query.priority) {
     filteredMatters = filteredMatters.filter(matter => matter.priority === query.priority)
   }
   
-  if (query.limit) {
-    const limit = parseInt(query.limit as string)
-    filteredMatters = filteredMatters.slice(0, limit)
+  if (query.assignee) {
+    filteredMatters = filteredMatters.filter(matter => 
+      matter.assignedLawyer?.id === query.assignee || 
+      matter.assignedClerk?.id === query.assignee
+    )
   }
+  
+  // Date range filtering
+  if (query.dateFrom || query.dateTo) {
+    const fromDate = query.dateFrom ? new Date(query.dateFrom as string) : null
+    const toDate = query.dateTo ? new Date(query.dateTo as string) : null
+    
+    filteredMatters = filteredMatters.filter(matter => {
+      const matterDate = new Date(matter.createdAt)
+      if (fromDate && matterDate < fromDate) return false
+      if (toDate && matterDate > toDate) return false
+      return true
+    })
+  }
+  
+  // Tag filtering
+  if (query.tags) {
+    const requestedTags = Array.isArray(query.tags) ? query.tags : [query.tags]
+    filteredMatters = filteredMatters.filter(matter => 
+      requestedTags.some(tag => matter.tags.includes(tag as string))
+    )
+  }
+  
+  // Sorting
+  const sortBy = query.sortBy as string || 'updatedAt'
+  const sortOrder = query.sortOrder as string || 'desc'
+  
+  filteredMatters.sort((a, b) => {
+    let aValue: any, bValue: any
+    
+    switch (sortBy) {
+      case 'title':
+        aValue = a.title
+        bValue = b.title
+        break
+      case 'priority':
+        const priorityOrder = { 'URGENT': 4, 'HIGH': 3, 'MEDIUM': 2, 'LOW': 1 }
+        aValue = priorityOrder[a.priority as keyof typeof priorityOrder]
+        bValue = priorityOrder[b.priority as keyof typeof priorityOrder]
+        break
+      case 'dueDate':
+        aValue = new Date(a.dueDate || '9999-12-31')
+        bValue = new Date(b.dueDate || '9999-12-31')
+        break
+      case 'createdAt':
+        aValue = new Date(a.createdAt)
+        bValue = new Date(b.createdAt)
+        break
+      case 'updatedAt':
+      default:
+        aValue = new Date(a.updatedAt)
+        bValue = new Date(b.updatedAt)
+        break
+    }
+    
+    if (sortOrder === 'asc') {
+      return aValue > bValue ? 1 : -1
+    } else {
+      return aValue < bValue ? 1 : -1
+    }
+  })
+  
+  // Pagination with proper PaginatedResponse structure
+  const page = parseInt(query.page as string) || 1
+  const limit = parseInt(query.limit as string) || 20
+  const offset = (page - 1) * limit
+  
+  const totalItems = filteredMatters.length
+  const paginatedMatters = filteredMatters.slice(offset, offset + limit)
+  const hasNext = offset + limit < totalItems
+  const hasPrev = page > 1
+  const totalPages = Math.ceil(totalItems / limit)
   
   // Add proper caching headers for SSR optimization
   setHeader(event, 'Cache-Control', 'public, max-age=60, stale-while-revalidate=300')
-  setHeader(event, 'ETag', `"matters-${Date.now()}"`)
+  setHeader(event, 'ETag', `"matters-${totalItems}-${Date.now()}"`)
+  setHeader(event, 'X-Total-Count', totalItems.toString())
   
-  return filteredMatters
+  // Return paginated response structure consistent with T11_S08 requirements
+  return {
+    data: paginatedMatters, // Using 'data' field as per T11_S08 specs
+    pagination: {
+      page,
+      limit,
+      total: totalItems,
+      hasNext,
+      hasPrev,
+      totalPages
+    },
+    filters: {
+      status: query.status,
+      priority: query.priority,
+      assignee: query.assignee,
+      dateFrom: query.dateFrom,
+      dateTo: query.dateTo,
+      tags: query.tags,
+      sortBy,
+      sortOrder
+    },
+    meta: {
+      requestTime: new Date().toISOString(),
+      resultCount: paginatedMatters.length
+    }
+  }
 })
