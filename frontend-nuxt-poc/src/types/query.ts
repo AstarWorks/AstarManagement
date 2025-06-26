@@ -19,40 +19,65 @@ export type { Matter } from './matter'
  * and invalidation patterns.
  */
 export const queryKeys = {
+  // Matters
+  matters: {
+    all: ['matters'] as const,
+    lists: () => [...queryKeys.matters.all, 'list'] as const,
+    list: (filters?: MaybeRef<MatterFilters>) => [...queryKeys.matters.lists(), { filters }] as const,
+    details: () => [...queryKeys.matters.all, 'detail'] as const,
+    detail: (id: MaybeRef<string>) => [...queryKeys.matters.details(), id] as const,
+    
+    // Infinite queries
+    infinite: (filters?: MaybeRef<MatterFilters>) => [...queryKeys.matters.all, 'infinite', { filters }] as const,
+    
+    // Sub-resources
+    documents: (matterId: MaybeRef<string>) => [...queryKeys.matters.detail(matterId), 'documents'] as const,
+    timeline: (matterId: MaybeRef<string>) => [...queryKeys.matters.detail(matterId), 'timeline'] as const,
+    activities: (matterId: MaybeRef<string>) => [...queryKeys.matters.detail(matterId), 'activities'] as const,
+    
+    // Statistics and aggregates
+    statistics: (filters?: MaybeRef<MatterFilters>) => [...queryKeys.matters.all, 'statistics', { filters }] as const,
+    statusCounts: (filters?: MaybeRef<MatterFilters>) => [...queryKeys.matters.all, 'status-counts', { filters }] as const,
+    priorityCounts: (filters?: MaybeRef<MatterFilters>) => [...queryKeys.matters.all, 'priority-counts', { filters }] as const,
+    
+    // Search and suggestions
+    search: (query: MaybeRef<string>, filters?: MaybeRef<MatterFilters>) => 
+      [...queryKeys.matters.all, 'search', { query, filters }] as const,
+    suggestions: (query: MaybeRef<string>) => [...queryKeys.matters.all, 'suggestions', { query }] as const,
+    
+    // Filter management
+    filterPreferences: (userId: MaybeRef<string>) => [...queryKeys.matters.all, 'filter-preferences', userId] as const,
+    
+    // User-specific
+    userMatters: (userId: MaybeRef<string>) => [...queryKeys.matters.all, 'user', userId] as const,
+    assignedMatters: (lawyerId: MaybeRef<string>) => [...queryKeys.matters.all, 'assigned', lawyerId] as const,
+    
+    // Real-time subscriptions
+    subscription: (type: string, params?: Record<string, any>) => 
+      [...queryKeys.matters.all, 'subscription', type, params] as const,
+  },
+  
+  // Kanban
+  kanban: {
+    all: ['kanban'] as const,
+    board: () => [...queryKeys.kanban.all, 'board'] as const,
+    column: (status: string) => [...queryKeys.kanban.all, 'column', status] as const,
+  },
+  
+  // Activity
+  activity: {
+    all: ['activity'] as const,
+    recent: () => [...queryKeys.activity.all, 'recent'] as const,
+    user: (userId: string) => [...queryKeys.activity.all, 'user', userId] as const,
+  },
+  
+  // Legacy aliases for backward compatibility
   all: ['matters'] as const,
-  lists: () => [...queryKeys.all, 'list'] as const,
-  list: (filters?: MaybeRef<MatterFilters>) => [...queryKeys.lists(), { filters }] as const,
-  details: () => [...queryKeys.all, 'detail'] as const,
-  detail: (id: MaybeRef<string>) => [...queryKeys.details(), id] as const,
-  
-  // Infinite queries
-  infinite: (filters?: MaybeRef<MatterFilters>) => [...queryKeys.all, 'infinite', { filters }] as const,
-  
-  // Sub-resources
-  documents: (matterId: MaybeRef<string>) => [...queryKeys.detail(matterId), 'documents'] as const,
-  timeline: (matterId: MaybeRef<string>) => [...queryKeys.detail(matterId), 'timeline'] as const,
-  activities: (matterId: MaybeRef<string>) => [...queryKeys.detail(matterId), 'activities'] as const,
-  
-  // Statistics and aggregates
-  statistics: (filters?: MaybeRef<MatterFilters>) => [...queryKeys.all, 'statistics', { filters }] as const,
-  statusCounts: (filters?: MaybeRef<MatterFilters>) => [...queryKeys.all, 'status-counts', { filters }] as const,
-  priorityCounts: (filters?: MaybeRef<MatterFilters>) => [...queryKeys.all, 'priority-counts', { filters }] as const,
-  
-  // Search and suggestions
-  search: (query: MaybeRef<string>, filters?: MaybeRef<MatterFilters>) => 
-    [...queryKeys.all, 'search', { query, filters }] as const,
-  suggestions: (query: MaybeRef<string>) => [...queryKeys.all, 'suggestions', { query }] as const,
-  
-  // Filter management
-  filterPreferences: (userId: MaybeRef<string>) => [...queryKeys.all, 'filter-preferences', userId] as const,
-  
-  // User-specific
-  userMatters: (userId: MaybeRef<string>) => [...queryKeys.all, 'user', userId] as const,
-  assignedMatters: (lawyerId: MaybeRef<string>) => [...queryKeys.all, 'assigned', lawyerId] as const,
-  
-  // Real-time subscriptions
-  subscription: (type: string, params?: Record<string, any>) => 
-    [...queryKeys.all, 'subscription', type, params] as const,
+  lists: () => [...queryKeys.matters.all, 'list'] as const,
+  list: (filters?: MaybeRef<MatterFilters>) => [...queryKeys.matters.lists(), { filters }] as const,
+  details: () => [...queryKeys.matters.all, 'detail'] as const,
+  detail: (id: MaybeRef<string>) => [...queryKeys.matters.details(), id] as const,
+  statusCounts: (filters?: MaybeRef<MatterFilters>) => [...queryKeys.matters.all, 'status-counts', { filters }] as const,
 } as const
 
 /**
