@@ -318,78 +318,394 @@ describe('useMattersQuery', () => {
 
 ## Integration Testing
 
-### Testing Component Interactions
+Integration testing verifies that multiple components work together correctly. This includes testing interactions between components, stores, external services, real-time updates, and offline/online state transitions.
+
+### Store and Query Integration Testing
+
+Test how Pinia stores interact with TanStack Query cache synchronization:
 
 ```typescript
-import { describe, it, expect } from 'vitest'
-import { mountWithQuery, waitForAsync } from '@/test/utils'
-import KanbanBoard from '@/components/kanban/KanbanBoard.vue'
+// src/test/integration/store-query-integration.test.ts
+import { describe, it, expect, beforeEach } from 'vitest'
+import { setActivePinia, createPinia } from 'pinia'
+import { QueryClient } from '@tanstack/vue-query'
+import { mountWithQuery } from '@/test/utils'
+import { useMatterStore } from '@/stores/kanban/matters'
 
-describe('Kanban Board Integration', () => {
-  it('handles drag and drop between columns', async () => {
-    const wrapper = mountWithQuery(KanbanBoard, {
-      piniaInitialState: {
-        matters: {
-          matters: [
-            createMockMatter({ status: 'investigation' }),
-            createMockMatter({ status: 'negotiation' })
-          ]
-        }
+describe('Store Integration', () => {
+  let queryClient: QueryClient
+
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false }
       }
     })
+  })
 
-    const matter = findByTestId(wrapper, 'matter-card-matter-1')
-    const targetColumn = findByTestId(wrapper, 'column-negotiation')
+  it('should sync store state with query cache', async () => {
+    const store = useMatterStore()
+    const matter = createMockMatter({ id: 'matter-1' })
 
-    // Simulate drag and drop
-    await matter.trigger('dragstart')
-    await targetColumn.trigger('dragover')
-    await targetColumn.trigger('drop')
+    // Add matter to store
+    store.addMatter(matter)
 
-    await waitForAsync(wrapper)
+    // Verify query cache is updated
+    const cachedData = queryClient.getQueryData(['matters'])
+    expect(cachedData).toContain(matter)
+  })
 
-    // Verify matter moved to new column
-    expect(wrapper.emitted('matter-moved')).toBeTruthy()
+  it('should handle optimistic updates with rollback', async () => {
+    const store = useMatterStore()
+    const matter = createMockMatter({ id: 'matter-1', status: 'INTAKE' })
+    
+    store.setMatters([matter])
+
+    // Mock API failure
+    global.$fetch = vi.fn().mockRejectedValue(new Error('Network error'))
+
+    // Attempt optimistic update
+    const updatePromise = store.updateMatterOptimistic('matter-1', { status: 'COMPLETED' })
+
+    // Verify optimistic update applied immediately
+    expect(store.getMatterById('matter-1')?.status).toBe('COMPLETED')
+
+    // Wait for promise to resolve/reject
+    await expect(updatePromise).rejects.toThrow('Network error')
+
+    // Verify rollback occurred
+    expect(store.getMatterById('matter-1')?.status).toBe('INTAKE')
   })
 })
 ```
 
-### Testing API Integration
+### Complex Workflow Integration Testing
+
+Test complete user workflows with drag-and-drop, state synchronization, and error handling:
 
 ```typescript
+// src/test/integration/kanban-workflow-integration.test.ts
 import { describe, it, expect } from 'vitest'
-import { createFetchMock } from '@/test/utils'
+import { mountWithQuery, findByTestId, waitForAsync } from '@/test/utils'
+import KanbanBoard from '@/components/kanban/KanbanBoard.vue'
 
-describe('API Integration', () => {
-  it('handles successful API responses', async () => {
-    const mockFetch = createFetchMock({
-      '/api/matters': {
-        response: [createMockMatter()],
-        delay: 100
+describe('Kanban Workflow Integration', () => {
+  it('should complete full drag-and-drop workflow', async () => {
+    const matters = [
+      createMockMatter({ 
+        id: 'matter-1', 
+        status: 'INTAKE',
+        position: 1000
+      })
+    ]
+
+    const wrapper = mountWithQuery(KanbanBoard, {
+      piniaInitialState: {
+        matters: { matters, isLoading: false }
       }
     })
 
-    global.$fetch = mockFetch
+    await waitForAsync(wrapper)
 
-    const response = await $fetch('/api/matters')
+    const kanbanStore = useKanbanStore()
     
-    expect(response).toEqual([expect.objectContaining({
-      id: 'matter-1'
-    })])
+    // Find source matter card
+    const matterCard = findByTestId(wrapper, 'matter-card-matter-1')
+    const targetColumn = findByTestId(wrapper, 'column-IN_PROGRESS')
+
+    // Simulate drag and drop
+    await matterCard.trigger('dragstart', {
+      dataTransfer: {
+        setData: vi.fn(),
+        getData: vi.fn().mockReturnValue('matter-1')
+      }
+    })
+
+    await targetColumn.trigger('drop', {
+      preventDefault: vi.fn(),
+      dataTransfer: {
+        getData: vi.fn().mockReturnValue('matter-1')
+      }
+    })
+
+    await waitForAsync(wrapper)
+
+    // Verify matter was moved
+    const updatedMatter = kanbanStore.getMatterById('matter-1')
+    expect(updatedMatter?.status).toBe('IN_PROGRESS')
   })
 
-  it('handles API errors gracefully', async () => {
-    const mockFetch = createFetchMock({
-      '/api/matters': {
-        error: 'Network error'
+  it('should handle drag-and-drop API failures with rollback', async () => {
+    const matters = [createMockMatter({ id: 'matter-1', status: 'INTAKE' })]
+    
+    const wrapper = mountWithQuery(KanbanBoard, {
+      piniaInitialState: {
+        matters: { matters, isLoading: false }
       }
     })
 
-    global.$fetch = mockFetch
+    const kanbanStore = useKanbanStore()
 
-    await expect($fetch('/api/matters')).rejects.toThrow('Network error')
+    // Mock API failure
+    global.$fetch = vi.fn().mockRejectedValue(new Error('API Error'))
+
+    // Attempt move operation
+    const movePromise = kanbanStore.moveMatter('matter-1', 'INTAKE', 'IN_PROGRESS', 0)
+
+    // Verify optimistic update occurs
+    let matter = kanbanStore.getMatterById('matter-1')
+    expect(matter?.status).toBe('IN_PROGRESS')
+
+    // Wait for API failure and rollback
+    await expect(movePromise).rejects.toThrow('API Error')
+
+    // Verify rollback occurred
+    matter = kanbanStore.getMatterById('matter-1')
+    expect(matter?.status).toBe('INTAKE')
   })
 })
+```
+
+### Real-Time Integration Testing
+
+Test WebSocket connections, live updates, and collaborative features:
+
+```typescript
+// src/test/integration/realtime-integration.test.ts
+import { describe, it, expect, beforeEach } from 'vitest'
+import { mountWithQuery, waitForAsync } from '@/test/utils'
+import { useWebSocketStore } from '@/stores/websocket'
+
+// Mock WebSocket
+class MockWebSocket {
+  static instances: MockWebSocket[] = []
+  
+  constructor(url: string) {
+    MockWebSocket.instances.push(this)
+    setTimeout(() => {
+      this.readyState = WebSocket.OPEN
+      this.onopen?.(new Event('open'))
+    }, 0)
+  }
+
+  simulateMessage(data: any) {
+    this.onmessage?.(new MessageEvent('message', { 
+      data: JSON.stringify(data) 
+    }))
+  }
+}
+
+global.WebSocket = MockWebSocket as any
+
+describe('Real-Time Integration', () => {
+  it('should update matter in real-time when received from server', async () => {
+    const matters = [
+      createMockMatter({ 
+        id: 'matter-1', 
+        title: 'Original Title',
+        status: 'INTAKE'
+      })
+    ]
+
+    const wrapper = mountWithQuery(KanbanBoard, {
+      piniaInitialState: {
+        matters: { matters, isLoading: false }
+      }
+    })
+
+    await waitForAsync(wrapper)
+
+    const matterStore = useMatterStore()
+
+    // Simulate real-time update from server
+    const mockWs = MockWebSocket.instances[0]
+    mockWs.simulateMessage({
+      type: 'matter_updated',
+      data: {
+        id: 'matter-1',
+        title: 'Updated Title',
+        status: 'IN_PROGRESS'
+      }
+    })
+
+    await nextTick()
+
+    // Verify matter was updated
+    const updatedMatter = matterStore.getMatterById('matter-1')
+    expect(updatedMatter?.title).toBe('Updated Title')
+    expect(updatedMatter?.status).toBe('IN_PROGRESS')
+  })
+
+  it('should handle collaborative drag operations', async () => {
+    const wrapper = mountWithQuery(KanbanBoard)
+    const kanbanStore = useKanbanStore()
+
+    // Simulate another user starting a drag operation
+    const mockWs = MockWebSocket.instances[0]
+    mockWs.simulateMessage({
+      type: 'drag_started',
+      data: {
+        matterId: 'matter-1',
+        userId: 'other-user',
+        userName: 'John Doe'
+      }
+    })
+
+    await nextTick()
+
+    // Verify drag state shows other user's operation
+    expect(kanbanStore.collaborativeDragState.isOtherUserDragging).toBe(true)
+    expect(kanbanStore.collaborativeDragState.draggedBy).toBe('John Doe')
+  })
+})
+```
+
+### Offline/Online Integration Testing
+
+Test application behavior during network state transitions and offline data persistence:
+
+```typescript
+// src/test/integration/offline-online-integration.test.ts
+import { describe, it, expect, beforeEach } from 'vitest'
+import { mountWithQuery, waitForAsync } from '@/test/utils'
+import { useOfflineStore } from '@/stores/offline'
+
+// Mock network state
+let mockOnlineState = true
+const mockNavigator = { onLine: mockOnlineState }
+Object.defineProperty(window, 'navigator', {
+  value: mockNavigator,
+  writable: true
+})
+
+describe('Offline/Online Integration', () => {
+  const setNetworkState = (online: boolean) => {
+    mockOnlineState = online
+    mockNavigator.onLine = online
+    const event = new Event(online ? 'online' : 'offline')
+    window.dispatchEvent(event)
+  }
+
+  it('should persist data when offline and sync when online', async () => {
+    const wrapper = mountWithQuery(KanbanBoard)
+    const offlineStore = useOfflineStore()
+    const matterStore = useMatterStore()
+
+    // Go offline
+    setNetworkState(false)
+    await nextTick()
+
+    // Create matter while offline
+    const newMatter = createMockMatter({ id: 'offline-matter' })
+    await matterStore.createMatterOffline(newMatter)
+
+    // Verify operation queued
+    expect(offlineStore.pendingOperations).toHaveLength(1)
+
+    // Mock successful sync API
+    global.$fetch = vi.fn().mockResolvedValueOnce(newMatter)
+
+    // Go back online
+    setNetworkState(true)
+    await nextTick()
+
+    // Wait for sync
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    // Verify operation synced
+    expect(offlineStore.pendingOperations).toHaveLength(0)
+    expect(global.$fetch).toHaveBeenCalledWith('/api/matters', {
+      method: 'POST',
+      body: newMatter
+    })
+  })
+
+  it('should handle sync conflicts gracefully', async () => {
+    const wrapper = mountWithQuery(KanbanBoard)
+    const offlineStore = useOfflineStore()
+
+    // Mock conflict response
+    global.$fetch = vi.fn().mockRejectedValueOnce({
+      status: 409,
+      data: { conflict: true }
+    })
+
+    // Go back online with pending operation
+    setNetworkState(true)
+    await nextTick()
+
+    // Verify conflict handling
+    expect(offlineStore.conflictedOperations).toHaveLength(1)
+  })
+})
+```
+
+### Integration Test Best Practices
+
+1. **Test User Workflows**: Focus on complete user journeys rather than isolated functionality
+2. **Mock External Dependencies**: Mock APIs, WebSockets, and third-party services while testing integration points
+3. **Test Error Scenarios**: Verify error propagation and recovery across component boundaries
+4. **Real-Time Testing**: Test collaborative features and live updates with mock WebSocket connections
+5. **Offline Scenarios**: Verify offline functionality and synchronization behavior
+6. **Performance Testing**: Include performance assertions for complex workflows
+7. **State Management**: Test cross-store interactions and cache synchronization
+8. **Cleanup**: Properly cleanup resources (WebSockets, timers, etc.) in afterEach hooks
+
+### Advanced Integration Testing Utilities
+
+Essential utilities for integration testing:
+
+```typescript
+// src/test/utils.ts - Integration Testing Utilities
+
+// Mount component with TanStack Query and Pinia
+export function mountWithQuery<T extends Component>(
+  component: T,
+  options: TestMountOptions<T> = {}
+): TestWrapper<T> {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false }
+    }
+  })
+
+  const pinia = createPinia()
+  
+  // Apply initial state if provided
+  if (options.piniaInitialState) {
+    setActivePinia(pinia)
+    Object.entries(options.piniaInitialState).forEach(([storeName, state]) => {
+      const store = getStore(storeName)
+      if (store) {
+        Object.assign(store, state)
+      }
+    })
+  }
+
+  return mount(component, {
+    global: {
+      plugins: [
+        [VueQueryPlugin, { queryClient }],
+        pinia
+      ],
+      ...options.global
+    },
+    ...options
+  })
+}
+
+// Wait for async operations to complete
+export async function waitForAsync(wrapper: TestWrapper, timeout = 1000) {
+  await new Promise(resolve => setTimeout(resolve, 0))
+  await wrapper.vm.$nextTick()
+  
+  // Wait for any pending timers
+  vi.advanceTimersByTime(timeout)
+  await flushPromises()
+}
 ```
 
 ## Performance Testing

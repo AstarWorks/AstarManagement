@@ -101,6 +101,7 @@
     "eslint-plugin-vue": "^9.32.0",
     "happy-dom": "^18.0.1",
     "nyc": "^17.1.0",
+    "playwright": "^1.53.1",
     "storybook": "^8.6.14",
     "storybook-dark-mode": "^4.0.2",
     "tailwindcss": "3",
