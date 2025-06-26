@@ -17,6 +17,7 @@ import {
   type DehydratedState,
   type VueQueryPluginOptions 
 } from '@tanstack/vue-query'
+import { persistQueryClient } from '@tanstack/query-persist-client-core'
 import { 
   queryClientConfig, 
   getEnvironmentConfig, 
@@ -25,6 +26,8 @@ import {
   type QueryKeys
 } from '~/config/tanstack-query'
 import { useErrorHandler } from '~/composables/useErrorHandler'
+import { createIndexedDBPersister, isIndexedDBAvailable } from '~/utils/offline/indexeddb-persister'
+import { getOfflineConfig } from '~/config/offline'
 
 /**
  * Global query client instance
@@ -185,6 +188,41 @@ const setupSuccessIntegration = (client: QueryClient) => {
 }
 
 /**
+ * Set up offline persistence
+ */
+const setupOfflinePersistence = async (client: QueryClient) => {
+  const offlineConfig = getOfflineConfig()
+  
+  if (!offlineConfig.persistence.enabled || !isIndexedDBAvailable()) {
+    console.log('[TanStack Query] Offline persistence disabled or unavailable')
+    return
+  }
+  
+  try {
+    const persister = createIndexedDBPersister({
+      dbName: offlineConfig.persistence.dbName,
+      storeName: offlineConfig.persistence.stores.queryCache,
+      version: offlineConfig.persistence.version,
+      maxCacheSize: offlineConfig.persistence.maxCacheSize,
+      enableCompression: offlineConfig.persistence.enableCompression,
+      compressionThreshold: offlineConfig.persistence.compressionThreshold,
+      debug: process.dev
+    })
+    
+    await persistQueryClient({
+      queryClient: client,
+      persister,
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      buster: offlineConfig.persistence.version.toString()
+    })
+    
+    console.log('[TanStack Query] Offline persistence initialized')
+  } catch (error) {
+    console.error('[TanStack Query] Failed to initialize offline persistence:', error)
+  }
+}
+
+/**
  * Development tools setup
  */
 const setupDevTools = (client: QueryClient) => {
@@ -247,6 +285,11 @@ export default defineNuxtPlugin((nuxtApp: any) => {
   setupErrorIntegration(client)
   setupSuccessIntegration(client)
   setupDevTools(client)
+  
+  // Set up offline persistence
+  if (process.client) {
+    setupOfflinePersistence(client)
+  }
   
   // SSR: Serialize query cache for client hydration
   if (process.server) {
