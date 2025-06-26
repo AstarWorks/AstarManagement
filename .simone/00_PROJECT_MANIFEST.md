@@ -159,7 +159,7 @@ Replace client-side state management with TanStack Query for robust server state
 - 📋 T09_S08: Component Migration - Medium complexity (8 points)
 - 📋 T10_S08: DevTools Performance - Low complexity (5 points)
 - 🚫 T11_S08: Advanced Queries Search - Medium complexity (6 points) - BLOCKED (Missing API endpoints)
-- 📋 T12_S08: Drag Drop Mutations - Medium complexity (6 points)
+- ✅ T12_S08: Drag Drop Mutations - Medium complexity (6 points) - COMPLETED
 
 *Total tasks: 12 (74 story points)*
 
