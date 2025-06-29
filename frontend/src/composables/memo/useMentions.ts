@@ -217,10 +217,11 @@ export function useMentions(options: MentionSearchOptions = {}) {
             return
           }
 
-          const tippyInstance = tippy(document.createElement('div'), {
+          const container = document.createElement('div')
+          const tippyInstance = tippy(container, {
             getReferenceClientRect: props.clientRect,
             appendTo: () => document.body,
-            content: component.element,
+            content: component.element as Element,
             showOnCreate: true,
             interactive: true,
             trigger: 'manual',
