@@ -8,7 +8,7 @@
     </template>
     
     <div class="memos-page">
-      <!-- Header -->
+      <!-- Page Header -->
       <div class="page-header">
         <div class="header-content">
           <h2 class="text-xl font-semibold text-foreground">Client Memos</h2>
@@ -18,81 +18,183 @@
         </div>
       </div>
       
-      <!-- Filters and Search -->
-      <div class="filters-section">
-        <div class="search-filters">
-          <div class="search-box">
-            <Search class="search-icon" />
-            <input
-              v-model="searchQuery"
-              type="text"
-              placeholder="Search memos..."
-              class="search-input"
-            />
-          </div>
-          <Select v-model="statusFilter">
-            <SelectTrigger class="w-48">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="draft">Draft</SelectItem>
-              <SelectItem value="sent">Sent</SelectItem>
-              <SelectItem value="replied">Replied</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-      
-      <!-- Memos List -->
-      <div class="memos-list">
-        <div 
-          v-for="memo in filteredMemos"
-          :key="memo.id"
-          class="memo-card"
-          @click="selectMemo(memo)"
-        >
-          <div class="memo-header">
-            <div class="memo-meta">
-              <h3 class="memo-title">{{ memo.subject }}</h3>
-              <p class="memo-client">{{ memo.clientName }}</p>
-            </div>
-            <div class="memo-status">
-              <Badge :variant="getStatusVariant(memo.status)">
-                {{ memo.status }}
-              </Badge>
-              <span class="memo-date">{{ formatDate(memo.createdAt) }}</span>
-            </div>
-          </div>
-          <div class="memo-preview">
-            <p class="memo-excerpt">{{ memo.excerpt }}</p>
-          </div>
-          <div class="memo-actions">
-            <Button variant="ghost" size="sm">
-              <MessageSquare class="size-4 mr-2" />
-              Reply
+      <!-- Search and Filters Section -->
+      <div class="search-filters-section">
+        <!-- Advanced Search Bar -->
+        <MemoSearchBar
+          @search="handleSearch"
+          @filters-change="handleFiltersChange"
+        />
+        
+        <!-- Filter Toggle -->
+        <div class="filter-controls">
+          <Button
+            variant="outline"
+            @click="showFilters = !showFilters"
+            class="filter-toggle"
+          >
+            <Filter class="size-4 mr-2" />
+            Filters
+            <Badge v-if="activeFiltersCount > 0" variant="secondary" class="ml-2">
+              {{ activeFiltersCount }}
+            </Badge>
+            <ChevronDown :class="['size-4 ml-2', { 'rotate-180': showFilters }]" />
+          </Button>
+          
+          <!-- Quick Actions -->
+          <div class="quick-actions">
+            <Button
+              variant="outline"
+              size="sm"
+              @click="refreshData"
+              :disabled="isLoading"
+            >
+              <RefreshCw :class="['size-4', { 'animate-spin': isLoading }]" />
             </Button>
-            <Button variant="ghost" size="sm">
-              <Eye class="size-4 mr-2" />
-              View
-            </Button>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Download class="size-4 mr-2" />
+                  Export
+                  <ChevronDown class="size-4 ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuSeparator />
+                <DropdownMenuItem @click="exportAllMemos('csv')">
+                  <FileSpreadsheet class="size-4 mr-2" />
+                  Export as CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem @click="exportAllMemos('pdf')">
+                  <FileText class="size-4 mr-2" />
+                  Export as PDF
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
       
-      <!-- Empty State -->
-      <div v-if="filteredMemos.length === 0" class="empty-state">
-        <MessageSquare class="empty-icon" />
-        <h3 class="empty-title">No memos found</h3>
-        <p class="empty-description">
-          {{ searchQuery ? 'Try adjusting your search terms' : 'Create your first client memo to get started' }}
-        </p>
-        <Button @click="showCreateMemo = true">
-          <Plus class="size-4 mr-2" />
-          Create Memo
-        </Button>
+      <!-- Advanced Filters Panel -->
+      <div v-if="showFilters" class="filters-panel">
+        <MemoFilters
+          v-model="currentFilters"
+          @update:model-value="handleFiltersChange"
+        />
+      </div>
+      
+      <!-- Memo List -->
+      <div class="memo-list-container">
+        <MemoList
+          :filters="currentFilters"
+          :search-terms="searchTerms"
+          @memo-click="handleMemoClick"
+          @memo-edit="handleMemoEdit"
+          @memo-view="handleMemoView"
+          @create-memo="showCreateMemo = true"
+          @filters-change="handleFiltersChange"
+        />
       </div>
     </div>
+    
+    <!-- Create/Edit Memo Dialog -->
+    <Dialog v-model:open="showCreateMemo">
+      <DialogContent class="max-w-4xl">
+        <DialogHeader>
+          <DialogTitle>
+            {{ editingMemo ? 'Edit Memo' : 'Create New Memo' }}
+          </DialogTitle>
+          <DialogDescription>
+            {{ editingMemo ? 'Update the memo details below.' : 'Create a new memo to communicate with clients or external parties.' }}
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div class="memo-form">
+          <!-- Memo form would go here -->
+          <div class="form-placeholder">
+            <MessageSquare class="size-12 text-muted-foreground" />
+            <p class="text-muted-foreground">Memo editor coming in T02_S13</p>
+          </div>
+        </div>
+        
+        <DialogFooter>
+          <Button variant="outline" @click="cancelMemoEdit">
+            Cancel
+          </Button>
+          <Button @click="saveMemo">
+            {{ editingMemo ? 'Update Memo' : 'Create Memo' }}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    
+    <!-- Memo Detail Dialog -->
+    <Dialog v-model:open="showMemoDetail">
+      <DialogContent class="max-w-4xl">
+        <DialogHeader>
+          <DialogTitle>{{ selectedMemo?.subject }}</DialogTitle>
+          <DialogDescription>
+            {{ selectedMemo?.recipient.name }} • {{ selectedMemo?.caseNumber }}
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div v-if="selectedMemo" class="memo-detail">
+          <div class="memo-meta">
+            <div class="meta-row">
+              <span class="meta-label">Status:</span>
+              <Badge :variant="getStatusVariant(selectedMemo.status)">
+                {{ selectedMemo.status }}
+              </Badge>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">Priority:</span>
+              <Badge :variant="getPriorityVariant(selectedMemo.priority)">
+                {{ selectedMemo.priority }}
+              </Badge>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">Created:</span>
+              <span>{{ formatDate(selectedMemo.createdAt) }}</span>
+            </div>
+            <div v-if="selectedMemo.sentAt" class="meta-row">
+              <span class="meta-label">Sent:</span>
+              <span>{{ formatDate(selectedMemo.sentAt) }}</span>
+            </div>
+          </div>
+          
+          <div class="memo-content">
+            <h4 class="content-title">Content</h4>
+            <div class="content-text">
+              {{ selectedMemo.content }}
+            </div>
+          </div>
+          
+          <div v-if="selectedMemo.tags.length > 0" class="memo-tags">
+            <h4 class="tags-title">Tags</h4>
+            <div class="tags-list">
+              <Badge
+                v-for="tag in selectedMemo.tags"
+                :key="tag"
+                variant="outline"
+              >
+                {{ tag }}
+              </Badge>
+            </div>
+          </div>
+        </div>
+        
+        <DialogFooter>
+          <Button variant="outline" @click="showMemoDetail = false">
+            Close
+          </Button>
+          <Button @click="editSelectedMemo">
+            <Edit class="size-4 mr-2" />
+            Edit Memo
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </CommunicationLayout>
 </template>
 
@@ -100,14 +202,33 @@
 import { ref, computed } from 'vue'
 import { 
   Plus, 
-  Search, 
-  MessageSquare, 
-  Eye 
+  Filter,
+  ChevronDown,
+  RefreshCw,
+  Download,
+  FileSpreadsheet,
+  FileText,
+  MessageSquare,
+  Edit
 } from 'lucide-vue-next'
 import { CommunicationLayout } from '~/components/communication'
 import { Button } from '~/components/ui/button'
 import { Badge } from '~/components/ui/badge'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '~/components/ui/dialog'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from '~/components/ui/dropdown-menu'
+import MemoSearchBar from '~/components/memo/MemoSearchBar.vue'
+import MemoFilters from '~/components/memo/MemoFilters.vue'
+import MemoList from '~/components/memo/MemoList.vue'
+import { useMemoExport } from '~/composables/useMemoExport'
+import { useMemosQuery } from '~/composables/useMemoQueries'
+import type { MemoFilters as MemoFiltersType, Memo } from '~/types/memo'
+import { format } from 'date-fns'
 
 // Define the page meta
 definePageMeta({
@@ -115,86 +236,119 @@ definePageMeta({
   description: 'Manage client memos and external communications'
 })
 
-// Reactive state
+// Component state
 const showCreateMemo = ref(false)
-const searchQuery = ref('')
-const statusFilter = ref('all')
+const showMemoDetail = ref(false)
+const showFilters = ref(false)
+const editingMemo = ref<Memo | null>(null)
+const selectedMemo = ref<Memo | null>(null)
+const searchTerms = ref<string[]>([])
+const currentFilters = ref<MemoFiltersType>({})
 
-// Mock memos data
-const memos = ref([
-  {
-    id: 1,
-    subject: 'Contract Review - Q1 2024',
-    clientName: 'Acme Corporation',
-    status: 'sent',
-    createdAt: new Date('2024-01-15'),
-    excerpt: 'Please review the attached contract terms for the Q1 2024 engagement...',
-    hasAttachments: true
-  },
-  {
-    id: 2,
-    subject: 'Legal Opinion Request',
-    clientName: 'Tech Startup Inc.',
-    status: 'draft',
-    createdAt: new Date('2024-01-14'),
-    excerpt: 'Following our discussion yesterday, I am preparing a legal opinion on...',
-    hasAttachments: false
-  },
-  {
-    id: 3,
-    subject: 'Settlement Proposal',
-    clientName: 'Manufacturing Co.',
-    status: 'replied',
-    createdAt: new Date('2024-01-13'),
-    excerpt: 'We have reviewed the settlement terms and have the following comments...',
-    hasAttachments: true
-  }
-])
+// Data fetching
+const { data, isLoading, refetch } = useMemosQuery(currentFilters)
+
+// Export functionality
+const { exportMemos } = useMemoExport()
 
 // Computed properties
-const filteredMemos = computed(() => {
-  let filtered = memos.value
-  
-  // Filter by search query
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(memo => 
-      memo.subject.toLowerCase().includes(query) ||
-      memo.clientName.toLowerCase().includes(query) ||
-      memo.excerpt.toLowerCase().includes(query)
-    )
-  }
-  
-  // Filter by status
-  if (statusFilter.value !== 'all') {
-    filtered = filtered.filter(memo => memo.status === statusFilter.value)
-  }
-  
-  return filtered
+const activeFiltersCount = computed(() => {
+  let count = 0
+  if (currentFilters.value.search) count++
+  if (currentFilters.value.status?.length) count++
+  if (currentFilters.value.priority?.length) count++
+  if (currentFilters.value.recipientType?.length) count++
+  if (currentFilters.value.tags?.length) count++
+  if (currentFilters.value.dateFrom || currentFilters.value.dateTo) count++
+  if (currentFilters.value.hasAttachments !== undefined) count++
+  return count
 })
 
 // Methods
-const selectMemo = (memo: any) => {
-  console.log('Selected memo:', memo.id)
-  // Navigate to memo detail page
-  navigateTo(`/communications/memos/${memo.id}`)
+const handleSearch = (query: string) => {
+  // Extract search terms for highlighting
+  searchTerms.value = query.split(' ').filter(term => term.length > 2)
 }
 
-const getStatusVariant = (status: string): 'default' | 'destructive' | 'outline' | 'secondary' => {
-  const variants: Record<string, 'default' | 'destructive' | 'outline' | 'secondary'> = {
-    draft: 'secondary',
-    sent: 'default',
-    replied: 'secondary'
+const handleFiltersChange = (filters: MemoFiltersType) => {
+  currentFilters.value = filters
+}
+
+const handleMemoClick = (memo: Memo) => {
+  selectedMemo.value = memo
+  showMemoDetail.value = true
+}
+
+const handleMemoEdit = (memo: Memo) => {
+  editingMemo.value = memo
+  showCreateMemo.value = true
+}
+
+const handleMemoView = (memo: Memo) => {
+  selectedMemo.value = memo
+  showMemoDetail.value = true
+}
+
+const refreshData = () => {
+  refetch()
+}
+
+const exportAllMemos = async (format: 'csv' | 'pdf') => {
+  if (!data.value?.data.length) return
+  
+  try {
+    await exportMemos(data.value.data, {
+      format,
+      includeContent: format === 'pdf',
+      includeAttachments: true
+    })
+  } catch (error) {
+    console.error('Export failed:', error)
   }
-  return variants[status] || 'default'
 }
 
-const formatDate = (date: Date) => {
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric'
-  }).format(date)
+const saveMemo = () => {
+  // TODO: Implement memo save logic
+  console.log('Saving memo:', editingMemo.value ? 'edit' : 'create')
+  showCreateMemo.value = false
+  editingMemo.value = null
+}
+
+const cancelMemoEdit = () => {
+  showCreateMemo.value = false
+  editingMemo.value = null
+}
+
+const editSelectedMemo = () => {
+  if (selectedMemo.value) {
+    editingMemo.value = selectedMemo.value
+    showMemoDetail.value = false
+    showCreateMemo.value = true
+  }
+}
+
+const getStatusVariant = (status: string): 'default' | 'secondary' | 'outline' => {
+  const variants = {
+    draft: 'outline' as const,
+    sent: 'default' as const,
+    read: 'secondary' as const,
+    archived: 'outline' as const
+  }
+  return variants[status as keyof typeof variants] || 'default'
+}
+
+const getPriorityVariant = (priority: string): 'default' | 'secondary' | 'outline' | 'destructive' => {
+  const variants = {
+    low: 'outline' as const,
+    medium: 'secondary' as const,
+    high: 'default' as const,
+    urgent: 'destructive' as const
+  }
+  return variants[priority as keyof typeof variants] || 'default'
+}
+
+const formatDate = (dateString: string) => {
+  return format(new Date(dateString), 'PPP p')
 }
 </script>
 
@@ -211,101 +365,92 @@ const formatDate = (date: Date) => {
   @apply space-y-1;
 }
 
-.filters-section {
+.search-filters-section {
   @apply space-y-4;
 }
 
-.search-filters {
-  @apply flex flex-col sm:flex-row gap-4;
+.filter-controls {
+  @apply flex items-center justify-between;
 }
 
-.search-box {
-  @apply relative flex-1;
+.filter-toggle {
+  @apply text-sm;
 }
 
-.search-icon {
-  @apply absolute left-3 top-1/2 transform -translate-y-1/2 size-4 text-muted-foreground;
+.quick-actions {
+  @apply flex items-center gap-2;
 }
 
-.search-input {
-  @apply w-full pl-9 pr-3 py-2 text-sm border border-input rounded-md;
-  @apply bg-background text-foreground placeholder:text-muted-foreground;
-  @apply focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2;
+.filters-panel {
+  @apply border border-border rounded-lg;
 }
 
-.memos-list {
-  @apply space-y-4;
+.memo-list-container {
+  @apply min-h-96;
 }
 
-.memo-card {
-  @apply bg-card border border-border rounded-lg p-4 cursor-pointer transition-all;
-  @apply hover:shadow-md hover:border-primary/50;
+.form-placeholder {
+  @apply flex flex-col items-center justify-center py-16 text-center space-y-4;
 }
 
-.memo-header {
-  @apply flex justify-between items-start mb-3;
+.memo-detail {
+  @apply space-y-6;
 }
 
 .memo-meta {
-  @apply flex-1;
+  @apply grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg;
 }
 
-.memo-title {
-  @apply font-medium text-foreground text-base;
+.meta-row {
+  @apply flex items-center gap-2;
 }
 
-.memo-client {
-  @apply text-sm text-muted-foreground mt-1;
+.meta-label {
+  @apply text-sm font-medium text-muted-foreground;
 }
 
-.memo-status {
-  @apply flex flex-col items-end gap-2;
+.memo-content {
+  @apply space-y-3;
 }
 
-.memo-date {
-  @apply text-xs text-muted-foreground;
+.content-title {
+  @apply text-sm font-medium text-foreground;
 }
 
-.memo-preview {
-  @apply mb-4;
+.content-text {
+  @apply p-4 bg-muted/30 rounded-lg text-sm leading-relaxed;
+  @apply max-h-64 overflow-y-auto;
 }
 
-.memo-excerpt {
-  @apply text-sm text-muted-foreground line-clamp-2;
+.memo-tags {
+  @apply space-y-3;
 }
 
-.memo-actions {
-  @apply flex gap-2 pt-3 border-t border-border;
+.tags-title {
+  @apply text-sm font-medium text-foreground;
 }
 
-.empty-state {
-  @apply flex flex-col items-center justify-center py-12 text-center;
+.tags-list {
+  @apply flex flex-wrap gap-2;
 }
 
-.empty-icon {
-  @apply size-12 text-muted-foreground mb-4;
-}
-
-.empty-title {
-  @apply text-lg font-medium text-foreground mb-2;
-}
-
-.empty-description {
-  @apply text-muted-foreground mb-6 max-w-sm;
+/* Animation for chevron rotation */
+.rotate-180 {
+  @apply transform rotate-180 transition-transform duration-200;
 }
 
 /* Mobile responsiveness */
-@media (max-width: 640px) {
-  .memo-header {
-    @apply flex-col gap-3;
+@media (max-width: 768px) {
+  .filter-controls {
+    @apply flex-col gap-3 items-stretch;
   }
   
-  .memo-status {
-    @apply flex-row items-center self-start;
+  .quick-actions {
+    @apply justify-center;
   }
   
-  .memo-actions {
-    @apply grid grid-cols-2 gap-2;
+  .memo-meta {
+    @apply grid-cols-1;
   }
 }
 </style>

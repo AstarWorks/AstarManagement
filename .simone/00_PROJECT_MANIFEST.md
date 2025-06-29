@@ -2,9 +2,9 @@
 project_name: Aster Management
 current_milestone_id: M01
 highest_sprint_in_milestone: S14
-current_sprint_id: S05
+current_sprint_id: S13
 status: active
-last_updated: 2025-06-29 00:50
+last_updated: 2025-06-29 08:24
 ---
 
 # Project Manifest: Aster Management
