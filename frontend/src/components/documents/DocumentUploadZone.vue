@@ -9,6 +9,7 @@ import { useDocumentUploadStore } from '~/stores/documentUpload'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'
 import { Badge } from '~/components/ui/badge'
+import { cn } from '~/lib/utils'
 
 interface Props {
   matterId?: string
@@ -125,10 +126,10 @@ watch(() => uploadStore.stats, () => {
       
       <CardContent>
         <Tabs v-model:value="activeTab" class="w-full">
-          <TabsList class="grid w-full" :class="{
-            'grid-cols-2': !showMetadataForm || !showQueue,
-            'grid-cols-3': showMetadataForm && showQueue
-          }">
+          <TabsList :class="cn(
+            'grid w-full',
+            (!showMetadataForm || !showQueue) ? 'grid-cols-2' : 'grid-cols-3'
+          )">
             <TabsTrigger value="upload">Upload</TabsTrigger>
             <TabsTrigger 
               v-if="showMetadataForm" 

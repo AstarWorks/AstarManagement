@@ -72,7 +72,7 @@
     <!-- Indicators Column -->
     <div class="item-column item-indicators">
       <div class="indicators">
-        <div v-if="memo.hasAttachments" class="indicator" title="Has attachments">
+        <div v-if="memo.attachments.length > 0" class="indicator" title="Has attachments">
           <Paperclip class="size-3" />
         </div>
         <div v-if="memo.status === 'sent' && !memo.readAt" class="indicator unread-indicator" title="Unread">

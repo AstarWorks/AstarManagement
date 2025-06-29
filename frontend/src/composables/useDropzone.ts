@@ -1,13 +1,16 @@
 import { ref, computed } from 'vue'
-import { useDropzone as useVueUseDropzone } from '@vueuse/integrations/useDropzone'
-import type { UseDropzoneOptions } from '@vueuse/integrations/useDropzone'
 import { documentFileSchema, ACCEPTED_FILE_TYPES, MAX_FILE_SIZE } from '~/schemas/document'
 import { useToast } from '~/composables/useToast'
 
-export interface DropzoneOptions extends Omit<UseDropzoneOptions, 'onDrop'> {
+export interface DropzoneOptions {
   onDrop?: (files: File[], rejectedFiles: RejectedFile[]) => void
   onError?: (error: string) => void
   validateFiles?: boolean
+  disabled?: boolean
+  multiple?: boolean
+  maxFiles?: number
+  accept?: Record<string, string[]>
+  maxSize?: number
 }
 
 export interface RejectedFile {
@@ -75,27 +78,73 @@ export function useDropzone(options: DropzoneOptions = {}) {
     options.onDrop?.(validFiles, rejectedFiles)
   }
   
-  const dropzoneOptions: UseDropzoneOptions = {
-    ...options,
-    onDrop: handleDrop,
-    accept: options.accept || {
-      'application/pdf': ['.pdf'],
-      'application/msword': ['.doc'],
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
-      'image/jpeg': ['.jpg', '.jpeg'],
-      'image/png': ['.png'],
-      'text/plain': ['.txt']
-    },
-    maxSize: options.maxSize || MAX_FILE_SIZE,
-    multiple: options.multiple !== false
+  // Create manual dropzone implementation
+  const isDragActive = ref(false)
+  const inputRef = ref<HTMLInputElement>()
+  
+  const handleDragEnter = (e: DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!options.disabled) {
+      isDragActive.value = true
+    }
   }
   
-  const dropzone = useVueUseDropzone(dropzoneOptions)
+  const handleDragLeave = (e: DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    isDragActive.value = false
+  }
+  
+  const handleDragOver = (e: DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+  
+  const handleDropEvent = (e: DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    isDragActive.value = false
+    
+    if (options.disabled || !e.dataTransfer?.files) return
+    
+    const files = Array.from(e.dataTransfer.files)
+    handleDrop(files)
+  }
+  
+  const open = () => {
+    inputRef.value?.click()
+  }
+  
+  const handleInputChange = (e: Event) => {
+    const target = e.target as HTMLInputElement
+    if (target.files) {
+      const files = Array.from(target.files)
+      handleDrop(files)
+    }
+  }
+  
+  const getRootProps = () => ({
+    onDragenter: handleDragEnter,
+    onDragleave: handleDragLeave,
+    onDragover: handleDragOver,
+    onDrop: handleDropEvent,
+    onClick: () => !options.disabled && open()
+  })
+  
+  const getInputProps = () => ({
+    ref: inputRef,
+    type: 'file',
+    multiple: options.multiple !== false,
+    accept: Object.keys(options.accept || {}).join(','),
+    style: { display: 'none' },
+    onChange: handleInputChange
+  })
   
   const dropzoneClasses = computed(() => ({
     'relative border-2 border-dashed rounded-lg transition-all duration-200': true,
-    'border-muted-foreground/25 bg-muted/5 hover:border-muted-foreground/50': !dropzone.isDragActive.value,
-    'border-primary bg-primary/5 scale-[1.02]': dropzone.isDragActive.value,
+    'border-muted-foreground/25 bg-muted/5 hover:border-muted-foreground/50': !isDragActive.value,
+    'border-primary bg-primary/5 scale-[1.02]': isDragActive.value,
     'cursor-pointer': !options.disabled,
     'opacity-50 cursor-not-allowed': options.disabled
   }))
@@ -107,7 +156,10 @@ export function useDropzone(options: DropzoneOptions = {}) {
   }
   
   return {
-    ...dropzone,
+    getRootProps,
+    getInputProps,
+    isDragActive,
+    open,
     isValidating,
     validationErrors,
     hasErrors,

@@ -17,7 +17,7 @@
           v-for="stat in communicationStats"
           :key="stat.type"
           class="stat-card"
-          @click="() => navigateTo(`/communications/${stat.type}`)"
+          @click="() => $router.push(`/communications/${stat.type}`)"
         >
           <div class="stat-content">
             <component :is="stat.icon" class="stat-icon" />

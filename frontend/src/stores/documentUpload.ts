@@ -325,7 +325,7 @@ export const useDocumentUploadStore = defineStore('documentUpload', () => {
   
   return {
     // State
-    queue: readonly(queue),
+    queue: computed(() => queue.value),
     options: readonly(options),
     stats: readonly(stats),
     

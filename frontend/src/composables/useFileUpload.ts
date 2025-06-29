@@ -100,7 +100,7 @@ export function useFileUpload(options: FileUploadOptions = {}) {
             .map(item => item.documentId!)
           
           if (successful.length > 0) {
-            options.onSuccess(successful)
+            options.onSuccess?.(successful)
           }
           
           const failed = items.filter(item => item.status === 'failed')

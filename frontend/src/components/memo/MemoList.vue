@@ -236,7 +236,7 @@ const {
 const selectedMemoIds = ref<Set<string>>(new Set())
 
 // Sorting
-const sortBy = ref<string>('createdAt')
+const sortBy = ref<'createdAt' | 'subject' | 'sentAt' | 'priority'>('createdAt')
 const sortOrder = ref<'asc' | 'desc'>('desc')
 
 // Load more trigger
@@ -272,10 +272,11 @@ const hasActiveFilters = computed(() => {
 
 // Methods
 const handleSortChange = (newSortBy: string) => {
-  sortBy.value = newSortBy
+  const validSortBy = newSortBy as 'createdAt' | 'subject' | 'sentAt' | 'priority'
+  sortBy.value = validSortBy
   updateFilters({ 
     ...mergedFilters.value,
-    sort: newSortBy,
+    sort: validSortBy,
     order: sortOrder.value
   })
   emit('filtersChange', mergedFilters.value)

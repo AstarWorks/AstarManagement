@@ -269,10 +269,14 @@ const handleSearch = () => {
   emit('filtersChange', filters)
 }
 
-// Watch for search query changes
+// Watch for search query changes with manual debounce
+let searchTimeout: NodeJS.Timeout | null = null
 watch(searchQuery, () => {
-  handleSearch()
-}, { debounce: 300 })
+  if (searchTimeout) clearTimeout(searchTimeout)
+  searchTimeout = setTimeout(() => {
+    handleSearch()
+  }, 300)
+})
 
 // Handle click outside
 const handleClickOutside = (event: MouseEvent) => {

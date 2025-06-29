@@ -155,7 +155,7 @@
             </div>
             <div class="meta-row">
               <span class="meta-label">Created:</span>
-              <span>{{ formatDate(selectedMemo.createdAt) }}</span>
+              <span>{{ formatDate(selectedMemo.sentAt || new Date().toISOString()) }}</span>
             </div>
             <div v-if="selectedMemo.sentAt" class="meta-row">
               <span class="meta-label">Sent:</span>

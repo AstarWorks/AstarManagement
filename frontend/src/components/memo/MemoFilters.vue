@@ -48,8 +48,8 @@
             <label :for="`status-${status.value}`" class="filter-option-label">
               <component :is="status.icon" class="size-3" />
               <span>{{ status.label }}</span>
-              <Badge v-if="statusCounts[status.value]" variant="outline" class="ml-auto">
-                {{ statusCounts[status.value] }}
+              <Badge v-if="statusCounts && typeof statusCounts === 'object' && status.value in statusCounts" variant="outline" class="ml-auto">
+                {{ statusCounts[status.value as keyof typeof statusCounts] }}
               </Badge>
             </label>
           </div>
@@ -73,8 +73,8 @@
             <label :for="`priority-${priority.value}`" class="filter-option-label">
               <div :class="['priority-dot', priority.colorClass]" />
               <span>{{ priority.label }}</span>
-              <Badge v-if="priorityCounts[priority.value]" variant="outline" class="ml-auto">
-                {{ priorityCounts[priority.value] }}
+              <Badge v-if="priorityCounts && typeof priorityCounts === 'object' && priority.value in priorityCounts" variant="outline" class="ml-auto">
+                {{ priorityCounts[priority.value as keyof typeof priorityCounts] }}
               </Badge>
             </label>
           </div>

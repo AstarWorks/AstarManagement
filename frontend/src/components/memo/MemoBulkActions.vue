@@ -217,6 +217,8 @@ import { useBulkMemoMutation, useExportMemoMutation } from '~/composables/useMem
 import type { BulkOperation, MemoExportOptions } from '~/types/memo'
 import { useToast } from '~/composables/useToast'
 
+const { showToast } = useToast()
+
 interface Props {
   selectedMemoIds: string[]
   totalCount: number
@@ -430,11 +432,7 @@ const executeBulkAction = async (operation: BulkOperation) => {
     
   } catch (error) {
     console.error('Bulk operation failed:', error)
-    toast({
-      title: 'Error',
-      description: 'Failed to perform bulk operation. Please try again.',
-      variant: 'destructive'
-    })
+    showToast('Failed to perform bulk operation. Please try again.', 'error')
   } finally {
     setTimeout(() => {
       isProcessing.value = false
@@ -478,11 +476,7 @@ const confirmExport = async () => {
     
   } catch (error) {
     console.error('Export failed:', error)
-    toast({
-      title: 'Export Failed',
-      description: 'Failed to export memos. Please try again.',
-      variant: 'destructive'
-    })
+    showToast('Failed to export memos. Please try again.', 'error')
   }
 }
 </script>
