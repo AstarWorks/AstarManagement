@@ -4,6 +4,7 @@
 
 import { describe, it, expect } from 'vitest'
 import { useTemplateVariables } from '../useTemplateVariables'
+import type { ParsedTemplateVariable } from '../types'
 
 describe('useTemplateVariables', () => {
   const { 

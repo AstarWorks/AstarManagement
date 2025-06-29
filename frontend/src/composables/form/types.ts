@@ -19,7 +19,7 @@ export interface FieldType {
 /**
  * Represents a parsed template variable with metadata
  */
-export interface TemplateVariable {
+export interface ParsedTemplateVariable {
   /** Original variable name from template (e.g., "client.name") */
   name: string
   /** Nested path array (e.g., ["client", "name"]) */

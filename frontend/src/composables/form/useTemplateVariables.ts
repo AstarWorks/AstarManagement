@@ -5,7 +5,7 @@
 
 import { ref, computed } from 'vue'
 import type { 
-  TemplateVariable, 
+  ParsedTemplateVariable, 
   TemplateParseOptions, 
   TemplateMetadata,
   FieldMetadata,
@@ -25,7 +25,7 @@ export function useTemplateVariables() {
   const parseTemplate = (
     templateContent: string, 
     options: TemplateParseOptions = {}
-  ): TemplateVariable[] => {
+  ): ParsedTemplateVariable[] => {
     const {
       delimiters = ['{{', '}}'],
       includeMetadata = true,
@@ -39,7 +39,7 @@ export function useTemplateVariables() {
     const [startDelim, endDelim] = delimiters.map(d => escapeRegex(d))
     const variableRegex = new RegExp(`${startDelim}\\s*([^}]+?)\\s*${endDelim}`, 'g')
     
-    const variables: TemplateVariable[] = []
+    const variables: ParsedTemplateVariable[] = []
     const seen = new Set<string>()
     let match: RegExpExecArray | null
     
@@ -83,7 +83,7 @@ export function useTemplateVariables() {
   const createTemplateVariable = (
     name: string, 
     metadata?: TemplateMetadata
-  ): TemplateVariable => {
+  ): ParsedTemplateVariable => {
     // Parse the variable path
     const { path, isArray, arrayIndex } = parseVariablePath(name)
     const fieldKey = path.join('.')
@@ -387,9 +387,9 @@ export function useTemplateVariables() {
   /**
    * Process array fields to group them properly
    */
-  const processArrayFields = (variables: TemplateVariable[]): TemplateVariable[] => {
-    const processed: TemplateVariable[] = []
-    const arrayGroups = new Map<string, TemplateVariable[]>()
+  const processArrayFields = (variables: ParsedTemplateVariable[]): ParsedTemplateVariable[] => {
+    const processed: ParsedTemplateVariable[] = []
+    const arrayGroups = new Map<string, ParsedTemplateVariable[]>()
     
     for (const variable of variables) {
       if (variable.isArray) {
@@ -410,7 +410,7 @@ export function useTemplateVariables() {
       
       // Add a parent array variable if there are multiple items
       if (groupVars.length > 1 || groupVars.some(v => v.arrayIndex === undefined)) {
-        const arrayVar: TemplateVariable = {
+        const arrayVar: ParsedTemplateVariable = {
           name: groupKey,
           path: [groupKey],
           type: { base: 'custom', variant: 'array' },
@@ -437,8 +437,8 @@ export function useTemplateVariables() {
   /**
    * Deduplicate variables by name
    */
-  const deduplicateVariables = (variables: TemplateVariable[]): TemplateVariable[] => {
-    const seen = new Map<string, TemplateVariable>()
+  const deduplicateVariables = (variables: ParsedTemplateVariable[]): ParsedTemplateVariable[] => {
+    const seen = new Map<string, ParsedTemplateVariable>()
     
     for (const variable of variables) {
       if (!seen.has(variable.name)) {
