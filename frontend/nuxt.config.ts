@@ -63,7 +63,8 @@ export default defineNuxtConfig({
         '@vee-validate/zod', 
         'zod',
         'lucide-vue-next',
-        '@tanstack/vue-query'
+        '@tanstack/vue-query',
+        'pdfjs-dist'
       ]
     },
     
