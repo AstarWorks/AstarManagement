@@ -76,6 +76,54 @@ export const navigationGroups = [
     ]
   },
   {
+    title: 'Communications',
+    items: [
+      {
+        id: 'communications',
+        label: 'Communications',
+        icon: 'MessageSquare',
+        children: [
+          {
+            id: 'communications-memos',
+            label: 'Client Memos',
+            path: '/communications/memos',
+            icon: 'MessageSquare'
+          },
+          {
+            id: 'communications-notes',
+            label: 'Internal Notes',
+            path: '/communications/notes',
+            icon: 'StickyNote'
+          },
+          {
+            id: 'communications-emails',
+            label: 'Emails',
+            path: '/communications/emails',
+            icon: 'Mail'
+          },
+          {
+            id: 'communications-messages',
+            label: 'Messages',
+            path: '/communications/messages',
+            icon: 'MessageCircle'
+          },
+          {
+            id: 'communications-calls',
+            label: 'Phone Calls',
+            path: '/communications/calls',
+            icon: 'Phone'
+          },
+          {
+            id: 'communications-timeline',
+            label: 'Timeline',
+            path: '/communications/timeline',
+            icon: 'Clock'
+          }
+        ]
+      }
+    ]
+  },
+  {
     title: 'Tools',
     items: [
       {
