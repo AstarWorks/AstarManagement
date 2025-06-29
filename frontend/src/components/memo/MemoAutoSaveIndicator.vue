@@ -69,7 +69,7 @@ const statusIcon = computed(() => {
 const statusVariant = computed(() => {
   switch (props.status) {
     case 'saved':
-      return 'success'
+      return 'default'
     case 'error':
     case 'conflict':
       return 'destructive'

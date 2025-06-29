@@ -357,5 +357,3 @@ export function useMemoAutoSave(options: MemoAutoSaveOptions) {
     resolveConflict,
   }
 }
-
-export type { MemoAutoSaveOptions, MemoContent, SaveStatus }

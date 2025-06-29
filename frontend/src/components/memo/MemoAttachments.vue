@@ -116,13 +116,13 @@ const onDrop = async (event: DragEvent) => {
 const onRemoveFile = (fileId: string) => {
   removeFile(fileId)
   emit('fileRemoved', fileId)
-  showToast('File removed', 'info')
+  showToast('File removed', 'default')
 }
 
 const onClearFiles = () => {
   clearFiles()
   emit('filesCleared')
-  showToast('All files cleared', 'info')
+  showToast('All files cleared', 'default')
 }
 
 const openFileDialog = () => {

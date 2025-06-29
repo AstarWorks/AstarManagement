@@ -531,10 +531,3 @@ Priority: {{priority}}
   }
 })
 
-export type { 
-  MemoTemplate, 
-  TemplateVariable, 
-  TemplateCategory, 
-  CreateTemplateInput,
-  TemplateSearchFilters 
-}

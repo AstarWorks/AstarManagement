@@ -288,5 +288,3 @@ export function useFileUpload(options: FileUploadOptions = {}) {
     maxFiles,
   }
 }
-
-export type { FileUploadOptions }

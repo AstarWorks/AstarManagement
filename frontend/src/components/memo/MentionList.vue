@@ -115,11 +115,11 @@ const getItemIcon = (type: 'contact' | 'matter') => {
 const getStatusColor = (status?: string) => {
   switch (status) {
     case 'active':
-      return 'success'
+      return 'default'
     case 'pending':
-      return 'warning'
-    case 'inactive':
       return 'secondary'
+    case 'inactive':
+      return 'outline'
     default:
       return 'outline'
   }

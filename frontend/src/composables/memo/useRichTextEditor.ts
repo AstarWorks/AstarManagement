@@ -347,5 +347,3 @@ export function sanitizeMemoContent(html: string): string {
     RETURN_TRUSTED_TYPE: false
   })
 }
-
-export type { EditorOptions }

@@ -156,7 +156,7 @@
           <Button
             variant="ghost"
             size="sm"
-            :class="{ 'is-active': isActive({ textAlign: 'left' }) }"
+            :class="{ 'is-active': isActive('paragraph', { textAlign: 'left' }) }"
             @click="setTextAlign('left')"
             aria-label="Align Left"
           >
@@ -173,7 +173,7 @@
           <Button
             variant="ghost"
             size="sm"
-            :class="{ 'is-active': isActive({ textAlign: 'center' }) }"
+            :class="{ 'is-active': isActive('paragraph', { textAlign: 'center' }) }"
             @click="setTextAlign('center')"
             aria-label="Align Center"
           >
@@ -190,7 +190,7 @@
           <Button
             variant="ghost"
             size="sm"
-            :class="{ 'is-active': isActive({ textAlign: 'right' }) }"
+            :class="{ 'is-active': isActive('paragraph', { textAlign: 'right' }) }"
             @click="setTextAlign('right')"
             aria-label="Align Right"
           >
@@ -207,7 +207,7 @@
           <Button
             variant="ghost"
             size="sm"
-            :class="{ 'is-active': isActive({ textAlign: 'justify' }) }"
+            :class="{ 'is-active': isActive('paragraph', { textAlign: 'justify' }) }"
             @click="setTextAlign('justify')"
             aria-label="Justify"
           >

@@ -8,7 +8,7 @@ import { Mention } from '@tiptap/extension-mention'
 import { VueRenderer } from '@tiptap/vue-3'
 import tippy from 'tippy.js'
 import { debounce } from 'lodash-es'
-import MentionList from '~/components/memo/MentionList.vue'
+import MentionList from '../../components/memo/MentionList.vue'
 
 export interface MentionItem {
   id: string
@@ -196,10 +196,10 @@ export function useMentions(options: MentionSearchOptions = {}) {
         const filtered = recentMentions.value.filter(item => 
           !searchType || item.type === searchType
         )
-        return [...filtered, ...results].slice(0, maxResults)
+        return [...filtered, ...(results || [])].slice(0, maxResults)
       }
 
-      return results
+      return results || []
     },
 
     render: () => {
@@ -217,7 +217,7 @@ export function useMentions(options: MentionSearchOptions = {}) {
             return
           }
 
-          popup = tippy('body', {
+          popup = tippy(document.body, {
             getReferenceClientRect: props.clientRect,
             appendTo: () => document.body,
             content: component.element,
@@ -319,7 +319,7 @@ export function useMentions(options: MentionSearchOptions = {}) {
       // const response = await $fetch<MentionItem>(`/api/${type}s/${id}`)
       
       // For now, search in cache or mock data
-      for (const [, cached] of searchCache.value) {
+      for (const [, cached] of Array.from(searchCache.value)) {
         const found = cached.find(item => item.id === id && item.type === type)
         if (found) return found
       }
@@ -377,5 +377,3 @@ export function useMentions(options: MentionSearchOptions = {}) {
     mentionSuggestion,
   }
 }
-
-export type { MentionItem, MentionSearchOptions }
