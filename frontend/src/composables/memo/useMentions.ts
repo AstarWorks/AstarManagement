@@ -217,7 +217,7 @@ export function useMentions(options: MentionSearchOptions = {}) {
             return
           }
 
-          popup = tippy(document.body, {
+          const tippyInstance = tippy(document.createElement('div'), {
             getReferenceClientRect: props.clientRect,
             appendTo: () => document.body,
             content: component.element,
@@ -229,6 +229,7 @@ export function useMentions(options: MentionSearchOptions = {}) {
             maxWidth: 'none',
             offset: [0, 8],
           })
+          popup = [tippyInstance]
         },
 
         onUpdate(props: any) {
