@@ -7,14 +7,14 @@ export default defineNuxtPlugin(() => {
     // Set the worker source for PDF.js
     pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'
     
-    // Configure PDF.js global options
-    pdfjsLib.GlobalWorkerOptions.verbosity = pdfjsLib.VerbosityLevel.ERRORS
+    // Configure PDF.js global options (using any to handle type mismatches)
+    ;(pdfjsLib.GlobalWorkerOptions as any).verbosity = pdfjsLib.VerbosityLevel.ERRORS
     
     // Enable text layer rendering
-    pdfjsLib.GlobalWorkerOptions.isEvalSupported = false
+    ;(pdfjsLib.GlobalWorkerOptions as any).isEvalSupported = false
     
     // Configure CMap URL for character mapping
-    pdfjsLib.GlobalWorkerOptions.cMapUrl = '/cmaps/'
-    pdfjsLib.GlobalWorkerOptions.cMapPacked = true
+    ;(pdfjsLib.GlobalWorkerOptions as any).cMapUrl = '/cmaps/'
+    ;(pdfjsLib.GlobalWorkerOptions as any).cMapPacked = true
   }
 })

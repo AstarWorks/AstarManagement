@@ -72,13 +72,11 @@ export function usePdfViewer() {
       canvasRefs.value = {}
       
       // Configure loading options
-      const loadingTask = pdfjsLib.getDocument({
-        url: typeof src === 'string' ? src : { data: src },
-        cMapUrl: '/cmaps/',
-        cMapPacked: true,
-        enableXfa: true,
-        verbosity: pdfjsLib.VerbosityLevel.ERRORS
-      })
+      const loadingTask = pdfjsLib.getDocument(
+        typeof src === 'string' 
+          ? { url: src, cMapUrl: '/cmaps/', cMapPacked: true, enableXfa: true, verbosity: pdfjsLib.VerbosityLevel.ERRORS }
+          : { data: src, cMapUrl: '/cmaps/', cMapPacked: true, enableXfa: true, verbosity: pdfjsLib.VerbosityLevel.ERRORS }
+      )
       
       // Load document
       const pdf = await loadingTask.promise

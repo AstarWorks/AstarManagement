@@ -246,7 +246,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import BasicPdfViewer from '../../components/document/BasicPdfViewer.vue'
+import BasicPdfViewer from '~/components/document/BasicPdfViewer.vue'
 
 // Page metadata
 useHead({
