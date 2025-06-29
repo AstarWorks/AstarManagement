@@ -21,7 +21,7 @@ This project follows a milestone-based development approach.
 
 - **Milestone:** M01 - Matter Management MVP
 - **Sprint:** S13 - Communication & Documents UI
-- **Current Task:** T07_S13 - Document List Views (in_progress)
+- **Current Task:** T08_S13 - Document Organization (in_progress)
 
 ## 3. Sprints in Current Milestone
 
