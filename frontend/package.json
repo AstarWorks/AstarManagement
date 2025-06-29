@@ -63,7 +63,7 @@
     "perf:all": "bun run perf:lighthouse && bun run perf:bundle && bun run perf:test"
   },
   "dependencies": {
-    "@floating-ui/vue": "^1.1.6",
+    "@floating-ui/vue": "^1.1.7",
     "@nuxtjs/tailwindcss": "6",
     "@pinia/nuxt": "^0.11.1",
     "@tanstack/query-persist-client-core": "^5.81.2",
@@ -73,6 +73,7 @@
     "@tiptap/extension-character-count": "^2.23.0",
     "@tiptap/extension-color": "^2.23.0",
     "@tiptap/extension-link": "^2.23.0",
+    "@tiptap/extension-mention": "^2.23.0",
     "@tiptap/extension-placeholder": "^2.23.0",
     "@tiptap/extension-table": "^2.23.0",
     "@tiptap/extension-table-cell": "^2.23.0",
@@ -107,6 +108,7 @@
     "radix-vue": "^1.9.17",
     "shadcn-nuxt": "^2.2.0",
     "tailwind-merge": "^3.3.1",
+    "tippy.js": "^6.3.7",
     "uuid": "^11.1.0",
     "vee-validate": "^4.15.1",
     "vue": "^3.5.16",

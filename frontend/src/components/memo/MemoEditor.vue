@@ -1,5 +1,46 @@
 <template>
   <div class="memo-editor-container">
+    <!-- Auto-save Indicator -->
+    <div class="memo-editor-header">
+      <div class="auto-save-section">
+        <MemoAutoSaveIndicator
+          :status="autoSaveStatus"
+          :status-text="autoSaveStatusText"
+          :has-unsaved-changes="hasUnsavedChanges"
+          :is-online="isOnline"
+          :can-save="canSave"
+          :last-saved="lastSaved"
+          :error="saveError"
+          @save="handleManualSave"
+          @retry="handleRetry"
+        />
+      </div>
+      
+      <!-- Template Selector -->
+      <div class="template-section">
+        <Button
+          variant="outline"
+          size="sm"
+          @click="showTemplateSelector = !showTemplateSelector"
+          class="template-toggle"
+        >
+          <FileText class="h-4 w-4" />
+          Templates
+          <ChevronDown :class="['h-4 w-4 transition-transform', { 'rotate-180': showTemplateSelector }]" />
+        </Button>
+      </div>
+    </div>
+
+    <!-- Template Selector (Collapsible) -->
+    <div v-if="showTemplateSelector" class="template-selector-section">
+      <MemoTemplateSelector
+        :show-categories="false"
+        max-height="300px"
+        @template-selected="handleTemplateSelected"
+        @template-preview="handleTemplatePreview"
+      />
+    </div>
+
     <!-- Toolbar -->
     <MemoEditorToolbar
       :toggle-bold="toggleBold"
@@ -24,32 +65,61 @@
       :can-redo="canRedo"
     />
 
-    <!-- Editor Content -->
-    <div class="memo-editor-wrapper">
-      <EditorContent 
-        :editor="editor" 
-        class="memo-editor-content"
-        :class="{
-          'has-error': hasError,
-          'is-focused': isFocused
-        }"
-      />
-      
-      <!-- Character Count -->
-      <div class="memo-editor-footer">
-        <div class="character-count">
-          <span class="text-sm text-muted-foreground">
-            {{ characterCount }}{{ maxCharacters ? ` / ${maxCharacters}` : '' }} characters
-            • {{ wordCount }} words
-          </span>
-          <span 
-            v-if="maxCharacters && characterCount > maxCharacters * 0.9" 
-            class="text-warning text-sm ml-2"
-          >
-            {{ maxCharacters - characterCount }} characters remaining
-          </span>
-        </div>
+    <!-- Main Editor Area -->
+    <div class="memo-editor-main">
+      <!-- Editor Content with Mentions -->
+      <div class="memo-editor-wrapper">
+        <EditorContent 
+          :editor="editor" 
+          class="memo-editor-content"
+          :class="{
+            'has-error': hasError,
+            'is-focused': isFocused
+          }"
+        />
       </div>
+      
+      <!-- Attachments Section -->
+      <div v-if="showAttachments || attachments.length > 0" class="attachments-section">
+        <MemoAttachments
+          :max-files="maxAttachments"
+          :max-size="maxAttachmentSize"
+          :disabled="disabled"
+          @files-uploaded="handleFilesUploaded"
+          @file-removed="handleFileRemoved"
+          @files-cleared="handleFilesCleared"
+        />
+      </div>
+    </div>
+
+    <!-- Editor Footer -->
+    <div class="memo-editor-footer">
+      <div class="character-count">
+        <span class="text-sm text-muted-foreground">
+          {{ characterCount }}{{ maxCharacters ? ` / ${maxCharacters}` : '' }} characters
+          • {{ wordCount }} words
+          <template v-if="attachments.length > 0">
+            • {{ attachments.length }} attachment{{ attachments.length === 1 ? '' : 's' }}
+          </template>
+        </span>
+        <span 
+          v-if="maxCharacters && characterCount > maxCharacters * 0.9" 
+          class="text-warning text-sm ml-2"
+        >
+          {{ maxCharacters - characterCount }} characters remaining
+        </span>
+      </div>
+      
+      <!-- Attachment Toggle -->
+      <Button
+        variant="ghost"
+        size="sm"
+        @click="showAttachments = !showAttachments"
+        class="attachment-toggle"
+      >
+        <Paperclip class="h-4 w-4" />
+        Attachments
+      </Button>
     </div>
 
     <!-- Error Message -->
@@ -61,47 +131,115 @@
 </template>
 
 <script setup lang="ts">
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { EditorContent } from '@tiptap/vue-3'
-import { AlertCircle } from 'lucide-vue-next'
+import { 
+  AlertCircle, 
+  FileText, 
+  ChevronDown, 
+  Paperclip 
+} from 'lucide-vue-next'
+import { Button } from '~/components/ui/button'
 import { useRichTextEditor, type EditorOptions } from '~/composables/memo/useRichTextEditor'
+import { useMemoAutoSave, type MemoContent } from '~/composables/memo/useMemoAutoSave'
+import { useMentions } from '~/composables/memo/useMentions'
+import type { UploadedFile } from '~/composables/memo/useFileUpload'
+import type { MemoTemplate } from '~/stores/memoTemplates'
 import MemoEditorToolbar from './MemoEditorToolbar.vue'
+import MemoAutoSaveIndicator from './MemoAutoSaveIndicator.vue'
+import MemoTemplateSelector from './MemoTemplateSelector.vue'
+import MemoAttachments from './MemoAttachments.vue'
 
 export interface MemoEditorProps {
+  /** Content value (v-model) */
   modelValue?: string
+  /** Matter ID for auto-save */
+  matterId?: string
+  /** Editor placeholder text */
   placeholder?: string
+  /** Maximum character count */
   maxCharacters?: number
+  /** Maximum number of attachments */
+  maxAttachments?: number
+  /** Maximum attachment size in bytes */
+  maxAttachmentSize?: number
+  /** Disabled state */
   disabled?: boolean
+  /** Error message to display */
   errorMessage?: string
+  /** Auto-focus on mount */
   autofocus?: boolean
+  /** Enable auto-save */
+  enableAutoSave?: boolean
+  /** Enable attachments */
+  enableAttachments?: boolean
+  /** Enable mentions */
+  enableMentions?: boolean
+  /** Enable templates */
+  enableTemplates?: boolean
 }
 
 const props = withDefaults(defineProps<MemoEditorProps>(), {
   modelValue: '',
   placeholder: 'Start typing your memo...',
   maxCharacters: 50000,
+  maxAttachments: 10,
+  maxAttachmentSize: 10 * 1024 * 1024, // 10MB
   disabled: false,
-  autofocus: false
+  autofocus: false,
+  enableAutoSave: true,
+  enableAttachments: true,
+  enableMentions: true,
+  enableTemplates: true
 })
 
 const emit = defineEmits<{
+  /** Content changed */
   'update:modelValue': [value: string]
+  /** Editor focused */
   'focus': []
+  /** Editor blurred */
   'blur': []
+  /** Content changed (alias for update:modelValue) */
   'change': [value: string]
+  /** Files uploaded */
+  'filesUploaded': [files: UploadedFile[]]
+  /** File removed */
+  'fileRemoved': [fileId: string]
+  /** Template selected */
+  'templateSelected': [template: MemoTemplate, variables: Record<string, string>]
+  /** Auto-save triggered */
+  'autoSave': [content: MemoContent]
 }>()
 
 // Internal state
 const isFocused = ref(false)
+const showTemplateSelector = ref(false)
+const showAttachments = ref(false)
+const attachments = ref<UploadedFile[]>([])
+
+// Computed
 const hasError = computed(() => !!props.errorMessage)
 
-// Editor configuration
+// Mentions system
+const { contactMentionExtension, matterMentionExtension } = useMentions()
+
+// Editor configuration with mentions
 const editorOptions: EditorOptions = {
   initialContent: props.modelValue,
   placeholder: props.placeholder,
   maxCharacters: props.maxCharacters,
+  extensions: props.enableMentions 
+    ? [contactMentionExtension, matterMentionExtension]
+    : [],
   onChange: (content: string) => {
     emit('update:modelValue', content)
     emit('change', content)
+    
+    // Update auto-save content
+    if (autoSave) {
+      autoSave.setHtml(content)
+    }
   },
   onFocus: () => {
     isFocused.value = true
@@ -142,9 +280,103 @@ const {
   setContent
 } = useRichTextEditor(editorOptions)
 
-// Computed properties
+// Auto-save functionality
+const autoSave = props.enableAutoSave && props.matterId 
+  ? useMemoAutoSave({
+      matterId: props.matterId,
+      onSave: async (content: MemoContent) => {
+        emit('autoSave', content)
+        // In production, this would save to backend
+        await new Promise(resolve => setTimeout(resolve, 500)) // Simulate API call
+      },
+      onSaveSuccess: () => {
+        console.log('Auto-save successful')
+      },
+      onSaveError: (error: Error) => {
+        console.error('Auto-save failed:', error)
+      }
+    })
+  : null
+
+// Auto-save computed properties
+const autoSaveStatus = computed(() => autoSave?.saveStatus.value || 'idle')
+const autoSaveStatusText = computed(() => autoSave?.saveStatusText.value || 'No auto-save')
+const hasUnsavedChanges = computed(() => autoSave?.hasUnsavedChanges.value || false)
+const isOnline = computed(() => autoSave?.isOnline.value ?? true)
+const canSave = computed(() => autoSave?.canSave.value || false)
+const lastSaved = computed(() => autoSave?.lastSaved.value || null)
+const saveError = computed(() => autoSave?.saveError.value || null)
+
+// Editor computed properties
 const characterCount = computed(() => getCharacterCount())
 const wordCount = computed(() => getWordCount())
+
+// Event handlers
+const handleManualSave = () => {
+  autoSave?.saveNow()
+}
+
+const handleRetry = () => {
+  autoSave?.saveNow()
+}
+
+const handleFilesUploaded = (files: UploadedFile[]) => {
+  attachments.value.push(...files)
+  
+  // Update auto-save content
+  if (autoSave) {
+    files.forEach(file => autoSave.addAttachment(file))
+  }
+  
+  emit('filesUploaded', files)
+}
+
+const handleFileRemoved = (fileId: string) => {
+  attachments.value = attachments.value.filter(f => f.id !== fileId)
+  
+  // Update auto-save content
+  if (autoSave) {
+    autoSave.removeAttachment(fileId)
+  }
+  
+  emit('fileRemoved', fileId)
+}
+
+const handleFilesCleared = () => {
+  const clearedFiles = attachments.value.map(f => f.id)
+  attachments.value = []
+  
+  // Update auto-save content
+  if (autoSave) {
+    clearedFiles.forEach(fileId => autoSave.removeAttachment(fileId))
+  }
+}
+
+const handleTemplateSelected = (template: MemoTemplate, variables: Record<string, string>) => {
+  // Insert template content into editor
+  const templateContent = template.content.replace(/\{\{(\w+)\}\}/g, (match, key) => {
+    return variables[key] || match
+  })
+  
+  // Insert at current cursor position instead of appending
+  if (editor.value) {
+    editor.value.chain()
+      .focus()
+      .insertContent(templateContent)
+      .run()
+  } else {
+    setContent(templateContent)
+  }
+  
+  showTemplateSelector.value = false
+  
+  emit('templateSelected', template, variables)
+}
+
+const handleTemplatePreview = (template: MemoTemplate) => {
+  // Preview functionality can be implemented here
+  console.log('Preview template:', template)
+}
 
 // Watch for external model value changes
 watch(() => props.modelValue, (newValue) => {
@@ -160,6 +392,13 @@ watch(() => props.disabled, (disabled) => {
   }
 })
 
+// Initialize auto-save content
+watch(() => props.modelValue, (content) => {
+  if (autoSave && content) {
+    autoSave.setHtml(content)
+  }
+}, { immediate: true })
+
 // Autofocus if needed
 onMounted(() => {
   if (props.autofocus && editor.value) {
@@ -174,7 +413,13 @@ defineExpose({
   focus,
   getCharacterCount,
   getWordCount,
-  editor
+  editor,
+  autoSave,
+  attachments: computed(() => attachments.value),
+  saveNow: () => autoSave?.saveNow(),
+  getContent: () => editor.value?.getHTML() || '',
+  setContent,
+  insertTemplate: handleTemplateSelected
 })
 </script>
 
@@ -183,12 +428,38 @@ defineExpose({
   @apply border border-border rounded-md overflow-hidden bg-background;
 }
 
+/* Header Section */
+.memo-editor-header {
+  @apply flex items-center justify-between px-4 py-2 bg-muted/30 border-b border-border;
+}
+
+.auto-save-section {
+  @apply flex-1;
+}
+
+.template-section {
+  @apply flex-shrink-0;
+}
+
+.template-toggle {
+  @apply gap-2;
+}
+
+.template-selector-section {
+  @apply border-b border-border bg-muted/10;
+}
+
+/* Main Editor */
+.memo-editor-main {
+  @apply flex flex-col;
+}
+
 .memo-editor-wrapper {
   @apply relative;
 }
 
 .memo-editor-content {
-  @apply min-h-[200px] max-h-[600px] overflow-y-auto;
+  @apply min-h-[200px] max-h-[600px] overflow-y-auto p-4;
 }
 
 .memo-editor-content.has-error {
@@ -199,12 +470,22 @@ defineExpose({
   @apply ring-2 ring-primary ring-offset-2;
 }
 
+/* Attachments Section */
+.attachments-section {
+  @apply border-t border-border bg-muted/10 p-4;
+}
+
+/* Footer */
 .memo-editor-footer {
-  @apply px-4 py-2 bg-muted/30 border-t border-border;
+  @apply flex items-center justify-between px-4 py-2 bg-muted/30 border-t border-border;
 }
 
 .character-count {
-  @apply flex items-center justify-between;
+  @apply flex items-center gap-2;
+}
+
+.attachment-toggle {
+  @apply gap-2 text-muted-foreground hover:text-foreground;
 }
 
 .memo-editor-error {

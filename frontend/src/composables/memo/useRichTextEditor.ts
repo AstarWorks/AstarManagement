@@ -3,6 +3,7 @@
  * Provides comprehensive rich text editing capabilities for legal memos
  */
 
+import { computed, onBeforeUnmount } from 'vue'
 import { useEditor } from '@tiptap/vue-3'
 import DOMPurify from 'dompurify'
 import StarterKit from '@tiptap/starter-kit'
@@ -21,6 +22,7 @@ import TaskItem from '@tiptap/extension-task-item'
 export interface EditorOptions {
   initialContent?: string
   placeholder?: string
+  extensions?: any[]
   onChange?: (content: string) => void
   onFocus?: () => void
   onBlur?: () => void
@@ -31,6 +33,7 @@ export function useRichTextEditor(options: EditorOptions = {}) {
   const {
     initialContent = '',
     placeholder = 'Start typing your memo...',
+    extensions = [],
     onChange,
     onFocus,
     onBlur,
@@ -90,6 +93,8 @@ export function useRichTextEditor(options: EditorOptions = {}) {
       CharacterCount.configure({
         limit: maxCharacters,
       }),
+      // Add any additional extensions passed in options
+      ...extensions,
     ],
     content: initialContent,
     editorProps: {
