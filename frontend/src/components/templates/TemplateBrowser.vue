@@ -190,17 +190,17 @@ import {
   TabsContent,
   TabsList,
   TabsTrigger,
-} from '@/components/ui/tabs'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+} from '~/components/ui/tabs'
+import { Button } from '~/components/ui/button'
+import { Badge } from '~/components/ui/badge'
+import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert'
 import TemplateSearch from './TemplateSearch.vue'
 import TemplateCategorySidebar from './TemplateCategorySidebar.vue'
 import TemplateGallery from './TemplateGallery.vue'
 import TemplatePreviewModal from './TemplatePreviewModal.vue'
-import { useTemplateBrowserStore } from '@/stores/templateBrowser'
+import { useTemplateBrowserStore } from '~/stores/templateBrowser'
 import { storeToRefs } from 'pinia'
-import type { Template, TemplateSortOptions } from '@/types/template'
+import type { Template, TemplateSortOptions } from '~/types/template'
 
 interface Props {
   matterId?: string

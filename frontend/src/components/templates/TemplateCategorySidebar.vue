@@ -156,11 +156,11 @@ import {
   FileImage,
   Globe
 } from 'lucide-vue-next'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { useTemplateBrowserStore } from '@/stores/templateBrowser'
-import type { TemplateCategory } from '@/types/template'
+import { Checkbox } from '~/components/ui/checkbox'
+import { Badge } from '~/components/ui/badge'
+import { Button } from '~/components/ui/button'
+import { useTemplateBrowserStore } from '~/stores/templateBrowser'
+import type { TemplateCategory } from '~/types/template'
 
 interface Props {
   categories: TemplateCategory[]

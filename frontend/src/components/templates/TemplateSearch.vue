@@ -47,9 +47,9 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue'
 import { Search, X } from 'lucide-vue-next'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { useTemplateBrowserStore } from '@/stores/templateBrowser'
+import { Button } from '~/components/ui/button'
+import { Input } from '~/components/ui/input'
+import { useTemplateBrowserStore } from '~/stores/templateBrowser'
 import { useDebounceFn } from '@vueuse/core'
 
 interface Props {

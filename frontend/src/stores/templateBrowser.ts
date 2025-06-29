@@ -186,9 +186,12 @@ export const useTemplateBrowserStore = defineStore('template-browser', () => {
     
     try {
       // API call would go here
-      await $fetch(`/api/templates/${templateId}/favorite`, {
+      await fetch(`/api/templates/${templateId}/favorite`, {
         method: 'POST',
-        body: { isFavorite: !wasFavorite }
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ isFavorite: !wasFavorite })
       })
       
       // Save to localStorage
@@ -226,8 +229,11 @@ export const useTemplateBrowserStore = defineStore('template-browser', () => {
     
     try {
       // API call would go here
-      await $fetch(`/api/templates/${templateId}/usage`, {
-        method: 'POST'
+      await fetch(`/api/templates/${templateId}/usage`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
       })
       
       saveUserPreferences()

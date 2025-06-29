@@ -185,18 +185,18 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
-import { Input } from '@/components/ui/input'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { Input } from '~/components/ui/input'
+import { Checkbox } from '~/components/ui/checkbox'
+import { Badge } from '~/components/ui/badge'
+import { Button } from '~/components/ui/button'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import type { TemplateVariable } from '@/types/template'
+} from '~/components/ui/select'
+import type { TemplateVariable } from '~/types/template'
 
 interface Props {
   variables: TemplateVariable[]

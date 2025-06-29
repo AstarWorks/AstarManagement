@@ -185,16 +185,16 @@ import {
   List, 
   FileX
 } from 'lucide-vue-next'
-import { Button } from '@/components/ui/button'
+import { Button } from '~/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+} from '~/components/ui/dropdown-menu'
 import TemplateCard from './TemplateCard.vue'
 import CardSkeleton from './CardSkeleton.vue'
-import type { Template, TemplateSortOptions } from '@/types/template'
+import type { Template, TemplateSortOptions } from '~/types/template'
 
 interface Props {
   templates: Template[]

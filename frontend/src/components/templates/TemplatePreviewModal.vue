@@ -154,18 +154,18 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
+} from '~/components/ui/dialog'
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-} from '@/components/ui/tabs'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+} from '~/components/ui/tabs'
+import { Button } from '~/components/ui/button'
+import { Badge } from '~/components/ui/badge'
 import TemplateDetails from './TemplateDetails.vue'
 import TemplateVariables from './TemplateVariables.vue'
-import type { Template } from '@/types/template'
+import type { Template } from '~/types/template'
 
 interface Props {
   template: Template | null
