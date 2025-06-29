@@ -20,7 +20,8 @@ This project follows a milestone-based development approach.
 ## 2. Current Focus
 
 - **Milestone:** M01 - Matter Management MVP
-- **Sprint:** S05 - Backend Foundation
+- **Sprint:** S13 - Communication & Documents UI
+- **Current Task:** T06B_S13 - PDF Annotations and Mobile Features (completed)
 
 ## 3. Sprints in Current Milestone
 
