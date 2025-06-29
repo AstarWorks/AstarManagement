@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
-import type { DocumentSortConfig, DocumentFilterConfig } from '~/types/document'
+import type { DocumentSortConfig, DocumentFilterConfig, Document } from '~/types/document'
 
 interface DocumentViewPreferences {
   viewMode: 'grid' | 'list'
@@ -128,7 +128,7 @@ export const useDocumentViewStore = defineStore('document-view', () => {
   }
 
   // Update sort field while preserving direction
-  const updateSortField = (field: keyof DocumentSortConfig['field']) => {
+  const updateSortField = (field: keyof Document) => {
     sortConfig.value = {
       ...sortConfig.value,
       field

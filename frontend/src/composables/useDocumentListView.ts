@@ -223,7 +223,7 @@ export function useDocumentListView(matterId?: string, options: DocumentListOpti
 
   return {
     // State
-    documents: readonly(documents),
+    documents,
     loading: readonly(loading),
     error: readonly(error),
     hasMore: readonly(hasMore),

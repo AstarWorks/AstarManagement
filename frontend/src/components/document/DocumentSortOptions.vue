@@ -19,7 +19,7 @@
           v-for="option in sortOptions"
           :key="option.field"
           @click="setSortField(option.field)"
-          :class="{ 'bg-accent': modelValue.field === option.field }"
+          :class="modelValue.field === option.field ? 'bg-accent' : ''"
         >
           <component :is="option.icon" class="h-4 w-4 mr-2" />
           <span class="flex-1">{{ option.label }}</span>
@@ -47,7 +47,7 @@
         </div>
         <DropdownMenuItem
           @click="setDirection('asc')"
-          :class="{ 'bg-accent': modelValue.direction === 'asc' }"
+          :class="modelValue.direction === 'asc' ? 'bg-accent' : ''"
         >
           <ArrowUp class="h-4 w-4 mr-2" />
           Ascending
@@ -55,7 +55,7 @@
         </DropdownMenuItem>
         <DropdownMenuItem
           @click="setDirection('desc')"
-          :class="{ 'bg-accent': modelValue.direction === 'desc' }"
+          :class="modelValue.direction === 'desc' ? 'bg-accent' : ''"
         >
           <ArrowDown class="h-4 w-4 mr-2" />
           Descending
@@ -91,12 +91,12 @@ import {
   DropdownMenuTrigger 
 } from '~/components/ui/dropdown-menu'
 
-import type { DocumentSortConfig } from '~/types/document'
+import type { DocumentSortConfig, Document as DocumentType } from '~/types/document'
 
 interface Props {
   modelValue: DocumentSortConfig
   disabled?: boolean
-  availableFields?: Array<keyof DocumentSortConfig['field']>
+  availableFields?: Array<keyof DocumentType>
 }
 
 interface Emits {
@@ -106,7 +106,7 @@ interface Emits {
 
 const props = withDefaults(defineProps<Props>(), {
   disabled: false,
-  availableFields: () => ['fileName', 'modifiedDate', 'createdDate', 'size', 'mimeType']
+  availableFields: () => ['fileName', 'modifiedDate', 'createdDate', 'size', 'mimeType'] as (keyof DocumentType)[]
 })
 
 const emit = defineEmits<Emits>()
@@ -162,9 +162,9 @@ const currentSortLabel = computed(() => {
 })
 
 // Event handlers
-const setSortField = (field: string) => {
+const setSortField = (field: keyof DocumentType) => {
   const newConfig: DocumentSortConfig = {
-    field: field as keyof DocumentSortConfig['field'],
+    field: field,
     direction: props.modelValue.field === field ? props.modelValue.direction : 'desc'
   }
   

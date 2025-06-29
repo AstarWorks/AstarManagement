@@ -33,7 +33,7 @@
           variant="outline" 
           size="sm"
           @click="showFilters = !showFilters"
-          :class="{ 'bg-accent': showFilters }"
+          :class="showFilters ? 'bg-accent' : ''"
         >
           <Filter class="h-4 w-4 mr-2" />
           Filters
@@ -73,7 +73,7 @@
       <DocumentFilters
         v-if="showFilters"
         v-model="filterConfig"
-        :documents="documents"
+        :documents="[...documents]"
         @change="handleFilterChange"
         class="w-64 border-r bg-muted/20"
       />
@@ -154,9 +154,9 @@
           <!-- Grid View -->
           <DocumentGridView 
             v-else-if="viewMode === 'grid'"
-            :documents="paginatedDocuments"
+            :documents="[...paginatedDocuments]"
             :loading="loading"
-            :selected-documents="selectedDocuments"
+            :selected-documents="selectedDocumentIds"
             :bulk-select="showBulkActions"
             @action="handleDocumentAction"
             @select="handleDocumentSelect"
@@ -167,9 +167,9 @@
           <!-- List View -->
           <DocumentListItemView 
             v-else
-            :documents="paginatedDocuments"
+            :documents="[...paginatedDocuments]"
             :loading="loading"
-            :selected-documents="selectedDocuments"
+            :selected-documents="selectedDocumentIds"
             :bulk-select="showBulkActions"
             :sort-config="sortConfig"
             @action="handleDocumentAction"
@@ -288,6 +288,10 @@ const filterConfig = ref<DocumentFilterConfig>({
 })
 
 // Computed properties
+const selectedDocumentIds = computed(() => {
+  return selectedDocuments.value.map(doc => doc.id)
+})
+
 const filteredDocuments = computed(() => {
   let result = [...documents.value]
   
@@ -330,6 +334,10 @@ const filteredDocuments = computed(() => {
     const { field, direction } = sortConfig.value
     let aValue = a[field as keyof Document]
     let bValue = b[field as keyof Document]
+    
+    // Handle undefined values
+    if (aValue === undefined) aValue = ''
+    if (bValue === undefined) bValue = ''
     
     // Handle different data types
     if (typeof aValue === 'string' && typeof bValue === 'string') {

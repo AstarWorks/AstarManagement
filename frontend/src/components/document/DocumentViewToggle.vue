@@ -4,10 +4,7 @@
       <Button
         variant="ghost"
         size="sm"
-        :class="[
-          'toggle-button',
-          { 'active': modelValue === 'grid' }
-        ]"
+        :class="`toggle-button ${modelValue === 'grid' ? 'active' : ''}`"
         @click="setViewMode('grid')"
         :aria-pressed="modelValue === 'grid'"
         :aria-label="'Grid view' + (modelValue === 'grid' ? ' (current)' : '')"
@@ -20,10 +17,7 @@
       <Button
         variant="ghost"
         size="sm"
-        :class="[
-          'toggle-button',
-          { 'active': modelValue === 'list' }
-        ]"
+        :class="`toggle-button ${modelValue === 'list' ? 'active' : ''}`"
         @click="setViewMode('list')"
         :aria-pressed="modelValue === 'list'"
         :aria-label="'List view' + (modelValue === 'list' ? ' (current)' : '')"
