@@ -1,260 +1,371 @@
+import { computed } from 'vue'
+import type { Matter } from '~/types/matter'
+import { useBoardStore } from './board'
+import { useMatterStore } from './matters'
+import { useSearchStore } from './search'
+import { useUIPreferencesStore } from './ui-preferences'
+import { useRealTimeStore } from './real-time'
+
 /**
- * Kanban Stores Module - Main export file
+ * Unified Kanban Store Composable
  * 
- * Provides a unified interface for all kanban-related stores and utilities.
- * This module exports all store hooks, utilities, and types for easy consumption.
+ * This composable provides a single interface to all Kanban-related stores,
+ * combining their state and actions into a cohesive API. It follows the
+ * composition pattern for better maintainability and type safety.
  */
+export const useKanbanStore = () => {
+  // Initialize all stores
+  const boardStore = useBoardStore()
+  const matterStore = useMatterStore()
+  const searchStore = useSearchStore()
+  const uiStore = useUIPreferencesStore()
+  const realTimeStore = useRealTimeStore()
 
-// Store exports
-export * from './kanban-board-store'
-export * from './matter-data-store'
-export * from './search-store'
-export * from './ui-preferences-store'
-export * from './real-time-store'
-
-// Utility exports
-export * from './kanban-ssr-utils'
-export * from './kanban-demo-data'
-
-// Re-export types from the main types file
-export type {
-    MatterCard,
-    KanbanBoard,
-    FilterOptions,
-    SortOptions,
-    ViewPreferences,
-    BoardMetrics,
-    MatterStatus,
-    MatterPriority
-} from '@/components/kanban/types'
-
-// Unified store interface for advanced usage
-import { useKanbanBoardStore } from './kanban-board-store'
-import { useMatterDataStore } from './matter-data-store'
-import { useSearchStore } from './search-store'
-import { useUIPreferencesStore } from './ui-preferences-store'
-import { useRealTimeStore } from './real-time-store'
-
-/**
- * Combined store interface for applications that need access to all stores
- * This is useful for complex operations that span multiple store domains
- */
-export interface KanbanStoresInterface {
-    board: typeof useKanbanBoardStore
-    matterData: typeof useMatterDataStore
-    search: typeof useSearchStore
-    uiPreferences: typeof useUIPreferencesStore
-    realTime: typeof useRealTimeStore
-}
-
-/**
- * Access all kanban stores through a single interface
- * Useful for testing, debugging, or complex operations
- */
-export const useKanbanStores = (): KanbanStoresInterface => ({
-    board: useKanbanBoardStore,
-    matterData: useMatterDataStore,
-    search: useSearchStore,
-    uiPreferences: useUIPreferencesStore,
-    realTime: useRealTimeStore
-})
-
-/**
- * Combined state selector for getting all store states at once
- * Use sparingly as it will cause re-renders when any store updates
- */
-export const useAllKanbanStates = () => ({
-    board: useKanbanBoardStore.getState(),
-    matterData: useMatterDataStore.getState(),
-    search: useSearchStore.getState(),
-    uiPreferences: useUIPreferencesStore.getState(),
-    realTime: useRealTimeStore.getState()
-})
-
-/**
- * Combined actions selector for getting all store actions at once
- * Useful for components that need to perform operations across multiple stores
- */
-export const useAllKanbanActions = () => ({
-    board: {
-        initializeBoard: useKanbanBoardStore.getState().initializeBoard,
-        setDragContext: useKanbanBoardStore.getState().setDragContext,
-        updateBoard: useKanbanBoardStore.getState().updateBoard,
-        getBoardId: useKanbanBoardStore.getState().getBoardId
-    },
-    matterData: {
-        fetchMatters: useMatterDataStore.getState().fetchMatters,
-        addMatter: useMatterDataStore.getState().addMatter,
-        updateMatter: useMatterDataStore.getState().updateMatter,
-        deleteMatter: useMatterDataStore.getState().deleteMatter,
-        moveMatter: useMatterDataStore.getState().moveMatter,
-        setFilters: useMatterDataStore.getState().setFilters,
-        setSorting: useMatterDataStore.getState().setSorting
-    },
-    search: {
-        performSearch: useSearchStore.getState().performSearch,
-        clearSearch: useSearchStore.getState().clearSearch,
-        getSuggestions: useSearchStore.getState().getSuggestions
-    },
-    uiPreferences: {
-        updateViewPreferences: useUIPreferencesStore.getState().updateViewPreferences,
-        setTheme: useUIPreferencesStore.getState().setTheme,
-        toggleSidebar: useUIPreferencesStore.getState().toggleSidebar
-    },
-    realTime: {
-        startPolling: useRealTimeStore.getState().startPolling,
-        stopPolling: useRealTimeStore.getState().stopPolling,
-        performSync: useRealTimeStore.getState().performSync
-    }
-})
-
-/**
- * Initialize all kanban stores with default or provided data
- * Useful for application startup or testing scenarios
- */
-export const initializeKanbanStores = (options?: {
+  // Combined initialization
+  const initializeKanban = async (options?: {
     boardId?: string
-    userId?: string
-    enableRealTime?: boolean
-    demoData?: boolean
-}) => {
-    const {
-        boardId = 'main-board',
-        userId = 'default-user',
-        enableRealTime = true,
-        demoData = false
-    } = options || {}
-
-    // Initialize board store
-    useKanbanBoardStore.getState().initializeBoard(
-        demoData ? kanbanDemoData.data.matters : []
-    )
-
-    // Load demo data if requested
-    if (demoData) {
-        const matters = kanbanDemoData.data.matters
-        useMatterDataStore.setState({ matters })
-        useUIPreferencesStore.getState().updateBoardMetrics(kanbanDemoData.data.metrics)
+    loadMatters?: boolean
+    autoSync?: boolean
+  }) => {
+    const { boardId, loadMatters = true, autoSync = true } = options || {}
+    
+    try {
+      // Initialize board
+      boardStore.initializeBoard(boardId ? { id: boardId } : undefined)
+      
+      // Load matters if requested
+      if (loadMatters) {
+        await matterStore.loadMatters()
+      }
+      
+      // Start real-time sync if requested
+      if (autoSync && realTimeStore.isOnline) {
+        realTimeStore.startPolling()
+        if (process.client) {
+          realTimeStore.connectWebSocket()
+        }
+      }
+      
+      // Load saved preferences
+      if (process.client) {
+        uiStore.loadPreferences()
+      }
+      
+      return true
+    } catch (error) {
+      console.error('Failed to initialize Kanban:', error)
+      return false
     }
+  }
 
-    // Start real-time features if enabled
-    if (enableRealTime) {
-        useRealTimeStore.getState().enableAutoRefresh()
+  // Enhanced matter operations with real-time sync
+  const createMatterWithSync = async (matterData: Parameters<typeof matterStore.createMatter>[0]) => {
+    const matter = await matterStore.createMatter(matterData)
+    
+    // Trigger sync if online
+    if (realTimeStore.isOnline) {
+      realTimeStore.syncWithServer()
     }
+    
+    return matter
+  }
 
+  const updateMatterWithSync = async (id: string, updates: Parameters<typeof matterStore.updateMatter>[1]) => {
+    const matter = await matterStore.updateMatter(id, updates)
+    
+    // Trigger sync if online
+    if (realTimeStore.isOnline) {
+      realTimeStore.syncWithServer()
+    }
+    
+    return matter
+  }
+
+  const moveMatterWithSync = async (matterId: string, newStatus: Parameters<typeof matterStore.moveMatter>[1]) => {
+    const matter = await matterStore.moveMatter(matterId, newStatus)
+    
+    // Update drag context
+    boardStore.endDrag()
+    
+    // Trigger sync if online
+    if (realTimeStore.isOnline) {
+      realTimeStore.syncWithServer()
+    }
+    
+    return matter
+  }
+
+  // Enhanced search with UI integration
+  const performSearchWithUI = (query?: string, filters?: Partial<Parameters<typeof searchStore.updateFilters>[0]>) => {
+    if (query !== undefined) {
+      searchStore.updateFilters({ query, ...filters })
+    } else if (filters) {
+      searchStore.updateFilters(filters)
+    }
+    
+    searchStore.performSearch()
+    
+    // Auto-open search panel if not already open
+    if (!uiStore.panelStates.search && (query || Object.keys(filters || {}).length > 0)) {
+      uiStore.toggleSearchPanel()
+    }
+  }
+
+  // Smart matter filtering based on UI preferences and search
+  const getFilteredMatters = computed(() => {
+    // Start with all matters
+    let matters = matterStore.matters
+    
+    // Apply search results if active
+    if (searchStore.hasActiveSearch && searchStore.searchResults) {
+      matters = searchStore.searchResults.matters
+    }
+    
+    // Apply UI preference filters
+    const { viewPreferences } = uiStore
+    
+    // Group matters by the selected grouping (create mutable copy)
+    const mutableMatters = [...matters]
+    const grouped = mutableMatters.reduce((groups, matter) => {
+      let groupKey: string
+      
+      switch (viewPreferences.groupBy) {
+        case 'status':
+          groupKey = matter.status
+          break
+        case 'priority':
+          groupKey = matter.priority
+          break
+        case 'lawyer':
+          groupKey = typeof matter.assignedLawyer === 'string' ? matter.assignedLawyer : matter.assignedLawyer?.name || 'Unassigned'
+          break
+        case 'none':
+        default:
+          groupKey = matter.status
+      }
+      
+      if (!groups[groupKey]) {
+        groups[groupKey] = []
+      }
+      groups[groupKey].push(matter)
+      
+      return groups
+    }, {} as Record<string, Matter[]>)
+    
+    // Sort within each group
+    Object.keys(grouped).forEach(key => {
+      grouped[key].sort((a: Matter, b: Matter) => {
+        const { sortBy, sortOrder } = viewPreferences
+        let aValue: any, bValue: any
+        
+        switch (sortBy) {
+          case 'priority':
+            const priorityOrder: Record<string, number> = { 'URGENT': 4, 'HIGH': 3, 'MEDIUM': 2, 'LOW': 1 }
+            aValue = priorityOrder[a.priority] || 0
+            bValue = priorityOrder[b.priority] || 0
+            break
+          case 'dueDate':
+            aValue = a.dueDate ? new Date(a.dueDate).getTime() : 0
+            bValue = b.dueDate ? new Date(b.dueDate).getTime() : 0
+            break
+          case 'createdAt':
+            aValue = new Date(a.createdAt).getTime()
+            bValue = new Date(b.createdAt).getTime()
+            break
+          case 'title':
+            aValue = a.title.toLowerCase()
+            bValue = b.title.toLowerCase()
+            break
+          default:
+            aValue = a.priority
+            bValue = b.priority
+        }
+        
+        if (sortOrder === 'asc') {
+          return aValue > bValue ? 1 : -1
+        } else {
+          return aValue < bValue ? 1 : -1
+        }
+      })
+    })
+    
+    return grouped
+  })
+
+  // Dashboard statistics
+  const getDashboardStats = computed(() => {
+    const matters = matterStore.matters
+    
     return {
-        boardId,
-        userId,
-        initialized: true,
-        demoData,
-        realTimeEnabled: enableRealTime
+      total: matters.length,
+      byStatus: matterStore.mattersByStatus,
+      overdue: matterStore.getOverdueMatters.length,
+      urgent: matters.filter(m => m.priority === 'URGENT').length,
+      recentlyUpdated: matters.filter(m => {
+        const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
+        return new Date(m.updatedAt) > dayAgo
+      }).length,
+      assignedToMe: matters.filter(m => {
+        // TODO: Replace with actual current user check
+        return typeof m.assignedLawyer === 'object' && m.assignedLawyer?.id === 'current-user-id'
+      }).length
     }
-}
+  })
 
-/**
- * Reset all kanban stores to their initial state
- * Useful for testing or when switching between different contexts
- */
-export const resetKanbanStores = () => {
-    // Reset board store
-    useKanbanBoardStore.setState({
-        board: null,
-        dragContext: {
-            activeId: null,
-            overId: null,
-            isDragging: false
-        }
-    })
+  // System health status
+  const getSystemHealth = computed(() => {
+    return {
+      online: realTimeStore.isOnline,
+      syncing: realTimeStore.isSyncing,
+      lastSync: realTimeStore.lastSyncStatus,
+      conflicts: realTimeStore.hasConflicts,
+      connectionQuality: realTimeStore.connectionQuality,
+      pendingOperations: matterStore.loadingStatus.isLoading
+    }
+  })
 
-    // Reset matter data store
-    useMatterDataStore.setState({
-        matters: [],
-        isLoading: false,
-        error: null,
-        lastRefresh: new Date(),
-        filters: DEFAULT_FILTERS,
-        sorting: DEFAULT_SORTING
-    })
-
-    // Reset search store
-    useSearchStore.getState().clearSearch()
-
-    // Reset UI preferences to defaults
-    useUIPreferencesStore.getState().resetViewPreferences()
-
-    // Stop real-time features
-    useRealTimeStore.getState().stopPolling()
-    useRealTimeStore.getState().clearOfflineQueue()
-}
-
-// Import utilities for re-export
-import { kanbanSSRUtils } from './kanban-ssr-utils'
-import { kanbanDemoData } from './kanban-demo-data'
-import { DEFAULT_FILTERS, DEFAULT_SORTING } from '@/components/kanban/constants'
-
-// Export utilities for convenience
-export { kanbanSSRUtils, kanbanDemoData }
-
-/**
- * Development utilities for debugging and testing
- */
-export const devUtils = {
-    /**
-     * Get current state of all stores for debugging
-     */
-    getDebugInfo: () => ({
-        board: useKanbanBoardStore.getState(),
-        matterData: useMatterDataStore.getState(),
-        search: useSearchStore.getState(),
-        uiPreferences: useUIPreferencesStore.getState(),
-        realTime: useRealTimeStore.getState(),
+  // Quick actions
+  const quickActions = {
+    // Refresh everything
+    refreshAll: async () => {
+      await Promise.all([
+        matterStore.loadMatters(true),
+        realTimeStore.forceSyncNow()
+      ])
+    },
+    
+    // Export data
+    exportData: () => {
+      return {
+        matters: matterStore.matters,
+        preferences: uiStore.exportPreferences(),
         timestamp: new Date().toISOString()
-    }),
+      }
+    },
+    
+    // Reset to defaults
+    resetToDefaults: () => {
+      uiStore.resetViewPreferences()
+      uiStore.resetLayoutPreferences()
+      searchStore.clearSearch()
+      boardStore.initializeBoard()
+    },
+    
+    // Toggle compact mode
+    toggleCompactMode: () => {
+      uiStore.toggleCompactMode()
+    },
+    
+    // Emergency offline mode
+    goOffline: () => {
+      realTimeStore.stopPolling()
+      realTimeStore.disconnectWebSocket()
+    }
+  }
 
-    /**
-     * Load demo data into stores
-     */
-    loadDemoData: () => {
-        const matters = kanbanDemoData.data.matters
-        useMatterDataStore.setState({ matters })
-        useKanbanBoardStore.getState().initializeBoard(matters)
-        useUIPreferencesStore.getState().updateBoardMetrics(kanbanDemoData.data.metrics)
+  return {
+    // Store instances (for direct access if needed)
+    stores: {
+      board: boardStore,
+      matters: matterStore,
+      search: searchStore,
+      ui: uiStore,
+      realTime: realTimeStore
     },
 
-    /**
-     * Generate and load random data for testing
-     */
-    loadRandomData: (count: number = 10) => {
-        const matters = kanbanDemoData.generators.generateRandomMatters(count)
-        useMatterDataStore.setState({ matters })
-        useKanbanBoardStore.getState().initializeBoard(matters)
+    // Initialization
+    initializeKanban,
+
+    // Board state
+    board: boardStore.board,
+    columns: boardStore.columns,
+    dragContext: boardStore.dragContext,
+
+    // Matter data
+    matters: matterStore.matters,
+    mattersByStatus: matterStore.mattersByStatus,
+    filteredMatters: getFilteredMatters,
+    isLoading: matterStore.loadingStatus,
+
+    // Search state
+    searchQuery: searchStore.filters,
+    searchResults: searchStore.searchResults,
+    isSearching: searchStore.isSearching,
+
+    // UI state
+    viewPreferences: uiStore.viewPreferences,
+    uiState: uiStore.uiState,
+    layoutPreferences: uiStore.layoutPreferences,
+    panelStates: uiStore.panelStates,
+
+    // Real-time state
+    isOnline: realTimeStore.isOnline,
+    syncStatus: realTimeStore.syncStatus,
+    conflicts: realTimeStore.conflictQueue,
+
+    // Enhanced actions
+    actions: {
+      // Board actions
+      initializeBoard: boardStore.initializeBoard,
+      startDrag: boardStore.startDrag,
+      updateDragOver: boardStore.updateDragOver,
+      endDrag: boardStore.endDrag,
+
+      // Matter actions (with sync)
+      createMatter: createMatterWithSync,
+      updateMatter: updateMatterWithSync,
+      moveMatter: moveMatterWithSync,
+      deleteMatter: matterStore.deleteMatter,
+      loadMatters: matterStore.loadMatters,
+      batchUpdateMatters: matterStore.batchUpdateMatters,
+
+      // Search actions
+      performSearch: performSearchWithUI,
+      clearSearch: searchStore.clearSearch,
+      saveSearch: searchStore.saveSearch,
+      loadSavedSearch: searchStore.loadSavedSearch,
+
+      // UI actions
+      updateViewPreferences: uiStore.updateViewPreferences,
+      updateUIState: uiStore.updateUIState,
+      toggleSidebar: uiStore.toggleSidebar,
+      toggleSearchPanel: uiStore.toggleSearchPanel,
+      toggleFiltersPanel: uiStore.toggleFiltersPanel,
+      setTheme: uiStore.setTheme,
+      applyPreset: uiStore.applyPreset,
+
+      // Real-time actions
+      syncNow: realTimeStore.forceSyncNow,
+      startPolling: realTimeStore.startPolling,
+      stopPolling: realTimeStore.stopPolling,
+      resolveConflict: realTimeStore.resolveConflict
     },
 
-    /**
-     * Simulate real-time updates for testing
-     */
-    simulateRealTimeUpdate: () => {
-        const store = useMatterDataStore.getState()
-        if (store.matters.length > 0) {
-            const randomMatter = store.matters[Math.floor(Math.random() * store.matters.length)]
-            store.updateMatter(randomMatter.id, {
-                updatedAt: new Date().toISOString(),
-                notes: `Updated at ${new Date().toLocaleTimeString()}`
-            })
-        }
-    }
+    // Computed state
+    stats: getDashboardStats,
+    health: getSystemHealth,
+
+    // Quick actions
+    quickActions
+  }
 }
 
-// Default export
-export default {
-    stores: useKanbanStores,
-    actions: useAllKanbanActions,
-    states: useAllKanbanStates,
-    initialize: initializeKanbanStores,
-    reset: resetKanbanStores,
-    utils: {
-        ssr: kanbanSSRUtils,
-        demo: kanbanDemoData,
-        dev: devUtils
-    }
-}
+// Type exports for external use
+export type KanbanStore = ReturnType<typeof useKanbanStore>
+export type KanbanStoreActions = KanbanStore['actions']
+export type KanbanStoreStats = KanbanStore['stats']
+export type KanbanStoreHealth = KanbanStore['health']
+
+// Re-export individual stores for direct access
+export { useBoardStore } from './board'
+export { useMatterStore } from './matters'
+export { useSearchStore } from './search'
+export { useUIPreferencesStore } from './ui-preferences'
+export { useRealTimeStore } from './real-time'
+
+// Re-export types
+export type { DragContext } from './board'
+export type { ConflictResolution } from './matters'
+export type { SearchFilters, SearchResult } from './search'
+export type { UIState, LayoutPreferences } from './ui-preferences'
+export type { SyncStatus, ConflictEvent, NetworkStatus } from './real-time'

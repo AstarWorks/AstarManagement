@@ -1,25 +1,7 @@
-// Core form components
-export { MultiStepForm, createStepConfig } from './multi-step-form'
-export type { StepConfig, MultiStepFormProps } from './multi-step-form'
+// Form components index - export actual components only
+// TODO: Add other form components as they are implemented
 
-export { ConditionalField, SimpleConditionalField, useConditionalField, withConditionalField, conditionalLogic } from './conditional-field'
-export type { ConditionalFieldProps, ConditionalLogic, ConditionFunction } from './conditional-field'
+// Currently, no form components exist yet in the forms directory
+// This file is prepared for future form component exports
 
-export { FieldArray, SimpleFieldArray, useFieldArrayHelpers, fieldArrayValidators } from './field-array'
-export type { FieldArrayProps, FieldArrayInstance } from './field-array'
-
-// Hooks
-export { useAutoSave, useSimpleAutoSave } from '../hooks/useAutoSave'
-export type { AutoSaveOptions, AutoSaveState, AutoSaveInstance } from '../hooks/useAutoSave'
-
-export { useFormPersistence } from '../hooks/useFormPersistence'
-
-// Examples
-export { MatterCreationMultiStepForm } from './examples/matter-creation-multi-step'
-export { DocumentUploadForm } from './examples/document-upload-form'
-
-// Existing components
-export { CreateMatterForm } from './matter/CreateMatterForm'
-export { EditMatterForm } from './matter/EditMatterForm'
-export { MatterFormFields } from './matter/MatterFormFields'
-export { FieldError } from './FieldError'
+export {}

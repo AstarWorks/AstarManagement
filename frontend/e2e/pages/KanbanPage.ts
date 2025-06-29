@@ -1,103 +1,207 @@
-/**
- * Page Object for Kanban Board
- */
-
-import { Page, Locator } from '@playwright/test';
-import { BasePage } from './BasePage';
+import { BasePage } from './BasePage'
+import type { Page, Locator } from '@playwright/test'
 
 export class KanbanPage extends BasePage {
-  readonly board: Locator;
-  readonly filterBar: Locator;
-  readonly searchBar: Locator;
-  
+  // Selectors
+  private readonly kanbanBoard = '[data-testid="kanban-board"]'
+  private readonly kanbanColumn = '[data-testid^="kanban-column-"]'
+  private readonly matterCard = '[data-testid^="matter-card-"]'
+  private readonly addMatterButton = 'button:has-text("Add Matter")'
+  private readonly searchInput = 'input[placeholder*="Search"]'
+  private readonly filterButton = 'button:has-text("Filters")'
+  private readonly columnDropZone = '[data-testid="drop-zone"]'
+  private readonly loadingSpinner = '[data-testid="loading-spinner"]'
+  private readonly emptyState = '[data-testid="empty-state"]'
+
   constructor(page: Page) {
-    super(page);
-    this.board = page.getByTestId('kanban-board');
-    this.filterBar = page.getByTestId('filter-bar');
-    this.searchBar = page.getByTestId('search-bar');
+    super(page)
   }
 
-  async goto() {
-    await this.page.goto('/kanban');
-    await this.waitForPageLoad();
+  /**
+   * Navigate to kanban board
+   */
+  override async goto() {
+    await super.goto('/kanban')
+    await this.waitForBoardToLoad()
   }
 
-  getColumn(status: string): Locator {
-    return this.page.getByTestId(`column-${status}`);
+  /**
+   * Wait for board to load
+   */
+  async waitForBoardToLoad() {
+    await this.waitForElement(this.kanbanBoard)
+    // Wait for loading to complete
+    await this.page.waitForSelector(this.loadingSpinner, { state: 'hidden' })
   }
 
-  getMatterInColumn(status: string, caseNumber: string): Locator {
-    return this.getColumn(status).getByTestId(`matter-card-${caseNumber}`);
-  }
-
-  getColumnCount(status: string): Locator {
-    return this.getColumn(status).getByTestId('column-count');
-  }
-
-  async filterByPriority(priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT') {
-    await this.filterBar.getByRole('button', { name: 'Priority' }).click();
-    await this.page.getByRole('checkbox', { name: priority }).check();
-    await this.page.keyboard.press('Escape'); // Close dropdown
-  }
-
-  async filterByAssignee(assigneeName: string) {
-    await this.filterBar.getByRole('button', { name: 'Assignee' }).click();
-    await this.page.getByRole('checkbox', { name: assigneeName }).check();
-    await this.page.keyboard.press('Escape');
-  }
-
-  async clearFilters() {
-    await this.filterBar.getByRole('button', { name: 'Clear Filters' }).click();
-  }
-
-  async searchMatters(query: string) {
-    await this.searchBar.fill(query);
-    await this.searchBar.press('Enter');
-  }
-
-  async dragMatterToColumn(matterCard: Locator, targetColumn: Locator) {
-    // Get bounding boxes
-    const matterBox = await matterCard.boundingBox();
-    const columnBox = await targetColumn.boundingBox();
+  /**
+   * Get all columns
+   */
+  async getColumns(): Promise<string[]> {
+    const columns = await this.page.locator(this.kanbanColumn).all()
+    const columnNames: string[] = []
     
-    if (!matterBox || !columnBox) {
-      throw new Error('Could not get element positions');
+    for (const column of columns) {
+      const name = await column.getAttribute('data-column-name') || ''
+      columnNames.push(name)
     }
-
-    // Drag from center of matter card to center of target column
-    await this.page.mouse.move(
-      matterBox.x + matterBox.width / 2,
-      matterBox.y + matterBox.height / 2
-    );
-    await this.page.mouse.down();
     
-    // Move to target column
-    await this.page.mouse.move(
-      columnBox.x + columnBox.width / 2,
-      columnBox.y + columnBox.height / 2,
-      { steps: 10 }
-    );
-    await this.page.mouse.up();
+    return columnNames
   }
 
-  async toggleColumnCollapse(status: string) {
-    const column = this.getColumn(status);
-    const toggleButton = column.getByTestId('column-toggle');
-    await toggleButton.click();
+  /**
+   * Get matters in a specific column
+   */
+  async getMattersInColumn(columnName: string): Promise<string[]> {
+    const column = this.page.locator(`[data-testid="kanban-column-${columnName}"]`)
+    const cards = await column.locator(this.matterCard).all()
+    const matterIds: string[] = []
+    
+    for (const card of cards) {
+      const id = await card.getAttribute('data-matter-id') || ''
+      matterIds.push(id)
+    }
+    
+    return matterIds
   }
 
-  async waitForAutoRefresh() {
-    // Wait for the polling interval (typically 3 seconds)
-    await this.page.waitForTimeout(3500);
+  /**
+   * Drag matter to another column
+   */
+  async dragMatterToColumn(matterId: string, targetColumnName: string) {
+    const card = this.page.locator(`[data-testid="matter-card-${matterId}"]`)
+    const targetColumn = this.page.locator(`[data-testid="kanban-column-${targetColumnName}"]`)
+    
+    // Perform drag and drop
+    await card.hover()
+    await this.page.mouse.down()
+    await targetColumn.hover()
+    await this.page.mouse.up()
+    
+    // Wait for the drop animation
+    await this.page.waitForTimeout(500)
   }
 
-  async enableAutoRefresh() {
-    await this.page.getByRole('button', { name: 'Auto Refresh' }).click();
-    await this.page.getByRole('switch', { name: 'Enable Auto Refresh' }).check();
+  /**
+   * Click on a matter card
+   */
+  async clickMatterCard(matterId: string) {
+    await this.clickElement(`[data-testid="matter-card-${matterId}"]`)
   }
 
-  async disableAutoRefresh() {
-    await this.page.getByRole('button', { name: 'Auto Refresh' }).click();
-    await this.page.getByRole('switch', { name: 'Enable Auto Refresh' }).uncheck();
+  /**
+   * Search for matters
+   */
+  async searchMatters(query: string) {
+    await this.fillInput(this.searchInput, query)
+    // Wait for search results
+    await this.page.waitForTimeout(300) // Debounce delay
+  }
+
+  /**
+   * Clear search
+   */
+  async clearSearch() {
+    const input = this.page.locator(this.searchInput)
+    await input.clear()
+    await this.page.waitForTimeout(300) // Debounce delay
+  }
+
+  /**
+   * Open filters
+   */
+  async openFilters() {
+    await this.clickElement(this.filterButton)
+  }
+
+  /**
+   * Click add matter button
+   */
+  async clickAddMatter() {
+    await this.clickElement(this.addMatterButton)
+  }
+
+  /**
+   * Get matter count in column
+   */
+  async getMatterCountInColumn(columnName: string): Promise<number> {
+    const matters = await this.getMattersInColumn(columnName)
+    return matters.length
+  }
+
+  /**
+   * Assert matter is in column
+   */
+  async assertMatterInColumn(matterId: string, columnName: string) {
+    const matters = await this.getMattersInColumn(columnName)
+    if (!matters.includes(matterId)) {
+      throw new Error(`Matter ${matterId} not found in column ${columnName}`)
+    }
+  }
+
+  /**
+   * Assert empty board
+   */
+  async assertEmptyBoard() {
+    await this.assertElementVisible(this.emptyState)
+  }
+
+  /**
+   * Get matter card details
+   */
+  async getMatterCardDetails(matterId: string) {
+    const card = this.page.locator(`[data-testid="matter-card-${matterId}"]`)
+    
+    return {
+      title: await card.locator('[data-testid="matter-title"]').textContent() || '',
+      caseNumber: await card.locator('[data-testid="case-number"]').textContent() || '',
+      priority: await card.getAttribute('data-priority') || '',
+      assignee: await card.locator('[data-testid="assignee"]').textContent() || '',
+      dueDate: await card.locator('[data-testid="due-date"]').textContent() || ''
+    }
+  }
+
+  /**
+   * Filter by priority
+   */
+  async filterByPriority(priority: 'urgent' | 'high' | 'normal' | 'low') {
+    await this.openFilters()
+    await this.clickElement(`input[value="${priority}"]`)
+    // Close filters
+    await this.page.keyboard.press('Escape')
+  }
+
+  /**
+   * Get visible matter count
+   */
+  async getVisibleMatterCount(): Promise<number> {
+    const cards = await this.page.locator(this.matterCard).all()
+    return cards.length
+  }
+
+  /**
+   * Check if board is in mobile view
+   */
+  async isMobileView(): Promise<boolean> {
+    return this.isMobile()
+  }
+
+  /**
+   * Swipe to next column (mobile)
+   */
+  async swipeToNextColumn() {
+    if (!await this.isMobileView()) {
+      throw new Error('Swipe is only available in mobile view')
+    }
+    
+    const board = this.page.locator(this.kanbanBoard)
+    const box = await board.boundingBox()
+    if (!box) return
+    
+    // Simulate swipe gesture by dragging
+    await this.page.mouse.move(box.x + box.width * 0.8, box.y + box.height / 2)
+    await this.page.mouse.down()
+    await this.page.mouse.move(box.x + box.width * 0.2, box.y + box.height / 2)
+    await this.page.mouse.up()
   }
 }

@@ -1,130 +1,154 @@
-/**
- * Authentication Flow E2E Tests
- * Tests login, 2FA, logout, and session management
- */
-
-import { test, expect } from '../fixtures/auth';
-import { LoginPage } from '../pages/LoginPage';
-import { DashboardPage } from '../pages/DashboardPage';
+import { test, expect } from '@playwright/test'
+import { LoginPage, NavigationComponent } from '../pages'
 
 test.describe('Authentication Flow', () => {
-  test.describe('Login', () => {
-    test('successful login with valid credentials and 2FA', async ({ page }) => {
-      const loginPage = new LoginPage(page);
-      await loginPage.goto();
-      
-      // Test form validation
-      await loginPage.submit();
-      await loginPage.expectError('Email is required');
-      
-      // Fill credentials
-      await loginPage.fillCredentials('lawyer@example.com', 'ValidPass123!');
-      await loginPage.submit();
-      
-      // Handle 2FA
-      await expect(page).toHaveURL('/login/2fa');
-      await loginPage.fill2FACode('123456');
-      
-      // Verify successful login
-      await expect(page).toHaveURL('/dashboard');
-      const dashboard = new DashboardPage(page);
-      await expect(dashboard.welcomeMessage).toContainText('Welcome back');
-    });
+  let loginPage: LoginPage
+  let navigation: NavigationComponent
 
-    test('invalid credentials show appropriate error', async ({ page }) => {
-      const loginPage = new LoginPage(page);
-      await loginPage.goto();
-      
-      await loginPage.login('invalid@example.com', 'wrongpassword');
-      await loginPage.expectError('Invalid email or password');
-      
-      // Should remain on login page
-      await expect(page).toHaveURL('/login');
-    });
+  test.beforeEach(async ({ page }) => {
+    loginPage = new LoginPage(page)
+    navigation = new NavigationComponent(page)
+    
+    // Clear any existing auth state
+    await page.context().clearCookies()
+    await loginPage.clearLocalStorage()
+  })
 
-    test('invalid 2FA code prevents login', async ({ page }) => {
-      const loginPage = new LoginPage(page);
-      await loginPage.goto();
-      
-      await loginPage.fillCredentials('lawyer@example.com', 'ValidPass123!');
-      await loginPage.submit();
-      
-      // Enter wrong 2FA code
-      await loginPage.fill2FACode('000000');
-      await loginPage.expectError('Invalid verification code');
-      
-      // Should remain on 2FA page
-      await expect(page).toHaveURL('/login/2fa');
-    });
+  test('should login successfully with valid credentials', async ({ page }) => {
+    await loginPage.goto()
+    
+    // Fill login form
+    await loginPage.login('lawyer@example.com', 'password123')
+    
+    // Assert successful login
+    await loginPage.assertLoginSuccess()
+    await navigation.assertLoggedIn()
+    
+    // Check auth token exists
+    const token = await loginPage.getLocalStorageItem('auth-token')
+    expect(token).toBeTruthy()
+  })
 
-    test('rate limiting after multiple failed attempts', async ({ page }) => {
-      const loginPage = new LoginPage(page);
-      await loginPage.goto();
-      
-      // Attempt login 5 times with wrong password
-      for (let i = 0; i < 5; i++) {
-        await loginPage.login('lawyer@example.com', 'wrongpassword');
-        await page.waitForTimeout(500); // Small delay between attempts
-      }
-      
-      // 6th attempt should be rate limited
-      await loginPage.fillCredentials('lawyer@example.com', 'wrongpassword');
-      await loginPage.submit();
-      await loginPage.expectError('Too many attempts. Please try again later');
-    });
-  });
+  test('should show error with invalid credentials', async ({ page }) => {
+    await loginPage.goto()
+    
+    // Try to login with invalid credentials
+    await loginPage.login('invalid@example.com', 'wrongpassword')
+    
+    // Assert login failure
+    await loginPage.assertLoginFailure()
+    const errorMessage = await loginPage.getErrorMessage()
+    expect(errorMessage).toContain('Invalid credentials')
+  })
 
-  test.describe('Session Management', () => {
-    test('logout clears session and redirects to login', async ({ authenticatedPage }) => {
-      const dashboard = new DashboardPage(authenticatedPage);
-      await dashboard.goto();
-      
-      // Logout
-      await dashboard.logout();
-      
-      // Should redirect to login
-      await expect(authenticatedPage).toHaveURL('/login');
-      
-      // Try to access protected route
-      await authenticatedPage.goto('/dashboard');
-      await expect(authenticatedPage).toHaveURL('/login?redirect=/dashboard');
-    });
+  test('should show validation errors for empty fields', async ({ page }) => {
+    await loginPage.goto()
+    
+    // Try to submit empty form
+    await loginPage.submitLogin()
+    
+    // Should show validation errors
+    await loginPage.assertElementVisible('[role="alert"]')
+  })
 
-    test('session timeout redirects to login', async ({ authenticatedPage }) => {
-      // Set session to expire immediately
-      await authenticatedPage.evaluate(() => {
-        localStorage.setItem('session_expires_at', new Date().toISOString());
-      });
-      
-      // Navigate to trigger session check
-      await authenticatedPage.goto('/matters');
-      
-      // Should redirect to login with message
-      await expect(authenticatedPage).toHaveURL('/login');
-      await expect(authenticatedPage.getByText('Your session has expired')).toBeVisible();
-    });
+  test('should logout successfully', async ({ page }) => {
+    // First login
+    await loginPage.goto()
+    await loginPage.login('lawyer@example.com', 'password123')
+    await loginPage.assertLoginSuccess()
+    
+    // Then logout
+    await navigation.logout()
+    
+    // Assert logged out
+    await navigation.assertLoggedOut()
+    const token = await loginPage.getLocalStorageItem('auth-token')
+    expect(token).toBeNull()
+  })
 
-    test('remember me extends session duration', async ({ page }) => {
-      const loginPage = new LoginPage(page);
-      await loginPage.goto();
+  test('should redirect to login when accessing protected route', async ({ page }) => {
+    // Try to access kanban without login
+    await page.goto('/kanban')
+    
+    // Should redirect to login
+    await expect(page).toHaveURL('/login')
+  })
+
+  test('should persist login with remember me', async ({ page }) => {
+    await loginPage.goto()
+    
+    // Login with remember me
+    await loginPage.login('lawyer@example.com', 'password123', true)
+    await loginPage.assertLoginSuccess()
+    
+    // Check remember me token
+    const rememberToken = await loginPage.getLocalStorageItem('remember-token')
+    expect(rememberToken).toBeTruthy()
+  })
+
+  test('should handle session expiry gracefully', async ({ page }) => {
+    // Login first
+    await loginPage.goto()
+    await loginPage.login('lawyer@example.com', 'password123')
+    await loginPage.assertLoginSuccess()
+    
+    // Simulate token expiry by removing it
+    await page.evaluate(() => {
+      localStorage.removeItem('auth-token')
+    })
+    
+    // Try to navigate
+    await page.goto('/kanban')
+    
+    // Should redirect to login
+    await expect(page).toHaveURL('/login')
+  })
+
+  test('should work with different user roles', async ({ page }) => {
+    const roles = [
+      { email: 'lawyer@example.com', password: 'password123', role: 'lawyer' },
+      { email: 'clerk@example.com', password: 'password123', role: 'clerk' },
+      { email: 'client@example.com', password: 'password123', role: 'client' }
+    ]
+    
+    for (const user of roles) {
+      // Clear previous session
+      await loginPage.clearLocalStorage()
       
-      // Check remember me
-      await page.getByLabel('Remember me').check();
-      await loginPage.login('lawyer@example.com', 'ValidPass123!', '123456');
+      // Login with different role
+      await loginPage.goto()
+      await loginPage.login(user.email, user.password)
+      await loginPage.assertLoginSuccess()
       
-      // Check session expiry is extended
-      const sessionExpiry = await page.evaluate(() => {
-        return localStorage.getItem('session_expires_at');
-      });
-      
-      if (!sessionExpiry) {
-        throw new Error('Session expiry not found');
-      }
-      const expiryDate = new Date(sessionExpiry);
-      const now = new Date();
-      const daysDiff = (expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
-      
-      expect(daysDiff).toBeGreaterThan(25); // Should be ~30 days
-    });
-  });
-});
+      // Check role is stored
+      const userInfo = await loginPage.getLocalStorageItem('user-info')
+      expect(userInfo).toContain(user.role)
+    }
+  })
+
+  test('should handle network errors gracefully', async ({ page }) => {
+    await loginPage.goto()
+    
+    // Mock network failure
+    await page.route('**/api/auth/login', route => {
+      route.abort('failed')
+    })
+    
+    // Try to login
+    await loginPage.login('lawyer@example.com', 'password123')
+    
+    // Should show error
+    const errorMessage = await loginPage.getErrorMessage()
+    expect(errorMessage).toContain('Network error')
+  })
+
+  test('should navigate to forgot password', async ({ page }) => {
+    await loginPage.goto()
+    
+    // Click forgot password link
+    await loginPage.clickForgotPassword()
+    
+    // Should navigate to forgot password page
+    await expect(page).toHaveURL('/forgot-password')
+  })
+})

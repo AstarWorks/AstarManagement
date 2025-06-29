@@ -1,75 +1,52 @@
-import { test as base, Page } from '@playwright/test';
-import { LoginPage } from '../pages/LoginPage';
-import { TestUsers } from '../utils/test-users';
+import { test as base, type Page } from '@playwright/test'
+import { LoginPage } from '../pages'
 
-type AuthFixtures = {
-  authenticatedPage: Page;
-  loginAsLawyer: () => Promise<void>;
-  loginAsClerk: () => Promise<void>;
-  loginAsClient: () => Promise<void>;
-};
+// Define user roles
+export const users = {
+  lawyer: {
+    email: 'lawyer@example.com',
+    password: 'password123',
+    role: 'lawyer',
+    name: 'John Lawyer'
+  },
+  clerk: {
+    email: 'clerk@example.com',
+    password: 'password123',
+    role: 'clerk',
+    name: 'Jane Clerk'
+  },
+  client: {
+    email: 'client@example.com',
+    password: 'password123',
+    role: 'client',
+    name: 'ABC Company'
+  }
+} as const
 
-export const test = base.extend<AuthFixtures>({
-  authenticatedPage: async ({ page }, use) => {
-    // Default to lawyer authentication
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login(
-      TestUsers.lawyer.email,
-      TestUsers.lawyer.password,
-      TestUsers.lawyer.twoFactorCode
-    );
+type UserRole = keyof typeof users
+
+// Extend test with authenticated page
+export const test = base.extend<{
+  authenticatedPage: Page
+  userRole: UserRole
+}>({
+  userRole: ['lawyer', { option: true }],
+  
+  authenticatedPage: async ({ page, userRole }, use: (page: Page) => Promise<void>) => {
+    // Login before test
+    const loginPage = new LoginPage(page)
+    const user = users[userRole]
     
-    // Wait for successful redirect
-    await page.waitForURL('/dashboard');
+    await loginPage.goto()
+    await loginPage.login(user.email, user.password)
+    await loginPage.assertLoginSuccess()
     
-    await use(page);
+    // Use authenticated page in test
+    await use(page)
     
-    // Cleanup: logout
-    await loginPage.logout();
-  },
+    // Cleanup after test
+    await loginPage.clearLocalStorage()
+  }
+})
 
-  loginAsLawyer: async ({ page }, use) => {
-    const login = async () => {
-      const loginPage = new LoginPage(page);
-      await loginPage.goto();
-      await loginPage.login(
-        TestUsers.lawyer.email,
-        TestUsers.lawyer.password,
-        TestUsers.lawyer.twoFactorCode
-      );
-      await page.waitForURL('/dashboard');
-    };
-    await use(login);
-  },
-
-  loginAsClerk: async ({ page }, use) => {
-    const login = async () => {
-      const loginPage = new LoginPage(page);
-      await loginPage.goto();
-      await loginPage.login(
-        TestUsers.clerk.email,
-        TestUsers.clerk.password,
-        TestUsers.clerk.twoFactorCode
-      );
-      await page.waitForURL('/dashboard');
-    };
-    await use(login);
-  },
-
-  loginAsClient: async ({ page }, use) => {
-    const login = async () => {
-      const loginPage = new LoginPage(page);
-      await loginPage.goto();
-      await loginPage.login(
-        TestUsers.client.email,
-        TestUsers.client.password,
-        TestUsers.client.twoFactorCode
-      );
-      await page.waitForURL('/client-portal');
-    };
-    await use(login);
-  },
-});
-
-export { expect } from '@playwright/test';
+export { expect } from '@playwright/test'
