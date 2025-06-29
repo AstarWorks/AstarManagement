@@ -65,14 +65,14 @@ const columns = ref<AdvancedDataTableColumn<Matter>[]>([
     resizable: true,
     editable: true,
     required: true,
-    width: 250,
+    width: '250px',
     minWidth: 150,
     maxWidth: 400,
     validator: (value: string) => {
       if (!value || value.trim().length < 3) {
         return 'Title must be at least 3 characters'
       }
-      return null
+      return true
     }
   },
   {
@@ -80,7 +80,7 @@ const columns = ref<AdvancedDataTableColumn<Matter>[]>([
     header: 'Client',
     sortable: true,
     resizable: true,
-    width: 180,
+    width: '180px',
     minWidth: 120,
     formatter: (value: any, matter: Matter) => {
       return matter.client?.name || '-'
@@ -92,7 +92,7 @@ const columns = ref<AdvancedDataTableColumn<Matter>[]>([
     sortable: true,
     resizable: true,
     editable: true,
-    width: 140,
+    width: '140px',
     minWidth: 100,
     formatter: (value: MatterStatus) => {
       const statusMap: Record<MatterStatus, string> = {
@@ -113,7 +113,7 @@ const columns = ref<AdvancedDataTableColumn<Matter>[]>([
     sortable: true,
     resizable: true,
     editable: true,
-    width: 120,
+    width: '120px',
     minWidth: 80,
     formatter: (value: MatterPriority) => {
       const priorityMap: Record<MatterPriority, string> = {
@@ -130,7 +130,7 @@ const columns = ref<AdvancedDataTableColumn<Matter>[]>([
     header: 'Assigned To',
     sortable: true,
     resizable: true,
-    width: 150,
+    width: '150px',
     minWidth: 100,
     formatter: (value: any, matter: Matter) => {
       return matter.assignee?.name || 'Unassigned'
@@ -141,7 +141,7 @@ const columns = ref<AdvancedDataTableColumn<Matter>[]>([
     header: 'Due Date',
     sortable: true,
     resizable: true,
-    width: 130,
+    width: '130px',
     minWidth: 100,
     formatter: (value: Date | string) => {
       if (!value) return '-'
@@ -154,7 +154,7 @@ const columns = ref<AdvancedDataTableColumn<Matter>[]>([
     header: 'Created',
     sortable: true,
     resizable: true,
-    width: 130,
+    width: '130px',
     minWidth: 100,
     formatter: (value: Date | string) => {
       const date = value instanceof Date ? value : new Date(value)
@@ -166,7 +166,7 @@ const columns = ref<AdvancedDataTableColumn<Matter>[]>([
     header: 'Last Updated',
     sortable: true,
     resizable: true,
-    width: 130,
+    width: '130px',
     minWidth: 100,
     formatter: (value: Date | string) => {
       const date = value instanceof Date ? value : new Date(value)
@@ -384,8 +384,9 @@ watch(filterState, () => {
 const updateColumnWidths = () => {
   columns.value.forEach(column => {
     const width = getColumnWidth(column)
-    if (width !== column.width) {
-      column.width = width
+    const widthStr = typeof width === 'number' ? `${width}px` : width
+    if (widthStr !== column.width) {
+      column.width = widthStr
     }
   })
 }

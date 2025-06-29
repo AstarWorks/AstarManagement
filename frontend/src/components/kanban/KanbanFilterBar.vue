@@ -529,7 +529,7 @@ watch(isMobile, (mobile) => {
 watchDebounced(
   searchQuery,
   (query) => {
-    updateFilters({ searchQuery: query })
+    updateFilters({ quickSearch: query })
     if (query.trim().length >= 2) {
       performSearch(query, props.matters)
       emit('searchPerformed', query)
@@ -554,24 +554,21 @@ onClickOutside(searchInputRef, () => {
 
 // Multi-select toggle functions
 const toggleLawyer = (lawyerId: string, checked: boolean) => {
-  persistenceToggleLawyer(lawyerId)
+  toggleSelectedLawyer(lawyerId)
 }
 
 const togglePriority = (priority: Priority, checked: boolean) => {
-  persistenceTogglePriority(priority)
+  toggleSelectedPriority(priority)
 }
 
 const toggleStatus = (status: MatterStatus, checked: boolean) => {
-  persistenceToggleStatus(status)
+  toggleSelectedStatus(status)
 }
 
-// Search mode cycling
+// Search mode cycling - disabled for now
 const cycleSearchMode = () => {
-  const modes: Array<'fuzzy' | 'exact' | 'field'> = ['fuzzy', 'exact', 'field']
-  const currentIndex = modes.indexOf(searchMode.value)
-  const nextIndex = (currentIndex + 1) % modes.length
-  setSearchMode(modes[nextIndex])
-  updateFilters({ searchMode: modes[nextIndex] })
+  // This functionality is not currently implemented in the filter structure
+  console.log('Search mode cycling not yet implemented')
 }
 
 // Search event handlers

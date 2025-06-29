@@ -84,7 +84,7 @@
               <div class="email-checkbox">
                 <Checkbox 
                   :checked="selectedEmails.includes(email.id)"
-                  @update:checked="(checked) => toggleEmailSelection(email.id, checked)"
+                  @update:checked="(checked: boolean | string) => toggleEmailSelection(email.id, checked)"
                   @click.stop
                 />
               </div>

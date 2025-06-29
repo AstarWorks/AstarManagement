@@ -28,11 +28,31 @@ export interface Matter {
   isOverdue?: boolean
   searchHighlights?: Record<string, any>
   relevanceScore?: number
+  // Additional properties for column access
+  client?: { name: string; id?: string }
+  assignee?: { name: string; id?: string }
 }
 
 // Re-export for backward compatibility
 export type { MatterStatus, MatterPriority }
 export type Priority = MatterPriority
+
+export interface FilterValue {
+  field: string
+  operator: FilterOperator
+  value: any
+}
+
+export type FilterOperator = 
+  | 'equals' 
+  | 'contains' 
+  | 'startsWith' 
+  | 'endsWith'
+  | 'in'
+  | 'not'
+  | 'greaterThan'
+  | 'lessThan'
+  | 'between'
 
 export interface FilterState {
   searchQuery: string
@@ -53,6 +73,12 @@ export interface FilterState {
   assigneeIds?: string[]
   tags?: string[]
   showCompleted?: boolean
+  // Advanced filtering
+  filters: FilterValue[]
+  quickSearch?: string
+  activePreset?: string
+  sortBy?: string
+  sortDirection?: 'asc' | 'desc'
 }
 
 export interface SearchSuggestion {

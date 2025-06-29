@@ -209,7 +209,9 @@ const getSortIcon = (column: AdvancedDataTableColumn<TData>) => {
 watch(() => props.data, () => {
   if (shouldUseVirtualScrolling.value && scrollerRef.value) {
     nextTick(() => {
-      scrollerRef.value?.scrollToItem(0)
+      // Type assertion for virtual scroller methods
+      const scroller = scrollerRef.value as any
+      scroller?.scrollToItem?.(0)
     })
   }
 }, { flush: 'post' })
@@ -224,8 +226,14 @@ watch(() => props.selectedRows, (newSelection) => {
 defineExpose({
   clearSelection,
   selectAll,
-  scrollToTop: () => scrollerRef.value?.scrollToItem(0),
-  scrollToItem: (index: number) => scrollerRef.value?.scrollToItem(index)
+  scrollToTop: () => {
+    const scroller = scrollerRef.value as any
+    scroller?.scrollToItem?.(0)
+  },
+  scrollToItem: (index: number) => {
+    const scroller = scrollerRef.value as any
+    scroller?.scrollToItem?.(index)
+  }
 })
 </script>
 
@@ -309,6 +317,7 @@ defineExpose({
 
         <!-- Virtual Scroller Body -->
         <div class="virtual-table-body" :style="{ height: `${tableHeight}px` }">
+          <!-- @ts-ignore: RecycleScroller component type definitions issue -->
           <RecycleScroller
             ref="scrollerRef"
             class="scroller"
