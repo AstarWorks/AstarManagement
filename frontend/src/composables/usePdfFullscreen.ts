@@ -12,7 +12,7 @@ const DEFAULT_OPTIONS: FullscreenOptions = {
 }
 
 export function usePdfFullscreen(
-  target: Ref<HTMLElement | undefined>,
+  target: Ref<HTMLElement | null>,
   options: FullscreenOptions = {}
 ) {
   const opts = { ...DEFAULT_OPTIONS, ...options }
@@ -26,7 +26,7 @@ export function usePdfFullscreen(
   const isOrientationLockSupported = computed(() => {
     return typeof screen !== 'undefined' && 
            'orientation' in screen && 
-           typeof screen.orientation.lock === 'function'
+           typeof (screen.orientation as any).lock === 'function'
   })
   
   // Check if fullscreen is supported
@@ -51,7 +51,8 @@ export function usePdfFullscreen(
         originalOrientation.value = screen.orientation.type
       }
       
-      await screen.orientation.lock(targetOrientation as OrientationLockType)
+      // Use type assertion for orientation lock since types might not be fully updated
+      await (screen.orientation as any).lock?.(targetOrientation)
       isOrientationLocked.value = true
       error.value = null
     } catch (err) {

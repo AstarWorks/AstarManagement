@@ -32,7 +32,7 @@
       @rotate-clockwise="rotateClockwise"
       @toggle-fullscreen="toggleFullscreen"
       @go-to-page="goToPage"
-      @toggle-annotation="setAnnotationMode"
+      @toggle-annotation="(mode: string | null) => setAnnotationMode(mode as AnnotationType | null)"
     />
     
     <!-- PDF Content Container -->
@@ -127,7 +127,7 @@
             v-if="enableAnnotations"
             :page="pageNumber"
             :scale="combinedScale"
-            :annotations="annotations"
+            :annotations="annotations as any"
             :annotation-mode="annotationMode"
             :annotation-type="currentAnnotationType"
             :selected-annotation="selectedAnnotation"
@@ -163,7 +163,7 @@
       @zoom-in="zoomIn"
       @zoom-out="zoomOut"
       @zoom-change="handleMobileZoomChange"
-      @toggle-annotation="setAnnotationMode"
+      @toggle-annotation="(mode: string | null) => setAnnotationMode(mode as AnnotationType | null)"
       @toggle-fullscreen="toggleFullscreen"
     />
   </div>
@@ -171,7 +171,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
-import { useResizeObserver, useEventListener } from '@vueuse/core'
+import { useResizeObserver, useEventListener, watchDebounced } from '@vueuse/core'
 import { FileText, AlertTriangle } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -275,8 +275,8 @@ const {
 } = usePdfViewer()
 
 // Template refs
-const viewerContainer = ref<HTMLElement>()
-const pdfContainer = ref<HTMLElement>()
+const viewerContainer = ref<HTMLElement | null>(null)
+const pdfContainer = ref<HTMLElement | null>(null)
 
 // Canvas and text layer refs
 const canvasRefs = ref<Record<number, HTMLCanvasElement>>({})
@@ -294,7 +294,7 @@ const {
   setScale: setGestureScale,
   zoomIn: gestureZoomIn,
   zoomOut: gestureZoomOut
-} = usePdfGestures(pdfContainer, {
+} = usePdfGestures(pdfContainer as Ref<HTMLElement | null>, {
   'scale-changed': handleGestureScaleChange,
   'next-page': nextPage,
   'prev-page': previousPage,
@@ -315,7 +315,7 @@ const {
   loadAnnotations
 } = usePdfAnnotations(props.documentId)
 
-// Fullscreen integration
+// Fullscreen integration  
 const {
   isFullscreen,
   toggleFullscreen: toggleFS,
@@ -597,7 +597,7 @@ watch(scale, () => {
 })
 
 // Watch for combined scale changes and re-render
-watch(() => combinedScale.value, () => {
+watchDebounced(() => combinedScale.value, () => {
   if (!isGesturing.value) {
     nextTick(() => {
       visiblePages.value.forEach(page => renderPageOnCanvas(page))

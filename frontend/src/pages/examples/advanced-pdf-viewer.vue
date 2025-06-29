@@ -36,7 +36,7 @@
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" class="w-64">
-                <DropdownMenuLabel>Viewer Settings</DropdownMenuLabel>
+                <div class="px-2 py-1.5 text-sm font-semibold">Viewer Settings</div>
                 <DropdownMenuSeparator />
                 
                 <DropdownMenuItem @click="toggleSetting('enableAnnotations')">
@@ -256,7 +256,6 @@ import {
   DropdownMenu, 
   DropdownMenuContent, 
   DropdownMenuItem, 
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger 
 } from '~/components/ui/dropdown-menu'

@@ -128,7 +128,7 @@ const pageAnnotations = computed(() =>
 )
 
 // Calculate annotation position and size styles
-const getAnnotationStyle = (annotation: Partial<PdfAnnotation>) => {
+const getAnnotationStyle = (annotation: Partial<PdfAnnotation>): Record<string, string> => {
   if (!annotation.coordinates) return {}
   
   const { x, y, width = 0, height = 0 } = annotation.coordinates

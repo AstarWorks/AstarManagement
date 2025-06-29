@@ -1,6 +1,8 @@
 import { ref, computed, watch, readonly, type Ref } from 'vue'
 import { useTouchGestures } from '~/composables/useTouchGestures'
-import type { SwipeDirection } from '@vueuse/core'
+import type { UseSwipeDirection } from '@vueuse/core'
+
+type SwipeDirection = UseSwipeDirection
 
 interface PdfGestureOptions {
   enableHapticFeedback?: boolean
