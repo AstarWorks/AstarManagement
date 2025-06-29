@@ -1,70 +1,102 @@
-// Document types for the legal case management system
-
 export interface Document {
   id: string
-  matterId: string
-  title: string
-  description?: string
   fileName: string
-  fileType: string
-  fileSize: number
-  uploadedAt: string
-  uploadedBy: {
+  description?: string
+  mimeType: string
+  size: number
+  createdDate: string
+  modifiedDate: string
+  createdBy: {
     id: string
     name: string
-    email: string
+    avatar?: string
   }
-  category: DocumentCategory
+  updatedBy?: {
+    id: string
+    name: string
+    avatar?: string
+  }
+  matterId?: string
+  tags?: string[]
+  version?: number
+  isShared?: boolean
+  isLocked?: boolean
+  syncStatus?: 'synced' | 'syncing' | 'pending' | 'error'
+  thumbnailUrl?: string
+  contentUrl?: string
+  metadata?: Record<string, any>
+}
+
+export interface DocumentSortConfig {
+  field: keyof Document
+  direction: 'asc' | 'desc'
+}
+
+export interface DocumentFilterConfig {
+  fileTypes: string[]
+  dateRange: {
+    start: Date
+    end: Date
+  } | null
+  sizeRange: {
+    min: number
+    max: number
+  } | null
   tags: string[]
-  confidential: boolean
-  ocrStatus?: OcrStatus
-  previewUrl?: string
-  downloadUrl: string
-  metadata: DocumentMetadata
 }
 
-export type DocumentCategory = 'contract' | 'evidence' | 'correspondence' | 'court_filing' | 'other'
+export type DocumentAction = 
+  | 'preview'
+  | 'download'
+  | 'share'
+  | 'copy-link'
+  | 'rename'
+  | 'move'
+  | 'duplicate'
+  | 'delete'
+  | 'properties'
+  | 'version-history'
 
-export type OcrStatus = 'pending' | 'processing' | 'completed' | 'failed'
-
-export interface DocumentMetadata {
-  createdDate?: string
-  modifiedDate?: string
-  pageCount?: number
-  extractedText?: string
-  customFields?: Record<string, any>
+export interface DocumentListOptions {
+  matterId?: string
+  pageSize?: number
+  sortConfig?: DocumentSortConfig
+  filterConfig?: DocumentFilterConfig
 }
 
-export type UploadStatus = 'pending' | 'uploading' | 'completed' | 'failed' | 'cancelled' | 'paused'
+export interface DocumentUploadProgress {
+  id: string
+  file: File
+  progress: number
+  status: 'pending' | 'uploading' | 'completed' | 'error'
+  error?: string
+}
 
+export interface DocumentSearchResult {
+  documents: Document[]
+  total: number
+  hasMore: boolean
+  nextCursor?: string
+}
+
+// Upload-related types
 export interface UploadItem {
   id: string
   file: File
-  status: UploadStatus
+  matterId?: string
   progress: number
-  speed: number
-  timeRemaining: number | null
-  error: string | null
-  metadata: UploadMetadata
-  retryCount: number
-  documentId?: string
-  startTime?: number
-  pausedAt?: number
-}
-
-// Make UploadItem properties mutable for store operations
-export type MutableUploadItem = {
-  -readonly [K in keyof UploadItem]: UploadItem[K]
+  status: 'pending' | 'uploading' | 'completed' | 'error'
+  error?: string
+  result?: Document
 }
 
 export interface UploadMetadata {
-  title: string
-  description?: string
   matterId?: string
-  category: DocumentCategory
-  tags: string[]
-  confidential: boolean
+  tags?: string[]
+  description?: string
 }
+
+export type UploadStatus = 'pending' | 'uploading' | 'completed' | 'error'
 
 export interface UploadQueueStats {
   total: number
@@ -72,30 +104,24 @@ export interface UploadQueueStats {
   uploading: number
   completed: number
   failed: number
-  cancelled: number
-  paused: number
+  totalSize: number
+  uploadedSize: number
 }
 
 export interface DocumentUploadOptions {
-  maxFileSize: number
-  maxConcurrentUploads: number
-  acceptedFileTypes: string[]
-  autoRetry: boolean
-  maxRetries: number
+  matterId?: string
+  tags?: string[]
+  description?: string
+  allowedTypes?: string[]
+  maxSize?: number
+  concurrent?: number
 }
 
-export interface DocumentPreview {
-  type: 'image' | 'pdf' | 'text' | 'unsupported'
-  url?: string
-  content?: string
-  error?: string
-}
-
-export interface BatchUploadResult {
-  successful: string[]
-  failed: Array<{
-    fileName: string
-    error: string
-  }>
-  total: number
+// Mock data interfaces for development
+export interface MockDocumentData {
+  documents: Document[]
+  generateThumbnail: (documentId: string) => Promise<string>
+  uploadDocument: (file: File, matterId?: string) => Promise<Document>
+  deleteDocument: (documentId: string) => Promise<void>
+  updateDocument: (documentId: string, updates: Partial<Document>) => Promise<Document>
 }
