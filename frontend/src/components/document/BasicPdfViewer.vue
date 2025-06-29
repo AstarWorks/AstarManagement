@@ -222,9 +222,10 @@ const isFullscreen = ref(false)
 const rotation = ref(0)
 
 // Set canvas ref
-const setCanvasRef = (el: HTMLCanvasElement | null, pageNumber: number) => {
-  if (el) {
-    canvasRefs.value[pageNumber] = el
+const setCanvasRef = (el: any, pageNumber: number) => {
+  const canvas = el as HTMLCanvasElement | null
+  if (canvas) {
+    canvasRefs.value[pageNumber] = canvas
     // Render page when canvas is available
     nextTick(() => renderPageOnCanvas(pageNumber))
   } else {
@@ -233,9 +234,10 @@ const setCanvasRef = (el: HTMLCanvasElement | null, pageNumber: number) => {
 }
 
 // Set text layer ref
-const setTextLayerRef = (el: HTMLElement | null, pageNumber: number) => {
-  if (el) {
-    textLayerRefs.value[pageNumber] = el
+const setTextLayerRef = (el: any, pageNumber: number) => {
+  const element = el as HTMLElement | null
+  if (element) {
+    textLayerRefs.value[pageNumber] = element
   } else {
     delete textLayerRefs.value[pageNumber]
   }
