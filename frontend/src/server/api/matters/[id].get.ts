@@ -7,7 +7,7 @@
  * @task T11_S08 - Advanced Queries Search
  */
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (event: any) => {
   // Simulate realistic API response time
   await new Promise(resolve => setTimeout(resolve, 30))
   

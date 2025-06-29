@@ -612,7 +612,7 @@ The Nuxt.js POC leverages Bun 1.2.16 as the primary package manager to enhance d
 #### Bun Integration Architecture
 ```bash
 # Project structure with Bun
-frontend-nuxt-poc/
+frontend/
 ├── bun.lock                    # Bun lockfile (replaces package-lock.json)
 ├── package.json               # Standard package.json with Bun-optimized scripts
 ├── nuxt.config.ts            # Nuxt configuration with Bun considerations
@@ -652,7 +652,7 @@ cd backend
 ./gradlew bootRun
 
 # Frontend with Bun
-cd frontend-nuxt-poc
+cd frontend
 bun install    # 30x faster dependency installation
 bun dev        # Start development server with enhanced performance
 ```

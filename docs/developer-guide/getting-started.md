@@ -55,7 +55,7 @@ bun --version
 ### 3. Navigate to Frontend Directory
 
 ```bash
-cd frontend-nuxt-poc
+cd frontend
 ```
 
 ### 4. Install Dependencies
@@ -163,7 +163,7 @@ docker run -d \
 ### 1. Code Organization
 
 ```
-frontend-nuxt-poc/
+frontend/
 ├── components/          # Vue components
 │   ├── ui/             # shadcn-vue components
 │   ├── forms/          # Form components

@@ -1,9 +1,0 @@
-<template>
-  <DialogPortal>
-    <slot />
-  </DialogPortal>
-</template>
-
-<script setup lang="ts">
-import { DialogPortal } from 'radix-vue'
-</script>

@@ -4,12 +4,12 @@ on:
   push:
     branches: [ main, develop ]
     paths:
-      - 'frontend-nuxt-poc/**'
+      - 'frontend/**'
       - '.github/workflows/nuxt-storybook.yml'
   pull_request:
     branches: [ main, develop ]
     paths:
-      - 'frontend-nuxt-poc/**'
+      - 'frontend/**'
       - '.github/workflows/nuxt-storybook.yml'
   workflow_dispatch:
     inputs:
@@ -47,26 +47,26 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            frontend-nuxt-poc/node_modules
+            frontend/node_modules
             ~/.cache/ms-playwright
-          key: ${{ runner.os }}-bun-${{ hashFiles('frontend-nuxt-poc/bun.lock') }}-storybook
+          key: ${{ runner.os }}-bun-${{ hashFiles('frontend/bun.lock') }}-storybook
           restore-keys: |
-            ${{ runner.os }}-bun-${{ hashFiles('frontend-nuxt-poc/bun.lock') }}-
+            ${{ runner.os }}-bun-${{ hashFiles('frontend/bun.lock') }}-
             ${{ runner.os }}-bun-
 
       - name: Install dependencies
-        working-directory: frontend-nuxt-poc
+        working-directory: frontend
         run: bun install --frozen-lockfile
 
       - name: Build Storybook
-        working-directory: frontend-nuxt-poc
+        working-directory: frontend
         run: bun run build-storybook --quiet
 
       - name: Upload Storybook build
         uses: actions/upload-artifact@v4
         with:
           name: storybook-build-${{ github.run_id }}
-          path: frontend-nuxt-poc/storybook-static/
+          path: frontend/storybook-static/
           retention-days: 1
 
   interaction-tests:
@@ -93,29 +93,29 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            frontend-nuxt-poc/node_modules
+            frontend/node_modules
             ~/.cache/ms-playwright
-          key: ${{ runner.os }}-bun-${{ hashFiles('frontend-nuxt-poc/bun.lock') }}-storybook
+          key: ${{ runner.os }}-bun-${{ hashFiles('frontend/bun.lock') }}-storybook
           restore-keys: |
-            ${{ runner.os }}-bun-${{ hashFiles('frontend-nuxt-poc/bun.lock') }}-
+            ${{ runner.os }}-bun-${{ hashFiles('frontend/bun.lock') }}-
             ${{ runner.os }}-bun-
 
       - name: Install dependencies
-        working-directory: frontend-nuxt-poc
+        working-directory: frontend
         run: bun install --frozen-lockfile
 
       - name: Install Playwright browsers
-        working-directory: frontend-nuxt-poc
+        working-directory: frontend
         run: bunx playwright install --with-deps chromium
 
       - name: Download Storybook build
         uses: actions/download-artifact@v4
         with:
           name: storybook-build-${{ github.run_id }}
-          path: frontend-nuxt-poc/storybook-static/
+          path: frontend/storybook-static/
 
       - name: Start Storybook server
-        working-directory: frontend-nuxt-poc
+        working-directory: frontend
         run: |
           bun run storybook:serve &
           echo $! > storybook.pid
@@ -123,7 +123,7 @@ jobs:
           timeout 60 bash -c 'until curl -f http://localhost:6006 > /dev/null 2>&1; do sleep 1; done'
 
       - name: Run Storybook interaction tests
-        working-directory: frontend-nuxt-poc
+        working-directory: frontend
         run: |
           bun run test-storybook:ci \
             --shard=${{ matrix.shard }}/3 \
@@ -134,7 +134,7 @@ jobs:
 
       - name: Stop Storybook server
         if: always()
-        working-directory: frontend-nuxt-poc
+        working-directory: frontend
         run: |
           if [ -f storybook.pid ]; then
             kill $(cat storybook.pid) || true
@@ -147,8 +147,8 @@ jobs:
         with:
           name: storybook-test-results-shard-${{ matrix.shard }}-${{ github.run_id }}
           path: |
-            frontend-nuxt-poc/test-results/
-            frontend-nuxt-poc/coverage/
+            frontend/test-results/
+            frontend/coverage/
           retention-days: 7
 
       - name: Upload test artifacts
@@ -157,8 +157,8 @@ jobs:
         with:
           name: storybook-test-artifacts-shard-${{ matrix.shard }}-${{ github.run_id }}
           path: |
-            frontend-nuxt-poc/test-runner-junit.xml
-            frontend-nuxt-poc/test-results.json
+            frontend/test-runner-junit.xml
+            frontend/test-results.json
           retention-days: 7
 
   visual-regression-storybook:
@@ -182,29 +182,29 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            frontend-nuxt-poc/node_modules
+            frontend/node_modules
             ~/.cache/ms-playwright
-          key: ${{ runner.os }}-bun-${{ hashFiles('frontend-nuxt-poc/bun.lock') }}-storybook-visual
+          key: ${{ runner.os }}-bun-${{ hashFiles('frontend/bun.lock') }}-storybook-visual
           restore-keys: |
-            ${{ runner.os }}-bun-${{ hashFiles('frontend-nuxt-poc/bun.lock') }}-
+            ${{ runner.os }}-bun-${{ hashFiles('frontend/bun.lock') }}-
             ${{ runner.os }}-bun-
 
       - name: Install dependencies
-        working-directory: frontend-nuxt-poc
+        working-directory: frontend
         run: bun install --frozen-lockfile
 
       - name: Install Playwright browsers
-        working-directory: frontend-nuxt-poc
+        working-directory: frontend
         run: bunx playwright install --with-deps chromium
 
       - name: Download Storybook build
         uses: actions/download-artifact@v4
         with:
           name: storybook-build-${{ github.run_id }}
-          path: frontend-nuxt-poc/storybook-static/
+          path: frontend/storybook-static/
 
       - name: Start Storybook server
-        working-directory: frontend-nuxt-poc
+        working-directory: frontend
         run: |
           bun run storybook:serve &
           echo $! > storybook.pid
@@ -212,7 +212,7 @@ jobs:
           timeout 60 bash -c 'until curl -f http://localhost:6006 > /dev/null 2>&1; do sleep 1; done'
 
       - name: Run visual regression tests
-        working-directory: frontend-nuxt-poc
+        working-directory: frontend
         run: |
           if [[ "${{ github.event.inputs.update_baselines }}" == "true" && "${{ github.ref }}" == "refs/heads/main" ]]; then
             echo "Updating visual baselines..."
@@ -226,7 +226,7 @@ jobs:
 
       - name: Stop Storybook server
         if: always()
-        working-directory: frontend-nuxt-poc
+        working-directory: frontend
         run: |
           if [ -f storybook.pid ]; then
             kill $(cat storybook.pid) || true
@@ -239,8 +239,8 @@ jobs:
         with:
           name: storybook-visual-results-${{ github.run_id }}
           path: |
-            frontend-nuxt-poc/visual-tests/
-            frontend-nuxt-poc/test-results/
+            frontend/visual-tests/
+            frontend/test-results/
           retention-days: 14
 
       - name: Upload visual baselines (if updated)
@@ -248,12 +248,12 @@ jobs:
         if: github.event.inputs.update_baselines == 'true' && github.ref == 'refs/heads/main'
         with:
           name: updated-visual-baselines-${{ github.run_id }}
-          path: frontend-nuxt-poc/visual-tests/baselines/
+          path: frontend/visual-tests/baselines/
           retention-days: 30
 
       - name: Commit updated baselines
         if: github.event.inputs.update_baselines == 'true' && github.ref == 'refs/heads/main'
-        working-directory: frontend-nuxt-poc
+        working-directory: frontend
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
@@ -280,36 +280,36 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            frontend-nuxt-poc/node_modules
+            frontend/node_modules
             ~/.cache/ms-playwright
-          key: ${{ runner.os }}-bun-${{ hashFiles('frontend-nuxt-poc/bun.lock') }}-storybook
+          key: ${{ runner.os }}-bun-${{ hashFiles('frontend/bun.lock') }}-storybook
           restore-keys: |
-            ${{ runner.os }}-bun-${{ hashFiles('frontend-nuxt-poc/bun.lock') }}-
+            ${{ runner.os }}-bun-${{ hashFiles('frontend/bun.lock') }}-
             ${{ runner.os }}-bun-
 
       - name: Install dependencies
-        working-directory: frontend-nuxt-poc
+        working-directory: frontend
         run: bun install --frozen-lockfile
 
       - name: Install Playwright browsers
-        working-directory: frontend-nuxt-poc
+        working-directory: frontend
         run: bunx playwright install --with-deps chromium
 
       - name: Download Storybook build
         uses: actions/download-artifact@v4
         with:
           name: storybook-build-${{ github.run_id }}
-          path: frontend-nuxt-poc/storybook-static/
+          path: frontend/storybook-static/
 
       - name: Start Storybook server
-        working-directory: frontend-nuxt-poc
+        working-directory: frontend
         run: |
           bun run storybook:serve &
           echo $! > storybook.pid
           timeout 60 bash -c 'until curl -f http://localhost:6006 > /dev/null 2>&1; do sleep 1; done'
 
       - name: Run accessibility tests
-        working-directory: frontend-nuxt-poc
+        working-directory: frontend
         run: |
           bun run test-storybook:ci \
             --stories-json \
@@ -322,7 +322,7 @@ jobs:
 
       - name: Stop Storybook server
         if: always()
-        working-directory: frontend-nuxt-poc
+        working-directory: frontend
         run: |
           if [ -f storybook.pid ]; then
             kill $(cat storybook.pid) || true
@@ -335,8 +335,8 @@ jobs:
         with:
           name: storybook-a11y-results-${{ github.run_id }}
           path: |
-            frontend-nuxt-poc/test-results/
-            frontend-nuxt-poc/accessibility-report/
+            frontend/test-results/
+            frontend/accessibility-report/
           retention-days: 7
 
   storybook-deploy:
@@ -354,13 +354,13 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: storybook-build-${{ github.run_id }}
-          path: frontend-nuxt-poc/storybook-static/
+          path: frontend/storybook-static/
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: frontend-nuxt-poc/storybook-static
+          publish_dir: frontend/storybook-static
           destination_dir: storybook
           commit_message: 'Deploy Storybook to GitHub Pages'
 

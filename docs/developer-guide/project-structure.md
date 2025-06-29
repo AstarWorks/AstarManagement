@@ -5,7 +5,7 @@ This guide explains the organization and purpose of each directory and file in t
 ## Root Directory Structure
 
 ```
-frontend-nuxt-poc/
+frontend/
 ├── .nuxt/                  # Generated files (git ignored)
 ├── .output/                # Build output (git ignored)
 ├── assets/                 # Uncompiled assets

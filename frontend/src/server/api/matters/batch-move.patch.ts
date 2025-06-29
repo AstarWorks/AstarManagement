@@ -166,14 +166,14 @@ class MockBatchMoveService {
     }, {} as Record<string, any[]>)
     
     // Calculate positions for each status group
-    Object.entries(operationsByStatus).forEach(([status, ops]) => {
+    Object.entries(operationsByStatus).forEach(([status, ops]: [string, any[]]) => {
       const statusMatters = this.matters
         .filter(m => m.status === status)
         .sort((a, b) => a.position - b.position)
       
-      ops.sort((a: any, b: any) => a.toIndex - b.toIndex)
+      ops.sort((a, b) => a.toIndex - b.toIndex)
       
-      ops.forEach((op: any, index: number) => {
+      ops.forEach((op, index: number) => {
         let newPosition: number
         
         if (op.toIndex === 0) {
@@ -229,7 +229,7 @@ class MockBatchMoveService {
 // Global service instance
 const batchMoveService = new MockBatchMoveService()
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (event: any) => {
   // Set CORS headers
   setHeader(event, 'Access-Control-Allow-Origin', '*')
   setHeader(event, 'Access-Control-Allow-Methods', 'PATCH, OPTIONS')
@@ -237,7 +237,7 @@ export default defineEventHandler(async (event) => {
   setHeader(event, 'Cache-Control', 'no-cache, no-store, must-revalidate')
 
   // Handle preflight requests
-  if (getMethod(event) === 'OPTIONS') {
+  if (event.node.req.method === 'OPTIONS') {
     return null
   }
 

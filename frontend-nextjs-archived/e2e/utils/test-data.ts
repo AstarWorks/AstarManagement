@@ -1,0 +1,234 @@
+import { APIRequestContext } from '@playwright/test';
+
+interface CreateMatterRequest {
+  caseNumber: string;
+  title: string;
+  clientName: string;
+  status: string;
+  priority: string;
+  description?: string;
+  assignedLawyerId?: string;
+  tags?: string[];
+}
+
+interface CreateUserRequest {
+  email: string;
+  name: string;
+  role: 'LAWYER' | 'CLERK' | 'CLIENT';
+  password: string;
+}
+
+export class TestDataManager {
+  constructor(private request: APIRequestContext) {}
+
+  async createTestMatter(data: Partial<CreateMatterRequest>): Promise<any> {
+    const response = await this.request.post('/api/v1/matters', {
+      data: {
+        caseNumber: `TEST-${Date.now()}`,
+        title: 'Test Matter',
+        clientName: 'Test Client',
+        status: 'INTAKE',
+        priority: 'MEDIUM',
+        ...data
+      },
+      headers: {
+        'Authorization': `Bearer ${process.env.TEST_API_TOKEN}`
+      }
+    });
+    
+    if (!response.ok()) {
+      throw new Error(`Failed to create test matter: ${response.status()}`);
+    }
+    
+    return response.json();
+  }
+
+  async createTestUser(role: 'LAWYER' | 'CLERK' | 'CLIENT'): Promise<any> {
+    const timestamp = Date.now();
+    const response = await this.request.post('/api/v1/users', {
+      data: {
+        email: `test-${role.toLowerCase()}-${timestamp}@example.com`,
+        name: `Test ${role}`,
+        role: role,
+        password: 'TestPass123!'
+      },
+      headers: {
+        'Authorization': `Bearer ${process.env.TEST_ADMIN_TOKEN}`
+      }
+    });
+    
+    if (!response.ok()) {
+      throw new Error(`Failed to create test user: ${response.status()}`);
+    }
+    
+    return response.json();
+  }
+
+  async cleanupTestData() {
+    try {
+      // Delete all test matters
+      const mattersResponse = await this.request.get('/api/v1/matters?search=TEST-', {
+        headers: {
+          'Authorization': `Bearer ${process.env.TEST_API_TOKEN}`
+        }
+      });
+      
+      if (mattersResponse.ok()) {
+        const mattersData = await mattersResponse.json();
+        
+        for (const matter of mattersData.content || []) {
+          await this.request.delete(`/api/v1/matters/${matter.id}`, {
+            headers: {
+              'Authorization': `Bearer ${process.env.TEST_API_TOKEN}`
+            }
+          });
+        }
+      }
+
+      // Delete all test users
+      const usersResponse = await this.request.get('/api/v1/users?search=test-', {
+        headers: {
+          'Authorization': `Bearer ${process.env.TEST_ADMIN_TOKEN}`
+        }
+      });
+      
+      if (usersResponse.ok()) {
+        const usersData = await usersResponse.json();
+        
+        for (const user of usersData.content || []) {
+          await this.request.delete(`/api/v1/users/${user.id}`, {
+            headers: {
+              'Authorization': `Bearer ${process.env.TEST_ADMIN_TOKEN}`
+            }
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error during test data cleanup:', error);
+    }
+  }
+
+  async createMultipleTestMatters(count: number): Promise<any[]> {
+    const matters = [];
+    const statuses = ['INTAKE', 'INITIAL_REVIEW', 'INVESTIGATION', 'RESEARCH', 'DRAFT_PLEADINGS'];
+    const priorities = ['LOW', 'MEDIUM', 'HIGH', 'URGENT'];
+    
+    for (let i = 0; i < count; i++) {
+      const matter = await this.createTestMatter({
+        caseNumber: `TEST-${Date.now()}-${i}`,
+        title: `Test Matter ${i + 1}`,
+        clientName: `Test Client ${i + 1}`,
+        status: statuses[i % statuses.length],
+        priority: priorities[i % priorities.length],
+        description: `This is test matter number ${i + 1}`
+      });
+      matters.push(matter);
+    }
+    
+    return matters;
+  }
+
+  async addDocumentToMatter(matterId: string, documentData: { 
+    filename: string; 
+    type: string;
+    size?: number;
+  }): Promise<any> {
+    const response = await this.request.post(`/api/v1/matters/${matterId}/documents`, {
+      data: {
+        filename: documentData.filename,
+        type: documentData.type,
+        uploadedAt: new Date().toISOString(),
+        size: documentData.size || 1024 * 1024, // Default 1MB
+        mimeType: documentData.type === 'IMAGE' ? 'image/jpeg' : 'application/pdf'
+      },
+      headers: {
+        'Authorization': `Bearer ${process.env.TEST_API_TOKEN}`
+      }
+    });
+    
+    if (!response.ok()) {
+      throw new Error(`Failed to add document to matter: ${response.status()}`);
+    }
+    
+    return response.json();
+  }
+
+  async createDocument(data: {
+    matterId: string;
+    filename: string;
+    content: string;
+    ocr: boolean;
+  }): Promise<any> {
+    const response = await this.request.post(`/api/v1/matters/${data.matterId}/documents`, {
+      data: {
+        filename: data.filename,
+        type: 'DOCUMENT',
+        content: data.content,
+        ocr: data.ocr,
+        uploadedAt: new Date().toISOString(),
+        size: 1024 * 1024,
+        mimeType: 'application/pdf'
+      },
+      headers: {
+        'Authorization': `Bearer ${process.env.TEST_API_TOKEN}`
+      }
+    });
+    
+    if (!response.ok()) {
+      throw new Error(`Failed to create document: ${response.status()}`);
+    }
+    
+    return response.json();
+  }
+
+  async createMemo(data: {
+    matterId: string;
+    content: string;
+    type: string;
+  }): Promise<any> {
+    const response = await this.request.post(`/api/v1/matters/${data.matterId}/memos`, {
+      data: {
+        content: data.content,
+        type: data.type,
+        createdAt: new Date().toISOString()
+      },
+      headers: {
+        'Authorization': `Bearer ${process.env.TEST_API_TOKEN}`
+      }
+    });
+    
+    if (!response.ok()) {
+      throw new Error(`Failed to create memo: ${response.status()}`);
+    }
+    
+    return response.json();
+  }
+
+  async getAuditLog(matterId: string): Promise<any[]> {
+    const response = await this.request.get(`/api/v1/matters/${matterId}/audit-log`, {
+      headers: {
+        'Authorization': `Bearer ${process.env.TEST_API_TOKEN}`
+      }
+    });
+    
+    if (!response.ok()) {
+      throw new Error(`Failed to get audit log: ${response.status()}`);
+    }
+    
+    const data = await response.json();
+    return data.entries || [];
+  }
+}
+
+// Global setup hook
+export async function globalSetup() {
+  console.log('Running global setup for E2E tests...');
+  // Any global setup logic can go here
+  // For example, seeding test database, creating test users, etc.
+}
+
+// Global teardown hook
+export async function globalTeardown() {
+  console.log('Running global teardown for E2E tests...');
+  // Any global cleanup logic can go here
+}

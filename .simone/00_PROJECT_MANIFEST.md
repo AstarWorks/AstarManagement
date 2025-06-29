@@ -1,10 +1,10 @@
 ---
 project_name: Aster Management
-current_milestone_id: M02
-highest_sprint_in_milestone: S07
-current_sprint_id: S09
+current_milestone_id: M01
+highest_sprint_in_milestone: S14
+current_sprint_id: S05
 status: active
-last_updated: 2025-06-26 09:45
+last_updated: 2025-06-29 00:50
 ---
 
 # Project Manifest: Aster Management
@@ -19,8 +19,8 @@ This project follows a milestone-based development approach.
 
 ## 2. Current Focus
 
-- **Milestone:** M02 - Frontend Framework Migration
-- **Sprint:** S07 - Nuxt Kanban Dashboard Implementation
+- **Milestone:** M01 - Matter Management MVP
+- **Sprint:** S05 - Backend Foundation
 
 ## 3. Sprints in Current Milestone
 
@@ -84,6 +84,116 @@ This project follows a milestone-based development approach.
 📋 Staging Infrastructure Setup (T14_S04) - Medium complexity
 📋 Application Deployment Verification (T15_S04) - Low complexity
 ✅ Kanban Store SSR Cache Implementation (TX16_S04) - Medium complexity (COMPLETED)
+
+### S05 Backend Foundation (📋 READY)
+
+Implement core backend infrastructure and real database integration.
+
+- 📋 Spring Boot Kotlin Setup - High complexity
+- 📋 PostgreSQL Configuration - Medium complexity
+- 📋 Spring Modulith Architecture - High complexity
+- 📋 Matter CRUD with Database - Medium complexity
+- 📋 API Error Handling - Medium complexity
+- 📋 Integration Testing - Medium complexity
+
+### S06 Authentication RBAC (📋 PLANNED)
+
+Implement Keycloak-based authentication with Discord-style RBAC.
+
+- 📋 Keycloak Integration - High complexity
+- 📋 JWT Token Management - Medium complexity
+- 📋 Discord-style RBAC - High complexity
+- 📋 2FA Implementation - Medium complexity
+- 📋 Session Management - Medium complexity
+- 📋 Security Testing - Medium complexity
+
+### S07 Document Management (📋 PLANNED)
+
+Implement document upload, storage, and management features.
+
+- 📋 MinIO/Cloud Storage Setup - Medium complexity
+- 📋 File Upload API - Medium complexity
+- 📋 PDF Viewer Component - Medium complexity
+- 📋 Document Metadata - Low complexity
+- 📋 Version Control - Medium complexity
+- 📋 Access Control - Medium complexity
+
+### S08 Search Communication (📋 PLANNED)
+
+Implement full-text search and communication features.
+
+- 📋 PostgreSQL Full-Text Search - High complexity
+- 📋 Search API - Medium complexity
+- 📋 Memo Management - Medium complexity
+- 📋 Expense Tracking - Medium complexity
+- 📋 CSV Export - Low complexity
+- 📋 Communication Hub UI - Medium complexity
+
+### S09 Notifications I18n (📋 PLANNED)
+
+Implement real-time notifications and internationalization.
+
+- 📋 WebSocket Infrastructure - High complexity
+- 📋 Notification System - Medium complexity
+- 📋 Slack Integration - Medium complexity
+- 📋 i18n Configuration - Medium complexity
+- 📋 Japanese Translations - Medium complexity
+- 📋 Language Toggle UI - Low complexity
+
+### S10 OCR AI Integration (📋 PLANNED)
+
+Implement OCR processing and AI-powered features.
+
+- 📋 Google Vertex AI Setup - High complexity
+- 📋 OCR Processing Pipeline - High complexity
+- 📋 Document Text Extraction - Medium complexity
+- 📋 AI Search Preparation - Medium complexity
+- 📋 Full-Text Indexing - Medium complexity
+- 📋 AI Predictions - High complexity
+
+### S11 Deployment DevOps (📋 PLANNED)
+
+Implement production-ready infrastructure and CI/CD.
+
+- 📋 Docker Configuration - Medium complexity
+- 📋 Kubernetes Manifests - High complexity
+- 📋 GitHub Actions CI/CD - Medium complexity
+- 📋 ArgoCD Setup - Medium complexity
+- 📋 Terraform Infrastructure - High complexity
+- 📋 Production Deployment - High complexity
+
+### S12 Matter Management UI (📋 PLANNED)
+
+Implement comprehensive matter management interfaces.
+
+- 📋 Matter List Screen (R04) - High complexity
+- 📋 Matter Detail Board (R05) - High complexity
+- 📋 Task Management Table (R06) - Medium complexity
+- 📋 Advanced Filtering UI - Medium complexity
+- 📋 Bulk Operations - Medium complexity
+- 📋 Export Functionality - Low complexity
+
+### S13 Communication Documents UI (📋 PLANNED)
+
+Implement communication tracking and document creation interfaces.
+
+- 📋 Communication History (R07) - High complexity
+- 📋 Document Creation Editor (R08) - High complexity
+- 📋 FAX Document Management (R09) - Medium complexity
+- 📋 Template System - Medium complexity
+- 📋 AI Integration UI - Medium complexity
+- 📋 OCR Processing Interface - Medium complexity
+
+### S14 Financial Management (📋 PLANNED)
+
+Implement revenue and expense tracking features.
+
+- 📋 Revenue Management Dashboard (R10) - High complexity
+- 📋 Expense Record System (R11) - High complexity
+- 📋 Financial Charts and KPIs - Medium complexity
+- 📋 Receipt OCR Integration - Medium complexity
+- 📋 CSV Export and Reporting - Medium complexity
+- 📋 Mobile Optimization - Medium complexity
 
 ## 4. M02 - Frontend Framework Migration
 

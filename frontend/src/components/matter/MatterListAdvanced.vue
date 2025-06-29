@@ -211,6 +211,8 @@ const {
   updateCellValue,
   saveCell,
   cancelEdit,
+  saveAllEdits,
+  cancelAllEdits,
   handleKeyDown,
   handleBlur,
   handleDoubleClick,
@@ -350,6 +352,17 @@ const handleBulkStatusUpdate = (items: Matter[], status: MatterStatus) => {
   emit('matter:status-update', items, status)
 }
 
+const shareFilters = async () => {
+  try {
+    const url = getShareableUrl()
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      await navigator.clipboard.writeText(url)
+    }
+  } catch (error) {
+    console.warn('Failed to copy filter URL:', error)
+  }
+}
+
 // Initialize filters on mount
 onMounted(async () => {
   if (props.enableFilterPersistence) {
@@ -470,7 +483,7 @@ onMounted(() => {
             v-if="enableFilterPersistence"
             variant="ghost"
             size="sm"
-            @click="() => navigator.clipboard?.writeText(getShareableUrl())"
+            @click="shareFilters"
           >
             <Icon name="lucide:share" class="mr-2 h-4 w-4" />
             Share Filters

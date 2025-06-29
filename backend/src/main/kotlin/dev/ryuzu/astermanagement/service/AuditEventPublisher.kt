@@ -17,7 +17,7 @@ import java.util.*
 @Service
 class AuditEventPublisher(
     private val applicationEventPublisher: ApplicationEventPublisher,
-    private val auditContextProvider: AuditContextProvider
+    private val auditContextProvider: AuditContextProvider,
 ) : BaseService() {
     
     private val logger = LoggerFactory.getLogger(javaClass)

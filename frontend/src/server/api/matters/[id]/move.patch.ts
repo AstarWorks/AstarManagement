@@ -168,7 +168,7 @@ class MockPositionService {
 // Global service instance
 const positionService = new MockPositionService()
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (event: any) => {
   // Set CORS headers
   setHeader(event, 'Access-Control-Allow-Origin', '*')
   setHeader(event, 'Access-Control-Allow-Methods', 'PATCH, OPTIONS')
@@ -176,7 +176,7 @@ export default defineEventHandler(async (event) => {
   setHeader(event, 'Cache-Control', 'no-cache, no-store, must-revalidate')
 
   // Handle preflight requests
-  if (getMethod(event) === 'OPTIONS') {
+  if (event.node.req.method === 'OPTIONS') {
     return null
   }
 

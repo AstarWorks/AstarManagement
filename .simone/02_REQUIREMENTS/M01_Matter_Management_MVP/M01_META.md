@@ -22,39 +22,102 @@ This milestone focuses on implementing the core matter (case) management functio
 
 ## Key Deliverables
 
-1. **Backend API for Matter Management**
+1. **Backend API for Matter Management** (R01)
    - RESTful endpoints for CRUD operations
    - Status transition logic with validation
    - Audit logging for all changes
    - Permission-based access control
 
-2. **Kanban Board Frontend**
+2. **Kanban Board Frontend** (R02)
    - Drag-and-drop interface for status updates
    - Real-time updates across users
    - Mobile-responsive design
    - Japanese/English language support
 
-3. **Database Schema**
-   - Matter entity with all required fields
+3. **Status History and Audit** (R03)
    - Status history tracking
-   - Relationship to users and documents
+   - Comprehensive audit trail
+   - Change notifications
 
-4. **Integration Points**
-   - Authentication/Authorization integration
-   - Activity logging system
-   - Search indexing for matters
+4. **Matter List Screen** (R04)
+   - Office-wide matter overview
+   - Advanced filtering and sorting
+   - Pagination and infinite scroll
+   - Export capabilities
+
+5. **Matter Detail Board** (R05)
+   - Tabbed interface for matter information
+   - Collapsible sidebar with summary
+   - Integration point for all features
+   - Deep linking support
+
+6. **Task Management Table** (R06)
+   - Table view alternative to Kanban
+   - Inline editing capabilities
+   - Shared state with Kanban board
+   - Bulk operations
+
+7. **Communication History** (R07)
+   - Track all matter-related communications
+   - Import and manual entry
+   - Powerful search and filtering
+   - Notification system
+
+8. **Document Creation** (R08)
+   - VSCode-style layout
+   - Notion-like editing experience
+   - AI-powered writing assistance
+   - Template and variable management
+
+9. **FAX Documents** (R09)
+   - FAX digitization and OCR
+   - AI summaries
+   - Matter assignment workflow
+   - Integration with communications
+
+10. **Revenue Management** (R10)
+    - Interactive financial dashboards
+    - KPI tracking and comparisons
+    - Multiple view perspectives
+    - Export capabilities
+
+11. **Expense Record** (R11)
+    - Mobile-first expense tracking
+    - Receipt OCR processing
+    - Category management
+    - Tax compliance features
 
 ## Success Criteria
 
-- [ ] Create, read, update, delete matters via API
-- [ ] Kanban board with at least 5 customizable columns
-- [ ] Drag-and-drop status changes with timestamp recording
+### Core Matter Management
+- [ ] Create, read, update, delete matters via API (R01)
+- [ ] Matter list with filtering, sorting, and pagination (R04)
+- [ ] Matter detail board with tabbed interface (R05)
 - [ ] Role-based permissions (Lawyer full access, Clerk limited)
-- [ ] Search matters by name, client, or case number
-- [ ] Mobile-responsive UI that works on tablets
+
+### Kanban and Task Management
+- [ ] Kanban board with at least 5 customizable columns (R02)
+- [ ] Drag-and-drop status changes with timestamp recording (R02)
+- [ ] Task management table view with inline editing (R06)
+- [ ] Shared state between Kanban and table views
+
+### Communication and Documents
+- [ ] Communication history tracking and search (R07)
+- [ ] Document creation with AI assistance (R08)
+- [ ] FAX document management with OCR (R09)
+- [ ] Template system with variable substitution
+
+### Financial Management
+- [ ] Revenue dashboard with interactive charts (R10)
+- [ ] Expense tracking with mobile optimization (R11)
+- [ ] Export capabilities for all financial data
+
+### Technical Requirements
+- [ ] Mobile-responsive UI that works on smartphones and tablets
 - [ ] All API endpoints documented in OpenAPI
 - [ ] 90% test coverage for critical paths
-- [ ] Performance: Board loads in < 2 seconds with 100 matters
+- [ ] Performance: Pages load in < 2 seconds
+- [ ] Japanese/English language support throughout
 
 ## Technical Requirements
 
