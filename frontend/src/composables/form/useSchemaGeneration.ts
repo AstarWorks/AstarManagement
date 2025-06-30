@@ -197,8 +197,8 @@ export function useSchemaGeneration(
       
       // Apply conditional required state
       const isRequired = conditionalLogic.fieldRequired.value[variable.name] ?? variable.required
-      if (!isRequired) {
-        fieldSchema = fieldSchema.optional()
+      if (!isRequired && 'optional' in fieldSchema) {
+        fieldSchema = (fieldSchema as any).optional()
       }
       
       // Apply custom validators if provided
@@ -211,7 +211,7 @@ export function useSchemaGeneration(
       if (variable.isArray) {
         fieldSchema = z.array(fieldSchema)
         if (isRequired) {
-          fieldSchema = fieldSchema.min(1, `At least one ${variable.label} is required`)
+          fieldSchema = (fieldSchema as any).min(1, `At least one ${variable.label} is required`)
         }
       }
       
@@ -278,7 +278,7 @@ export function useSchemaGeneration(
     if (!fieldSchema) return false
     
     // Check if schema is optional
-    return !fieldSchema.isOptional()
+    return !(fieldSchema as any).isOptional?.()
   }
 
   /**
