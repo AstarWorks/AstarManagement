@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
+import java.time.LocalDateTime
 import java.util.*
 
 /**
@@ -72,6 +73,33 @@ data class UserInfoResponse(
 
     @Schema(description = "User permissions")
     val permissions: List<String>
+)
+
+/**
+ * User profile response DTO
+ */
+@Schema(description = "User profile information with roles and permissions")
+data class UserProfileResponse(
+    @Schema(description = "User ID")
+    val id: UUID,
+
+    @Schema(description = "User email address")
+    val email: String,
+
+    @Schema(description = "User first name")
+    val firstName: String,
+
+    @Schema(description = "User last name")
+    val lastName: String,
+
+    @Schema(description = "User role", allowableValues = ["LAWYER", "CLERK", "CLIENT"])
+    val role: String,
+
+    @Schema(description = "User permissions")
+    val permissions: List<String>,
+
+    @Schema(description = "Last login timestamp")
+    val lastLoginAt: LocalDateTime?
 )
 
 /**

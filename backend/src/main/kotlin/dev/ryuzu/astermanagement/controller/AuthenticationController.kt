@@ -26,7 +26,7 @@ import java.util.*
  * All endpoints return RFC 7807 Problem+JSON format for errors.
  */
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 @Validated
 @Tag(name = "Authentication", description = "User authentication and session management endpoints")
 class AuthenticationController(
@@ -149,6 +149,35 @@ class AuthenticationController(
             "isActive" to isActive,
             "sessionCount" to activeSessions.size,
             "activeSessions" to activeSessions
+        ))
+    }
+
+    /**
+     * Get user profile endpoint
+     */
+    @GetMapping("/profile")
+    @Operation(
+        summary = "Get user profile",
+        description = "Returns authenticated user information with roles and permissions"
+    )
+    @ApiResponses(
+        ApiResponse(
+            responseCode = "200", 
+            description = "User profile retrieved successfully",
+            content = [Content(schema = Schema(implementation = UserProfileResponse::class))]
+        ),
+        ApiResponse(responseCode = "401", description = "User not authenticated")
+    )
+    fun getProfile(@AuthenticationPrincipal user: UserDetails): ResponseEntity<UserProfileResponse> {
+        val userEntity = authenticationService.getUserInfo(UUID.fromString(user.username))
+        return ok(UserProfileResponse(
+            id = userEntity.id!!,
+            email = userEntity.email,
+            firstName = userEntity.firstName,
+            lastName = userEntity.lastName,
+            role = userEntity.role.name,
+            permissions = user.authorities.map { it.authority }.filter { !it.startsWith("ROLE_") },
+            lastLoginAt = userEntity.lastLoginAt
         ))
     }
 
