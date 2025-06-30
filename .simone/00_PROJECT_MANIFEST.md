@@ -22,7 +22,7 @@ This project follows a milestone-based development approach.
 - **Milestone:** M01 - Matter Management MVP
 - **Sprint:** S13 - Communication & Documents UI (CLOSING)
 - **Current Task:** Sprint S13 Closure 
-- **Updated:** 2025-06-30 14:30
+- **Updated:** 2025-06-30 22:18
 
 ## 3. Sprints in Current Milestone
 
@@ -103,8 +103,8 @@ Implement core backend infrastructure and real database integration.
 Implement JWT-based authentication with Discord-style RBAC system and secure session management.
 
 - ✅ T01_S06: Spring Security Configuration - Medium complexity (COMPLETED)
-- 📋 T02_S06: Authentication Service Implementation - Medium complexity  
-- 📋 T03_S06: Authentication API Endpoints - Medium complexity
+- ✅ T02_S06: Authentication Service Implementation - Medium complexity (COMPLETED)  
+- ✅ T03_S06: Authentication API Endpoints - Medium complexity (COMPLETED)
 - 📋 T04A_S06: RBAC Models and Entities - Medium complexity
 - 📋 T04B_S06: Permission Evaluation and Method Security - Medium complexity
 - 📋 T05_S06: Two-Factor Authentication - Medium complexity
