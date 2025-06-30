@@ -42,6 +42,16 @@ export interface ParsedTemplateVariable {
   isArray?: boolean
   /** Array index if this is part of an array */
   arrayIndex?: number
+  /** Conditional logic rules for the field */
+  conditions?: FieldCondition[]
+  /** Data source for pre-filling */
+  dataSource?: DataSource
+  /** Whether field is disabled by default */
+  disabled?: boolean
+  /** Field options for select/radio/checkbox */
+  options?: FieldOption[]
+  /** Derived value rule for computed fields */
+  derivedValue?: DerivedValueRule
 }
 
 /**
@@ -161,4 +171,69 @@ export const COMMON_FIELD_PATTERNS: Record<string, RegExp> = {
   file: /file|document|attachment|upload|pdf|image|photo/i,
   address: /address|street|city|state|zip|postal|location/i,
   name: /name|title|first|last|middle|surname|given/i
+}
+
+/**
+ * Field condition for conditional logic
+ */
+export interface FieldCondition {
+  /** Type of condition */
+  type: 'show' | 'hide' | 'enable' | 'disable' | 'require'
+  /** When clause for the condition */
+  when: {
+    /** Field to check */
+    field: string
+    /** Comparison operator */
+    operator: 'equals' | 'notEquals' | 'contains' | 'notContains' | 'gt' | 'gte' | 'lt' | 'lte' | 'isEmpty' | 'isNotEmpty' | 'in' | 'notIn' | 'matches' | 'notMatches'
+    /** Value to compare against */
+    value: any
+  }
+  /** Additional AND conditions */
+  and?: FieldCondition[]
+  /** Additional OR conditions */
+  or?: FieldCondition[]
+}
+
+/**
+ * Data source for field pre-filling
+ */
+export interface DataSource {
+  /** Type of data source */
+  type: 'matter' | 'client' | 'user' | 'api' | 'computed'
+  /** Field path in the source */
+  field?: string
+  /** API endpoint for api type */
+  endpoint?: string
+  /** Compute function for computed type */
+  compute?: (context: any) => any
+}
+
+/**
+ * Field option for select/radio/checkbox
+ */
+export interface FieldOption {
+  /** Option value */
+  value: string | number | boolean
+  /** Display label */
+  label: string
+  /** Whether option is disabled */
+  disabled?: boolean
+  /** Additional metadata */
+  metadata?: Record<string, any>
+}
+
+/**
+ * Derived value rule for computed fields
+ */
+export interface DerivedValueRule {
+  /** Type of derivation */
+  type: 'concat' | 'sum' | 'copy' | 'custom'
+  /** Source fields for derivation */
+  fields?: string[]
+  /** Source field for copy */
+  sourceField?: string
+  /** Separator for concat */
+  separator?: string
+  /** Custom compute function */
+  compute?: (formData: Record<string, any>) => any
 }
