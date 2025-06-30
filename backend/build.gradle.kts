@@ -48,6 +48,8 @@ dependencies {
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-api:2.6.0")
     
+    // Rate Limiting - Using Redis-based simple implementation
+    
     // Spring AI - Commented out to resolve Vertex AI configuration issues
     // implementation("org.springframework.ai:spring-ai-pdf-document-reader")
     // implementation("org.springframework.ai:spring-ai-starter-model-vertex-ai-embedding")

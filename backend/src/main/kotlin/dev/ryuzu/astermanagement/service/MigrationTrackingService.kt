@@ -56,7 +56,7 @@ class MigrationTrackingService(
             SELECT * FROM migration_status WHERE id = ?
         """
         
-        return jdbcTemplate.queryForObject(sql, id) { rs, _ ->
+        return jdbcTemplate.queryForObject(sql, { rs, _ ->
             MigrationStatusDto(
                 id = rs.getLong("id"),
                 componentPath = rs.getString("component_path"),
@@ -72,7 +72,7 @@ class MigrationTrackingService(
                 createdAt = rs.getTimestamp("created_at").toLocalDateTime(),
                 updatedAt = rs.getTimestamp("updated_at").toLocalDateTime()
             )
-        } ?: throw NoSuchElementException("Migration status not found with id: $id")
+        }, id) ?: throw NoSuchElementException("Migration status not found with id: $id")
     }
 
     /**
@@ -243,12 +243,7 @@ class MigrationTrackingService(
         
         return jdbcTemplate.queryForObject(
             sql,
-            request.componentPath,
-            request.issueType,
-            request.severity.name.lowercase(),
-            request.description,
-            request.suggestedFix
-        ) { rs, _ ->
+            { rs, _ ->
             MigrationIssueDto(
                 id = rs.getLong("id"),
                 componentPath = request.componentPath,
@@ -261,7 +256,13 @@ class MigrationTrackingService(
                 resolvedBy = null,
                 createdAt = rs.getTimestamp("created_at").toLocalDateTime()
             )
-        }!!
+        },
+            request.componentPath,
+            request.issueType,
+            request.severity.name.lowercase(),
+            request.description,
+            request.suggestedFix
+        )!!
     }
 
     /**
@@ -274,7 +275,7 @@ class MigrationTrackingService(
             ORDER BY severity DESC, created_at DESC
         """
         
-        return jdbcTemplate.query(sql, componentPath) { rs, _ ->
+        return jdbcTemplate.query(sql, { rs, _ ->
             MigrationIssueDto(
                 id = rs.getLong("id"),
                 componentPath = rs.getString("component_path"),
@@ -287,7 +288,7 @@ class MigrationTrackingService(
                 resolvedBy = rs.getString("resolved_by"),
                 createdAt = rs.getTimestamp("created_at").toLocalDateTime()
             )
-        }
+        }, componentPath)
     }
 
     /**
@@ -327,7 +328,7 @@ class MigrationTrackingService(
             ORDER BY component_path
         """
         
-        return jdbcTemplate.query(sql, *params.toTypedArray()) { rs, _ ->
+        return jdbcTemplate.query(sql, { rs, _ ->
             MigrationStatusDto(
                 id = rs.getLong("id"),
                 componentPath = rs.getString("component_path"),
@@ -343,6 +344,6 @@ class MigrationTrackingService(
                 createdAt = rs.getTimestamp("created_at").toLocalDateTime(),
                 updatedAt = rs.getTimestamp("updated_at").toLocalDateTime()
             )
-        }
+        }, *params.toTypedArray())
     }
 }
