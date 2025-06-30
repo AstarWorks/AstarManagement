@@ -21,7 +21,8 @@ This project follows a milestone-based development approach.
 
 - **Milestone:** M01 - Matter Management MVP
 - **Sprint:** S13 - Communication & Documents UI
-- **Current Task:** T10A_S13 - Field Type Detection (completed)
+- **Current Task:** T10B_S13 - Dynamic Form Rendering (completed)
+- **Updated:** 2025-06-30 08:37
 
 ## 3. Sprints in Current Milestone
 
