@@ -269,4 +269,12 @@ class AuthenticationService(
             )
         }
     }
+
+    /**
+     * Gets user information by ID for profile endpoint
+     */
+    fun getUserInfo(userId: UUID): User {
+        return userRepository.findById(userId)
+            .orElseThrow { BadCredentialsException("User not found") }
+    }
 }
