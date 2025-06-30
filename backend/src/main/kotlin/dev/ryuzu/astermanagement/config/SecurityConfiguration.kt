@@ -36,7 +36,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 class SecurityConfiguration(
     private val jwtAuthenticationFilter: JwtAuthenticationFilter,
     private val jwtAuthenticationEntryPoint: JwtAuthenticationEntryPoint,
-    private val jwtAccessDeniedHandler: JwtAccessDeniedHandler
+    private val jwtAccessDeniedHandler: JwtAccessDeniedHandler,
+    private val jwtDecoder: org.springframework.security.oauth2.jwt.JwtDecoder
 ) {
     
     /**
@@ -108,7 +109,14 @@ class SecurityConfiguration(
                     }
             }
             
-            // Add JWT filter before UsernamePasswordAuthenticationFilter
+            // OAuth2 Resource Server configuration for JWT
+            .oauth2ResourceServer { oauth2 ->
+                oauth2.jwt { jwt ->
+                    jwt.decoder(jwtDecoder)
+                }
+            }
+            
+            // Note: Keeping custom JWT filter for additional processing
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
             
             .build()

@@ -3,10 +3,12 @@ package dev.ryuzu.astermanagement.config
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Profile
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.oauth2.jwt.JwtEncoder
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder
+import javax.crypto.spec.SecretKeySpec
 import com.nimbusds.jose.jwk.JWKSet
 import com.nimbusds.jose.jwk.RSAKey
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet
@@ -43,6 +45,9 @@ class JwtConfiguration {
     @Value("\${app.jwt.issuer:astermanagement-api}")
     private lateinit var issuer: String
 
+    @Value("\${app.jwt.secret-key:}")
+    private lateinit var secretKey: String
+
     private val keyPair: KeyPair = generateRsaKey()
 
     /**
@@ -75,10 +80,18 @@ class JwtConfiguration {
 
     /**
      * JWT Decoder bean for validating tokens
+     * Uses HMAC SHA if secret key is provided, otherwise uses RSA
      */
     @Bean
     fun jwtDecoder(): JwtDecoder {
-        return NimbusJwtDecoder.withPublicKey(rsaPublicKey()).build()
+        return if (secretKey.isNotBlank()) {
+            // HMAC SHA approach as specified in T01_S06 task
+            val secretKeySpec = SecretKeySpec(secretKey.toByteArray(), "HmacSHA256")
+            NimbusJwtDecoder.withSecretKey(secretKeySpec).build()
+        } else {
+            // RSA approach (more secure, existing implementation)
+            NimbusJwtDecoder.withPublicKey(rsaPublicKey()).build()
+        }
     }
 
     /**

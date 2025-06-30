@@ -98,16 +98,19 @@ Implement core backend infrastructure and real database integration.
 - 📋 API Error Handling - Medium complexity
 - 📋 Integration Testing - Medium complexity
 
-### S06 Authentication RBAC (📋 PLANNED)
+### S06 Authentication RBAC (🚧 IN PROGRESS)
 
-Implement Keycloak-based authentication with Discord-style RBAC.
+Implement JWT-based authentication with Discord-style RBAC system and secure session management.
 
-- 📋 Keycloak Integration - High complexity
-- 📋 JWT Token Management - Medium complexity
-- 📋 Discord-style RBAC - High complexity
-- 📋 2FA Implementation - Medium complexity
-- 📋 Session Management - Medium complexity
-- 📋 Security Testing - Medium complexity
+- ✅ T01_S06: Spring Security Configuration - Medium complexity (COMPLETED)
+- 📋 T02_S06: Authentication Service Implementation - Medium complexity  
+- 📋 T03_S06: Authentication API Endpoints - Medium complexity
+- 📋 T04A_S06: RBAC Models and Entities - Medium complexity
+- 📋 T04B_S06: Permission Evaluation and Method Security - Medium complexity
+- 📋 T05_S06: Two-Factor Authentication - Medium complexity
+- 📋 T06_S06: Session Management with Redis - Medium complexity
+- 📋 T07_S06: Frontend Authentication Integration - Medium complexity
+- 📋 T08_S06: Security Testing and Hardening - Medium complexity
 
 ### S07 Document Management (📋 PLANNED)
 
