@@ -68,7 +68,6 @@ export function useFileUpload(options: FileUploadOptions = {}) {
     // Prepare default metadata
     const defaultMetadata: Partial<UploadMetadata> = {
       matterId: options.matterId,
-      category: options.category as any || 'other',
       ...options.defaultMetadata
     }
     

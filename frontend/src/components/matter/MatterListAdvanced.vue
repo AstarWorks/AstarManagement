@@ -9,7 +9,7 @@ import type { AdvancedDataTableColumn } from './DataTableAdvanced.vue'
 import VirtualDataTable from './VirtualDataTable.vue'
 import FilterBar from './filters/FilterBar.vue'
 import { MATTER_FILTER_CONFIGS, MATTER_FILTER_PRESETS } from './filters/FilterConfig'
-import type { FilterState } from './filters/FilterConfig'
+import type { FilterState, FilterPreset } from './filters/FilterConfig'
 import { useFilterPersistence } from '~/composables/useFilterPersistence'
 import { useDataExport } from '~/composables/useDataExport'
 import { useColumnResize } from '~/composables/useColumnResize'
@@ -401,8 +401,8 @@ onMounted(() => {
     <!-- Filter Bar -->
     <FilterBar
       :configs="MATTER_FILTER_CONFIGS"
-      :presets="[...MATTER_FILTER_PRESETS, ...savedPresets]"
-      :model-value="filterState"
+      :presets="[...(MATTER_FILTER_PRESETS as FilterPreset[]), ...savedPresets]"
+      :model-value="filterState as FilterState"
       :loading="loading"
       @update:model-value="handleFilterChange"
       @preset:apply="handlePresetApply"

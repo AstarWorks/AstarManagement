@@ -249,7 +249,7 @@ const clearAllFilters = () => {
 const getCategoryIcon = (iconName: string) => {
   const iconMap: Record<string, any> = {
     FileText,
-    Form,
+    Form: FileEdit,
     Mail,
     Building
   }

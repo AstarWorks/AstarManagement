@@ -2,7 +2,7 @@
 
 import type { MemoSearchSuggestion } from '~/types/memo'
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (event: any) => {
   const query = getQuery(event)
   const searchTerm = (query.q as string) || ''
   

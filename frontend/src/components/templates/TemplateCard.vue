@@ -1,13 +1,6 @@
 <template>
   <Card 
-    :class="[
-      'template-card',
-      { 
-        'is-favorite': template.isFavorite,
-        'list-mode': viewMode === 'list',
-        'hover-lift': !compact
-      }
-    ]"
+    :class="cardClasses"
     @click="$emit('click', template)"
   >
     <!-- Thumbnail -->
@@ -55,7 +48,7 @@
     </div>
     
     <!-- Content -->
-    <CardContent :class="{ 'list-content': viewMode === 'list' }">
+    <CardContent :class="contentClasses">
       <!-- Header -->
       <div class="card-header">
         <h4 class="template-name" :title="template.name">
@@ -169,6 +162,18 @@ const emit = defineEmits<{
   preview: [template: Template]
   'toggle-favorite': [templateId: string]
 }>()
+
+const cardClasses = computed(() => {
+  const classes = ['template-card']
+  if (props.template.isFavorite) classes.push('is-favorite')
+  if (props.viewMode === 'list') classes.push('list-mode')
+  if (!props.compact) classes.push('hover-lift')
+  return classes.join(' ')
+})
+
+const contentClasses = computed(() => {
+  return props.viewMode === 'list' ? 'list-content' : ''
+})
 
 // Methods
 const getCategoryVariant = (category: TemplateCategory): "default" | "secondary" | "destructive" | "outline" => {

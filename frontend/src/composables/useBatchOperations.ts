@@ -93,7 +93,7 @@ export function useBatchOperations() {
         toast({
           title: 'Delete failed',
           description: error instanceof Error ? error.message : 'Failed to delete items',
-          variant: 'destructive'
+          variant: 'error'
         })
       }
     }
@@ -125,7 +125,7 @@ export function useBatchOperations() {
         toast({
           title: 'Move failed',
           description: error instanceof Error ? error.message : 'Failed to move items',
-          variant: 'destructive'
+          variant: 'error'
         })
       }
     }
@@ -138,7 +138,7 @@ export function useBatchOperations() {
       toast({
         title: 'No documents selected',
         description: 'Please select at least one document to download',
-        variant: 'destructive'
+        variant: 'error'
       })
       return
     }
@@ -157,7 +157,7 @@ export function useBatchOperations() {
       toast({
         title: 'Download failed',
         description: error instanceof Error ? error.message : 'Failed to download documents',
-        variant: 'destructive'
+        variant: 'error'
       })
     }
   }
@@ -169,7 +169,7 @@ export function useBatchOperations() {
       toast({
         title: 'No documents selected',
         description: 'Please select at least one document to tag',
-        variant: 'destructive'
+        variant: 'error'
       })
       return
     }
@@ -191,7 +191,7 @@ export function useBatchOperations() {
       toast({
         title: 'Tagging failed',
         description: error instanceof Error ? error.message : 'Failed to add tags',
-        variant: 'destructive'
+        variant: 'error'
       })
     }
   }
@@ -229,7 +229,7 @@ export function useBatchOperations() {
       toast({
         title: 'Export failed',
         description: error instanceof Error ? error.message : 'Failed to export list',
-        variant: 'destructive'
+        variant: 'error'
       })
     }
   }

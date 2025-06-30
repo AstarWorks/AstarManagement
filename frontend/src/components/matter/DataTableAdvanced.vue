@@ -242,9 +242,9 @@ watch(() => props.selectedRows, (newSelection) => {
       :selected-items="selectedRows"
       :total-items="total"
       :disabled="loading"
-      @action:delete="$emit('bulk:delete', $event)"
-      @action:status-update="$emit('bulk:status-update', $event, $event)"
-      @action:export="$emit('bulk:export', $event, $event)"
+      @action:delete="(items) => $emit('bulk:delete', items)"
+      @action:status-update="(items, status) => $emit('bulk:status-update', items, status)"
+      @action:export="(items, format) => $emit('bulk:export', items, format)"
       @selection:clear="clearSelection"
       @selection:all="selectAll"
     />

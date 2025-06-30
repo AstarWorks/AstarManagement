@@ -119,7 +119,7 @@
                 id="memo-subject"
                 v-model="memoForm.subject"
                 placeholder="Enter memo subject..."
-                :class="{ 'border-destructive': formErrors.subject }"
+                :class="formErrors.subject ? 'border-destructive' : ''"
                 :maxlength="200"
               />
               <p v-if="formErrors.subject" class="text-sm text-destructive mt-1">
@@ -515,8 +515,8 @@ watch(editingMemo, (memo) => {
     memoForm.value = {
       subject: memo.subject || '',
       content: memo.content || '',
-      type: memo.type || 'client',
-      priority: memo.priority || 'medium',
+      type: (memo.type === 'court' || memo.type === 'opposing_counsel' ? 'client' : memo.type) || 'client',
+      priority: (memo.priority === 'urgent' ? 'high' : memo.priority) || 'medium',
       caseId: memo.caseId || '',
       tags: memo.tags || [],
       isConfidential: memo.isConfidential || false

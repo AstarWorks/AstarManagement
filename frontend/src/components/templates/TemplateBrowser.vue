@@ -58,7 +58,7 @@
         
         <div v-show="!sidebarCollapsed" class="sidebar-content">
           <TemplateCategorySidebar
-            :categories="categories"
+            :categories="categories as TemplateCategory[]"
             :show-counts="true"
           />
         </div>
@@ -153,7 +153,7 @@
     <!-- Preview Modal -->
     <TemplatePreviewModal
       v-model:open="showPreview"
-      :template="selectedTemplate"
+      :template="selectedTemplate as Template | null"
       @use="handleUseTemplate"
     />
 
@@ -200,7 +200,7 @@ import TemplateGallery from './TemplateGallery.vue'
 import TemplatePreviewModal from './TemplatePreviewModal.vue'
 import { useTemplateBrowserStore } from '~/stores/templateBrowser'
 import { storeToRefs } from 'pinia'
-import type { Template, TemplateSortOptions } from '~/types/template'
+import type { Template, TemplateCategory, TemplateSortOptions } from '~/types/template'
 
 interface Props {
   matterId?: string

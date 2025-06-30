@@ -95,7 +95,7 @@
           <Button
             size="icon"
             variant="ghost"
-            :class="{ 'bg-muted': viewMode === 'grid' }"
+            :class="gridButtonClass"
             @click="$emit('update:view-mode', 'grid')"
             aria-label="Grid view"
           >
@@ -104,7 +104,7 @@
           <Button
             size="icon"
             variant="ghost"
-            :class="{ 'bg-muted': viewMode === 'list' }"
+            :class="listButtonClass"
             @click="$emit('update:view-mode', 'list')"
             aria-label="List view"
           >
@@ -241,6 +241,14 @@ const showRecentSection = computed(() =>
   props.recentTemplates.length > 0 && 
   !props.hasActiveFilters
 )
+
+const gridButtonClass = computed(() => {
+  return props.viewMode === 'grid' ? 'bg-muted' : ''
+})
+
+const listButtonClass = computed(() => {
+  return props.viewMode === 'list' ? 'bg-muted' : ''
+})
 
 // Methods
 const getSortLabel = (field: string): string => {
