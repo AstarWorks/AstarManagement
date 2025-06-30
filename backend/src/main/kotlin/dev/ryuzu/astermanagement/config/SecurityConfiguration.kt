@@ -1,5 +1,6 @@
 package dev.ryuzu.astermanagement.config
 
+import dev.ryuzu.astermanagement.filter.RateLimitingFilter
 import dev.ryuzu.astermanagement.service.JwtService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -37,7 +38,8 @@ class SecurityConfiguration(
     private val jwtAuthenticationFilter: JwtAuthenticationFilter,
     private val jwtAuthenticationEntryPoint: JwtAuthenticationEntryPoint,
     private val jwtAccessDeniedHandler: JwtAccessDeniedHandler,
-    private val jwtDecoder: org.springframework.security.oauth2.jwt.JwtDecoder
+    private val jwtDecoder: org.springframework.security.oauth2.jwt.JwtDecoder,
+    private val rateLimitingFilter: RateLimitingFilter
 ) {
     
     /**
@@ -59,6 +61,7 @@ class SecurityConfiguration(
                 auth
                     // Public endpoints
                     .requestMatchers("/auth/**").permitAll()
+                    .requestMatchers("/api/auth/**").permitAll()
                     .requestMatchers("/actuator/health").permitAll()
                     .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                     .requestMatchers("/favicon.ico").permitAll()
@@ -116,6 +119,9 @@ class SecurityConfiguration(
                 }
             }
             
+            // Add rate limiting filter before authentication
+            .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter::class.java)
+            
             // Note: Keeping custom JWT filter for additional processing
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
             
@@ -167,6 +173,7 @@ class SecurityConfiguration(
         val source = UrlBasedCorsConfigurationSource()
         source.registerCorsConfiguration("/v1/**", configuration)
         source.registerCorsConfiguration("/auth/**", configuration)
+        source.registerCorsConfiguration("/api/auth/**", configuration)
         
         return source
     }
