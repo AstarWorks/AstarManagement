@@ -177,7 +177,8 @@ const resetFilters = () => {
     status: [],
     assigneeIds: [],
     tags: [],
-    dateRange: undefined
+    dateRange: undefined,
+    filters: []
   }
   emit('reset')
 }

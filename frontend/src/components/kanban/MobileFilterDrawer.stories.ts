@@ -53,7 +53,8 @@ const mockFilters: FilterState = {
   assigneeIds: [],
   tags: [],
   dateRange: undefined,
-  showCompleted: false
+  showCompleted: false,
+  filters: []
 }
 
 const mockTags = ['Contract', 'Commercial', 'Urgent', 'Review', 'Litigation', 'Settlement', 'Employment', 'Personal Injury', 'Real Estate']
@@ -233,7 +234,8 @@ export const WithActiveFilters: Story = {
         start: new Date('2025-06-01'),
         end: new Date('2025-07-31')
       },
-      showCompleted: false
+      showCompleted: false,
+      filters: []
     },
     availableTags: mockTags,
     availableAssignees: mockAssignees
@@ -381,7 +383,8 @@ export const LandscapeMode: Story = {
       assigneeIds: [],
       tags: ['Contract'],
       dateRange: undefined,
-      showCompleted: false
+      showCompleted: false,
+      filters: []
     },
     availableTags: mockTags,
     availableAssignees: mockAssignees

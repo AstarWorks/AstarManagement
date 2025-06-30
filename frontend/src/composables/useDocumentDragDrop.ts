@@ -57,7 +57,7 @@ export function useDocumentDragDrop() {
     event.dataTransfer!.setData('application/json', JSON.stringify(item))
     
     // Set drag image
-    if (event.dataTransfer!.setDragImage) {
+    if (typeof event.dataTransfer!.setDragImage === 'function') {
       const dragImage = createDragImage(item)
       event.dataTransfer!.setDragImage(dragImage, 20, 20)
       
@@ -136,7 +136,7 @@ export function useDocumentDragDrop() {
         toast({
           title: 'Invalid drop data',
           description: 'Could not process the dropped items',
-          variant: 'destructive'
+          variant: 'error'
         })
         return
       }
@@ -161,7 +161,7 @@ export function useDocumentDragDrop() {
       toast({
         title: 'Failed to move items',
         description: error instanceof Error ? error.message : 'An error occurred',
-        variant: 'destructive'
+        variant: 'error'
       })
     } finally {
       handleDragEnd()

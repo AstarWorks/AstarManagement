@@ -120,7 +120,7 @@
                 v-model="memoForm.subject"
                 placeholder="Enter memo subject..."
                 :class="{ 'border-destructive': formErrors.subject }"
-                maxlength="200"
+                :maxlength="200"
               />
               <p v-if="formErrors.subject" class="text-sm text-destructive mt-1">
                 {{ formErrors.subject }}

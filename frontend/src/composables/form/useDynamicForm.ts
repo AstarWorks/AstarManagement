@@ -149,9 +149,9 @@ export function useDynamicForm(
   // Watch for validation changes
   watch([isValid, globalErrors], ([valid, errors]) => {
     formState.validation.isValid = valid
-    formState.validation.errors = errors || {}
+    formState.validation.errors = (errors || {}) as Record<string, string>
     
-    options.onValidationChange?.(valid, errors || {})
+    options.onValidationChange?.(valid, (errors || {}) as Record<string, string>)
   }, { deep: true })
   
   // Watch for form data changes

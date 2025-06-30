@@ -330,7 +330,7 @@ onMounted(() => {
 
 // Watch for folder selection changes
 watch(currentFolder, (folderId) => {
-  const folder = folderId ? store.findFolderById(folderId) : null
+  const folder = folderId ? store.findFolderById(folderId) ?? null : null
   emit('folder-selected', folder)
 })
 </script>

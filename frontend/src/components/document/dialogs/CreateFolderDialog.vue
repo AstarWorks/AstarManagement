@@ -16,7 +16,7 @@
             id="folder-name"
             v-model="formData.name"
             placeholder="Enter folder name"
-            :class="{ 'border-destructive': errors.name }"
+            :error="errors.name"
             @update:modelValue="() => errors.name = ''"
             :autofocus="true"
           />

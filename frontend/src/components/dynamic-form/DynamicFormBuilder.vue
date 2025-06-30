@@ -162,8 +162,9 @@ const formState = computed(() => ({
 }))
 
 // Event handlers
-const handleSubmit = () => {
-  submitForm(formData.value)
+const handleSubmit = (event?: Event) => {
+  if (event) event.preventDefault()
+  submitForm(event as any)
 }
 
 const handleReset = () => {

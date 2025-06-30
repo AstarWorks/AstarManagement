@@ -38,6 +38,8 @@ export interface Memo {
   createdBy: MemoCreator
   tags: string[]
   attachments: Attachment[]
+  type?: RecipientType
+  isConfidential?: boolean
 }
 
 export interface MemoFilters {

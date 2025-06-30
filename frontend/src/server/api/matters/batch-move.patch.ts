@@ -166,7 +166,7 @@ class MockBatchMoveService {
     }, {} as Record<string, any[]>)
     
     // Calculate positions for each status group
-    Object.entries(operationsByStatus).forEach(([status, ops]) => {
+    Object.entries(operationsByStatus).forEach(([status, ops]: [string, any[]]) => {
       const statusMatters = this.matters
         .filter(m => m.status === status)
         .sort((a, b) => a.position - b.position)

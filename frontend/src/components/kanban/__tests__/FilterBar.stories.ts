@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/vue3'
 import { ref } from 'vue'
-import FilterBar from '../FilterBar.vue'
+import FilterBar from '../KanbanFilterBar.vue'
 import type { FilterState, MatterCard, MatterPriority, MatterStatus } from '~/types/kanban'
 
 // Mock data generators
@@ -88,7 +88,7 @@ type Story = StoryObj<typeof FilterBar>
 
 // Default FilterBar story
 export const Default: Story = {
-  render: (args) => ({
+  render: (args: any) => ({
     components: { FilterBar },
     setup() {
       const matters = ref(generateMockMatters(100))
@@ -98,7 +98,8 @@ export const Default: Story = {
         selectedPriorities: [],
         selectedStatuses: [],
         showClosed: true,
-        searchMode: 'fuzzy'
+        searchMode: 'fuzzy',
+        filters: []
       })
 
       const handleFiltersChanged = (newFilters: FilterState) => {
@@ -145,7 +146,7 @@ export const Default: Story = {
 
 // Large dataset performance test
 export const LargeDataset: Story = {
-  render: (args) => ({
+  render: (args: any) => ({
     components: { FilterBar },
     setup() {
       const matters = ref(generateMockMatters(5000))
@@ -155,7 +156,8 @@ export const LargeDataset: Story = {
         selectedPriorities: [],
         selectedStatuses: [],
         showClosed: true,
-        searchMode: 'fuzzy'
+        searchMode: 'fuzzy',
+        filters: []
       })
 
       const startTime = ref<number>(0)
@@ -223,7 +225,7 @@ export const MobileView: Story = {
       }
     }
   },
-  render: (args) => ({
+  render: (args: any) => ({
     components: { FilterBar },
     setup() {
       const matters = ref(generateMockMatters(50))
@@ -233,7 +235,8 @@ export const MobileView: Story = {
         selectedPriorities: [],
         selectedStatuses: [],
         showClosed: true,
-        searchMode: 'fuzzy'
+        searchMode: 'fuzzy',
+        filters: []
       })
 
       const isMobile = ref(true)
@@ -268,7 +271,7 @@ export const MobileView: Story = {
 
 // Search modes demonstration
 export const SearchModes: Story = {
-  render: (args) => ({
+  render: (args: any) => ({
     components: { FilterBar },
     setup() {
       const matters = ref(generateMockMatters(200))
@@ -278,7 +281,8 @@ export const SearchModes: Story = {
         selectedPriorities: [],
         selectedStatuses: [],
         showClosed: true,
-        searchMode: 'fuzzy'
+        searchMode: 'fuzzy',
+        filters: []
       })
 
       const searchExamples = ref([
@@ -336,7 +340,7 @@ export const SearchModes: Story = {
 
 // Filter persistence demo
 export const FilterPersistence: Story = {
-  render: (args) => ({
+  render: (args: any) => ({
     components: { FilterBar },
     setup() {
       const matters = ref(generateMockMatters(150))
@@ -346,7 +350,8 @@ export const FilterPersistence: Story = {
         selectedPriorities: ['HIGH', 'URGENT'],
         selectedStatuses: ['INITIAL_REVIEW'],
         showClosed: false,
-        searchMode: 'fuzzy'
+        searchMode: 'fuzzy',
+        filters: []
       })
 
       const savedFilters = ref<FilterState[]>([])
@@ -366,7 +371,8 @@ export const FilterPersistence: Story = {
           selectedPriorities: [],
           selectedStatuses: [],
           showClosed: true,
-          searchMode: 'fuzzy'
+          searchMode: 'fuzzy',
+          filters: []
         }
       }
 
@@ -447,7 +453,7 @@ export const AccessibilityDemo: Story = {
       }
     }
   },
-  render: (args) => ({
+  render: (args: any) => ({
     components: { FilterBar },
     setup() {
       const matters = ref(generateMockMatters(80))
@@ -457,7 +463,8 @@ export const AccessibilityDemo: Story = {
         selectedPriorities: [],
         selectedStatuses: [],
         showClosed: true,
-        searchMode: 'fuzzy'
+        searchMode: 'fuzzy',
+        filters: []
       })
 
       const announcements = ref<string[]>([])

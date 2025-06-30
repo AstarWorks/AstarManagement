@@ -294,12 +294,15 @@ const {
   setScale: setGestureScale,
   zoomIn: gestureZoomIn,
   zoomOut: gestureZoomOut
-} = usePdfGestures(pdfContainer as Ref<HTMLElement | null>, {
-  'scale-changed': handleGestureScaleChange,
-  'next-page': nextPage,
-  'prev-page': previousPage,
-  'pan-changed': handlePanChange
-})
+} = usePdfGestures(
+  pdfContainer as Ref<HTMLElement | null>,
+  {
+    'scale-changed': handleGestureScaleChange,
+    'next-page': nextPage,
+    'prev-page': previousPage,
+    'pan-changed': handlePanChange
+  } as any
+)
 
 // Annotations integration
 const {

@@ -417,7 +417,7 @@ const undoFilter = () => {}
 const redoFilter = () => {}
 
 // Current filters computed
-const currentFilters = computed(() => filterState.value)
+const currentFilters = computed(() => filterState.value as FilterState)
 
 // Helper method to update showClosed filter
 const updateShowClosed = (checked: boolean) => {
@@ -654,7 +654,7 @@ const clearAllFilters = () => {
 // Initialize filters
 onMounted(() => {
   if (Object.keys(props.initialFilters).length > 0) {
-    updateFilters(props.initialFilters)
+    updateFilters(props.initialFilters as any)
   }
   
   // Initialize search query from current filters
