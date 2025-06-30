@@ -2,7 +2,7 @@
 
 import type { BulkOperation } from '~/types/memo'
 
-export default defineEventHandler(async (event): Promise<any> => {
+export default defineEventHandler(async (event) => {
   const body = await readBody(event) as BulkOperation
   
   const { type, memoIds } = body

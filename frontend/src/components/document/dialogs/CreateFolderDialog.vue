@@ -17,8 +17,8 @@
             v-model="formData.name"
             placeholder="Enter folder name"
             :class="{ 'border-destructive': errors.name }"
-            @input="errors.name = ''"
-            autofocus
+            @update:modelValue="() => errors.name = ''"
+            :autofocus="true"
           />
           <p v-if="errors.name" class="text-sm text-destructive">
             {{ errors.name }}

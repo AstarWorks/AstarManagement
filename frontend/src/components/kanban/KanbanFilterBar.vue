@@ -552,6 +552,58 @@ onClickOutside(searchInputRef, () => {
   hideSuggestions()
 })
 
+// Multi-select toggle helper functions
+const toggleSelectedLawyer = (lawyerId: string) => {
+  const currentFilters = filterState.value.filters || []
+  const lawyerFilters = currentFilters.filter(f => f.field === 'lawyer')
+  const otherFilters = currentFilters.filter(f => f.field !== 'lawyer')
+  
+  const isSelected = lawyerFilters.some(f => f.value === lawyerId)
+  
+  let newLawyerFilters = []
+  if (isSelected) {
+    newLawyerFilters = lawyerFilters.filter(f => f.value !== lawyerId)
+  } else {
+    newLawyerFilters = [...lawyerFilters, { field: 'lawyer', operator: 'equals' as const, value: lawyerId }]
+  }
+  
+  updateFilters({ filters: [...otherFilters, ...newLawyerFilters] })
+}
+
+const toggleSelectedPriority = (priority: Priority) => {
+  const currentFilters = filterState.value.filters || []
+  const priorityFilters = currentFilters.filter(f => f.field === 'priority')
+  const otherFilters = currentFilters.filter(f => f.field !== 'priority')
+  
+  const isSelected = priorityFilters.some(f => f.value === priority)
+  
+  let newPriorityFilters = []
+  if (isSelected) {
+    newPriorityFilters = priorityFilters.filter(f => f.value !== priority)
+  } else {
+    newPriorityFilters = [...priorityFilters, { field: 'priority', operator: 'equals' as const, value: priority }]
+  }
+  
+  updateFilters({ filters: [...otherFilters, ...newPriorityFilters] })
+}
+
+const toggleSelectedStatus = (status: MatterStatus) => {
+  const currentFilters = filterState.value.filters || []
+  const statusFilters = currentFilters.filter(f => f.field === 'status')
+  const otherFilters = currentFilters.filter(f => f.field !== 'status')
+  
+  const isSelected = statusFilters.some(f => f.value === status)
+  
+  let newStatusFilters = []
+  if (isSelected) {
+    newStatusFilters = statusFilters.filter(f => f.value !== status)
+  } else {
+    newStatusFilters = [...statusFilters, { field: 'status', operator: 'equals' as const, value: status }]
+  }
+  
+  updateFilters({ filters: [...otherFilters, ...newStatusFilters] })
+}
+
 // Multi-select toggle functions
 const toggleLawyer = (lawyerId: string, checked: boolean) => {
   toggleSelectedLawyer(lawyerId)
@@ -606,7 +658,7 @@ onMounted(() => {
   }
   
   // Initialize search query from current filters
-  searchQuery.value = currentFilters.value.searchQuery
+  searchQuery.value = currentFilters.value.quickSearch || ''
 })
 </script>
 

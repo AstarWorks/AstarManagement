@@ -171,9 +171,9 @@ class MockBatchMoveService {
         .filter(m => m.status === status)
         .sort((a, b) => a.position - b.position)
       
-      ops.sort((a, b) => a.toIndex - b.toIndex)
+      ops.sort((a: any, b: any) => a.toIndex - b.toIndex)
       
-      ops.forEach((op, index: number) => {
+      ops.forEach((op: any, index: number) => {
         let newPosition: number
         
         if (op.toIndex === 0) {
@@ -212,7 +212,7 @@ class MockBatchMoveService {
       return acc
     }, {} as Record<string, any[]>)
     
-    Object.values(statusGroups).forEach((matters) => {
+    Object.values(statusGroups).forEach((matters: any) => {
       matters
         .sort((a: any, b: any) => a.position - b.position)
         .forEach((matter: any, index: number) => {

@@ -5,7 +5,8 @@ import type {
   BatchOperation, 
   FolderCreateInput, 
   FolderUpdateInput,
-  FolderPath 
+  FolderPath,
+  DraggedItem 
 } from '~/types/folder'
 import type { Document } from '~/types/document'
 

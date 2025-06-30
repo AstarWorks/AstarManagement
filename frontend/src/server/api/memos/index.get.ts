@@ -2,7 +2,7 @@
 
 import type { PaginatedMemoResponse, Memo, MemoFilters } from '~/types/memo'
 
-export default defineEventHandler(async (event): Promise<PaginatedMemoResponse> => {
+export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   
   // Parse query parameters

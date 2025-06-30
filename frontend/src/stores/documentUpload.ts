@@ -14,9 +14,9 @@ export const useDocumentUploadStore = defineStore('documentUpload', () => {
   const queue = ref<UploadItem[]>([])
   const activeUploads = ref<Map<string, AbortController>>(new Map())
   const options = ref<DocumentUploadOptions>({
-    maxFileSize: 50 * 1024 * 1024, // 50MB
+    maxSize: 50 * 1024 * 1024, // 50MB
     maxConcurrentUploads: 3,
-    acceptedFileTypes: [
+    allowedTypes: [
       'application/pdf',
       'application/msword',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -69,8 +69,8 @@ export const useDocumentUploadStore = defineStore('documentUpload', () => {
       status: 'pending' as UploadStatus,
       progress: 0,
       speed: 0,
-      timeRemaining: null,
-      error: null,
+      timeRemaining: undefined,
+      error: undefined,
       metadata: {
         title: file.name.replace(/\.[^/.]+$/, ''), // Remove file extension
         description: '',
@@ -139,7 +139,7 @@ export const useDocumentUploadStore = defineStore('documentUpload', () => {
     
     // Update status
     item.status = 'paused'
-    item.pausedAt = Date.now()
+    item.pausedAt = new Date()
     persistQueue()
   }
   
@@ -160,7 +160,7 @@ export const useDocumentUploadStore = defineStore('documentUpload', () => {
     
     // Reset status and error
     item.status = 'pending'
-    item.error = null
+    item.error = undefined
     item.progress = 0
     persistQueue()
     processQueue()
@@ -202,7 +202,7 @@ export const useDocumentUploadStore = defineStore('documentUpload', () => {
     const pending = queue.value.filter(item => item.status === 'pending')
     const uploading = queue.value.filter(item => item.status === 'uploading')
     
-    const slotsAvailable = options.value.maxConcurrentUploads - uploading.length
+    const slotsAvailable = (options.value.maxConcurrentUploads || 3) - uploading.length
     const toUpload = pending.slice(0, slotsAvailable)
     
     for (const item of toUpload) {
@@ -213,7 +213,7 @@ export const useDocumentUploadStore = defineStore('documentUpload', () => {
   const uploadFile = async (item: UploadItem) => {
     // Mark as uploading
     item.status = 'uploading'
-    item.startTime = Date.now()
+    item.startTime = new Date()
     
     const formData = new FormData()
     formData.append('file', item.file)
@@ -251,7 +251,7 @@ export const useDocumentUploadStore = defineStore('documentUpload', () => {
       item.documentId = response.id
       item.progress = 100
       item.speed = 0
-      item.timeRemaining = null
+      item.timeRemaining = undefined
       
       // Process next in queue
       processQueue()
@@ -268,8 +268,8 @@ export const useDocumentUploadStore = defineStore('documentUpload', () => {
         item.error = error instanceof Error ? error.message : 'Upload failed'
         
         // Auto-retry if enabled
-        if (options.value.autoRetry && item.retryCount < options.value.maxRetries) {
-          item.retryCount++
+        if (options.value.autoRetry && (item.retryCount || 0) < (options.value.maxRetries || 3)) {
+          item.retryCount = (item.retryCount || 0) + 1
           
           // Exponential backoff
           const retryDelay = Math.pow(2, item.retryCount) * 1000

@@ -61,8 +61,6 @@ export type DocumentCategory =
   | 'contract'
   | 'correspondence'
   | 'evidence'
-  | 'pleading'
-  | 'research'
   | 'court_filing'
   | 'other'
 
