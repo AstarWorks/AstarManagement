@@ -250,7 +250,7 @@ import { Button } from '~/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert'
 
 // Composables
-import { useDocumentGeneration } from '~/composables/document-generation/useDocumentGeneration'
+import { useDocumentGeneration, trackJobProgress } from '~/composables/document-generation/useDocumentGeneration'
 import { formatDateTime } from '~/utils/helpers'
 import { formatDuration } from '~/utils/formatters'
 
@@ -282,7 +282,6 @@ const showErrorDetails = ref(false)
 
 // Progress tracking
 const { 
-  trackJobProgress, 
   cancelGenerationJob, 
   retryGenerationJob,
   downloadGenerationResult
@@ -323,7 +322,7 @@ const statusIconClass = computed(() => {
 const statusVariant = computed(() => {
   switch (jobProgress.value?.status) {
     case 'processing': return 'default'
-    case 'completed': return 'success'
+    case 'completed': return 'default' // success variant doesn't exist
     case 'failed': return 'destructive'
     case 'cancelled': return 'secondary'
     default: return 'outline'

@@ -494,8 +494,8 @@ const generateDocuments = async () => {
   } catch (error) {
     toast({
       title: 'Generation Failed',
-      description: error.message || 'Failed to start document generation',
-      variant: 'destructive'
+      description: (error as Error).message || 'Failed to start document generation',
+      variant: 'destructive' as any
     })
   }
 }
@@ -504,7 +504,7 @@ const handlePreviewError = (error: string) => {
   toast({
     title: 'Preview Error',
     description: error,
-    variant: 'destructive'
+    variant: 'destructive' as any
   })
 }
 
@@ -519,7 +519,7 @@ const handleJobError = (jobId: string, error: string) => {
   toast({
     title: 'Generation Failed',
     description: error,
-    variant: 'destructive'
+    variant: 'destructive' as any
   })
 }
 

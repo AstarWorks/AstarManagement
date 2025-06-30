@@ -288,7 +288,7 @@ import { Badge } from '~/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 
 // Utils
-import { formatRelativeTime } from '~/utils/helpers'
+import { formatRelativeTime } from '~/utils/formatters'
 
 // Types
 interface Matter {

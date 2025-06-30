@@ -259,12 +259,12 @@ export function useDocumentPreview() {
     })
 
     // Handle conditional blocks (simplified)
-    content = content.replace(/{{#if\s+(\w+)}}([\s\S]*?){{\/if}}/g, (match, condition, innerContent) => {
+    content = content.replace(/{{#if\s+(\w+)}}([\s\S]*?){{\/if}}/g, (match: string, condition: string, innerContent: string) => {
       return variables[condition] ? innerContent : ''
     })
 
     // Handle each blocks (simplified)
-    content = content.replace(/{{#each\s+(\w+)}}([\s\S]*?){{\/each}}/g, (match, arrayName, itemTemplate) => {
+    content = content.replace(/{{#each\s+(\w+)}}([\s\S]*?){{\/each}}/g, (match: string, arrayName: string, itemTemplate: string) => {
       const array = variables[arrayName]
       if (!Array.isArray(array)) return ''
       
@@ -307,7 +307,7 @@ export function useDocumentPreview() {
 
     // Get mock template data
     const templateKey = `template-${request.templateId.split('-').pop() || '1'}`
-    const templateData = mockTemplateData[templateKey] || mockTemplateData['template-1']
+    const templateData = mockTemplateData[templateKey as keyof typeof mockTemplateData] || mockTemplateData['template-1']
 
     let content: string
     let variableCount: number

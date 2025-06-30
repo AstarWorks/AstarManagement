@@ -21,8 +21,8 @@ This project follows a milestone-based development approach.
 
 - **Milestone:** M01 - Matter Management MVP
 - **Sprint:** S13 - Communication & Documents UI
-- **Current Task:** T10C_S13 - Conditional Logic and Validation (completed)
-- **Updated:** 2025-06-30 09:55
+- **Current Task:** T11_S13 - Document Generation Engine (in_progress)
+- **Updated:** 2025-06-30 10:51
 
 ## 3. Sprints in Current Milestone
 

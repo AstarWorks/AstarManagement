@@ -345,7 +345,8 @@ import {
 } from '~/components/ui/dropdown-menu'
 
 // Utils
-import { formatDateTime, formatRelativeTime } from '~/utils/helpers'
+import { formatDateTime } from '~/utils/helpers'
+import { formatRelativeTime } from '~/utils/formatters'
 
 // Types
 interface GenerationHistory {

@@ -81,7 +81,7 @@
       
       <div class="preview-status">
         <div class="text-xs text-muted-foreground">
-          {{ lastRefresh ? `Updated ${formatTimeAgo(lastRefresh)}` : 'Never updated' }}
+          {{ lastRefresh ? `Updated ${formatRelativeTime(lastRefresh)}` : 'Never updated' }}
         </div>
         
         <div v-if="previewStats" class="text-xs text-muted-foreground">
@@ -222,7 +222,7 @@ import DocumentStructuredPreview from './DocumentStructuredPreview.vue'
 
 // Composables
 import { useDocumentPreview } from '~/composables/document-generation/useDocumentPreview'
-import { formatTimeAgo } from '~/utils/formatters'
+import { formatRelativeTime } from '~/utils/formatters'
 
 // Props
 interface Props {
