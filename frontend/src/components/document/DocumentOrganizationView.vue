@@ -91,7 +91,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, toRefs } from 'vue'
 import { ChevronLeft } from 'lucide-vue-next'
 
 // Components
@@ -110,6 +110,7 @@ import { useDocumentListView } from '~/composables/useDocumentListView'
 
 // Store
 import { useDocumentOrganizationStore } from '~/stores/documentOrganization'
+import { storeToRefs } from 'pinia'
 
 // Types
 import type { Document, DocumentAction } from '~/types/document'
@@ -172,7 +173,7 @@ const someSelected = computed(() => {
 // Re-export batch operation state for templates
 const {
   showConfirmDialog,
-  showFolderSelectorDialog,
+  showFolderSelector: showFolderSelectorDialog,
   confirmOptions,
   folderSelectorOptions
 } = toRefs(batchOps)

@@ -40,6 +40,7 @@ export const useDocumentUploadStore = defineStore('documentUpload', () => {
       pending: statuses.pending || 0,
       uploading: statuses.uploading || 0,
       completed: statuses.completed || 0,
+      error: statuses.error || 0,
       failed: statuses.failed || 0,
       cancelled: statuses.cancelled || 0,
       paused: statuses.paused || 0

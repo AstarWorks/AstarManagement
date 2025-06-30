@@ -116,6 +116,7 @@ import {
 
 // Store
 import { useDocumentOrganizationStore } from '~/stores/documentOrganization'
+import { storeToRefs } from 'pinia'
 
 // Types
 import type { FolderPath } from '~/types/folder'

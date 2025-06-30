@@ -107,6 +107,7 @@ import { ScrollArea } from '~/components/ui/scroll-area'
 
 // Store
 import { useDocumentOrganizationStore } from '~/stores/documentOrganization'
+import { storeToRefs } from 'pinia'
 
 // Components
 import FolderSelectorNode from './FolderSelectorNode.vue'

@@ -21,8 +21,8 @@ This project follows a milestone-based development approach.
 
 - **Milestone:** M01 - Matter Management MVP
 - **Sprint:** S13 - Communication & Documents UI
-- **Current Task:** T11_S13 - Document Generation Engine (in_progress)
-- **Updated:** 2025-06-30 10:51
+- **Current Task:** T012 - Nuxt TypeScript Error Resolution (in_progress) 
+- **Updated:** 2025-06-30 11:41
 
 ## 3. Sprints in Current Milestone
 

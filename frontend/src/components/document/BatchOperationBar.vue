@@ -164,6 +164,7 @@ import {
 
 // Store
 import { useDocumentOrganizationStore } from '~/stores/documentOrganization'
+import { storeToRefs } from 'pinia'
 
 // Types
 import type { Document } from '~/types/document'

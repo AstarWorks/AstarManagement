@@ -57,6 +57,15 @@ export type DocumentAction =
   | 'properties'
   | 'version-history'
 
+export type DocumentCategory = 
+  | 'contract'
+  | 'correspondence'
+  | 'evidence'
+  | 'pleading'
+  | 'research'
+  | 'court_filing'
+  | 'other'
+
 export interface DocumentListOptions {
   matterId?: string
   pageSize?: number
@@ -85,9 +94,16 @@ export interface UploadItem {
   file: File
   matterId?: string
   progress: number
-  status: 'pending' | 'uploading' | 'completed' | 'error'
+  status: UploadStatus
   error?: string
   result?: Document
+  pausedAt?: Date
+  startTime?: Date
+  speed?: number
+  timeRemaining?: number
+  documentId?: string
+  retryCount?: number
+  metadata?: UploadMetadata
 }
 
 export interface UploadMetadata {
@@ -96,16 +112,19 @@ export interface UploadMetadata {
   description?: string
 }
 
-export type UploadStatus = 'pending' | 'uploading' | 'completed' | 'error'
+export type UploadStatus = 'pending' | 'uploading' | 'completed' | 'error' | 'failed' | 'paused' | 'cancelled'
 
 export interface UploadQueueStats {
   total: number
   pending: number
   uploading: number
   completed: number
+  error: number
   failed: number
-  totalSize: number
-  uploadedSize: number
+  paused: number
+  cancelled: number
+  totalSize?: number
+  uploadedSize?: number
 }
 
 export interface DocumentUploadOptions {
@@ -115,6 +134,9 @@ export interface DocumentUploadOptions {
   allowedTypes?: string[]
   maxSize?: number
   concurrent?: number
+  maxConcurrentUploads?: number
+  autoRetry?: boolean
+  maxRetries?: number
 }
 
 // Mock data interfaces for development

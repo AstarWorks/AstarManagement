@@ -125,7 +125,7 @@ const canRemove = computed(() =>
         </h4>
         <div class="flex items-center gap-2 text-xs text-muted-foreground">
           <span>{{ formatFileSize(item.file.size) }}</span>
-          <span v-if="item.status === 'uploading' && item.speed > 0">
+          <span v-if="item.status === 'uploading' && item.speed && item.speed > 0">
             • {{ formatUploadSpeed(item.speed) }}
           </span>
           <span v-if="item.status === 'uploading' && item.timeRemaining">
@@ -218,7 +218,7 @@ const canRemove = computed(() =>
     <div v-if="item.status === 'failed'" class="flex items-center gap-2 text-xs text-destructive">
       <AlertCircle class="w-4 h-4" />
       <span>{{ item.error || 'Upload failed' }}</span>
-      <span v-if="item.retryCount > 0" class="text-muted-foreground">
+      <span v-if="item.retryCount && item.retryCount > 0" class="text-muted-foreground">
         (Retry {{ item.retryCount }}/3)
       </span>
     </div>

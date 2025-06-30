@@ -162,6 +162,7 @@ import { Separator } from '~/components/ui/separator'
 
 // Store
 import { useDocumentOrganizationStore } from '~/stores/documentOrganization'
+import { storeToRefs } from 'pinia'
 
 // Components
 import FolderNode from './FolderNode.vue'

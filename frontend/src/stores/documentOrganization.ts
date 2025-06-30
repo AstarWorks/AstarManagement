@@ -349,15 +349,17 @@ export const useDocumentOrganizationStore = defineStore('document-organization',
     }
   }
 
-  function selectFolder(folderId: string) {
+  function selectFolder(folderId: string | null) {
     currentFolderId.value = folderId
     
-    // Add to recent folders
-    const index = recentFolders.value.indexOf(folderId)
-    if (index > -1) {
-      recentFolders.value.splice(index, 1)
+    // Add to recent folders (only if not null)
+    if (folderId) {
+      const index = recentFolders.value.indexOf(folderId)
+      if (index > -1) {
+        recentFolders.value.splice(index, 1)
+      }
+      recentFolders.value.unshift(folderId)
     }
-    recentFolders.value.unshift(folderId)
     
     // Keep only last 10 recent folders
     if (recentFolders.value.length > 10) {
