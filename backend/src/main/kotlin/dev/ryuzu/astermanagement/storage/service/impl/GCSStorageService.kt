@@ -194,7 +194,7 @@ class GCSStorageService(
                 lastModified = blob.updateTimeOffsetDateTime?.toLocalDateTime() 
                     ?: blob.createTimeOffsetDateTime?.toLocalDateTime() 
                     ?: LocalDateTime.now(),
-                metadata = blob.metadata ?: emptyMap(),
+                metadata = blob.metadata?.filterValues { it != null }?.mapValues { it.value!! } ?: emptyMap(),
                 dataStream = stream,
                 providerMetadata = mapOf(
                     "provider" to "GCS",
@@ -377,8 +377,8 @@ class GCSStorageService(
                 lastModified = blob.updateTimeOffsetDateTime?.toLocalDateTime() 
                     ?: blob.createTimeOffsetDateTime?.toLocalDateTime() 
                     ?: LocalDateTime.now(),
-                createdAt = blob.createTime?.let { LocalDateTime.ofInstant(it.toInstant(), ZoneOffset.UTC) },
-                customMetadata = blob.metadata ?: emptyMap(),
+                createdAt = blob.createTimeOffsetDateTime?.toLocalDateTime(),
+                customMetadata = blob.metadata?.filterValues { it != null }?.mapValues { it.value!! } ?: emptyMap(),
                 systemMetadata = mapOf(
                     "provider" to "GCS",
                     "generation" to (blob.generation?.toString() ?: ""),
@@ -473,8 +473,10 @@ class GCSStorageService(
             size = blob.size ?: 0,
             contentType = blob.contentType ?: "application/octet-stream",
             etag = blob.etag ?: "",
-            lastModified = LocalDateTime.ofInstant(blob.updateTime?.toInstant() ?: blob.createTime?.toInstant(), ZoneOffset.UTC) ?: LocalDateTime.now(),
-            metadata = blob.metadata ?: emptyMap(),
+            lastModified = blob.updateTimeOffsetDateTime?.toLocalDateTime() 
+                ?: blob.createTimeOffsetDateTime?.toLocalDateTime() 
+                ?: LocalDateTime.now(),
+            metadata = blob.metadata?.filterValues { it != null }?.mapValues { it.value!! } ?: emptyMap(),
             isDirectory = blob.isDirectory,
             storageClass = blob.storageClass?.toString(),
             versionId = blob.generation?.toString(),
@@ -490,7 +492,7 @@ class GCSStorageService(
     /**
      * Handle GCS-specific exceptions
      */
-    private fun handleGCSException(e: Exception, operation: String, resource: String): StorageException {
+    private fun handleGCSException(e: Exception, operation: String, resource: String): dev.ryuzu.astermanagement.storage.exception.StorageException {
         return StorageGenericException(operation, "GCS error: ${e.message}", e)
     }
 
