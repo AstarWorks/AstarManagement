@@ -5,6 +5,7 @@ import dev.ryuzu.astermanagement.config.SecurityAuditEventListener
 import dev.ryuzu.astermanagement.domain.user.User
 import dev.ryuzu.astermanagement.domain.user.UserRepository
 import dev.ryuzu.astermanagement.dto.auth.*
+import dev.ryuzu.astermanagement.security.twofa.service.TwoFactorAuthenticationService
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.BadCredentialsException
@@ -30,19 +31,23 @@ class AuthenticationService(
     private val passwordEncoder: PasswordEncoder,
     private val redisTemplate: RedisTemplate<String, String>,
     private val securityAuditEventListener: SecurityAuditEventListener,
-    private val jwtConfiguration: JwtConfiguration
+    private val jwtConfiguration: JwtConfiguration,
+    private val twoFactorAuthenticationService: TwoFactorAuthenticationService
 ) {
 
     companion object {
         private const val REFRESH_TOKEN_PREFIX = "refresh_token:"
         private const val USER_SESSION_PREFIX = "user_session:"
         private const val ACTIVE_SESSIONS_PREFIX = "active_sessions:"
+        private const val TWO_FACTOR_SESSION_PREFIX = "2fa_session:"
+        private const val TWO_FACTOR_SESSION_DURATION_SECONDS = 300L // 5 minutes
     }
 
     /**
      * Authenticates user with email and password
+     * Returns either AuthenticationResponse or TwoFactorRequiredResponse
      */
-    fun authenticate(request: LoginRequest): AuthenticationResponse {
+    fun authenticate(request: LoginRequest): Any {
         return try {
             // Authenticate with Spring Security
             val authentication = authenticationManager.authenticate(
@@ -53,32 +58,23 @@ class AuthenticationService(
             val user = userRepository.findByEmail(request.email)
                 ?: throw BadCredentialsException("User not found")
             
-            // Generate tokens
-            val accessToken = jwtService.generateAccessToken(user)
-            val refreshToken = jwtService.generateRefreshToken(user)
-            
-            // Store refresh token in Redis
-            storeRefreshToken(user.id!!, refreshToken)
-            
-            // Create user session
-            createUserSession(user.id!!, request.email, accessToken)
-            
-            // Audit log success
-            securityAuditEventListener.recordJwtValidation(user.id!!, user.email, true)
-            
-            AuthenticationResponse(
-                accessToken = accessToken,
-                refreshToken = refreshToken,
-                tokenType = "Bearer",
-                expiresIn = jwtConfiguration.getJwtExpiration().seconds,
-                user = UserInfoResponse(
-                    id = user.id!!,
-                    email = user.email,
-                    name = "${user.firstName} ${user.lastName}",
-                    role = user.role.name,
-                    permissions = jwtService.getUserPermissions(user)
+            // Check if user has 2FA enabled
+            if (twoFactorAuthenticationService.isTwoFactorEnabled(user.id!!)) {
+                // Create temporary session token for 2FA verification
+                val sessionToken = createTwoFactorSessionToken(user.id!!)
+                
+                // Audit log partial success
+                securityAuditEventListener.recordJwtValidation(user.id!!, user.email, true, "2FA required")
+                
+                return TwoFactorRequiredResponse(
+                    sessionToken = sessionToken,
+                    twoFactorMethod = "TOTP",
+                    expiresIn = TWO_FACTOR_SESSION_DURATION_SECONDS
                 )
-            )
+            }
+            
+            // No 2FA - proceed with normal authentication
+            return generateAuthenticationResponse(user)
         } catch (e: BadCredentialsException) {
             // Audit log failure
             val userId = userRepository.findByEmail(request.email)?.id
@@ -276,5 +272,95 @@ class AuthenticationService(
     fun getUserInfo(userId: UUID): User {
         return userRepository.findById(userId)
             .orElseThrow { BadCredentialsException("User not found") }
+    }
+    
+    /**
+     * Completes authentication after successful 2FA verification
+     */
+    fun completeTwoFactorAuthentication(userId: UUID, sessionToken: String): AuthenticationResponse {
+        // Validate session token
+        val storedUserId = validateTwoFactorSessionToken(sessionToken)
+        if (storedUserId != userId) {
+            throw BadCredentialsException("Invalid session token")
+        }
+        
+        // Get user from database
+        val user = userRepository.findById(userId).orElseThrow {
+            BadCredentialsException("User not found")
+        }
+        
+        // Remove temporary session token
+        removeTwoFactorSessionToken(sessionToken)
+        
+        // Generate authentication response
+        return generateAuthenticationResponse(user)
+    }
+    
+    /**
+     * Creates temporary session token for 2FA verification
+     */
+    private fun createTwoFactorSessionToken(userId: UUID): String {
+        val sessionToken = "${userId}:${UUID.randomUUID()}"
+        val key = "$TWO_FACTOR_SESSION_PREFIX$sessionToken"
+        
+        redisTemplate.opsForValue().set(
+            key,
+            userId.toString(),
+            TWO_FACTOR_SESSION_DURATION_SECONDS,
+            TimeUnit.SECONDS
+        )
+        
+        return sessionToken
+    }
+    
+    /**
+     * Validates and retrieves user ID from 2FA session token
+     */
+    private fun validateTwoFactorSessionToken(sessionToken: String): UUID {
+        val key = "$TWO_FACTOR_SESSION_PREFIX$sessionToken"
+        val userIdStr = redisTemplate.opsForValue().get(key)
+            ?: throw BadCredentialsException("Invalid or expired session token")
+        
+        return UUID.fromString(userIdStr)
+    }
+    
+    /**
+     * Removes 2FA session token after successful verification
+     */
+    private fun removeTwoFactorSessionToken(sessionToken: String) {
+        val key = "$TWO_FACTOR_SESSION_PREFIX$sessionToken"
+        redisTemplate.delete(key)
+    }
+    
+    /**
+     * Generates standard authentication response with tokens
+     */
+    private fun generateAuthenticationResponse(user: User): AuthenticationResponse {
+        // Generate tokens
+        val accessToken = jwtService.generateAccessToken(user)
+        val refreshToken = jwtService.generateRefreshToken(user)
+        
+        // Store refresh token in Redis
+        storeRefreshToken(user.id!!, refreshToken)
+        
+        // Create user session
+        createUserSession(user.id!!, user.email, accessToken)
+        
+        // Audit log success
+        securityAuditEventListener.recordJwtValidation(user.id!!, user.email, true)
+        
+        return AuthenticationResponse(
+            accessToken = accessToken,
+            refreshToken = refreshToken,
+            tokenType = "Bearer",
+            expiresIn = jwtConfiguration.getJwtExpiration().seconds,
+            user = UserInfoResponse(
+                id = user.id!!,
+                email = user.email,
+                name = "${user.firstName} ${user.lastName}",
+                role = user.role.name,
+                permissions = jwtService.getUserPermissions(user)
+            )
+        )
     }
 }

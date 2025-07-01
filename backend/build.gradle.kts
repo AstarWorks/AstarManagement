@@ -60,6 +60,11 @@ dependencies {
     implementation("org.springframework.modulith:spring-modulith-starter-jpa")
     implementation("org.springframework.session:spring-session-data-redis")
     
+    // Two-Factor Authentication
+    implementation("com.warrenstrange:googleauth:1.5.0")  // TOTP implementation
+    implementation("com.google.zxing:core:3.5.2")         // QR code generation
+    implementation("com.google.zxing:javase:3.5.2")       // QR code image processing
+    
     // Development
 //    developmentOnly("org.springframework.boot:spring-boot-devtools")
     developmentOnly("org.springframework.boot:spring-boot-docker-compose")

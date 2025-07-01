@@ -51,14 +51,22 @@ class AuthenticationController(
             description = "Authentication successful",
             content = [Content(schema = Schema(implementation = AuthenticationResponse::class))]
         ),
+        ApiResponse(
+            responseCode = "428",
+            description = "Two-factor authentication required",
+            content = [Content(schema = Schema(implementation = TwoFactorRequiredResponse::class))]
+        ),
         ApiResponse(responseCode = "400", description = "Invalid request data"),
         ApiResponse(responseCode = "401", description = "Invalid credentials"),
         ApiResponse(responseCode = "429", description = "Too many authentication attempts")
     )
-    fun login(@Valid @RequestBody request: LoginRequest): ResponseEntity<AuthenticationResponse> {
+    fun login(@Valid @RequestBody request: LoginRequest): ResponseEntity<Any> {
         return try {
-            val response = authenticationService.authenticate(request)
-            ok(response)
+            when (val response = authenticationService.authenticate(request)) {
+                is AuthenticationResponse -> ok(response)
+                is TwoFactorRequiredResponse -> ResponseEntity.status(428).body(response)
+                else -> throw IllegalStateException("Unexpected response type")
+            }
         } catch (e: BadCredentialsException) {
             throw dev.ryuzu.astermanagement.service.exception.UnauthorizedException("Invalid credentials")
         }

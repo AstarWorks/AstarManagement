@@ -4,7 +4,7 @@ current_milestone_id: M01
 highest_sprint_in_milestone: S14
 current_sprint_id: S13
 status: active
-last_updated: 2025-06-29 17:20
+last_updated: 2025-06-30 23:43
 ---
 
 # Project Manifest: Aster Management
@@ -105,9 +105,9 @@ Implement JWT-based authentication with Discord-style RBAC system and secure ses
 - ✅ T01_S06: Spring Security Configuration - Medium complexity (COMPLETED)
 - ✅ T02_S06: Authentication Service Implementation - Medium complexity (COMPLETED)  
 - ✅ T03_S06: Authentication API Endpoints - Medium complexity (COMPLETED)
-- 📋 T04A_S06: RBAC Models and Entities - Medium complexity
+- 🚧 T04A_S06: RBAC Models and Entities - Medium complexity (IN PROGRESS)
 - 📋 T04B_S06: Permission Evaluation and Method Security - Medium complexity
-- 📋 T05_S06: Two-Factor Authentication - Medium complexity
+- ✅ T05_S06: Two-Factor Authentication - Medium complexity (COMPLETED)
 - 📋 T06_S06: Session Management with Redis - Medium complexity
 - 📋 T07_S06: Frontend Authentication Integration - Medium complexity
 - 📋 T08_S06: Security Testing and Hardening - Medium complexity

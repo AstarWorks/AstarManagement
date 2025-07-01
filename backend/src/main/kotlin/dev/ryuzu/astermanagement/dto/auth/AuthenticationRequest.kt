@@ -110,3 +110,21 @@ data class LogoutRequest(
     @Schema(description = "Optional: Revoke all sessions for the user", example = "false")
     val revokeAllSessions: Boolean = false
 )
+
+/**
+ * Two-factor authentication required response
+ */
+@Schema(description = "Response when 2FA verification is required")
+data class TwoFactorRequiredResponse(
+    @Schema(description = "Message indicating 2FA is required")
+    val message: String = "Two-factor authentication required",
+    
+    @Schema(description = "Temporary session token for 2FA verification")
+    val sessionToken: String,
+    
+    @Schema(description = "Type of 2FA required", example = "TOTP")
+    val twoFactorMethod: String = "TOTP",
+    
+    @Schema(description = "Expires in seconds", example = "300")
+    val expiresIn: Long = 300
+)
