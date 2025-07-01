@@ -50,6 +50,10 @@ dependencies {
     
     // Rate Limiting - Using Redis-based simple implementation
     
+    // Storage Providers
+    implementation("io.minio:minio:8.5.12")                    // MinIO Java SDK
+    implementation("com.google.cloud:google-cloud-storage:2.42.0") // Google Cloud Storage SDK
+    
     // Spring AI - Commented out to resolve Vertex AI configuration issues
     // implementation("org.springframework.ai:spring-ai-pdf-document-reader")
     // implementation("org.springframework.ai:spring-ai-starter-model-vertex-ai-embedding")
