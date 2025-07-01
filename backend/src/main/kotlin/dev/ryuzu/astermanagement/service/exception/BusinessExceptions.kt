@@ -16,6 +16,21 @@ abstract class BusinessException(
 class MatterNotFoundException(id: UUID) : BusinessException("Matter not found: $id")
 
 /**
+ * Exception thrown when a user is not found
+ */
+class UserNotFoundException(username: String) : BusinessException("User not found: $username")
+
+/**
+ * Exception thrown when file validation fails
+ */
+class InvalidFileException(message: String) : BusinessException(message)
+
+/**
+ * Exception thrown when document is not available for operation
+ */
+class DocumentNotAvailableException(message: String) : BusinessException(message)
+
+/**
  * Exception thrown when an invalid status transition is attempted
  */
 class InvalidStatusTransitionException(
