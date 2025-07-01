@@ -41,6 +41,7 @@
       ref="pdfContainer"
       @wheel="handleWheel"
       @keydown="handleKeydown"
+      @scroll="handleScroll"
       tabindex="0"
       role="document"
       :aria-label="`PDF document with ${totalPages} pages, currently on page ${currentPage}`"
@@ -183,7 +184,7 @@ import PdfAnnotationLayer from './PdfAnnotationLayer.vue'
 import PdfMobileControls from './PdfMobileControls.vue'
 
 // Composables
-import { usePdfViewer } from '~/composables/usePdfViewer'
+import { useEnhancedPdfViewer } from '~/composables/useEnhancedPdfViewer'
 import { usePdfGestures } from '~/composables/usePdfGestures'
 import { usePdfAnnotations } from '~/composables/usePdfAnnotations'
 import { usePdfFullscreen } from '~/composables/usePdfFullscreen'
@@ -249,30 +250,95 @@ const emit = defineEmits<Emits>()
 // Mobile detection
 const { isMobile } = useIsMobile()
 
-// PDF viewer composable
+// Enhanced PDF viewer composable with performance optimizations
 const {
-  pdfDocument,
-  loading,
-  error,
-  currentPage,
-  scale,
-  totalPages,
-  visiblePages,
+  enhancedState,
+  isLoading,
+  hasError,
+  canGoNext,
+  canGoPrevious,
   loadDocument,
+  clearDocument,
   renderPage,
   goToPage,
-  nextPage,
-  previousPage,
-  zoomIn: baseZoomIn,
-  zoomOut: baseZoomOut,
+  currentPage,
+  totalPages,
+  visiblePageNumbers,
+  updateViewport,
+  handleTouchEvent,
   setScale,
-  zoomToFit,
-  zoomToWidth,
-  clearInvisibleCanvases,
-  destroy,
-  MIN_SCALE,
-  MAX_SCALE
-} = usePdfViewer()
+  scale,
+  getPerformanceReport,
+  adaptiveQuality,
+  isOptimized,
+  streaming,
+  virtualScrolling,
+  mobileOptimization,
+  performanceMonitor
+} = useEnhancedPdfViewer()
+
+// Extract individual properties for backward compatibility
+const loading = computed(() => isLoading.value)
+const error = computed(() => enhancedState.value.error)
+const visiblePages = computed(() => visiblePageNumbers.value)
+
+// Zoom controls - use enhanced PDF viewer's built-in methods
+const baseZoomIn = async () => {
+  const newScale = Math.min(MAX_SCALE, scale.value * 1.25)
+  await setScale(newScale)
+}
+
+const baseZoomOut = async () => {
+  const newScale = Math.max(MIN_SCALE, scale.value / 1.25)
+  await setScale(newScale)
+}
+
+// Navigation methods
+const nextPage = async () => {
+  if (canGoNext.value) {
+    await goToPage(currentPage.value + 1)
+  }
+}
+
+const previousPage = async () => {
+  if (canGoPrevious.value) {
+    await goToPage(currentPage.value - 1)
+  }
+}
+
+// Zoom operations
+const zoomToFit = () => {
+  if (!pdfContainer.value) return
+  const rect = pdfContainer.value.getBoundingClientRect()
+  // Calculate fit scale based on container dimensions
+  const fitScale = Math.min(
+    (rect.width - 32) / 800, // Assume 800px default page width
+    (rect.height - 32) / 1200 // Assume 1200px default page height
+  )
+  setScale(Math.max(MIN_SCALE, Math.min(MAX_SCALE, fitScale)))
+}
+
+const zoomToWidth = () => {
+  if (!pdfContainer.value) return
+  const rect = pdfContainer.value.getBoundingClientRect()
+  const widthScale = (rect.width - 32) / 800 // Assume 800px default page width
+  setScale(Math.max(MIN_SCALE, Math.min(MAX_SCALE, widthScale)))
+}
+
+// Memory management - use virtual scrolling cleanup
+const clearInvisibleCanvases = () => {
+  // Enhanced PDF viewer handles this automatically through virtual scrolling
+  console.debug('Memory cleanup handled by virtual scrolling')
+}
+
+// Cleanup method
+const destroy = async () => {
+  await clearDocument()
+}
+
+// Scale limits (from enhanced viewer or defaults)
+const MIN_SCALE = 0.25
+const MAX_SCALE = 5.0
 
 // Template refs
 const viewerContainer = ref<HTMLElement | null>(null)
@@ -285,7 +351,7 @@ const textLayerRefs = ref<Record<number, HTMLElement>>({})
 // Viewer state
 const rotation = ref(0)
 
-// Touch gestures integration
+// Touch gestures integration with enhanced mobile optimization
 const {
   currentScale: gestureScale,
   panOffset,
@@ -300,7 +366,11 @@ const {
     'scale-changed': handleGestureScaleChange,
     'next-page': nextPage,
     'prev-page': previousPage,
-    'pan-changed': handlePanChange
+    'pan-changed': handlePanChange,
+    'touch-event': (event: TouchEvent) => {
+      // Forward touch events to enhanced PDF viewer for performance optimization
+      return handleTouchEvent(event)
+    }
   } as any
 )
 
@@ -353,42 +423,83 @@ const setTextLayerRef = (el: any, pageNumber: number) => {
   }
 }
 
-// Render page on canvas
+// Enhanced page rendering with performance monitoring
 const renderPageOnCanvas = async (pageNumber: number) => {
   const canvas = canvasRefs.value[pageNumber]
-  if (!canvas || loading.value || !pdfDocument.value) return
+  if (!canvas || loading.value) return
 
   try {
     await renderPage(pageNumber, canvas, {
       scale: combinedScale.value,
       rotation: rotation.value,
-      enableTextLayer: props.enableTextLayer
+      enableTextLayer: props.enableTextLayer,
+      quality: adaptiveQuality.value,
+      backgroundRender: !isGesturing.value
+    })
+    
+    // Update performance metrics
+    performanceMonitor.recordUserInteraction('pageRendered', { 
+      pageNumber, 
+      scale: combinedScale.value,
+      quality: adaptiveQuality.value 
     })
   } catch (err) {
     console.error(`Failed to render page ${pageNumber}:`, err)
+    performanceMonitor.recordUserInteraction('pageRenderError', { 
+      pageNumber, 
+      error: err instanceof Error ? err.message : String(err) 
+    })
   }
 }
 
-// Load PDF document
+// Virtual scrolling integration - update viewport when scrolling
+const handleScroll = (event: Event) => {
+  if (!pdfContainer.value) return
+  
+  const scrollTop = pdfContainer.value.scrollTop
+  const viewportHeight = pdfContainer.value.clientHeight
+  
+  // Update enhanced PDF viewer's virtual scrolling
+  const viewportResult = updateViewport(scrollTop, viewportHeight)
+  
+  // Update performance metrics
+  performanceMonitor.updatePageMetrics(currentPage.value, viewportResult.visiblePages)
+}
+
+// Enhanced PDF document loading with performance monitoring
 const loadPdf = async () => {
   if (!props.src) return
 
   try {
+    // Start performance monitoring
+    performanceMonitor.recordUserInteraction('loadStart', { src: typeof props.src })
+    
     const pdf = await loadDocument(props.src)
     emit('load', pdf)
     
     // Load annotations if enabled
-    if (props.enableAnnotations) {
+    if (props.enableAnnotations && props.documentId) {
       await loadAnnotations()
     }
     
     // Set initial page
     if (props.initialPage > 0 && props.initialPage <= totalPages.value) {
-      goToPage(props.initialPage)
+      await goToPage(props.initialPage)
     }
+    
+    // Log performance metrics after successful load
+    const report = getPerformanceReport()
+    console.debug('PDF loaded with performance metrics:', report)
+    
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : 'Failed to load PDF'
     emit('error', errorMessage)
+    
+    // Record performance error
+    performanceMonitor.recordUserInteraction('loadError', { 
+      error: errorMessage,
+      src: typeof props.src 
+    })
   }
 }
 
@@ -588,32 +699,59 @@ const handleWheel = (event: WheelEvent) => {
   }
 }
 
-// Watch for scale changes and re-render
-watch(scale, () => {
+// Watch for scale changes and re-render with performance optimization
+watch(scale, async () => {
   if (!isGesturing.value) {
     clearInvisibleCanvases()
-    visiblePages.value.forEach(pageNumber => {
-      renderPageOnCanvas(pageNumber)
-    })
+    
+    // Use performance-optimized rendering for all visible pages
+    await Promise.all(
+      visiblePages.value.map(pageNumber => renderPageOnCanvas(pageNumber))
+    )
+    
     emit('scale-change', scale.value)
+    
+    // Record scale change for performance monitoring
+    performanceMonitor.recordUserInteraction('scaleChange', { 
+      scale: scale.value,
+      quality: adaptiveQuality.value 
+    })
   }
 })
 
-// Watch for combined scale changes and re-render
-watchDebounced(() => combinedScale.value, () => {
+// Watch for combined scale changes with optimized debouncing
+watchDebounced(() => combinedScale.value, async () => {
   if (!isGesturing.value) {
-    nextTick(() => {
-      visiblePages.value.forEach(page => renderPageOnCanvas(page))
-    })
+    await nextTick()
+    
+    // Batch render visible pages for better performance
+    const renderPromises = visiblePages.value.map(page => renderPageOnCanvas(page))
+    await Promise.all(renderPromises)
+    
+    // Update virtual scrolling configuration if scale changed significantly
+    if (pdfContainer.value) {
+      const scrollTop = pdfContainer.value.scrollTop
+      const viewportHeight = pdfContainer.value.clientHeight
+      updateViewport(scrollTop, viewportHeight)
+    }
   }
 }, { debounce: 100 })
 
-// Watch for gesture end to re-render at final scale
-watch(() => isGesturing.value, (gesturing) => {
+// Watch for gesture end to re-render at final scale with performance monitoring
+watch(() => isGesturing.value, async (gesturing) => {
   if (!gesturing) {
-    // Re-render all visible pages at final scale
-    nextTick(() => {
-      visiblePages.value.forEach(page => renderPageOnCanvas(page))
+    // Re-render all visible pages at final scale with performance tracking
+    const startTime = performance.now()
+    
+    await nextTick()
+    const renderPromises = visiblePages.value.map(page => renderPageOnCanvas(page))
+    await Promise.all(renderPromises)
+    
+    const renderTime = performance.now() - startTime
+    performanceMonitor.recordUserInteraction('gestureRenderComplete', { 
+      renderTime,
+      pageCount: visiblePages.value.length,
+      finalScale: combinedScale.value
     })
   }
 })
@@ -676,9 +814,14 @@ onMounted(() => {
   })
 })
 
-// Cleanup on unmount
-onUnmounted(() => {
-  destroy()
+// Enhanced cleanup on unmount with performance logging
+onUnmounted(async () => {
+  // Log final performance report before cleanup
+  const finalReport = getPerformanceReport()
+  console.debug('Final PDF viewer performance report:', finalReport)
+  
+  // Enhanced cleanup
+  await destroy()
 })
 
 // Watch src changes

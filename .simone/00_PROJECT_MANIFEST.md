@@ -21,8 +21,8 @@ This project follows a milestone-based development approach.
 
 - **Milestone:** M01 - Matter Management MVP
 - **Sprint:** S07 - Document Management (IN PROGRESS)
-- **Current Task:** T03_S07 Document Metadata Database Schema (COMPLETED)
-- **Updated:** 2025-07-01 12:20
+- **Current Task:** T04A_S07 Core PDF Viewer Performance Enhancement (✅ COMPLETED)
+- **Updated:** 2025-07-01 15:00
 
 ## 3. Sprints in Current Milestone
 
