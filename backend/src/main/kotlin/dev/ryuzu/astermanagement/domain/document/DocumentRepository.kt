@@ -233,4 +233,155 @@ interface DocumentRepository : JpaRepository<Document, UUID> {
         WHERE d.matter = :matter
     """)
     fun softDeleteByMatter(@Param("matter") matter: Matter): Int
+
+    /**
+     * Find documents by category
+     */
+    fun findByCategory(category: DocumentCategory): List<Document>
+
+    /**
+     * Find documents by category with pagination
+     */
+    fun findByCategory(category: DocumentCategory, pageable: Pageable): Page<Document>
+
+    /**
+     * Find documents by enhanced tag
+     */
+    @Query("""
+        SELECT DISTINCT d FROM Document d 
+        JOIN d.tagEntities t 
+        WHERE t = :tag
+        AND d.status != 'DELETED'
+        ORDER BY d.createdAt DESC
+    """)
+    fun findByEnhancedTag(@Param("tag") tag: DocumentTag): List<Document>
+
+    /**
+     * Find documents by multiple enhanced tags (any match)
+     */
+    @Query("""
+        SELECT DISTINCT d FROM Document d 
+        JOIN d.tagEntities t 
+        WHERE t IN :tags
+        AND d.status != 'DELETED'
+        ORDER BY d.createdAt DESC
+    """)
+    fun findByEnhancedTagsIn(@Param("tags") tags: Collection<DocumentTag>): List<Document>
+
+    /**
+     * Full-text search with multi-language support
+     */
+    @Query(value = """
+        SELECT * FROM documents d 
+        WHERE d.status != 'DELETED'
+        AND (d.search_vector @@ plainto_tsquery('simple', :searchTerm)
+             OR d.search_vector_ja @@ plainto_tsquery('japanese', :searchTerm)
+             OR d.search_vector_en @@ plainto_tsquery('english', :searchTerm))
+        ORDER BY 
+            GREATEST(
+                ts_rank(d.search_vector, plainto_tsquery('simple', :searchTerm)),
+                ts_rank(d.search_vector_ja, plainto_tsquery('japanese', :searchTerm)),
+                ts_rank(d.search_vector_en, plainto_tsquery('english', :searchTerm))
+            ) DESC
+    """, nativeQuery = true)
+    fun fullTextSearch(@Param("searchTerm") searchTerm: String, pageable: Pageable): Page<Document>
+
+    /**
+     * Find documents by category hierarchy (including subcategories)
+     */
+    @Query("""
+        SELECT DISTINCT d FROM Document d 
+        JOIN d.category c
+        WHERE d.status != 'DELETED'
+        AND (c = :category OR c.parentCategory = :category)
+        ORDER BY d.createdAt DESC
+    """)
+    fun findByCategoryHierarchy(@Param("category") category: DocumentCategory): List<Document>
+
+    /**
+     * Find confidential documents
+     */
+    @Query("""
+        SELECT d FROM Document d 
+        LEFT JOIN d.tagEntities t
+        WHERE d.status != 'DELETED'
+        AND (d.isConfidential = true 
+             OR t.name IN ('confidential', 'privileged'))
+        ORDER BY d.createdAt DESC
+    """)
+    fun findConfidentialDocuments(): List<Document>
+
+    /**
+     * Find documents requiring OCR processing
+     */
+    @Query("""
+        SELECT d FROM Document d 
+        WHERE d.status = 'AVAILABLE'
+        AND d.extractedText IS NULL
+        AND d.contentType IN ('application/pdf', 'image/jpeg', 'image/png', 'image/tiff')
+        ORDER BY d.createdAt ASC
+    """)
+    fun findDocumentsNeedingOCR(): List<Document>
+
+    /**
+     * Get storage statistics by category
+     */
+    @Query("""
+        SELECT c.name, COUNT(d.id), SUM(d.fileSize), AVG(d.fileSize)
+        FROM Document d 
+        JOIN d.category c
+        WHERE d.status != 'DELETED'
+        GROUP BY c.id, c.name
+        ORDER BY SUM(d.fileSize) DESC
+    """)
+    fun getStorageStatisticsByCategory(): List<Array<Any>>
+
+    /**
+     * Find documents with missing metadata
+     */
+    @Query("""
+        SELECT d FROM Document d 
+        WHERE d.status = 'AVAILABLE'
+        AND (d.title IS NULL OR d.title = ''
+             OR d.description IS NULL OR d.description = ''
+             OR d.category IS NULL)
+        ORDER BY d.createdAt DESC
+    """)
+    fun findDocumentsWithMissingMetadata(): List<Document>
+
+    /**
+     * Advanced search with category and tag filters
+     */
+    @Query("""
+        SELECT DISTINCT d FROM Document d 
+        LEFT JOIN d.category c
+        LEFT JOIN d.tagEntities t
+        WHERE d.status != 'DELETED'
+        AND (:title IS NULL OR LOWER(d.title) LIKE LOWER(CONCAT('%', :title, '%')))
+        AND (:fileName IS NULL OR LOWER(d.fileName) LIKE LOWER(CONCAT('%', :fileName, '%')) 
+             OR LOWER(d.originalFileName) LIKE LOWER(CONCAT('%', :fileName, '%')))
+        AND (:contentType IS NULL OR d.contentType = :contentType)
+        AND (:categoryId IS NULL OR c.id = :categoryId)
+        AND (:matterId IS NULL OR d.matter.id = :matterId)
+        AND (:uploadedBy IS NULL OR d.uploadedBy.id = :uploadedBy)
+        AND (:tagName IS NULL OR :tagName MEMBER OF d.tags OR t.name = :tagName)
+        AND (:fromDate IS NULL OR d.createdAt >= :fromDate)
+        AND (:toDate IS NULL OR d.createdAt <= :toDate)
+        AND (:confidentialOnly IS NULL OR :confidentialOnly = false OR 
+             d.isConfidential = true OR t.name IN ('confidential', 'privileged'))
+        ORDER BY d.createdAt DESC
+    """)
+    fun advancedSearchDocuments(
+        @Param("title") title: String?,
+        @Param("fileName") fileName: String?,
+        @Param("contentType") contentType: String?,
+        @Param("categoryId") categoryId: UUID?,
+        @Param("matterId") matterId: UUID?,
+        @Param("uploadedBy") uploadedBy: UUID?,
+        @Param("tagName") tagName: String?,
+        @Param("fromDate") fromDate: OffsetDateTime?,
+        @Param("toDate") toDate: OffsetDateTime?,
+        @Param("confidentialOnly") confidentialOnly: Boolean?,
+        pageable: Pageable
+    ): Page<Document>
 }

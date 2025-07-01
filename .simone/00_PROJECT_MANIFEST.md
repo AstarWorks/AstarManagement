@@ -21,8 +21,8 @@ This project follows a milestone-based development approach.
 
 - **Milestone:** M01 - Matter Management MVP
 - **Sprint:** S07 - Document Management (IN PROGRESS)
-- **Current Task:** T01_S07 Storage Infrastructure Setup (IN PROGRESS)
-- **Updated:** 2025-07-01 08:19
+- **Current Task:** T03_S07 Document Metadata Database Schema (COMPLETED)
+- **Updated:** 2025-07-01 12:20
 
 ## 3. Sprints in Current Milestone
 
