@@ -154,7 +154,7 @@ class TwoFactorAuthenticationServiceImpl(
             TwoFactorException.UserNotFound()
         }
         
-        if (!passwordEncoder.matches(password, user.password)) {
+        if (!passwordEncoder.matches(password, user.passwordHash)) {
             logger.warn("Invalid password during 2FA disable for user: $userId")
             throw TwoFactorException.InvalidPassword()
         }
@@ -320,7 +320,7 @@ class TwoFactorAuthenticationServiceImpl(
             TwoFactorException.UserNotFound()
         }
         
-        if (!passwordEncoder.matches(password, user.password)) {
+        if (!passwordEncoder.matches(password, user.passwordHash)) {
             logger.warn("Invalid password during backup code regeneration for user: $userId")
             throw TwoFactorException.InvalidPassword()
         }

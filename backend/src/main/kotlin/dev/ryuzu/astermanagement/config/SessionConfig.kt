@@ -23,8 +23,7 @@ import java.time.Duration
 @EnableRedisHttpSession(
     maxInactiveIntervalInSeconds = 1800, // 30 minutes default
     redisNamespace = "aster:sessions",
-    flushMode = FlushMode.ON_SAVE,
-    cleanupCron = "0 * * * * *" // Cleanup expired sessions every minute
+    flushMode = FlushMode.ON_SAVE
 )
 class SessionConfig {
     

@@ -16,7 +16,7 @@ interface SessionService {
      * @param request Session creation request with metadata
      * @return The created session
      */
-    fun createSession(userId: UUID, request: SessionCreationRequest): Session
+    fun createSession(userId: String, request: SessionCreationRequest): Session
     
     /**
      * Validate and retrieve an active session.
@@ -59,7 +59,7 @@ interface SessionService {
      * @param reason Reason for invalidation
      * @return Number of sessions invalidated
      */
-    fun invalidateAllUserSessions(userId: UUID, reason: String = "Security logout"): Int
+    fun invalidateAllUserSessions(userId: String, reason: String = "Security logout"): Int
     
     /**
      * Invalidate all sessions for a user except the current one.
@@ -70,7 +70,7 @@ interface SessionService {
      * @return Number of sessions invalidated
      */
     fun invalidateOtherUserSessions(
-        userId: UUID, 
+        userId: String, 
         currentSessionId: String, 
         reason: String = "User requested"
     ): Int
@@ -81,7 +81,7 @@ interface SessionService {
      * @param userId The user whose sessions to list
      * @return List of active sessions with anonymized sensitive data
      */
-    fun listUserSessions(userId: UUID): List<SessionInfo>
+    fun listUserSessions(userId: String): List<SessionInfo>
     
     /**
      * Get detailed session information.
@@ -90,7 +90,7 @@ interface SessionService {
      * @param userId Optional user ID for authorization check
      * @return Session details if authorized
      */
-    fun getSessionDetails(sessionId: String, userId: UUID? = null): SessionDetails?
+    fun getSessionDetails(sessionId: String, userId: String? = null): SessionDetails?
     
     /**
      * Analyze session for security risks.
@@ -107,7 +107,7 @@ interface SessionService {
      * @param days Number of days to look back
      * @return Session activity summary
      */
-    fun getUserSessionActivity(userId: UUID, days: Int = 30): SessionActivity
+    fun getUserSessionActivity(userId: String, days: Int = 30): SessionActivity
     
     /**
      * Get system-wide session statistics.
@@ -187,7 +187,7 @@ data class SessionSecurityAnalysis(
  * User session activity summary.
  */
 data class SessionActivity(
-    val userId: UUID,
+    val userId: String,
     val totalSessions: Int,
     val averageSessionDuration: Long, // minutes
     val uniqueIpAddresses: Int,

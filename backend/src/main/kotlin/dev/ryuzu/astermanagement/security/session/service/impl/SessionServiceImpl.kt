@@ -24,7 +24,7 @@ class SessionServiceImpl(
         private val logger = LoggerFactory.getLogger(SessionServiceImpl::class.java)
     }
     
-    override fun createSession(userId: UUID, request: SessionCreationRequest): Session {
+    override fun createSession(userId: String, request: SessionCreationRequest): Session {
         logger.info("Creating session for user: {} from IP: {}", userId, request.ipAddress)
         
         val metadata = SessionMetadata(
@@ -116,20 +116,20 @@ class SessionServiceImpl(
         return sessionRepository.invalidateSession(sessionId)
     }
     
-    override fun invalidateAllUserSessions(userId: UUID, reason: String): Int {
+    override fun invalidateAllUserSessions(userId: String, reason: String): Int {
         logger.info("Invalidating all sessions for user: {} - reason: {}", userId, reason)
         
         return sessionRepository.invalidateUserSessions(userId)
     }
     
-    override fun invalidateOtherUserSessions(userId: UUID, currentSessionId: String, reason: String): Int {
+    override fun invalidateOtherUserSessions(userId: String, currentSessionId: String, reason: String): Int {
         logger.info("Invalidating other sessions for user: {} except: {} - reason: {}", 
             userId, currentSessionId, reason)
         
         return sessionRepository.invalidateUserSessionsExcept(userId, currentSessionId)
     }
     
-    override fun listUserSessions(userId: UUID): List<SessionInfo> {
+    override fun listUserSessions(userId: String): List<SessionInfo> {
         logger.debug("Listing sessions for user: {}", userId)
         
         val sessions = sessionRepository.listUserSessions(userId)
@@ -147,7 +147,7 @@ class SessionServiceImpl(
         }
     }
     
-    override fun getSessionDetails(sessionId: String, userId: UUID?): SessionDetails? {
+    override fun getSessionDetails(sessionId: String, userId: String?): SessionDetails? {
         logger.debug("Getting session details: {}", sessionId)
         
         val session = sessionRepository.getSession(sessionId) ?: return null
@@ -245,7 +245,7 @@ class SessionServiceImpl(
         )
     }
     
-    override fun getUserSessionActivity(userId: UUID, days: Int): SessionActivity {
+    override fun getUserSessionActivity(userId: String, days: Int): SessionActivity {
         logger.debug("Getting session activity for user: {} over {} days", userId, days)
         
         // This is a simplified implementation

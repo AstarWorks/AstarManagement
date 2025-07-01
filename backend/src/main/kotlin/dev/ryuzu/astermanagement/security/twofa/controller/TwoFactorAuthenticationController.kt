@@ -1,7 +1,7 @@
 package dev.ryuzu.astermanagement.security.twofa.controller
 
 import dev.ryuzu.astermanagement.security.auth.annotation.CurrentUser
-import dev.ryuzu.astermanagement.security.auth.dto.UserPrincipal
+import dev.ryuzu.astermanagement.auth.service.UserPrincipal
 import dev.ryuzu.astermanagement.security.twofa.dto.*
 import dev.ryuzu.astermanagement.security.twofa.exception.TwoFactorException
 import dev.ryuzu.astermanagement.security.twofa.service.TwoFactorAuthenticationService
@@ -57,7 +57,12 @@ class TwoFactorAuthenticationController(
         logger.info("2FA setup requested by user: ${user.id}")
         
         return try {
-            val response = twoFactorService.setupTwoFactor(user.id)
+            val userId = user.id ?: throw TwoFactorProblemException(
+                status = HttpStatus.UNAUTHORIZED,
+                detail = "User ID is required for 2FA operations",
+                errorCode = "USER_ID_MISSING"
+            )
+            val response = twoFactorService.setupTwoFactor(userId)
             ResponseEntity.ok(response)
         } catch (e: TwoFactorException.AlreadyEnabled) {
             throw TwoFactorProblemException(
@@ -90,7 +95,12 @@ class TwoFactorAuthenticationController(
         logger.info("2FA enable requested by user: ${user.id}")
         
         return try {
-            val response = twoFactorService.enableTwoFactor(user.id, request.code)
+            val userId = user.id ?: throw TwoFactorProblemException(
+                status = HttpStatus.UNAUTHORIZED,
+                detail = "User ID is required for 2FA operations",
+                errorCode = "USER_ID_MISSING"
+            )
+            val response = twoFactorService.enableTwoFactor(userId, request.code)
             ResponseEntity.ok(response)
         } catch (e: TwoFactorException) {
             val status = when (e) {
@@ -129,7 +139,12 @@ class TwoFactorAuthenticationController(
         logger.info("2FA disable requested by user: ${user.id}")
         
         return try {
-            val response = twoFactorService.disableTwoFactor(user.id, request.password)
+            val userId = user.id ?: throw TwoFactorProblemException(
+                status = HttpStatus.UNAUTHORIZED,
+                detail = "User ID is required for 2FA operations",
+                errorCode = "USER_ID_MISSING"
+            )
+            val response = twoFactorService.disableTwoFactor(userId, request.password)
             ResponseEntity.ok(response)
         } catch (e: TwoFactorException) {
             val status = when (e) {
@@ -220,7 +235,12 @@ class TwoFactorAuthenticationController(
     fun getTwoFactorStatus(
         @Parameter(hidden = true) @CurrentUser user: UserPrincipal
     ): ResponseEntity<TwoFactorStatusResponse> {
-        val status = twoFactorService.getTwoFactorStatus(user.id)
+        val userId = user.id ?: throw TwoFactorProblemException(
+            status = HttpStatus.UNAUTHORIZED,
+            detail = "User ID is required for 2FA operations",
+            errorCode = "USER_ID_MISSING"
+        )
+        val status = twoFactorService.getTwoFactorStatus(userId)
         return ResponseEntity.ok(status)
     }
     
@@ -246,7 +266,12 @@ class TwoFactorAuthenticationController(
         logger.info("Backup codes regeneration requested by user: ${user.id}")
         
         return try {
-            val response = twoFactorService.regenerateBackupCodes(user.id, request.password)
+            val userId = user.id ?: throw TwoFactorProblemException(
+                status = HttpStatus.UNAUTHORIZED,
+                detail = "User ID is required for 2FA operations",
+                errorCode = "USER_ID_MISSING"
+            )
+            val response = twoFactorService.regenerateBackupCodes(userId, request.password)
             ResponseEntity.ok(response)
         } catch (e: TwoFactorException) {
             val status = when (e) {

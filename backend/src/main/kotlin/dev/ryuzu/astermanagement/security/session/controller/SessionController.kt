@@ -1,6 +1,7 @@
 package dev.ryuzu.astermanagement.security.session.controller
 
 import dev.ryuzu.astermanagement.security.session.exception.SessionNotFoundException
+import dev.ryuzu.astermanagement.security.session.model.SessionStatistics
 import dev.ryuzu.astermanagement.security.session.service.*
 import jakarta.servlet.http.HttpServletRequest
 import org.slf4j.LoggerFactory
@@ -9,7 +10,6 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
-import java.util.*
 
 /**
  * REST controller for session management operations.
@@ -33,7 +33,7 @@ class SessionController(
         logger.debug("Listing sessions for user: {}", authentication.name)
         
         return try {
-            val userId = UUID.fromString(authentication.name)
+            val userId = authentication.name
             val sessions = sessionService.listUserSessions(userId)
             
             ResponseEntity.ok(sessions)
@@ -54,7 +54,7 @@ class SessionController(
         logger.debug("Getting session details: {} for user: {}", sessionId, authentication.name)
         
         return try {
-            val userId = UUID.fromString(authentication.name)
+            val userId = authentication.name
             val sessionDetails = sessionService.getSessionDetails(sessionId, userId)
                 ?: return ResponseEntity.notFound().build()
             
@@ -79,7 +79,7 @@ class SessionController(
         logger.info("Invalidating session: {} for user: {}", sessionId, authentication.name)
         
         return try {
-            val userId = UUID.fromString(authentication.name)
+            val userId = authentication.name
             
             // Verify session belongs to user
             val sessionDetails = sessionService.getSessionDetails(sessionId, userId)
@@ -105,7 +105,7 @@ class SessionController(
             logger.error("Failed to invalidate session: {}", sessionId, exception)
             ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(mapOf(
                 "error" to "Internal server error",
-                "message" to exception.message
+                "message" to (exception.message ?: "Unknown error")
             ))
         }
     }
@@ -123,7 +123,7 @@ class SessionController(
             authentication.name, exceptCurrent)
         
         return try {
-            val userId = UUID.fromString(authentication.name)
+            val userId = authentication.name
             val currentSessionId = request.getHeader("X-Auth-Token")
             
             val invalidatedCount = if (exceptCurrent && currentSessionId != null) {
@@ -148,7 +148,7 @@ class SessionController(
             logger.error("Failed to invalidate all sessions for user: {}", authentication.name, exception)
             ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(mapOf(
                 "error" to "Internal server error",
-                "message" to exception.message
+                "message" to (exception.message ?: "Unknown error")
             ))
         }
     }
@@ -187,7 +187,7 @@ class SessionController(
             logger.error("Failed to refresh session: {}", sessionId, exception)
             ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(mapOf(
                 "error" to "Internal server error",
-                "message" to exception.message
+                "message" to (exception.message ?: "Unknown error")
             ))
         }
     }
@@ -203,7 +203,7 @@ class SessionController(
         logger.debug("Getting session activity for user: {} over {} days", authentication.name, days)
         
         return try {
-            val userId = UUID.fromString(authentication.name)
+            val userId = authentication.name
             val activity = sessionService.getUserSessionActivity(userId, days)
             
             ResponseEntity.ok(activity)
@@ -247,7 +247,7 @@ class SessionController(
             logger.error("Failed to validate session: {}", sessionId, exception)
             ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(mapOf(
                 "error" to "Internal server error",
-                "message" to exception.message
+                "message" to (exception.message ?: "Unknown error")
             ))
         }
     }
@@ -288,7 +288,7 @@ class SessionController(
             logger.error("Failed to perform session maintenance", exception)
             ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(mapOf(
                 "error" to "Internal server error",
-                "message" to exception.message
+                "message" to (exception.message ?: "Unknown error")
             ))
         }
     }
