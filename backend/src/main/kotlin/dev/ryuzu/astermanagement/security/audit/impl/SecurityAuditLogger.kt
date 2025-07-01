@@ -387,6 +387,40 @@ class SecurityAuditLogger(
     }
 
     /**
+     * Log system events (for batch processing, system operations, etc.)
+     */
+    @Async
+    @Transactional
+    fun logSystemEvent(
+        eventType: String,
+        description: String,
+        additionalDetails: Map<String, Any> = emptyMap()
+    ) {
+        try {
+            val event = AuditEvent(
+                eventType = SecurityEventType.SYSTEM_EVENT,
+                userId = "SYSTEM",
+                ipAddress = "127.0.0.1",
+                userAgent = "AsterManagement-System",
+                riskLevel = RiskLevel.LOW,
+                riskScore = 10,
+                message = description,
+                details = additionalDetails + mapOf(
+                    "systemEventType" to eventType,
+                    "category" to "system_operation"
+                ),
+                outcome = "SYSTEM_EVENT",
+                retentionUntil = Instant.now().plusSeconds(365 * 24 * 60 * 60 * 3L) // 3 years retention
+            )
+
+            auditEventRepository.save(event)
+            logger.info("Logged system event: {} - {}", eventType, description)
+        } catch (e: Exception) {
+            logger.error("Failed to log system event: $eventType", e)
+        }
+    }
+
+    /**
      * Check for suspicious authentication patterns
      */
     private fun checkSuspiciousAuthenticationActivity(username: String, ipAddress: String, userAgent: String?) {
