@@ -158,7 +158,7 @@ const handleResendCode = async () => {
   } finally {
     isResendingCode.value = false
   }
-})
+}
 
 const handleCancel = async () => {
   // Logout and redirect to login

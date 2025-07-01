@@ -126,7 +126,7 @@ const togglePasswordVisibility = () => {
 }
 
 const handleForgotPassword = () => {
-  emit('forgotPassword', email.value)
+  emit('forgotPassword', email.value || '')
 }
 
 // Clear error when user starts typing

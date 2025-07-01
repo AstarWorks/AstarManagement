@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { useStorage } from '@vueuse/nuxt'
+import { useStorage } from '@vueuse/core'
 
 // Authentication Types
 interface User {
@@ -388,30 +388,5 @@ export const useAuthStore = defineStore('auth', () => {
     
     // Utilities
     startTokenRefreshTimer
-  }
-}, {
-  persist: {
-    key: 'auth-store',
-    storage: persistedState.localStorage,
-    paths: ['user', 'isAuthenticated', 'sessionId', 'lastActivity'],
-    beforeRestore: (ctx) => {
-      // Validate stored session on restore
-      const stored = ctx.store
-      if (stored.sessionId && stored.lastActivity) {
-        const timeSinceActivity = Date.now() - stored.lastActivity
-        const maxInactive = 30 * 60 * 1000 // 30 minutes
-        
-        if (timeSinceActivity > maxInactive) {
-          // Session expired, clear stored data
-          return {
-            user: null,
-            isAuthenticated: false,
-            sessionId: null,
-            lastActivity: 0
-          }
-        }
-      }
-      return stored
-    }
   }
 })
