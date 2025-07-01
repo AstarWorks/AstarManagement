@@ -40,14 +40,14 @@ class UserRole : BaseEntity() {
      */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false, foreignKey = ForeignKey(name = "fk_user_role_user"))
-    var user: User? = null
+    lateinit var user: User
 
     /**
      * Reference to the role that has been assigned to the user
      */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "role_id", nullable = false, foreignKey = ForeignKey(name = "fk_user_role_role"))
-    var role: Role? = null
+    lateinit var role: Role
 
     /**
      * Whether this role assignment is currently active
@@ -140,8 +140,8 @@ class UserRole : BaseEntity() {
      * Only returns permissions if the role assignment is currently valid
      */
     fun getEffectivePermissions(): Long {
-        return if (isCurrentlyValid() && role != null) {
-            role!!.permissions
+        return if (isCurrentlyValid()) {
+            role.permissions
         } else {
             0L
         }
@@ -151,8 +151,8 @@ class UserRole : BaseEntity() {
      * Check if this role assignment grants a specific permission
      */
     fun hasPermission(permission: Permission): Boolean {
-        return if (isCurrentlyValid() && role != null) {
-            role!!.hasPermission(permission)
+        return if (isCurrentlyValid()) {
+            role.hasPermission(permission)
         } else {
             false
         }
@@ -163,8 +163,8 @@ class UserRole : BaseEntity() {
      * Returns 0 if role assignment is not valid
      */
     fun getHierarchyLevel(): Int {
-        return if (isCurrentlyValid() && role != null) {
-            role!!.hierarchyLevel
+        return if (isCurrentlyValid()) {
+            role.hierarchyLevel
         } else {
             0
         }
@@ -191,8 +191,8 @@ class UserRole : BaseEntity() {
     }
 
     override fun toString(): String {
-        return "UserRole(id=$id, userId=${user?.id}, roleId=${role?.id}, " +
-                "roleName=${role?.name}, isActive=$isActive, " +
+        return "UserRole(id=$id, userId=${user.id}, roleId=${role.id}, " +
+                "roleName=${role.name}, isActive=$isActive, " +
                 "grantedAt=$grantedAt, expiresAt=$expiresAt, isPrimary=$isPrimary)"
     }
 

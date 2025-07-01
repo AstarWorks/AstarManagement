@@ -188,6 +188,35 @@ interface RoleRepository : JpaRepository<Role, UUID> {
     fun existsByDisplayNameIgnoreCase(displayName: String): Boolean
 
     /**
+     * Check if role name exists (case-sensitive)
+     */
+    fun existsByName(name: String): Boolean
+
+    /**
+     * Find roles by active status with pagination
+     */
+    fun findByIsActive(isActive: Boolean, pageable: Pageable): Page<Role>
+
+    /**
+     * Find roles by name containing (case-insensitive) with pagination
+     */
+    fun findByNameContainingIgnoreCase(name: String, pageable: Pageable): Page<Role>
+
+    /**
+     * Find roles by name containing and active status with pagination
+     */
+    fun findByNameContainingIgnoreCaseAndIsActive(
+        name: String,
+        isActive: Boolean,
+        pageable: Pageable
+    ): Page<Role>
+
+    /**
+     * Find all active roles ordered by hierarchy level (descending)
+     */
+    fun findAllByIsActiveOrderByHierarchyLevelDesc(isActive: Boolean): List<Role>
+
+    /**
      * Find roles suitable for a specific hierarchy level
      * (roles with equal or lower hierarchy level)
      */

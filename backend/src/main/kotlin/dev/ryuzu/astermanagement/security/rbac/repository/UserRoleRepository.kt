@@ -165,6 +165,27 @@ interface UserRoleRepository : JpaRepository<UserRole, UUID> {
     fun countByRoleAndIsActiveTrue(role: Role): Long
 
     /**
+     * Count users with a specific role by role ID (active assignments)
+     */
+    fun countByRoleId(roleId: UUID): Long
+
+    /**
+     * Check if user-role assignment exists by IDs
+     */
+    fun existsByUserIdAndRoleId(userId: UUID, roleId: UUID): Boolean
+
+    /**
+     * Find role assignments by role ID with user information (for pagination)
+     */
+    @Query("""
+        SELECT ur FROM UserRole ur 
+        JOIN FETCH ur.user u
+        WHERE ur.role.id = :roleId
+        ORDER BY ur.grantedAt DESC
+    """)
+    fun findByRoleIdWithUser(@Param("roleId") roleId: UUID, pageable: Pageable): Page<UserRole>
+
+    /**
      * Get role assignment statistics for a user
      */
     @Query("""

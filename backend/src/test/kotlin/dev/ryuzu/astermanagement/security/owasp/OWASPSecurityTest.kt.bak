@@ -1,0 +1,381 @@
+package dev.ryuzu.astermanagement.security.owasp
+
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.web.server.LocalServerPort
+import org.springframework.test.context.TestPropertySource
+import org.zaproxy.clientapi.core.*
+import java.net.URL
+import kotlin.test.assertTrue
+import kotlin.test.assertFalse
+
+/**
+ * OWASP ZAP automated security scanning tests
+ * Tests the application against common security vulnerabilities
+ */
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@TestPropertySource(properties = ["spring.profiles.active=test"])
+@EnabledIfEnvironmentVariable(named = "SECURITY_TESTS_ENABLED", matches = "true")
+class OWASPSecurityTest {
+
+    @LocalServerPort
+    private var port: Int = 0
+
+    private lateinit var zapClient: ClientApi
+    private lateinit var baseUrl: String
+
+    companion object {
+        private const val ZAP_PROXY_HOST = "localhost"
+        private const val ZAP_PROXY_PORT = 8080
+        private const val SPIDER_MAX_CHILDREN = 10
+        private const val ACTIVE_SCAN_POLICY = "Default Policy"
+    }
+
+    @BeforeEach
+    fun setUp() {
+        baseUrl = "http://localhost:$port"
+        
+        try {
+            zapClient = ClientApi(ZAP_PROXY_HOST, ZAP_PROXY_PORT)
+            
+            // Initialize ZAP session
+            zapClient.core.newSession("", true)
+            
+            // Set up authentication context if needed
+            setupAuthenticationContext()
+            
+        } catch (e: Exception) {
+            throw IllegalStateException("OWASP ZAP proxy not available at $ZAP_PROXY_HOST:$ZAP_PROXY_PORT. " +
+                    "Please ensure ZAP is running with API enabled.", e)
+        }
+    }
+
+    @Test
+    @DisplayName("OWASP ZAP: Spider Scan for URL Discovery")
+    fun testSpiderScan() {
+        try {
+            // Start spider scan
+            val spiderScanId = zapClient.spider.scan(baseUrl, null, null, null, null)
+            
+            // Wait for spider to complete
+            var progress = 0
+            while (progress < 100) {
+                Thread.sleep(1000)
+                progress = zapClient.spider.status(spiderScanId).toInt()
+                println("Spider progress: $progress%")
+            }
+            
+            // Get discovered URLs
+            val urls = zapClient.spider.results(spiderScanId)
+            assertTrue(urls.isNotEmpty(), "Spider should discover at least some URLs")
+            
+            println("Spider discovered ${urls.size} URLs")
+            urls.take(10).forEach { url -> println("  - $url") }
+            
+        } catch (e: Exception) {
+            throw AssertionError("Spider scan failed", e)
+        }
+    }
+
+    @Test
+    @DisplayName("OWASP ZAP: Active Security Scan")
+    fun testActiveScan() {
+        try {
+            // First run a basic spider to discover URLs
+            val spiderScanId = zapClient.spider.scan(baseUrl, null, null, null, null)
+            waitForSpiderCompletion(spiderScanId)
+            
+            // Start active scan
+            val activeScanId = zapClient.ascan.scan(baseUrl, "True", "False", ACTIVE_SCAN_POLICY, null, null)
+            
+            // Wait for active scan to complete
+            var progress = 0
+            while (progress < 100) {
+                Thread.sleep(2000)
+                progress = zapClient.ascan.status(activeScanId).toInt()
+                println("Active scan progress: $progress%")
+            }
+            
+            // Get scan results
+            analyzeSecurityFindings()
+            
+        } catch (e: Exception) {
+            throw AssertionError("Active security scan failed", e)
+        }
+    }
+
+    @Test
+    @DisplayName("OWASP ZAP: Passive Security Scan")
+    fun testPassiveScan() {
+        try {
+            // Access key endpoints to trigger passive scanning
+            val testEndpoints = listOf(
+                "$baseUrl/api/auth/login",
+                "$baseUrl/api/auth/register",
+                "$baseUrl/api/health",
+                "$baseUrl/actuator/health"
+            )
+            
+            testEndpoints.forEach { endpoint ->
+                try {
+                    zapClient.core.accessUrl(endpoint, "True")
+                    Thread.sleep(500) // Allow passive scanning
+                } catch (e: Exception) {
+                    println("Could not access endpoint: $endpoint")
+                }
+            }
+            
+            // Wait for passive scan to process
+            Thread.sleep(5000)
+            
+            // Analyze passive scan results
+            analyzePassiveFindings()
+            
+        } catch (e: Exception) {
+            throw AssertionError("Passive security scan failed", e)
+        }
+    }
+
+    @Test
+    @DisplayName("OWASP ZAP: SQL Injection Detection")
+    fun testSQLInjectionDetection() {
+        try {
+            // Configure SQL injection scan policy
+            val sqlInjectionPlugin = "40018" // SQL Injection plugin ID
+            
+            // Run targeted scan for SQL injection
+            val activeScanId = zapClient.ascan.scan(
+                "$baseUrl/api/auth/login", 
+                "True", 
+                "False", 
+                ACTIVE_SCAN_POLICY, 
+                null, 
+                null
+            )
+            
+            waitForActiveScanCompletion(activeScanId)
+            
+            // Check specifically for SQL injection findings
+            val alerts = zapClient.core.alerts("High", "Medium", baseUrl)
+            val sqlInjectionAlerts = alerts.filter { alert ->
+                alert.containsKey("name") && 
+                alert["name"].toString().contains("SQL Injection", ignoreCase = true)
+            }
+            
+            assertFalse(sqlInjectionAlerts.isNotEmpty(), 
+                "SQL injection vulnerabilities detected: ${sqlInjectionAlerts.size}")
+            
+        } catch (e: Exception) {
+            throw AssertionError("SQL injection detection test failed", e)
+        }
+    }
+
+    @Test
+    @DisplayName("OWASP ZAP: XSS Detection")
+    fun testXSSDetection() {
+        try {
+            // Configure XSS scan policy
+            val xssPlugin = "40012" // XSS plugin ID
+            
+            // Run targeted scan for XSS
+            val activeScanId = zapClient.ascan.scan(
+                baseUrl, 
+                "True", 
+                "False", 
+                ACTIVE_SCAN_POLICY, 
+                null, 
+                null
+            )
+            
+            waitForActiveScanCompletion(activeScanId)
+            
+            // Check specifically for XSS findings
+            val alerts = zapClient.core.alerts("High", "Medium", baseUrl)
+            val xssAlerts = alerts.filter { alert ->
+                alert.containsKey("name") && 
+                (alert["name"].toString().contains("Cross Site Scripting", ignoreCase = true) ||
+                 alert["name"].toString().contains("XSS", ignoreCase = true))
+            }
+            
+            assertFalse(xssAlerts.isNotEmpty(), 
+                "XSS vulnerabilities detected: ${xssAlerts.size}")
+            
+        } catch (e: Exception) {
+            throw AssertionError("XSS detection test failed", e)
+        }
+    }
+
+    @Test
+    @DisplayName("OWASP ZAP: Security Headers Validation")
+    fun testSecurityHeaders() {
+        try {
+            // Access main application URL
+            zapClient.core.accessUrl(baseUrl, "True")
+            Thread.sleep(2000)
+            
+            // Check for missing security headers
+            val alerts = zapClient.core.alerts("", "", baseUrl)
+            val headerAlerts = alerts.filter { alert ->
+                alert.containsKey("name") && 
+                (alert["name"].toString().contains("Missing Anti-clickjacking Header", ignoreCase = true) ||
+                 alert["name"].toString().contains("Missing Anti-CSRF", ignoreCase = true) ||
+                 alert["name"].toString().contains("Content Security Policy", ignoreCase = true) ||
+                 alert["name"].toString().contains("HTTP Strict Transport Security", ignoreCase = true))
+            }
+            
+            if (headerAlerts.isNotEmpty()) {
+                println("Security header findings:")
+                headerAlerts.forEach { alert ->
+                    println("  - ${alert["name"]}: ${alert["description"]}")
+                }
+            }
+            
+            // Allow some missing headers in test environment
+            val criticalHeaderAlerts = headerAlerts.filter { alert ->
+                alert.containsKey("risk") && alert["risk"] == "High"
+            }
+            
+            assertFalse(criticalHeaderAlerts.isNotEmpty(), 
+                "Critical security header issues detected: ${criticalHeaderAlerts.size}")
+            
+        } catch (e: Exception) {
+            throw AssertionError("Security headers validation failed", e)
+        }
+    }
+
+    @Test
+    @DisplayName("OWASP ZAP: Authentication Bypass Testing")
+    fun testAuthenticationBypass() {
+        try {
+            // Test various authentication bypass techniques
+            val bypassPayloads = listOf(
+                "admin' OR '1'='1",
+                "' OR 1=1--",
+                "admin'/*",
+                "' OR 'a'='a",
+                "admin' --",
+                "admin' #"
+            )
+            
+            bypassPayloads.forEach { payload ->
+                val testUrl = "$baseUrl/api/auth/login"
+                
+                // Try to access with bypass payload
+                try {
+                    val requestBody = """{"username": "$payload", "password": "test"}"""
+                    zapClient.core.sendRequest(requestBody, true, false)
+                    Thread.sleep(100)
+                } catch (e: Exception) {
+                    // Expected for malicious payloads
+                }
+            }
+            
+            Thread.sleep(2000) // Allow passive scanning
+            
+            // Check for authentication bypass findings
+            val alerts = zapClient.core.alerts("High", "Medium", baseUrl)
+            val authBypassAlerts = alerts.filter { alert ->
+                alert.containsKey("name") && 
+                (alert["name"].toString().contains("Authentication Bypass", ignoreCase = true) ||
+                 alert["name"].toString().contains("Broken Authentication", ignoreCase = true))
+            }
+            
+            assertFalse(authBypassAlerts.isNotEmpty(), 
+                "Authentication bypass vulnerabilities detected: ${authBypassAlerts.size}")
+            
+        } catch (e: Exception) {
+            throw AssertionError("Authentication bypass test failed", e)
+        }
+    }
+
+    private fun setupAuthenticationContext() {
+        try {
+            // Create authentication context for authenticated scans
+            val contextName = "AsterManagement"
+            val contextId = zapClient.context.newContext(contextName)
+            
+            // Set up include/exclude patterns
+            zapClient.context.includeInContext(contextName, "$baseUrl.*")
+            zapClient.context.excludeFromContext(contextName, "$baseUrl/static/.*")
+            
+            // Set up authentication method (form-based)
+            zapClient.authentication.setAuthenticationMethod(
+                contextId,
+                "formBasedAuthentication",
+                "loginUrl=$baseUrl/api/auth/login&loginRequestData=username%3D%7B%25username%25%7D%26password%3D%7B%25password%25%7D"
+            )
+            
+            // Add user for authentication
+            zapClient.users.newUser(contextId, "testuser")
+            zapClient.users.setUserName(contextId, "0", "test@example.com")
+            zapClient.users.setUserEnabled(contextId, "0", "true")
+            
+        } catch (e: Exception) {
+            println("Warning: Could not set up authentication context: ${e.message}")
+        }
+    }
+
+    private fun waitForSpiderCompletion(scanId: String) {
+        var progress = 0
+        while (progress < 100) {
+            Thread.sleep(1000)
+            progress = zapClient.spider.status(scanId).toInt()
+        }
+    }
+
+    private fun waitForActiveScanCompletion(scanId: String) {
+        var progress = 0
+        while (progress < 100) {
+            Thread.sleep(2000)
+            progress = zapClient.ascan.status(scanId).toInt()
+        }
+    }
+
+    private fun analyzeSecurityFindings() {
+        val alerts = zapClient.core.alerts("", "", baseUrl)
+        
+        val criticalAlerts = alerts.filter { it["risk"] == "High" }
+        val highAlerts = alerts.filter { it["risk"] == "Medium" }
+        val lowAlerts = alerts.filter { it["risk"] == "Low" }
+        
+        println("Security scan results:")
+        println("  Critical (High): ${criticalAlerts.size}")
+        println("  High (Medium): ${highAlerts.size}")
+        println("  Low: ${lowAlerts.size}")
+        
+        if (criticalAlerts.isNotEmpty()) {
+            println("\nCritical findings:")
+            criticalAlerts.forEach { alert ->
+                println("  - ${alert["name"]}: ${alert["description"]}")
+            }
+        }
+        
+        // Fail test if critical vulnerabilities found
+        assertFalse(criticalAlerts.isNotEmpty(), 
+            "Critical security vulnerabilities detected: ${criticalAlerts.size}")
+        
+        // Warn about high-risk findings but don't fail
+        if (highAlerts.size > 5) {
+            println("Warning: High number of medium-risk findings: ${highAlerts.size}")
+        }
+    }
+
+    private fun analyzePassiveFindings() {
+        val alerts = zapClient.core.alerts("", "", baseUrl)
+        
+        println("Passive scan results: ${alerts.size} total findings")
+        
+        val riskCounts = alerts.groupBy { it["risk"] }.mapValues { it.value.size }
+        riskCounts.forEach { (risk, count) ->
+            println("  $risk: $count")
+        }
+        
+        // Focus on high-risk passive findings
+        val highRiskAlerts = alerts.filter { it["risk"] == "High" }
+        assertFalse(highRiskAlerts.size > 3, 
+            "Too many high-risk passive findings: ${highRiskAlerts.size}")
+    }
+}

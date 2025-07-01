@@ -2,12 +2,14 @@ package dev.ryuzu.astermanagement.config
 
 import dev.ryuzu.astermanagement.filter.RateLimitingFilter
 import dev.ryuzu.astermanagement.service.JwtService
+import dev.ryuzu.astermanagement.security.rbac.service.CustomPermissionEvaluator
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
+import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
@@ -39,7 +41,8 @@ class SecurityConfiguration(
     private val jwtAuthenticationEntryPoint: JwtAuthenticationEntryPoint,
     private val jwtAccessDeniedHandler: JwtAccessDeniedHandler,
     private val jwtDecoder: org.springframework.security.oauth2.jwt.JwtDecoder,
-    private val rateLimitingFilter: RateLimitingFilter
+    private val rateLimitingFilter: RateLimitingFilter,
+    private val customPermissionEvaluator: CustomPermissionEvaluator
 ) {
     
     /**
@@ -140,6 +143,16 @@ class SecurityConfiguration(
     @Bean
     fun authenticationManager(config: AuthenticationConfiguration): AuthenticationManager =
         config.authenticationManager
+
+    /**
+     * Method security expression handler with custom permission evaluator
+     */
+    @Bean
+    fun methodSecurityExpressionHandler(): DefaultMethodSecurityExpressionHandler {
+        val expressionHandler = DefaultMethodSecurityExpressionHandler()
+        expressionHandler.setPermissionEvaluator(customPermissionEvaluator)
+        return expressionHandler
+    }
 
     /**
      * CORS configuration for frontend integration
