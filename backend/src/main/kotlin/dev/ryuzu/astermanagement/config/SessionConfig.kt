@@ -1,6 +1,7 @@
 package dev.ryuzu.astermanagement.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import dev.ryuzu.astermanagement.security.session.repository.EnhancedSessionRepository
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -11,9 +12,17 @@ import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSeriali
 import org.springframework.data.redis.serializer.RedisSerializer
 import org.springframework.session.FlushMode
 import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession
+import org.springframework.session.events.SessionCreatedEvent
+import org.springframework.session.events.SessionDeletedEvent
+import org.springframework.session.events.SessionExpiredEvent
 import org.springframework.session.web.http.HeaderHttpSessionIdResolver
 import org.springframework.session.web.http.HttpSessionIdResolver
+import org.springframework.session.web.http.SessionEventHttpSessionListenerAdapter
 import java.time.Duration
+import java.time.Instant
+import jakarta.servlet.http.HttpSessionEvent
+import jakarta.servlet.http.HttpSessionListener
+import org.springframework.context.event.EventListener
 
 /**
  * Spring Session configuration for distributed session management with Redis.
@@ -52,6 +61,15 @@ class SessionConfig {
         logger.info("Configuring Spring Session Redis serializer with Jackson")
         return GenericJackson2JsonRedisSerializer(objectMapper)
     }
+    
+    /**
+     * Custom session listener for handling session lifecycle events.
+     */
+    @Bean
+    fun customSessionListener(): CustomSessionListener {
+        logger.info("Configuring custom session listener")
+        return CustomSessionListener()
+    }
 }
 
 /**
@@ -88,4 +106,84 @@ enum class ConcurrentSessionPolicy {
      * Notify user but allow new session.
      */
     NOTIFY_USER
+}
+
+/**
+ * Custom session listener for handling session lifecycle events.
+ * Provides audit logging and session management capabilities.
+ */
+class CustomSessionListener : HttpSessionListener {
+    
+    companion object {
+        private val logger = LoggerFactory.getLogger(CustomSessionListener::class.java)
+    }
+    
+    override fun sessionCreated(se: HttpSessionEvent) {
+        val sessionId = se.session.id
+        val creationTime = Instant.ofEpochMilli(se.session.creationTime)
+        
+        logger.info("Session created: sessionId={}, creationTime={}", sessionId, creationTime)
+        
+        // Track session creation metrics
+        se.session.setAttribute("session.created.at", creationTime)
+        se.session.setAttribute("session.last.accessed.at", creationTime)
+    }
+    
+    override fun sessionDestroyed(se: HttpSessionEvent) {
+        val sessionId = se.session.id
+        val creationTime = se.session.getAttribute("session.created.at") as? Instant
+        val lastAccessedTime = se.session.getAttribute("session.last.accessed.at") as? Instant
+        val now = Instant.now()
+        
+        val sessionDuration = creationTime?.let { Duration.between(it, now) }
+        val inactivityDuration = lastAccessedTime?.let { Duration.between(it, now) }
+        
+        logger.info(
+            "Session destroyed: sessionId={}, duration={}, inactivity={}", 
+            sessionId, 
+            sessionDuration?.toMinutes(),
+            inactivityDuration?.toMinutes()
+        )
+        
+        // Clean up any session-specific resources
+        cleanupSessionResources(sessionId)
+    }
+    
+    private fun cleanupSessionResources(sessionId: String) {
+        // Additional cleanup logic can be added here
+        logger.debug("Cleaning up resources for session: {}", sessionId)
+    }
+}
+
+/**
+ * Spring Session event listener for handling Redis session events.
+ * Provides comprehensive session lifecycle monitoring and audit logging.
+ */
+@Configuration
+class SessionEventListener {
+    
+    companion object {
+        private val logger = LoggerFactory.getLogger(SessionEventListener::class.java)
+    }
+    
+    @EventListener
+    fun handleSessionCreated(event: SessionCreatedEvent) {
+        val sessionId = event.sessionId
+        
+        logger.info("Redis session created: sessionId={}", sessionId)
+    }
+    
+    @EventListener
+    fun handleSessionDeleted(event: SessionDeletedEvent) {
+        val sessionId = event.sessionId
+        
+        logger.info("Redis session deleted: sessionId={}", sessionId)
+    }
+    
+    @EventListener
+    fun handleSessionExpired(event: SessionExpiredEvent) {
+        val sessionId = event.sessionId
+        
+        logger.info("Redis session expired: sessionId={}", sessionId)
+    }
 }
