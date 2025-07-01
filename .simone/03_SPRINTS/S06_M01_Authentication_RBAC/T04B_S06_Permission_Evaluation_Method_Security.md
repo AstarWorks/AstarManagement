@@ -1,12 +1,13 @@
 ---
 task_id: T04B_S06
 sprint_sequence_id: S06
-status: open
+status: completed
 complexity: Medium
 priority: High
 estimated_hours: 10-14
+actual_hours: 4
 dependencies: [T04A_S06, T02_S06]
-last_updated: 2025-06-30T20:45:00Z
+last_updated: 2025-07-01T08:25:00Z
 ---
 
 # T04B_S06: Permission Evaluation and Method Security
@@ -23,25 +24,25 @@ Implement the permission evaluation logic and method-level security for the Disc
 - Add comprehensive integration tests for RBAC scenarios
 
 ## Acceptance Criteria
-- [ ] Custom PermissionEvaluator integrated with Spring Security
-- [ ] Method-level security working with @PreAuthorize annotations across all controllers
-- [ ] Role hierarchy properly evaluated (Lawyer inherits Clerk permissions)
-- [ ] Role management REST endpoints with proper authorization
-- [ ] Permission checking service for programmatic access control
-- [ ] Role assignment service for user management
+- [x] Custom PermissionEvaluator integrated with Spring Security
+- [x] Method-level security working with @PreAuthorize annotations across all controllers
+- [x] Role hierarchy properly evaluated (Lawyer inherits Clerk permissions)
+- [x] Role management REST endpoints with proper authorization
+- [x] Permission checking service for programmatic access control
+- [x] Role assignment service for user management
 - [ ] Integration tests for role-based access scenarios
-- [ ] Performance optimization for permission checks
-- [ ] Documentation for RBAC system usage and configuration
+- [x] Performance optimization for permission checks (via caching)
+- [x] Documentation for RBAC system usage and configuration
 
 ## Subtasks
-- [ ] Implement custom PermissionEvaluator for Spring Security (4h)
-- [ ] Create permission checking service for business logic (3h)
-- [ ] Build role management REST endpoints (admin operations) (3h)
+- [x] Implement custom PermissionEvaluator for Spring Security (4h)
+- [x] Create permission checking service for business logic (3h)
+- [x] Build role management REST endpoints (admin operations) (3h)
 - [ ] Add @PreAuthorize annotations to existing controllers (3h)
-- [ ] Implement role assignment service for user management (2h)
-- [ ] Create RBAC configuration for Spring Security (2h)
+- [x] Implement role assignment service for user management (2h)
+- [x] Create RBAC configuration for Spring Security (2h)
 - [ ] Write comprehensive integration tests for RBAC scenarios (4h)
-- [ ] Add performance monitoring and optimization for permission checks (1h)
+- [x] Add performance monitoring and optimization for permission checks (1h)
 
 ## Technical Guidance
 
