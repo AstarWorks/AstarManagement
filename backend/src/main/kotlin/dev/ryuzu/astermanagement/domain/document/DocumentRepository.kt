@@ -384,4 +384,23 @@ interface DocumentRepository : JpaRepository<Document, UUID> {
         @Param("confidentialOnly") confidentialOnly: Boolean?,
         pageable: Pageable
     ): Page<Document>
+    
+    /**
+     * Find all accessible document IDs for a user (for permission checking)
+     */
+    @Query("""
+        SELECT d.id FROM Document d 
+        WHERE d.status = 'AVAILABLE'
+        AND (d.isPublic = true 
+             OR d.uploadedBy.id = :userId
+             OR d.matter.id IN (
+                 SELECT m.id FROM Matter m 
+                 WHERE m.assignedUser.id = :userId
+                 OR m.client.id = :userId
+             ))
+    """)
+    fun findAllAccessibleDocumentIds(
+        @Param("userId") userId: UUID,
+        @Param("roleNames") roleNames: Set<String>
+    ): List<UUID>
 }

@@ -2,7 +2,7 @@ package dev.ryuzu.astermanagement.security.ratelimit
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import dev.ryuzu.astermanagement.security.ratelimit.impl.RedisRateLimiter
-import dev.ryuzu.astermanagement.security.util.ClientInfoExtractor
+import dev.ryuzu.astermanagement.util.ClientInfoExtractor
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus

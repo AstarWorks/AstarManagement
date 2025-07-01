@@ -215,6 +215,11 @@ interface RoleRepository : JpaRepository<Role, UUID> {
      * Find all active roles ordered by hierarchy level (descending)
      */
     fun findAllByIsActiveOrderByHierarchyLevelDesc(isActive: Boolean): List<Role>
+    
+    /**
+     * Find roles by names
+     */
+    fun findByNameIn(names: Collection<String>): List<Role>
 
     /**
      * Find roles suitable for a specific hierarchy level

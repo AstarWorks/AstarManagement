@@ -1,4 +1,4 @@
-package dev.ryuzu.astermanagement.security.util
+package dev.ryuzu.astermanagement.util
 
 import org.springframework.stereotype.Component
 import jakarta.servlet.http.HttpServletRequest
@@ -54,6 +54,20 @@ class ClientInfoExtractor {
 
     private fun extractSessionId(request: HttpServletRequest): String? {
         return request.session?.id
+    }
+    
+    /**
+     * Get client IP address from request
+     */
+    fun getClientIpAddress(request: HttpServletRequest?): String {
+        return request?.let { extractRealIPAddress(it) } ?: "unknown"
+    }
+    
+    /**
+     * Get user agent from request
+     */
+    fun getUserAgent(request: HttpServletRequest?): String? {
+        return request?.let { extractUserAgent(it) }
     }
 }
 

@@ -47,7 +47,13 @@ enum class Permission(val bit: Int, val description: String) {
     ROLE_MANAGE(24, "Manage roles and permissions"),
     EXPORT_DATA(25, "Export system data"),
     SYSTEM_SETTINGS(26, "Access system settings"),
-    AUDIT_READ(27, "View audit logs");
+    AUDIT_READ(27, "View audit logs"),
+    
+    // Document security permissions (bits 28-31)
+    DOCUMENT_VIEW_SENSITIVE(28, "View sensitive documents"),
+    DOCUMENT_WATERMARK_BYPASS(29, "Bypass document watermarking"),
+    DOCUMENT_EXPORT_UNRESTRICTED(30, "Export documents without restrictions"),
+    DOCUMENT_ADMIN(31, "Full document administration access");
 
     /**
      * The actual permission bit value calculated from the bit position.
@@ -65,6 +71,7 @@ enum class Permission(val bit: Int, val description: String) {
         bit in 14..17 -> "COMMUNICATION"
         bit in 18..22 -> "FINANCIAL"
         bit in 23..27 -> "ADMINISTRATIVE"
+        bit in 28..31 -> "DOCUMENT_SECURITY"
         else -> "UNKNOWN"
     }
 

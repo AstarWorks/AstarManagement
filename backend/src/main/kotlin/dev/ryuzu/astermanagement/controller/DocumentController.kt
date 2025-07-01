@@ -5,6 +5,7 @@ import dev.ryuzu.astermanagement.dto.common.ErrorResponse
 import dev.ryuzu.astermanagement.dto.document.*
 import dev.ryuzu.astermanagement.service.DocumentService
 import dev.ryuzu.astermanagement.security.auth.annotation.CurrentUser
+import dev.ryuzu.astermanagement.security.annotation.*
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
@@ -102,8 +103,8 @@ class DocumentController(
     /**
      * Get upload progress for a document.
      */
-    @GetMapping("/{id}/progress")
-    @PreAuthorize("hasRole('LAWYER') or hasRole('CLERK')")
+    @GetMapping("/{documentId}/progress")
+    @RequireDocumentView
     @Operation(
         summary = "Get upload progress",
         description = "Get the current upload progress for a document"
@@ -115,17 +116,17 @@ class DocumentController(
         ApiResponse(responseCode = "404", description = "Document not found")
     )
     fun getUploadProgress(
-        @PathVariable id: UUID
+        @PathVariable documentId: UUID
     ): ResponseEntity<UploadProgressDto> {
-        val progress = documentService.getUploadProgress(id)
+        val progress = documentService.getUploadProgress(documentId)
         return progress?.let { ok(it) } ?: notFound()
     }
     
     /**
      * Get document by ID.
      */
-    @GetMapping("/{id}")
-    @PreAuthorize("hasRole('LAWYER') or hasRole('CLERK')")
+    @GetMapping("/{documentId}")
+    @RequireDocumentView
     @Operation(
         summary = "Get document by ID",
         description = "Retrieve document metadata by its ID. Clients can only access documents from their matters."
@@ -137,16 +138,16 @@ class DocumentController(
         ApiResponse(responseCode = "404", description = "Document not found")
     )
     fun getDocumentById(
-        @PathVariable @Parameter(description = "Document ID") id: UUID
+        @PathVariable @Parameter(description = "Document ID") documentId: UUID
     ): ResponseEntity<DocumentDto> {
-        val document = documentService.getDocumentById(id)
+        val document = documentService.getDocumentById(documentId)
         return document?.let { ok(it.toDto()) } ?: notFound()
     }
     
     /**
      * Download document content.
      */
-    @GetMapping("/{id}/download")
+    @GetMapping("/{documentId}/download")
     @PreAuthorize("hasRole('LAWYER') or hasRole('CLERK')")
     @Operation(
         summary = "Download document",
@@ -158,10 +159,11 @@ class DocumentController(
         ApiResponse(responseCode = "403", description = "Insufficient permissions"),
         ApiResponse(responseCode = "404", description = "Document not found")
     )
+    @RequireDocumentDownload
     fun downloadDocument(
-        @PathVariable @Parameter(description = "Document ID") id: UUID
+        @PathVariable @Parameter(description = "Document ID") documentId: UUID
     ): ResponseEntity<org.springframework.core.io.Resource> {
-        val result = documentService.downloadDocument(id)
+        val result = documentService.downloadDocument(documentId)
         return result?.let { (resource, document) ->
             ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(document.contentType))
@@ -173,8 +175,8 @@ class DocumentController(
     /**
      * Get document thumbnail.
      */
-    @GetMapping("/{id}/thumbnail")
-    @PreAuthorize("hasRole('LAWYER') or hasRole('CLERK')")
+    @GetMapping("/{documentId}/thumbnail")
+    @RequireDocumentView
     @Operation(
         summary = "Get document thumbnail",
         description = "Get a thumbnail preview of the document if available (images and PDFs)."
@@ -187,9 +189,9 @@ class DocumentController(
         ApiResponse(responseCode = "404", description = "Document not found")
     )
     fun getDocumentThumbnail(
-        @PathVariable @Parameter(description = "Document ID") id: UUID
+        @PathVariable @Parameter(description = "Document ID") documentId: UUID
     ): ResponseEntity<org.springframework.core.io.Resource> {
-        val thumbnail = documentService.getDocumentThumbnail(id)
+        val thumbnail = documentService.getDocumentThumbnail(documentId)
         return thumbnail?.let { resource ->
             ResponseEntity.ok()
                 .contentType(MediaType.IMAGE_PNG)
@@ -234,8 +236,8 @@ class DocumentController(
     /**
      * Update document metadata.
      */
-    @PutMapping("/{id}/metadata")
-    @PreAuthorize("hasRole('LAWYER') or hasRole('CLERK')")
+    @PutMapping("/{documentId}/metadata")
+    @RequireDocumentEdit
     @Operation(
         summary = "Update document metadata",
         description = "Update document description and tags. File content cannot be modified."
@@ -248,18 +250,18 @@ class DocumentController(
         ApiResponse(responseCode = "404", description = "Document not found")
     )
     fun updateDocumentMetadata(
-        @PathVariable @Parameter(description = "Document ID") id: UUID,
+        @PathVariable @Parameter(description = "Document ID") documentId: UUID,
         @Valid @RequestBody metadata: UpdateDocumentMetadataDto
     ): ResponseEntity<DocumentDto> {
-        val document = documentService.updateDocumentMetadata(id, metadata)
+        val document = documentService.updateDocumentMetadata(documentId, metadata)
         return document?.let { ok(it.toDto()) } ?: notFound()
     }
     
     /**
      * Delete document (soft delete).
      */
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('LAWYER')")
+    @DeleteMapping("/{documentId}")
+    @RequireDocumentDelete
     @Operation(
         summary = "Delete document",
         description = "Soft delete a document. The file is marked as deleted but not physically removed."
@@ -271,9 +273,9 @@ class DocumentController(
         ApiResponse(responseCode = "404", description = "Document not found")
     )
     fun deleteDocument(
-        @PathVariable @Parameter(description = "Document ID") id: UUID
+        @PathVariable @Parameter(description = "Document ID") documentId: UUID
     ): ResponseEntity<Void> {
-        return if (documentService.deleteDocument(id)) {
+        return if (documentService.deleteDocument(documentId)) {
             noContent()
         } else {
             ResponseEntity.notFound().build()
@@ -283,8 +285,8 @@ class DocumentController(
     /**
      * Get document versions.
      */
-    @GetMapping("/{id}/versions")
-    @PreAuthorize("hasRole('LAWYER') or hasRole('CLERK')")
+    @GetMapping("/{documentId}/versions")
+    @RequireDocumentView
     @Operation(
         summary = "Get document versions",
         description = "Get all versions of a document including the version history."
@@ -296,9 +298,9 @@ class DocumentController(
         ApiResponse(responseCode = "404", description = "Document not found")
     )
     fun getDocumentVersions(
-        @PathVariable @Parameter(description = "Document ID") id: UUID
+        @PathVariable @Parameter(description = "Document ID") documentId: UUID
     ): ResponseEntity<List<DocumentVersionDto>> {
-        val versions = documentService.getDocumentVersions(id)
+        val versions = documentService.getDocumentVersions(documentId)
         return if (versions.isNotEmpty()) {
             ok(versions)
         } else {
@@ -309,8 +311,8 @@ class DocumentController(
     /**
      * Upload new version of document.
      */
-    @PostMapping("/{id}/versions", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
-    @PreAuthorize("hasRole('LAWYER') or hasRole('CLERK')")
+    @PostMapping("/{documentId}/versions", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    @RequireDocumentEdit
     @Operation(
         summary = "Upload new document version",
         description = "Upload a new version of an existing document. The original document is preserved."
@@ -324,12 +326,12 @@ class DocumentController(
         ApiResponse(responseCode = "413", description = "File too large")
     )
     fun uploadDocumentVersion(
-        @PathVariable @Parameter(description = "Document ID") id: UUID,
+        @PathVariable @Parameter(description = "Document ID") documentId: UUID,
         @RequestPart("file") @Parameter(description = "New version file") file: MultipartFile,
         @RequestPart(value = "metadata", required = false) @Valid metadata: VersionMetadataDto?,
         @CurrentUser user: UserDetails
     ): ResponseEntity<DocumentDto> {
-        val newVersion = documentService.uploadDocumentVersion(id, file, metadata?.comment, user.username)
+        val newVersion = documentService.uploadDocumentVersion(documentId, file, metadata?.comment, user.username)
         return newVersion?.let { 
             created(it.toDto(), it.id.toString())
         } ?: notFound()

@@ -21,8 +21,8 @@ This project follows a milestone-based development approach.
 
 - **Milestone:** M01 - Matter Management MVP
 - **Sprint:** S07 - Document Management (IN PROGRESS)
-- **Current Task:** T04A_S07 Core PDF Viewer Performance Enhancement (✅ COMPLETED)
-- **Updated:** 2025-07-01 15:00
+- **Current Task:** T05_S07 Document Security and Access Control (🚧 IN PROGRESS)
+- **Updated:** 2025-07-01 14:20
 
 ## 3. Sprints in Current Milestone
 
@@ -112,16 +112,17 @@ Implement JWT-based authentication with Discord-style RBAC system and secure ses
 - ✅ TX07_S06: Frontend Authentication Integration - Medium complexity (COMPLETED)
 - ✅ TX08_S06: Security Testing and Hardening - Medium complexity (COMPLETED)
 
-### S07 Document Management (📋 PLANNED)
+### S07 Document Management (🚧 IN PROGRESS)
 
 Implement document upload, storage, and management features.
 
-- 📋 MinIO/Cloud Storage Setup - Medium complexity
-- 📋 File Upload API - Medium complexity
-- 📋 PDF Viewer Component - Medium complexity
-- 📋 Document Metadata - Low complexity
+- ✅ T01_S07: Storage Infrastructure Setup - Medium complexity (COMPLETED)
+- 🚧 T02_S07: File Upload API Implementation - Medium complexity (IN PROGRESS)
+- ✅ TX03_S07: Document Metadata Database Schema - Low complexity (COMPLETED)
+- ✅ T04A_S07: Core PDF Viewer Performance Enhancement - Medium complexity (COMPLETED)
+- 🚧 T05_S07: Document Security and Access Control - Medium complexity (IN PROGRESS)
 - 📋 Version Control - Medium complexity
-- 📋 Access Control - Medium complexity
+- 📋 Batch Upload Processing - Medium complexity
 
 ### S08 Search Communication (📋 PLANNED)
 
