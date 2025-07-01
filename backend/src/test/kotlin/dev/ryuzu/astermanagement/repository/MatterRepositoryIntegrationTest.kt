@@ -20,6 +20,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection
 import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.test.context.ActiveProfiles
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.junit.jupiter.Container
@@ -214,14 +215,11 @@ class MatterRepositoryIntegrationTest {
             testEntityManager.clear()
             
             // When
-            val pageable = PageRequest.of(0, 10)
-            val clientMatters = matterRepository.findByClientNameContainingIgnoreCase(
-                "abc", pageable
-            )
+            val clientMatters = matterRepository.findByClientNameContainingIgnoreCase("abc")
             
             // Then
-            clientMatters.content shouldHaveSize 1
-            clientMatters.content[0].clientName shouldBe clientName
+            clientMatters shouldHaveSize 1
+            clientMatters[0].clientName shouldBe clientName
         }
     }
     
@@ -338,8 +336,8 @@ class MatterRepositoryIntegrationTest {
             testEntityManager.clear()
             
             // When - Get matters sorted by creation date desc
-            val pageable = PageRequest.of(0, 10)
-            val sortedMatters = matterRepository.findAllByOrderByCreatedAtDesc(pageable)
+            val pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"))
+            val sortedMatters = matterRepository.findAll(pageable)
             
             // Then - Should be in reverse creation order
             sortedMatters.content shouldHaveSize 3
@@ -377,8 +375,14 @@ class MatterRepositoryIntegrationTest {
             
             // When - Search for "contract"
             val pageable = PageRequest.of(0, 10)
-            val contractMatters = matterRepository.findByTitleContainingIgnoreCaseOrCaseNumberContainingIgnoreCase(
-                "contract", "contract", pageable
+            val contractMatters = matterRepository.searchMatters(
+                caseNumber = "contract", 
+                clientName = null,
+                title = "contract", 
+                status = null, 
+                priority = null, 
+                assignedLawyer = null,
+                pageable = pageable
             )
             
             // Then - Should find both contract-related matters

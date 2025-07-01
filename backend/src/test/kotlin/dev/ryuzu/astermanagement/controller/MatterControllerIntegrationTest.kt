@@ -60,13 +60,15 @@ class MatterControllerIntegrationTest {
         @DisplayName("Should create matter successfully with valid request")
         fun `POST-matters should create matter when data is valid`() {
             // Given
+            val testLawyer = TestDataFactory.createTestLawyer()
             val request = CreateMatterRequest(
                 caseNumber = "2025-CV-0001",
                 title = "Contract Dispute",
                 description = "Contract dispute with vendor",
                 clientName = "ABC Corporation",
                 clientContact = "legal@abc.com",
-                status = MatterStatus.INTAKE
+                status = MatterStatus.INTAKE,
+                assignedLawyerId = testLawyer.id!!
             )
             
             val createdMatter = TestDataFactory.createTestMatter(
@@ -130,7 +132,8 @@ class MatterControllerIntegrationTest {
             val invalidRequest = CreateMatterRequest(
                 caseNumber = "", // Invalid empty case number
                 title = "Valid Title",
-                clientName = "Valid Client"
+                clientName = "Valid Client",
+                assignedLawyerId = UUID.randomUUID()
             )
             
             // When & Then
@@ -154,7 +157,8 @@ class MatterControllerIntegrationTest {
             val request = CreateMatterRequest(
                 caseNumber = "2025-CV-0001",
                 title = "Contract Dispute", 
-                clientName = "ABC Corporation"
+                clientName = "ABC Corporation",
+                assignedLawyerId = UUID.randomUUID()
             )
             
             // When & Then
@@ -174,7 +178,8 @@ class MatterControllerIntegrationTest {
             val request = CreateMatterRequest(
                 caseNumber = "2025-CV-0001",
                 title = "Contract Dispute",
-                clientName = "ABC Corporation"
+                clientName = "ABC Corporation",
+                assignedLawyerId = UUID.randomUUID()
             )
             
             // When & Then
@@ -217,7 +222,7 @@ class MatterControllerIntegrationTest {
             .andDo(
                 document("matters-list",
                     preprocessResponse(prettyPrint()),
-                    requestParameters(
+                    queryParameters(
                         parameterWithName("page").description("Page number (0-based)").optional(),
                         parameterWithName("size").description("Page size (max 100)").optional(),
                         parameterWithName("status").description("Filter by matter status").optional(),

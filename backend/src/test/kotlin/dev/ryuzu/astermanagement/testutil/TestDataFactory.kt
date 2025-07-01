@@ -57,7 +57,7 @@ object TestDataFactory {
             this.lastName = lastName
             this.email = email
             this.role = role
-            this.active = active
+            this.isActive = active
         }
     }
     
@@ -103,7 +103,8 @@ object TestDataFactory {
         description: String = "Description for new legal case",
         clientName: String = "Client Corporation",
         clientContact: String = "contact@client.com",
-        status: MatterStatus = MatterStatus.INTAKE
+        status: MatterStatus = MatterStatus.INTAKE,
+        assignedLawyerId: UUID = UUID.randomUUID()
     ): CreateMatterRequest {
         return CreateMatterRequest(
             caseNumber = caseNumber,
@@ -111,7 +112,8 @@ object TestDataFactory {
             description = description,
             clientName = clientName,
             clientContact = clientContact,
-            status = status
+            status = status,
+            assignedLawyerId = assignedLawyerId
         )
     }
     
@@ -125,7 +127,16 @@ object TestDataFactory {
             title = title,
             description = description,
             clientName = clientName,
-            clientContact = clientContact
+            clientContact = clientContact,
+            opposingParty = null,
+            courtName = null,
+            filingDate = null,
+            estimatedCompletionDate = null,
+            priority = null,
+            assignedLawyerId = null,
+            assignedClerkId = null,
+            notes = null,
+            tags = null
         )
     }
     

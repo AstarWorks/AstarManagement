@@ -26,6 +26,7 @@ import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
+import java.util.*
 import kotlin.random.Random
 
 /**
@@ -79,7 +80,8 @@ class MatterApiPerformanceTest {
                 description = "Testing API performance under load",
                 clientName = "Performance Test Client",
                 clientContact = "perf@test.com",
-                status = MatterStatus.INTAKE
+                status = MatterStatus.INTAKE,
+                assignedLawyerId = UUID.randomUUID()
             )
             
             val headers = HttpHeaders().apply {
@@ -147,7 +149,8 @@ class MatterApiPerformanceTest {
             val createRequest = CreateMatterRequest(
                 caseNumber = "2025-GET-${Random.nextInt(1000, 9999)}",
                 title = "Matter for Get Test",
-                clientName = "Get Test Client"
+                clientName = "Get Test Client",
+                assignedLawyerId = UUID.randomUUID()
             )
             
             val headers = HttpHeaders().apply {
@@ -205,7 +208,8 @@ class MatterApiPerformanceTest {
                     val request = CreateMatterRequest(
                         caseNumber = "2025-CONC-${String.format("%04d", index)}",
                         title = "Concurrent Test Matter $index",
-                        clientName = "Concurrent Client $index"
+                        clientName = "Concurrent Client $index",
+                        assignedLawyerId = UUID.randomUUID()
                     )
                     
                     val headers = HttpHeaders().apply {
@@ -262,7 +266,8 @@ class MatterApiPerformanceTest {
                 val request = CreateMatterRequest(
                     caseNumber = "2025-READ-${String.format("%04d", index)}",
                     title = "Read Test Matter $index",
-                    clientName = "Read Client $index"
+                    clientName = "Read Client $index",
+                    assignedLawyerId = UUID.randomUUID()
                 )
                 
                 val headers = HttpHeaders().apply {

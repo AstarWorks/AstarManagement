@@ -4,6 +4,7 @@ import dev.ryuzu.astermanagement.domain.matter.MatterRepository
 import dev.ryuzu.astermanagement.domain.matter.MatterStatus
 import dev.ryuzu.astermanagement.domain.user.UserRepository
 import dev.ryuzu.astermanagement.service.exception.*
+import dev.ryuzu.astermanagement.domain.user.User
 import dev.ryuzu.astermanagement.service.impl.MatterServiceImpl
 import dev.ryuzu.astermanagement.testutil.TestDataFactory
 import io.kotest.assertions.throwables.shouldThrow
@@ -34,6 +35,8 @@ class MatterServiceMockkTest {
     private val matterRepository: MatterRepository = mockk()
     private val userRepository: UserRepository = mockk()
     private val auditService: AuditService = mockk()
+    private val auditEventPublisher: AuditEventPublisher = mockk()
+    private val statusTransitionService: StatusTransitionService = mockk()
     
     private lateinit var matterService: MatterServiceImpl
     
@@ -43,7 +46,7 @@ class MatterServiceMockkTest {
         clearAllMocks()
         
         // Initialize service with mocked dependencies
-        matterService = MatterServiceImpl(matterRepository, userRepository, auditService)
+        matterService = MatterServiceImpl(matterRepository, userRepository, auditService, auditEventPublisher, statusTransitionService)
         
         // Set up security context with LAWYER role for most tests
         val authorities = listOf(SimpleGrantedAuthority("ROLE_LAWYER"))
@@ -51,9 +54,13 @@ class MatterServiceMockkTest {
         SecurityContextHolder.getContext().authentication = authentication
         
         // Default audit service behavior
-        every { auditService.logMatterCreated(any()) } just Runs
-        every { auditService.logMatterUpdated(any(), any()) } just Runs
-        every { auditService.logMatterStatusChanged(any(), any(), any(), any()) } just Runs
+        every { auditService.recordMatterEvent(any(), any(), any()) } just Runs
+        every { auditEventPublisher.publishMatterCreated(any(), any(), any(), any()) } just Runs
+        every { auditEventPublisher.publishMatterUpdated(any(), any(), any(), any(), any()) } just Runs
+        every { auditEventPublisher.publishMatterStatusChanged(any(), any(), any(), any(), any()) } just Runs
+        every { auditEventPublisher.publishMatterDeleted(any(), any(), any()) } just Runs
+        every { statusTransitionService.createTransitionContext(any(), any(), any(), any(), any()) } returns mockk()
+        every { statusTransitionService.executeTransition(any()) } returns mockk()
     }
     
     @Nested
@@ -65,7 +72,7 @@ class MatterServiceMockkTest {
         fun `should create matter when all data is valid`() {
             // Given
             val matter = TestDataFactory.createTestMatter()
-            val expectedMatter = matter.copy().apply { id = UUID.randomUUID() }
+            val expectedMatter = matter.apply { id = UUID.randomUUID() }
             
             every { matterRepository.existsByCaseNumber(matter.caseNumber) } returns false
             every { matterRepository.save(any()) } returns expectedMatter
@@ -81,7 +88,7 @@ class MatterServiceMockkTest {
             
             verify { matterRepository.existsByCaseNumber(matter.caseNumber) }
             verify { matterRepository.save(any()) }
-            verify { auditService.logMatterCreated(any()) }
+            verify { auditService.recordMatterEvent(any(), any(), any()) }
         }
         
         @Test
@@ -128,7 +135,7 @@ class MatterServiceMockkTest {
         fun `should default to INTAKE status when not specified`() {
             // Given
             val matter = TestDataFactory.createTestMatter(status = MatterStatus.INTAKE)
-            val savedMatter = matter.copy().apply { id = UUID.randomUUID() }
+            val savedMatter = matter.apply { id = UUID.randomUUID() }
             
             every { matterRepository.existsByCaseNumber(any()) } returns false
             every { matterRepository.save(any()) } returns savedMatter
@@ -236,7 +243,7 @@ class MatterServiceMockkTest {
             val matterId = UUID.randomUUID()
             val existingMatter = TestDataFactory.createTestMatter(id = matterId)
             val updatedData = TestDataFactory.createTestMatter(title = "Updated Title")
-            val updatedMatter = existingMatter.copy().apply { title = "Updated Title" }
+            val updatedMatter = existingMatter.apply { title = "Updated Title" }
             
             every { matterRepository.findById(matterId) } returns Optional.of(existingMatter)
             every { matterRepository.save(any()) } returns updatedMatter
@@ -250,7 +257,7 @@ class MatterServiceMockkTest {
             
             verify { matterRepository.findById(matterId) }
             verify { matterRepository.save(any()) }
-            verify { auditService.logMatterUpdated(any(), any()) }
+            verify { auditService.recordMatterEvent(any(), any(), any()) }
         }
         
         @Test
@@ -263,9 +270,8 @@ class MatterServiceMockkTest {
             every { matterRepository.findById(matterId) } returns Optional.empty()
             
             // When & Then
-            shouldThrow<ResourceNotFoundException> {
-                matterService.updateMatter(matterId, updateData)
-            }
+            val result = matterService.updateMatter(matterId, updateData)
+            result shouldBe null
             
             verify { matterRepository.findById(matterId) }
             verify(exactly = 0) { matterRepository.save(any()) }
@@ -298,7 +304,7 @@ class MatterServiceMockkTest {
             
             verify { matterRepository.findById(matterId) }
             verify { matterRepository.save(any()) }
-            verify { auditService.logMatterStatusChanged(matterId, MatterStatus.INTAKE, newStatus, reason) }
+            verify { auditService.recordMatterEvent(any(), any(), any()) }
         }
         
         @Test

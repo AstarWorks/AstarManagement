@@ -88,7 +88,7 @@ class StatusTransitionServiceTest {
             caseNumber = "TEST-001"
             title = "Test Matter"
             clientName = "Bob Client"
-            status = MatterStatus.PENDING
+            status = MatterStatus.INTAKE
             priority = MatterPriority.MEDIUM
             assignedLawyer = testLawyer
             assignedClerk = testClerk
@@ -100,7 +100,7 @@ class StatusTransitionServiceTest {
     fun `should allow valid status transition with proper permissions`() {
         // Given
         val context = createTransitionContext(
-            currentStatus = MatterStatus.PENDING,
+            currentStatus = MatterStatus.INTAKE,
             newStatus = MatterStatus.INITIAL_REVIEW,
             userRole = UserRole.LAWYER
         )
@@ -122,7 +122,7 @@ class StatusTransitionServiceTest {
         // Given - trying to go from CLOSED to IN_PROGRESS (invalid)
         val context = createTransitionContext(
             currentStatus = MatterStatus.CLOSED,
-            newStatus = MatterStatus.IN_PROGRESS,
+            newStatus = MatterStatus.INITIAL_REVIEW,
             userRole = UserRole.LAWYER
         )
 
@@ -139,7 +139,7 @@ class StatusTransitionServiceTest {
     fun `should reject transition due to insufficient permissions`() {
         // Given
         val context = createTransitionContext(
-            currentStatus = MatterStatus.PENDING,
+            currentStatus = MatterStatus.INTAKE,
             newStatus = MatterStatus.INITIAL_REVIEW,
             userRole = UserRole.LAWYER
         )
@@ -162,7 +162,7 @@ class StatusTransitionServiceTest {
     fun `should reject transition due to business rule violation`() {
         // Given
         val context = createTransitionContext(
-            currentStatus = MatterStatus.PENDING,
+            currentStatus = MatterStatus.INTAKE,
             newStatus = MatterStatus.INITIAL_REVIEW,
             userRole = UserRole.LAWYER
         )
@@ -210,7 +210,7 @@ class StatusTransitionServiceTest {
     fun `should execute transition successfully with audit logging`() {
         // Given
         val context = createTransitionContext(
-            currentStatus = MatterStatus.PENDING,
+            currentStatus = MatterStatus.INTAKE,
             newStatus = MatterStatus.INITIAL_REVIEW,
             userRole = UserRole.LAWYER,
             reason = "Starting initial review"
@@ -229,7 +229,7 @@ class StatusTransitionServiceTest {
 
         // Then
         assertThat(result.matterId).isEqualTo(context.matterId)
-        assertThat(result.oldStatus).isEqualTo(MatterStatus.PENDING)
+        assertThat(result.oldStatus).isEqualTo(MatterStatus.INTAKE)
         assertThat(result.newStatus).isEqualTo(MatterStatus.INITIAL_REVIEW)
         assertThat(result.reason).isEqualTo("Starting initial review")
         assertThat(result.userId).isEqualTo(context.userId)
@@ -241,7 +241,7 @@ class StatusTransitionServiceTest {
         // Given
         val context = createTransitionContext(
             currentStatus = MatterStatus.CLOSED,
-            newStatus = MatterStatus.IN_PROGRESS,
+            newStatus = MatterStatus.INITIAL_REVIEW,
             userRole = UserRole.LAWYER
         )
 
@@ -255,7 +255,7 @@ class StatusTransitionServiceTest {
     @Test
     fun `should get valid transitions filtered by permissions`() {
         // Given
-        testMatter.status = MatterStatus.PENDING
+        testMatter.status = MatterStatus.INTAKE
         val validBaseTransitions = setOf(MatterStatus.INITIAL_REVIEW, MatterStatus.CLOSED)
         
         // Mock permission service to allow only INITIAL_REVIEW
@@ -306,7 +306,7 @@ class StatusTransitionServiceTest {
     }
 
     private fun createTransitionContext(
-        currentStatus: MatterStatus = MatterStatus.PENDING,
+        currentStatus: MatterStatus = MatterStatus.INTAKE,
         newStatus: MatterStatus = MatterStatus.INITIAL_REVIEW,
         userRole: UserRole = UserRole.LAWYER,
         reason: String? = "Test reason"

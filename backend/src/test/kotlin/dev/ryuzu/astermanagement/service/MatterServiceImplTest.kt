@@ -29,13 +29,17 @@ class MatterServiceImplTest {
     private lateinit var matterRepository: MatterRepository
     private lateinit var userRepository: UserRepository
     private lateinit var auditService: AuditService
+    private lateinit var auditEventPublisher: AuditEventPublisher
+    private lateinit var statusTransitionService: StatusTransitionService
     
     @BeforeEach
     fun setUp() {
         matterRepository = mock()
         userRepository = mock()
         auditService = mock()
-        matterService = MatterServiceImpl(matterRepository, userRepository, auditService)
+        auditEventPublisher = mock()
+        statusTransitionService = mock()
+        matterService = MatterServiceImpl(matterRepository, userRepository, auditService, auditEventPublisher, statusTransitionService)
         
         // Set up security context with LAWYER role for most tests
         val authorities = listOf(SimpleGrantedAuthority("ROLE_LAWYER"))

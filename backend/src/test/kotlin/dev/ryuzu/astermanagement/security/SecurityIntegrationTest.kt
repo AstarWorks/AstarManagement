@@ -17,6 +17,7 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
+import org.hamcrest.Matchers.containsString
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import java.util.*
@@ -95,7 +96,7 @@ class SecurityIntegrationTest {
                 .content(objectMapper.writeValueAsString(loginRequest))
         )
             .andExpect(status().isUnauthorized)
-            .andExpected(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Authentication Required"))
             .andExpect(jsonPath("$.type").value("/errors/unauthorized"))
     }
@@ -131,9 +132,9 @@ class SecurityIntegrationTest {
                 .content(objectMapper.writeValueAsString(refreshRequest))
         )
             .andExpect(status().isOk)
-            .andExpected(jsonPath("$.accessToken").exists())
-            .andExpected(jsonPath("$.refreshToken").exists())
-            .andExpected(jsonPath("$.user.role").value("CLERK"))
+            .andExpect(jsonPath("$.accessToken").exists())
+            .andExpect(jsonPath("$.refreshToken").exists())
+            .andExpect(jsonPath("$.user.role").value("CLERK"))
     }
 
     @Test
@@ -142,7 +143,7 @@ class SecurityIntegrationTest {
         mockMvc.perform(get(MATTERS_BASE_URL))
             .andExpect(status().isUnauthorized)
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpected(jsonPath("$.title").value("Authentication Required"))
+            .andExpect(jsonPath("$.title").value("Authentication Required"))
     }
 
     @Test
@@ -153,7 +154,7 @@ class SecurityIntegrationTest {
             caseNumber = "CASE-2025-001",
             title = "Test Legal Matter",
             description = "Test description",
-            status = MatterStatus.OPEN,
+            status = MatterStatus.INTAKE,
             priority = MatterPriority.MEDIUM,
             clientName = "Test Client",
             clientContact = "client@example.com",
@@ -167,9 +168,9 @@ class SecurityIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(createRequest))
         )
-            .andExpected(status().isCreated)
+            .andExpect(status().isCreated)
             .andExpect(jsonPath("$.caseNumber").value("CASE-2025-001"))
-            .andExpect(jsonPath("$.status").value("OPEN"))
+            .andExpect(jsonPath("$.status").value("INTAKE"))
     }
 
     @Test
@@ -180,7 +181,7 @@ class SecurityIntegrationTest {
             caseNumber = "CASE-2025-002",
             title = "Unauthorized Matter",
             description = "This should fail",
-            status = MatterStatus.OPEN,
+            status = MatterStatus.INTAKE,
             priority = MatterPriority.HIGH,
             clientName = "Test Client",
             clientContact = "client@example.com",
@@ -281,8 +282,8 @@ class SecurityIntegrationTest {
         )
             .andExpect(status().isOk)
             .andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:3000"))
-            .andExpected(header().string("Access-Control-Allow-Methods", containsString("POST")))
-            .andExpected(header().string("Access-Control-Allow-Headers", containsString("Authorization")))
+            .andExpect(header().string("Access-Control-Allow-Methods", containsString("POST")))
+            .andExpect(header().string("Access-Control-Allow-Headers", containsString("Authorization")))
     }
 
     @Test
@@ -302,7 +303,7 @@ class SecurityIntegrationTest {
     fun `should logout and invalidate session`() {
         mockMvc.perform(post("$AUTH_BASE_URL/logout"))
             .andExpect(status().isOk)
-            .andExpected(jsonPath("$.message").value("Logout successful"))
+            .andExpect(jsonPath("$.message").value("Logout successful"))
     }
 
     @Test
@@ -342,10 +343,7 @@ class SecurityIntegrationTest {
         return "mock-token-$role"
     }
 
-    /**
-     * Custom assertion methods for better test readability
-     */
-    private fun andExpected(matcher: org.springframework.test.web.servlet.ResultMatcher) = this.andExpect(matcher)
+    // Removed unused helper method
 }
 
 // Extension functions for test assertions

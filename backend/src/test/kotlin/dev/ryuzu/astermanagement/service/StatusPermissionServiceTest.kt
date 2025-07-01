@@ -58,7 +58,7 @@ class StatusPermissionServiceTest {
             caseNumber = "TEST-001"
             title = "Test Matter"
             clientName = "Bob Client"
-            status = MatterStatus.PENDING
+            status = MatterStatus.INTAKE
             priority = MatterPriority.MEDIUM
             assignedLawyer = testLawyer
             assignedClerk = testClerk
@@ -70,7 +70,7 @@ class StatusPermissionServiceTest {
     fun `lawyer should have full permissions for all transitions`() {
         // Given
         val context = createTransitionContext(
-            currentStatus = MatterStatus.PENDING,
+            currentStatus = MatterStatus.INTAKE,
             newStatus = MatterStatus.INITIAL_REVIEW,
             userRole = UserRole.LAWYER,
             userId = testLawyer.id!!
@@ -87,7 +87,7 @@ class StatusPermissionServiceTest {
     fun `clerk should have limited permissions for transitions`() {
         // Given - clerk trying to do a basic transition
         val context = createTransitionContext(
-            currentStatus = MatterStatus.PENDING,
+            currentStatus = MatterStatus.INTAKE,
             newStatus = MatterStatus.INITIAL_REVIEW,
             userRole = UserRole.CLERK,
             userId = testClerk.id!!
@@ -123,7 +123,7 @@ class StatusPermissionServiceTest {
     fun `client should be rejected for all status transitions`() {
         // Given
         val context = createTransitionContext(
-            currentStatus = MatterStatus.PENDING,
+            currentStatus = MatterStatus.INTAKE,
             newStatus = MatterStatus.INITIAL_REVIEW,
             userRole = UserRole.CLIENT,
             userId = testClient.id!!
@@ -147,7 +147,7 @@ class StatusPermissionServiceTest {
         }
         
         val context = createTransitionContext(
-            currentStatus = MatterStatus.PENDING,
+            currentStatus = MatterStatus.INTAKE,
             newStatus = MatterStatus.INITIAL_REVIEW,
             userRole = UserRole.LAWYER,
             userId = unassignedLawyer.id!!
@@ -171,7 +171,7 @@ class StatusPermissionServiceTest {
         }
         
         val context = createTransitionContext(
-            currentStatus = MatterStatus.PENDING,
+            currentStatus = MatterStatus.INTAKE,
             newStatus = MatterStatus.INITIAL_REVIEW,
             userRole = UserRole.CLERK,
             userId = unassignedClerk.id!!
@@ -194,7 +194,7 @@ class StatusPermissionServiceTest {
 
         // Then
         when (status) {
-            MatterStatus.PENDING -> assertThat(permittedTransitions)
+            MatterStatus.INTAKE -> assertThat(permittedTransitions)
                 .containsExactlyInAnyOrder(MatterStatus.INITIAL_REVIEW, MatterStatus.CLOSED)
             MatterStatus.INITIAL_REVIEW -> assertThat(permittedTransitions)
                 .containsExactlyInAnyOrder(MatterStatus.INVESTIGATION, MatterStatus.RESEARCH, MatterStatus.CLOSED)
@@ -213,7 +213,7 @@ class StatusPermissionServiceTest {
         when (status) {
             MatterStatus.TRIAL_PREP, MatterStatus.TRIAL, MatterStatus.SETTLEMENT, MatterStatus.CLOSED -> 
                 assertThat(permittedTransitions).isEmpty()
-            MatterStatus.PENDING -> assertThat(permittedTransitions)
+            MatterStatus.INTAKE -> assertThat(permittedTransitions)
                 .containsExactly(MatterStatus.INITIAL_REVIEW)
             else -> assertThat(permittedTransitions).isNotEmpty()
         }
@@ -233,7 +233,7 @@ class StatusPermissionServiceTest {
     fun `should correctly identify roles that can perform specific transitions`() {
         // When
         val rolesForBasicTransition = statusPermissionService.getRolesForTransition(
-            MatterStatus.PENDING, 
+            MatterStatus.INTAKE, 
             MatterStatus.INITIAL_REVIEW
         )
         val rolesForTrialTransition = statusPermissionService.getRolesForTransition(
@@ -249,9 +249,9 @@ class StatusPermissionServiceTest {
     @Test
     fun `should correctly determine if role can transition from status`() {
         // When & Then
-        assertThat(statusPermissionService.canRoleTransitionFrom(MatterStatus.PENDING, UserRole.LAWYER)).isTrue()
-        assertThat(statusPermissionService.canRoleTransitionFrom(MatterStatus.PENDING, UserRole.CLERK)).isTrue()
-        assertThat(statusPermissionService.canRoleTransitionFrom(MatterStatus.PENDING, UserRole.CLIENT)).isFalse()
+        assertThat(statusPermissionService.canRoleTransitionFrom(MatterStatus.INTAKE, UserRole.LAWYER)).isTrue()
+        assertThat(statusPermissionService.canRoleTransitionFrom(MatterStatus.INTAKE, UserRole.CLERK)).isTrue()
+        assertThat(statusPermissionService.canRoleTransitionFrom(MatterStatus.INTAKE, UserRole.CLIENT)).isFalse()
         
         assertThat(statusPermissionService.canRoleTransitionFrom(MatterStatus.TRIAL_PREP, UserRole.LAWYER)).isTrue()
         assertThat(statusPermissionService.canRoleTransitionFrom(MatterStatus.TRIAL_PREP, UserRole.CLERK)).isFalse()
