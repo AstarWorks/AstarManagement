@@ -31,17 +31,16 @@ class TOTPServiceImpl(
     private val timeStepSeconds: Long = 30
 ) : TOTPService {
 
-    private val googleAuthenticator: GoogleAuthenticator
     private val secureRandom = SecureRandom()
     
-    init {
+    private val googleAuthenticator: GoogleAuthenticator = run {
         val config = GoogleAuthenticatorConfig.GoogleAuthenticatorConfigBuilder()
             .setWindowSize(windowSize) // Allow ±1 time window for clock drift
             .setCodeDigits(codeDigits) // 6-digit codes
             .setTimeStepSizeInMillis(TimeUnit.SECONDS.toMillis(timeStepSeconds))
             .build()
         
-        googleAuthenticator = GoogleAuthenticator(config)
+        GoogleAuthenticator(config)
     }
     
     /**
