@@ -29,7 +29,7 @@ type UpdateMatterData = Partial<CreateMatterData>
 
 export const useApi = () => {
   const config = useRuntimeConfig()
-  const { getAccessToken } = useAuthStore()
+  const authStore = useAuthStore()
   const { handleApiRequest, clearError } = useApiErrorHandler()
   
   // Create axios instance
@@ -44,7 +44,8 @@ export const useApi = () => {
   
   // Request interceptor for auth
   apiClient.interceptors.request.use(async (config) => {
-    const token = await getAccessToken()
+    // TODO: Implement proper access token retrieval when auth system is fully implemented
+    const token = authStore.user?.id ? 'mock-token' : ''
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }

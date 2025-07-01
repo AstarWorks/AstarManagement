@@ -317,7 +317,6 @@ defineExpose({
 
         <!-- Virtual Scroller Body -->
         <div class="virtual-table-body" :style="{ height: `${tableHeight}px` }">
-          <!-- @ts-ignore: RecycleScroller component type definitions issue -->
           <RecycleScroller
             ref="scrollerRef"
             class="scroller"

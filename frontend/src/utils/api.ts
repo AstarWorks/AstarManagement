@@ -40,10 +40,13 @@ class ApiClient {
     // Request interceptor for CSRF token and request timing
     this.instance.interceptors.request.use(
       (config: ExtendedAxiosRequestConfig) => {
+        // Ensure headers object exists and is properly typed
+        config.headers = config.headers || {}
+        
         // Add CSRF token from meta tag or cookie
         const csrfToken = this.getCSRFToken()
-        if (csrfToken) {
-          config.headers['X-CSRF-Token'] = csrfToken
+        if (csrfToken && config.headers) {
+          ;(config.headers as any)['X-CSRF-Token'] = csrfToken
         }
         
         // Add request timestamp for monitoring

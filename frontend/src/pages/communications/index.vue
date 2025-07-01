@@ -1,8 +1,60 @@
 <script setup lang="ts">
+import { Mail, MessageSquare, Phone, FileText, Clock } from 'lucide-vue-next'
+
 // Navigation handler
 const handleNavigation = (type: string) => {
   navigateTo(`/communications/${type}`)
 }
+
+// Mock data for stats
+const communicationStats = [
+  {
+    type: 'emails',
+    title: 'Emails',
+    count: 42,
+    description: 'Unread emails',
+    icon: Mail
+  },
+  {
+    type: 'memos',
+    title: 'Client Memos',
+    count: 15,
+    description: 'Recent memos',
+    icon: FileText
+  },
+  {
+    type: 'messages',
+    title: 'Messages',
+    count: 8,
+    description: 'New messages',
+    icon: MessageSquare
+  },
+  {
+    type: 'calls',
+    title: 'Call Logs',
+    count: 23,
+    description: 'Recent calls',
+    icon: Phone
+  }
+]
+
+// Mock recent activity
+const recentActivity = [
+  {
+    id: '1',
+    type: 'email',
+    title: 'Email from John Doe',
+    timestamp: '2 hours ago',
+    icon: Mail
+  },
+  {
+    id: '2',
+    type: 'memo',
+    title: 'Client memo created',
+    timestamp: '4 hours ago',
+    icon: FileText
+  }
+]
 </script>
 
 <template>
@@ -51,7 +103,7 @@ const handleNavigation = (type: string) => {
             </div>
             <div class="activity-content">
               <p class="activity-title">{{ activity.title }}</p>
-              <p class="activity-meta">{{ activity.type }} • {{ activity.time }}</p>
+              <p class="activity-meta">{{ activity.type }} • {{ activity.timestamp }}</p>
             </div>
           </div>
         </div>

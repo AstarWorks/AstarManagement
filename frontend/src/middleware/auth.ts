@@ -93,7 +93,7 @@ export default defineNuxtRouteMiddleware(async (to: RouteLocationNormalized, fro
         data: {
           message: 'You do not have the required permissions to access this page.',
           requiredPermissions,
-          userPermissions: authStore.permissions.value,
+          userPermissions: authStore.permissions,
           userRole: authStore.user?.role
         }
       })

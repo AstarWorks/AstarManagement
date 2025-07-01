@@ -363,7 +363,7 @@ export function useMobilePerformanceOptimization() {
                      (recent[2].timeStamp - recent[0].timeStamp)
 
     // Calculate accuracy based on prediction vs actual
-    const predicted = {
+    const predicted: { x: number; y: number } = {
       x: recent[2].touches[0].clientX + velocityX * 16.67, // Predict 16.67ms ahead
       y: recent[2].touches[0].clientY + velocityY * 16.67
     }

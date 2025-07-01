@@ -23,8 +23,6 @@ export default defineNuxtRouteMiddleware((to: RouteLocationNormalized, from: Rou
     const userRole = authStore.user?.role
     
     switch (userRole) {
-      case 'admin':
-        return navigateTo('/admin/dashboard')
       case 'lawyer':
         return navigateTo('/dashboard')
       case 'clerk':

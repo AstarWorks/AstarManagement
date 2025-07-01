@@ -2,6 +2,7 @@
 import AuthLayout from '@/components/auth/AuthLayout.vue'
 import LoginForm from '@/components/auth/LoginForm.vue'
 import type { LoginCredentials } from '@/types/auth'
+import { useAuth } from '@/composables/useAuth'
 
 // Meta and SEO
 definePageMeta({

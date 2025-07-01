@@ -187,7 +187,7 @@ onMounted(() => {
             placeholder="Enter your email"
             autocomplete="email"
             :disabled="isSubmitting || disabled"
-            :class="{ 'border-destructive': errors.email }"
+            :class="errors.email ? 'border-destructive' : ''"
             required
           />
           <p v-if="errors.email" class="text-sm text-destructive">
@@ -207,7 +207,7 @@ onMounted(() => {
               placeholder="Enter your password"
               autocomplete="current-password"
               :disabled="isSubmitting || disabled"
-              :class="{ 'border-destructive': errors.password }"
+              :class="errors.password ? 'border-destructive' : ''"
               class="pr-10"
               required
             />

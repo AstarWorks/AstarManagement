@@ -17,39 +17,42 @@ export function useAuth() {
   const pendingTwoFactor = computed(() => authStore.pendingTwoFactor)
   const permissions = computed(() => authStore.permissions)
   
-  // CSRF token management
-  const csrfToken = useCookie('csrf-token', {
-    default: () => '',
-    httpOnly: false, // CSRF token needs to be accessible to JavaScript
-    secure: true,
-    sameSite: 'strict'
-  })
+  // Cookie management - using manual approach for SSR compatibility
+  const getCsrfToken = (): string => {
+    if (process.client) {
+      const cookie = document.cookie.split(';').find(c => c.trim().startsWith('csrf-token='))
+      return cookie ? cookie.split('=')[1] : ''
+    }
+    return ''
+  }
   
-  // Session management
-  const sessionId = useCookie('session-id', {
-    default: () => '',
-    httpOnly: true, // Secure session ID
-    secure: true,
-    sameSite: 'strict',
-    maxAge: 60 * 60 * 24 * 7 // 7 days
-  })
+  const getSessionId = (): string => {
+    if (process.client) {
+      const cookie = document.cookie.split(';').find(c => c.trim().startsWith('session-id='))
+      return cookie ? cookie.split('=')[1] : ''
+    }
+    return ''
+  }
   
-  // Remember me preference
-  const rememberMe = useCookie('remember-me', {
-    default: () => false,
-    httpOnly: false,
-    secure: true,
-    sameSite: 'strict',
-    maxAge: 60 * 60 * 24 * 30 // 30 days
-  })
+  const getRememberMe = (): boolean => {
+    if (process.client) {
+      const cookie = document.cookie.split(';').find(c => c.trim().startsWith('remember-me='))
+      return cookie ? cookie.split('=')[1] === 'true' : false
+    }
+    return false
+  }
   
   /**
    * Initialize CSRF protection
    */
   const initializeCSRF = async () => {
+    if (process.server) return
+    
     try {
       const response = await $fetch<{ token: string }>('/api/auth/csrf')
-      csrfToken.value = response.token
+      
+      // Store CSRF token in cookie manually
+      document.cookie = `csrf-token=${response.token}; path=/; samesite=strict; secure=${location.protocol === 'https:'}`
       
       // Add CSRF token to meta tag for axios interceptor
       const metaTag = document.querySelector('meta[name="csrf-token"]')
@@ -73,8 +76,8 @@ export function useAuth() {
     await authStore.login(credentials)
     
     // Update cookie preferences
-    if (credentials.rememberMe) {
-      rememberMe.value = true
+    if (credentials.rememberMe && process.client) {
+      document.cookie = 'remember-me=true; expires=Thu, 19 Jan 2038 03:14:07 GMT; path=/; samesite=strict'
     }
   }
   
@@ -91,14 +94,17 @@ export function useAuth() {
   const logout = async () => {
     await authStore.logout()
     
-    // Clear auth-related cookies
-    sessionId.value = ''
-    csrfToken.value = ''
+    // Clear CSRF token and session data
+    if (process.client) {
+      document.cookie = 'csrf-token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
+      document.cookie = 'session-id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
+    }
     
     // Clear remember me if not persistent
-    if (!rememberMe.value) {
-      const lastEmailCookie = useCookie('last-email')
-      lastEmailCookie.value = ''
+    if (!getRememberMe()) {
+      if (process.client) {
+        document.cookie = 'last-email=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
+      }
     }
   }
   
@@ -142,7 +148,8 @@ export function useAuth() {
    */
   const restoreSession = async () => {
     // Only attempt restore if we have a session ID
-    if (!sessionId.value || !authStore.user) {
+    const currentSessionId = getSessionId()
+    if (!currentSessionId || !authStore.user) {
       return false
     }
     
@@ -150,15 +157,21 @@ export function useAuth() {
       // Validate session with backend
       const response = await $fetch<{ user: User; valid: boolean }>('/api/auth/session/validate', {
         method: 'POST',
-        body: { sessionId: sessionId.value }
+        body: { sessionId: currentSessionId }
       })
       
       if (response.valid && response.user) {
+        // Convert user data to store format (filter out admin role)
+        const user = response.user
+        if (user.role === 'admin') {
+          // Convert admin to lawyer for frontend purposes
+          user.role = 'lawyer'
+        }
+        
         // Restore user data
-        authStore.user = response.user
+        authStore.user = user as any // Type assertion for compatibility
         authStore.isAuthenticated = true
-        authStore.sessionId = sessionId.value
-        authStore.lastActivity = Date.now()
+        authStore.updateActivity()
         
         return true
       } else {

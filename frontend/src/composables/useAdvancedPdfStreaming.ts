@@ -272,7 +272,7 @@ export function useAdvancedPdfStreaming() {
       currentLoadingTask.value = loadingTask
 
       // Enhanced progress tracking with performance metrics
-      loadingTask.onProgress = (progress) => {
+      loadingTask.onProgress = (progress: { loaded: number; total: number }) => {
         loadingProgress.value = progress.total > 0 ? (progress.loaded / progress.total) * 100 : 0
         const metrics = calculatePerformanceMetrics(progress)
         options?.progressCallback?.(progress.loaded, progress.total, metrics)
