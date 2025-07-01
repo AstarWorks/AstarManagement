@@ -148,7 +148,6 @@ class DocumentController(
      * Download document content.
      */
     @GetMapping("/{documentId}/download")
-    @PreAuthorize("hasRole('LAWYER') or hasRole('CLERK')")
     @Operation(
         summary = "Download document",
         description = "Download the actual document file. Returns the file as a binary stream."

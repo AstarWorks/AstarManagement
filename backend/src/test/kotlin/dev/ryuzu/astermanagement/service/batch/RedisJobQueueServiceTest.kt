@@ -28,7 +28,7 @@ class RedisJobQueueServiceTest {
     private lateinit var listOperations: ListOperations<String, Any>
 
     @Mock
-    private lateinit var hashOperations: HashOperations<String, Any, Any>
+    private lateinit var hashOperations: HashOperations<String, String, Any>
 
     @Mock
     private lateinit var setOperations: SetOperations<String, Any>
@@ -44,7 +44,7 @@ class RedisJobQueueServiceTest {
         documentProcessingProperties = DocumentProcessingProperties()
         
         whenever(redisTemplate.opsForList()).thenReturn(listOperations)
-        whenever(redisTemplate.opsForHash()).thenReturn(hashOperations)
+        whenever(redisTemplate.opsForHash<String, Any>()).thenReturn(hashOperations)
         whenever(redisTemplate.opsForSet()).thenReturn(setOperations)
 
         redisJobQueueService = RedisJobQueueService(

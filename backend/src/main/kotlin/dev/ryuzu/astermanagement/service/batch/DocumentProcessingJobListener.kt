@@ -70,9 +70,11 @@ class DocumentProcessingJobListener(
         
         val isSuccessful = jobExecution.status == org.springframework.batch.core.BatchStatus.COMPLETED
         val processingTime = if (jobExecution.startTime != null && jobExecution.endTime != null) {
+            val startTime = jobExecution.startTime!!
+            val endTime = jobExecution.endTime!!
             java.time.Duration.between(
-                jobExecution.startTime.atZone(java.time.ZoneId.systemDefault()).toInstant(),
-                jobExecution.endTime.atZone(java.time.ZoneId.systemDefault()).toInstant()
+                startTime.atZone(java.time.ZoneId.systemDefault()).toInstant(),
+                endTime.atZone(java.time.ZoneId.systemDefault()).toInstant()
             ).toMillis()
         } else null
         

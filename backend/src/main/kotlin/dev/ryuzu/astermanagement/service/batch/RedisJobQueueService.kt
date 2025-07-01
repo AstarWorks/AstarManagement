@@ -116,10 +116,10 @@ class RedisJobQueueService(
      */
     fun dequeueJobWithTimeout(timeoutSeconds: Long): JobQueueEntry? {
         val queues = listOf(PRIORITY_HIGH_QUEUE, PRIORITY_NORMAL_QUEUE)
-        val result = redisTemplate.opsForList().rightPop(queues, timeoutSeconds, TimeUnit.SECONDS)
+        val result = redisTemplate.opsForList().rightPop(queues.first(), timeoutSeconds, TimeUnit.SECONDS)
         
         return if (result != null) {
-            val job = result.value as JobQueueEntry
+            val job = result as JobQueueEntry
             markJobAsActive(job.jobId)
             logger.debug("Dequeued job with timeout: {}", job.jobId)
             job
@@ -156,7 +156,7 @@ class RedisJobQueueService(
         )
         
         // Store current status
-        redisTemplate.opsForHash().put(JOB_STATUS_KEY, jobId, statusEntry)
+        redisTemplate.opsForHash<String, Any>().put(JOB_STATUS_KEY, jobId, statusEntry)
         
         // Store in history for audit trail
         redisTemplate.opsForList().leftPush("$JOB_HISTORY_KEY:$jobId", statusEntry)
@@ -178,7 +178,7 @@ class RedisJobQueueService(
      * Get current job status
      */
     fun getJobStatus(jobId: String): JobStatusEntry? {
-        return redisTemplate.opsForHash().get(JOB_STATUS_KEY, jobId) as? JobStatusEntry
+        return redisTemplate.opsForHash<String, Any>().get(JOB_STATUS_KEY, jobId) as? JobStatusEntry
     }
     
     /**
@@ -277,13 +277,13 @@ class RedisJobQueueService(
         
         try {
             // Clean up expired job statuses
-            val allJobIds = redisTemplate.opsForHash().keys(JOB_STATUS_KEY)
+            val allJobIds = redisTemplate.opsForHash<String, Any>().keys(JOB_STATUS_KEY)
             val expiredThreshold = Instant.now().minus(Duration.ofSeconds(documentProcessingProperties.job.ttlSeconds))
             
-            allJobIds.forEach { jobIdKey ->
-                val status = redisTemplate.opsForHash().get(JOB_STATUS_KEY, jobIdKey) as? JobStatusEntry
+            allJobIds.forEach { jobIdKey: Any ->
+                val status = redisTemplate.opsForHash<String, Any>().get(JOB_STATUS_KEY, jobIdKey) as? JobStatusEntry
                 if (status != null && status.updatedAt.isBefore(expiredThreshold) && status.status.isTerminal()) {
-                    redisTemplate.opsForHash().delete(JOB_STATUS_KEY, jobIdKey)
+                    redisTemplate.opsForHash<String, Any>().delete(JOB_STATUS_KEY, jobIdKey)
                     redisTemplate.delete("$JOB_HISTORY_KEY:$jobIdKey")
                     cleanedCount++
                 }
@@ -328,16 +328,16 @@ class RedisJobQueueService(
         
         when (statusEntry.status) {
             JobStatus.COMPLETED -> {
-                redisTemplate.opsForHash().increment(metricsKey, "completedJobs", 1)
+                redisTemplate.opsForHash<String, Any>().increment(metricsKey, "completedJobs", 1)
                 statusEntry.processingTimeMs?.let { processingTime ->
-                    val currentAvg = (redisTemplate.opsForHash().get(metricsKey, "averageProcessingTimeMs") as? Double) ?: 0.0
-                    val currentCount = (redisTemplate.opsForHash().get(metricsKey, "completedJobs") as? Long) ?: 1L
+                    val currentAvg = (redisTemplate.opsForHash<String, Any>().get(metricsKey, "averageProcessingTimeMs") as? Double) ?: 0.0
+                    val currentCount = (redisTemplate.opsForHash<String, Any>().get(metricsKey, "completedJobs") as? Long) ?: 1L
                     val newAvg = (currentAvg * (currentCount - 1) + processingTime) / currentCount
-                    redisTemplate.opsForHash().put(metricsKey, "averageProcessingTimeMs", newAvg)
+                    redisTemplate.opsForHash<String, Any>().put(metricsKey, "averageProcessingTimeMs", newAvg)
                 }
             }
             JobStatus.FAILED -> {
-                redisTemplate.opsForHash().increment(metricsKey, "failedJobs", 1)
+                redisTemplate.opsForHash<String, Any>().increment(metricsKey, "failedJobs", 1)
             }
             else -> { /* No metrics update needed */ }
         }
@@ -347,7 +347,7 @@ class RedisJobQueueService(
     }
     
     private fun getJobMetrics(): Map<String, Any> {
-        return redisTemplate.opsForHash().entries(JOB_METRICS_KEY)
+        return redisTemplate.opsForHash<String, Any>().entries(JOB_METRICS_KEY)
     }
     
     private fun JobStatus.isTerminal(): Boolean {

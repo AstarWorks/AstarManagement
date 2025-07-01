@@ -66,7 +66,7 @@ class JobManagementController(
             logger.warn("Job submission failed: {}", exception.message)
             ResponseEntity.status(503).body(mapOf(
                 "error" to "Queue capacity exceeded",
-                "message" to exception.message,
+                "message" to (exception.message ?: "Unknown error"),
                 "retryAfter" to "30 seconds"
             ))
         } catch (exception: Exception) {
@@ -159,7 +159,7 @@ class JobManagementController(
             
         } catch (exception: Exception) {
             logger.error("Failed to cancel job: {}", jobId, exception)
-            ResponseEntity.badRequest().body(mapOf(
+            ResponseEntity.badRequest().body(mapOf<String, Any>(
                 "error" to "Job cancellation failed",
                 "message" to (exception.message ?: "Unknown error")
             ))
@@ -192,9 +192,9 @@ class JobManagementController(
             ))
             
         } catch (exception: IllegalStateException) {
-            ResponseEntity.badRequest().body(mapOf(
+            ResponseEntity.badRequest().body(mapOf<String, Any>(
                 "error" to "Job cannot be retried",
-                "message" to exception.message
+                "message" to (exception.message ?: "Unknown error")
             ))
         } catch (exception: Exception) {
             logger.error("Failed to retry job: {}", jobId, exception)

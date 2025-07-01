@@ -51,7 +51,7 @@ class DocumentProcessingJobExecutionService(
                 JobStatus.RUNNING, 
                 0, 
                 "Starting job execution",
-                stepDetails = mapOf("startTime" to startTime.toString())
+                stepDetails = mapOf<String, Any>("startTime" to startTime.toString())
             )
             
             // Get appropriate job based on job type
@@ -142,11 +142,11 @@ class DocumentProcessingJobExecutionService(
             "progress" to status.progress,
             "details" to (status.details ?: ""),
             "error" to (status.error ?: ""),
-            "updatedAt" to status.updatedAt,
-            "startedAt" to status.startedAt,
-            "completedAt" to status.completedAt,
-            "processingTimeMs" to status.processingTimeMs,
-            "stepDetails" to status.stepDetails
+            "updatedAt" to (status.updatedAt ?: ""),
+            "startedAt" to (status.startedAt ?: ""),
+            "completedAt" to (status.completedAt ?: ""),
+            "processingTimeMs" to (status.processingTimeMs ?: 0),
+            "stepDetails" to (status.stepDetails ?: emptyMap<String, Any>())
         )
     }
     

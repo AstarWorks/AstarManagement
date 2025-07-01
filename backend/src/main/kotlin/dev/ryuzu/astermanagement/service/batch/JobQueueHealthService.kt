@@ -3,8 +3,6 @@ package dev.ryuzu.astermanagement.service.batch
 import dev.ryuzu.astermanagement.config.DocumentProcessingProperties
 import dev.ryuzu.astermanagement.domain.batch.JobQueueStats
 import org.slf4j.LoggerFactory
-import org.springframework.boot.actuator.health.Health
-import org.springframework.boot.actuator.health.HealthIndicator
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import java.time.Instant
@@ -17,35 +15,37 @@ import java.time.Instant
 class JobQueueHealthService(
     private val redisJobQueueService: RedisJobQueueService,
     private val documentProcessingProperties: DocumentProcessingProperties
-) : HealthIndicator {
+) {
     
     companion object {
         private val logger = LoggerFactory.getLogger(JobQueueHealthService::class.java)
     }
     
     @Volatile
-    private var lastHealthCheck: Health = Health.unknown().build()
+    private var lastHealthCheck: Map<String, Any> = mapOf("status" to "UNKNOWN")
     
     @Volatile
     private var lastStats: JobQueueStats? = null
     
     /**
-     * Health check implementation for Spring Boot Actuator
+     * Health check implementation for monitoring
      */
-    override fun health(): Health {
+    fun health(): Map<String, Any> {
         return try {
             val stats = redisJobQueueService.getQueueStats()
             lastStats = stats
             
-            val healthBuilder = Health.up()
-                .withDetail("totalQueued", stats.totalQueued)
-                .withDetail("highPriorityQueued", stats.highPriorityQueued)
-                .withDetail("normalPriorityQueued", stats.normalPriorityQueued)
-                .withDetail("activeJobs", stats.activeJobs)
-                .withDetail("completedJobs", stats.completedJobs)
-                .withDetail("failedJobs", stats.failedJobs)
-                .withDetail("averageProcessingTimeMs", stats.averageProcessingTimeMs)
-                .withDetail("timestamp", stats.timestamp)
+            val healthDetails = mutableMapOf<String, Any>(
+                "status" to "UP",
+                "totalQueued" to stats.totalQueued,
+                "highPriorityQueued" to stats.highPriorityQueued,
+                "normalPriorityQueued" to stats.normalPriorityQueued,
+                "activeJobs" to stats.activeJobs,
+                "completedJobs" to stats.completedJobs,
+                "failedJobs" to stats.failedJobs,
+                "averageProcessingTimeMs" to stats.averageProcessingTimeMs,
+                "timestamp" to stats.timestamp
+            )
             
             // Check for warning conditions
             val warnings = mutableListOf<String>()
@@ -76,22 +76,22 @@ class JobQueueHealthService(
             
             // Add warnings to health details
             if (warnings.isNotEmpty()) {
-                healthBuilder.withDetail("warnings", warnings)
+                healthDetails["warnings"] = warnings
                 if (warnings.any { it.contains("exceed") || utilizationPercent > 90 }) {
-                    healthBuilder.status("WARN")
+                    healthDetails["status"] = "WARN"
                 }
             }
             
-            val health = healthBuilder.build()
-            lastHealthCheck = health
-            health
+            lastHealthCheck = healthDetails
+            healthDetails
             
         } catch (exception: Exception) {
             logger.error("Health check failed", exception)
-            val health = Health.down()
-                .withDetail("error", exception.message ?: "Unknown error")
-                .withDetail("timestamp", Instant.now())
-                .build()
+            val health = mapOf<String, Any>(
+                "status" to "DOWN",
+                "error" to (exception.message ?: "Unknown error"),
+                "timestamp" to Instant.now()
+            )
             lastHealthCheck = health
             health
         }
@@ -131,7 +131,7 @@ class JobQueueHealthService(
      * Check if the job queue is healthy
      */
     fun isHealthy(): Boolean {
-        return lastHealthCheck.status.code == "UP"
+        return lastHealthCheck["status"] == "UP"
     }
     
     /**
