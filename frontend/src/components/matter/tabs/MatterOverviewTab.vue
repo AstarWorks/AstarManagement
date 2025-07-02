@@ -72,7 +72,7 @@ const handleRefresh = () => {
         <!-- Matter Info Card -->
         <MatterInfoCard
           :matter="matter"
-          @edit="handleEdit"
+          @edit="() => handleEdit('info')"
           @refresh="handleRefresh"
         />
         
@@ -123,7 +123,7 @@ const handleRefresh = () => {
       <MatterInfoCard
         :matter="matter"
         :show-compact="true"
-        @edit="handleEdit"
+        @edit="() => handleEdit('info')"
         @refresh="handleRefresh"
       />
       

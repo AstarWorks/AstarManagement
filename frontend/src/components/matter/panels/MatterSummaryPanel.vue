@@ -143,7 +143,7 @@ const toggleDescription = () => {
 
 <template>
   <Card :class="className">
-    <CardHeader :class="[showCompact ? 'pb-3' : '']">
+    <CardHeader :class="showCompact ? 'pb-3' : ''">
       <div class="flex items-start justify-between">
         <div class="space-y-1 flex-1">
           <CardTitle class="text-xl font-semibold">
@@ -177,7 +177,7 @@ const toggleDescription = () => {
       </div>
     </CardHeader>
     
-    <CardContent v-show="isExpanded || showCompact" :class="[showCompact ? 'pt-0' : '']">
+    <CardContent v-show="isExpanded || showCompact" :class="showCompact ? 'pt-0' : ''">
       <!-- Loading State -->
       <div v-if="loading" class="space-y-4">
         <div class="space-y-2">
@@ -327,7 +327,7 @@ const toggleDescription = () => {
             </div>
             <Progress 
               :value="Math.min(100, financialSummary.percentUsed)" 
-              :class="[financialSummary.isOverBudget ? 'bg-red-100' : '']"
+              :class="financialSummary.isOverBudget ? 'bg-red-100' : ''"
             />
           </div>
         </div>

@@ -128,7 +128,7 @@ const handleSetReminder = (date: string, type: string) => {
 
 <template>
   <Card :class="className">
-    <CardHeader :class="[showCompact ? 'pb-3' : '']">
+    <CardHeader :class="showCompact ? 'pb-3' : ''">
       <div class="flex items-start justify-between">
         <div class="space-y-1">
           <CardTitle class="text-xl font-semibold">
@@ -142,7 +142,7 @@ const handleSetReminder = (date: string, type: string) => {
       </div>
     </CardHeader>
     
-    <CardContent :class="[showCompact ? 'pt-0' : '']">
+    <CardContent :class="showCompact ? 'pt-0' : ''">
       <!-- Loading State -->
       <div v-if="loading" class="space-y-4">
         <div class="space-y-2">
@@ -198,7 +198,7 @@ const handleSetReminder = (date: string, type: string) => {
           </div>
           <Progress 
             :value="timelineProgress.percentage" 
-            :class="[timelineProgress.isOverdue ? 'bg-destructive/20' : '']"
+            :class="timelineProgress.isOverdue ? 'bg-destructive/20' : ''"
           />
         </div>
         

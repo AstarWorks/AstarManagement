@@ -124,7 +124,7 @@ const handleStatusChange = () => {
 
 <template>
   <Card :class="className">
-    <CardHeader :class="[showCompact ? 'pb-3' : '']">
+    <CardHeader :class="showCompact ? 'pb-3' : ''">
       <div class="flex items-start justify-between">
         <div class="space-y-1">
           <CardTitle class="text-xl font-semibold">
@@ -138,7 +138,7 @@ const handleStatusChange = () => {
       </div>
     </CardHeader>
     
-    <CardContent :class="[showCompact ? 'pt-0' : '']">
+    <CardContent :class="showCompact ? 'pt-0' : ''">
       <!-- Loading State -->
       <div v-if="loading" class="space-y-4">
         <div class="space-y-2">
@@ -239,11 +239,7 @@ const handleStatusChange = () => {
           <div class="space-y-2">
             <Progress 
               :value="slaInfo.percentage" 
-              :class="[
-                slaInfo.status === 'on-track' ? 'bg-green-100' : '',
-                slaInfo.status === 'at-risk' ? 'bg-yellow-100' : '',
-                slaInfo.status === 'overdue' ? 'bg-red-100' : ''
-              ]"
+              :class="slaInfo.status === 'overdue' ? 'bg-red-100' : slaInfo.status === 'at-risk' ? 'bg-yellow-100' : 'bg-green-100'"
             />
             <div class="flex items-center justify-between text-xs text-muted-foreground">
               <span>{{ slaInfo.elapsedDays }} days used</span>

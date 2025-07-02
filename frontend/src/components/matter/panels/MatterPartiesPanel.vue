@@ -87,7 +87,7 @@ const handleRetry = () => {
 
 <template>
   <Card :class="className">
-    <CardHeader :class="[showCompact ? 'pb-3' : '']">
+    <CardHeader :class="showCompact ? 'pb-3' : ''">
       <div class="flex items-start justify-between">
         <div class="space-y-1">
           <CardTitle class="text-xl font-semibold">
@@ -101,7 +101,7 @@ const handleRetry = () => {
       </div>
     </CardHeader>
     
-    <CardContent :class="[showCompact ? 'pt-0' : '']">
+    <CardContent :class="showCompact ? 'pt-0' : ''">
       <!-- Loading State -->
       <div v-if="loading" class="space-y-4">
         <div v-for="i in 3" :key="i" class="space-y-2">
