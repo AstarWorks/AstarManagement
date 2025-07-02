@@ -89,6 +89,7 @@ const recentActivity = [
     icon: Phone
   }
 ]
+</script>
 
 <template>
   <CommunicationLayout>
