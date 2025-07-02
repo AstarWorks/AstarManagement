@@ -141,7 +141,7 @@
                 @update:value="handleTabChange"
                 class="w-full"
               >
-                <TabsList class="grid w-full grid-cols-4 lg:grid-cols-8 mb-6">
+                <TabsList class="grid w-full grid-cols-5 lg:grid-cols-9 mb-6">
                   <TabsTrigger 
                     v-for="tab in availableTabs" 
                     :key="tab.id"
@@ -165,6 +165,23 @@
                           <div class="space-y-4">
                             <Skeleton class="h-8 w-full" />
                             <Skeleton class="h-32 w-full" />
+                          </div>
+                        </template>
+                      </Suspense>
+                    </KeepAlive>
+                  </TabsContent>
+
+                  <!-- Activity Tab -->
+                  <TabsContent value="activity" class="mt-0">
+                    <KeepAlive>
+                      <Suspense>
+                        <MatterActivityTab :matter-id="matterId" :matter="matter" />
+                        <template #fallback>
+                          <div class="space-y-4">
+                            <Skeleton class="h-12 w-full" />
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <Skeleton v-for="i in 6" :key="i" class="h-32" />
+                            </div>
                           </div>
                         </template>
                       </Suspense>
@@ -294,7 +311,8 @@ import {
   FolderOpen,
   FileText as FaxIcon,
   DollarSign,
-  StickyNote
+  StickyNote,
+  Activity
 } from 'lucide-vue-next'
 
 // UI Components
@@ -307,6 +325,7 @@ import MatterSidebar from '~/components/matter/MatterSidebar.vue'
 
 // Tab Components (will be created in subsequent subtasks)
 import MatterOverviewTab from '~/components/matter/tabs/MatterOverviewTab.vue'
+import MatterActivityTab from '~/components/matter/tabs/MatterActivityTab.vue'
 import MatterTasksTab from '~/components/matter/tabs/MatterTasksTab.vue'
 import MatterScheduleTab from '~/components/matter/tabs/MatterScheduleTab.vue'
 import MatterCommunicationsTab from '~/components/matter/tabs/MatterCommunicationsTab.vue'
@@ -344,6 +363,7 @@ const subTabs = computed(() => matterDetailStore.subTabs)
 // Tab configuration
 const tabConfig = [
   { id: 'overview', label: 'Overview', icon: FileText, roles: ['client', 'lawyer', 'clerk'] },
+  { id: 'activity', label: 'Activity', icon: Activity, roles: ['lawyer', 'clerk'] },
   { id: 'tasks', label: 'Tasks', icon: CheckSquare, roles: ['lawyer', 'clerk'] },
   { id: 'schedule', label: 'Schedule', icon: Calendar, roles: ['lawyer', 'clerk'] },
   { id: 'communications', label: 'Communications', icon: MessageSquare, roles: ['lawyer', 'clerk'] },
