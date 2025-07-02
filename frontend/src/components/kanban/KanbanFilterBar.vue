@@ -325,7 +325,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '~/components/ui/popover
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip'
 
 // Composables
-import { useAdvancedSearch } from '~/composables/useAdvancedSearch'
+import { useAdvancedSearch, type SearchMode } from '~/composables/useAdvancedSearch'
 import { useFilterPersistence } from '~/composables/useFilterPersistence'
 
 // Stores
@@ -365,7 +365,7 @@ const isLoading = kanbanStore.isLoading
 
 // Composables
 const {
-  searchQuery,
+  query: searchQuery,
   suggestions,
   isSearching,
   searchMode,
@@ -374,12 +374,24 @@ const {
   performSearch,
   selectSuggestion,
   hideSuggestions,
-  clearSearch,
-  setSearchMode,
-  isFieldSearch,
-  isExactSearch,
-  isFuzzySearch
+  toggleSearchMode,
+  isFieldSearch
 } = useAdvancedSearch()
+
+// Create computed properties for search mode checks
+const isExactSearch = computed(() => searchMode.value === 'exact')
+const isFuzzySearch = computed(() => searchMode.value === 'fuzzy')
+
+// Create clear search function
+const clearSearch = () => {
+  searchQuery.value = ''
+  hideSuggestions()
+}
+
+// Create set search mode function
+const setSearchMode = (mode: SearchMode) => {
+  searchMode.value = mode
+}
 
 const {
   filterState,
@@ -512,6 +524,7 @@ const getSuggestionIcon = (type: SearchSuggestion['type']) => {
     case 'client': return User
     case 'lawyer': return Users
     case 'tag': return Tag
+    case 'field': return Search
     default: return Search
   }
 }

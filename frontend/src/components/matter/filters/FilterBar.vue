@@ -12,14 +12,15 @@ import {
 import TextFilter from './TextFilter.vue'
 import SelectFilter from './SelectFilter.vue'
 import DateRangeFilter from './DateRangeFilter.vue'
+import TagFilter from './TagFilter.vue'
+import FilterPresetDialog from './FilterPresetDialog.vue'
 import type { 
   FilterConfig, 
   FilterValue, 
   FilterState, 
-  FilterPreset,
-  MATTER_FILTER_CONFIGS,
-  MATTER_FILTER_PRESETS 
+  FilterPreset
 } from './FilterConfig'
+import { useFilterPresets } from '~/composables/useFilterPresets'
 
 interface Props {
   configs: FilterConfig[]
@@ -35,6 +36,13 @@ const props = withDefaults(defineProps<Props>(), {
   collapsible: true
 })
 
+// Use the new preset composable
+const {
+  allPresets,
+  applyPreset: applyPresetFromComposable,
+  error: presetError
+} = useFilterPresets()
+
 const emit = defineEmits<{
   'update:modelValue': [value: FilterState]
   'preset:apply': [preset: FilterPreset]
@@ -46,6 +54,11 @@ const emit = defineEmits<{
 const isExpanded = ref(true)
 const quickSearch = ref('')
 const activeFilters = ref<Record<string, any>>({})
+
+// Preset dialog state
+const isPresetDialogOpen = ref(false)
+const presetDialogMode = ref<'create' | 'edit' | 'manage'>('create')
+const selectedPresetForEdit = ref<FilterPreset | null>(null)
 
 // Initialize from model value
 watch(() => props.modelValue, (newValue) => {
@@ -134,16 +147,54 @@ const clearAllFilters = () => {
   activeFilters.value = {}
 }
 
-const applyPreset = (preset: FilterPreset) => {
-  // Clear current filters
-  clearAllFilters()
-  
-  // Apply preset filters
-  preset.filters.forEach(filter => {
-    activeFilters.value[filter.field] = filter.value
-  })
-  
+const applyPreset = async (preset: FilterPreset) => {
+  const filterState = await applyPresetFromComposable(preset.id)
+  if (filterState) {
+    // Clear current filters
+    clearAllFilters()
+    
+    // Apply preset filters
+    preset.filters.forEach(filter => {
+      activeFilters.value[filter.field] = filter.value
+    })
+    
+    emit('preset:apply', preset)
+  }
+}
+
+// Preset dialog handlers
+const openCreatePresetDialog = () => {
+  presetDialogMode.value = 'create'
+  selectedPresetForEdit.value = null
+  isPresetDialogOpen.value = true
+}
+
+const openManagePresetsDialog = () => {
+  presetDialogMode.value = 'manage'
+  selectedPresetForEdit.value = null
+  isPresetDialogOpen.value = true
+}
+
+const openEditPresetDialog = (preset: FilterPreset) => {
+  presetDialogMode.value = 'edit'
+  selectedPresetForEdit.value = preset
+  isPresetDialogOpen.value = true
+}
+
+const handlePresetCreated = (preset: FilterPreset) => {
   emit('preset:apply', preset)
+}
+
+const handlePresetUpdated = (preset: FilterPreset) => {
+  // Optionally refresh the preset list or emit an event
+}
+
+const handlePresetDeleted = (presetId: string) => {
+  emit('preset:delete', presetId)
+}
+
+const handlePresetApplied = (preset: FilterPreset) => {
+  applyPreset(preset)
 }
 
 const toggleExpanded = () => {
@@ -184,30 +235,55 @@ const getDefaultOperatorForType = (type: FilterConfig['type']) => {
       </div>
       
       <!-- Filter presets dropdown -->
-      <DropdownMenu v-if="presets.length > 0">
+      <DropdownMenu v-if="allPresets.length > 0">
         <DropdownMenuTrigger as-child>
           <Button variant="outline" size="sm">
             <Icon name="lucide:filter" class="mr-2 h-4 w-4" />
             Presets
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
+        <DropdownMenuContent align="end" class="w-56">
           <DropdownMenuItem
-            v-for="preset in presets"
+            v-for="preset in allPresets.slice(0, 8)"
             :key="preset.id"
             @click="applyPreset(preset)"
+            class="cursor-pointer"
           >
-            <div class="flex flex-col">
-              <span class="font-medium">{{ preset.name }}</span>
+            <div class="flex flex-col w-full">
+              <div class="flex items-center justify-between">
+                <span class="font-medium">{{ preset.name }}</span>
+                <Badge v-if="preset.isSystem" variant="outline" class="text-xs ml-2">
+                  System
+                </Badge>
+              </div>
               <span v-if="preset.description" class="text-xs text-muted-foreground">
                 {{ preset.description }}
               </span>
+              <span class="text-xs text-muted-foreground">
+                {{ preset.filters.length }} filter{{ preset.filters.length === 1 ? '' : 's' }}
+              </span>
             </div>
           </DropdownMenuItem>
+          
           <DropdownMenuSeparator />
-          <DropdownMenuItem @click="$emit('preset:save', 'New Preset', currentFilterState.filters)">
+          
+          <DropdownMenuItem @click="openCreatePresetDialog" class="cursor-pointer">
             <Icon name="lucide:save" class="mr-2 h-4 w-4" />
             Save Current Filters
+          </DropdownMenuItem>
+          
+          <DropdownMenuItem @click="openManagePresetsDialog" class="cursor-pointer">
+            <Icon name="lucide:settings" class="mr-2 h-4 w-4" />
+            Manage Presets
+          </DropdownMenuItem>
+          
+          <DropdownMenuItem 
+            v-if="allPresets.length > 8" 
+            @click="openManagePresetsDialog" 
+            class="cursor-pointer text-muted-foreground"
+          >
+            <Icon name="lucide:more-horizontal" class="mr-2 h-4 w-4" />
+            View All ({{ allPresets.length }})
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -322,6 +398,16 @@ const getDefaultOperatorForType = (type: FilterConfig['type']) => {
           @update:model-value="updateFilter(config.field, $event)"
           @clear="clearFilter(config.field)"
         />
+        
+        <!-- Tags filter -->
+        <TagFilter
+          v-else-if="config.type === 'tags'"
+          :config="config"
+          :model-value="activeFilters[config.field]"
+          :disabled="loading"
+          @update:model-value="updateFilter(config.field, $event)"
+          @clear="clearFilter(config.field)"
+        />
       </div>
     </div>
     
@@ -331,6 +417,19 @@ const getDefaultOperatorForType = (type: FilterConfig['type']) => {
       <p class="text-sm text-muted-foreground mt-2">Applying filters...</p>
     </div>
   </div>
+
+  <!-- Preset Management Dialog -->
+  <FilterPresetDialog
+    v-model:open="isPresetDialogOpen"
+    :mode="presetDialogMode"
+    :preset="selectedPresetForEdit"
+    :filters="currentFilterState.filters"
+    @preset:created="handlePresetCreated"
+    @preset:updated="handlePresetUpdated"
+    @preset:deleted="handlePresetDeleted"
+    @preset:applied="handlePresetApplied"
+    @preset:edit="openEditPresetDialog"
+  />
 </template>
 
 <style scoped>

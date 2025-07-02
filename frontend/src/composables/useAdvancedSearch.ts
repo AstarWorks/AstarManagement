@@ -1,426 +1,497 @@
-import { ref, computed, watch, nextTick } from 'vue'
-import { watchDebounced, useMagicKeys, whenever } from '@vueuse/core'
-import type { Matter, SearchSuggestion, FilterState } from '~/types/matter'
+import { ref, computed, watch } from 'vue'
 
-export const useAdvancedSearch = () => {
-  const searchQuery = ref('')
-  const searchResults = ref<Matter[]>([])
-  const suggestions = ref<SearchSuggestion[]>([])
-  const isSearching = ref(false)
-  const searchMode = ref<'fuzzy' | 'exact' | 'field'>('fuzzy')
-  const showSuggestions = ref(false)
-  const selectedSuggestionIndex = ref(-1)
+export type SearchMode = 'fuzzy' | 'exact' | 'field'
+
+export interface SearchSuggestion {
+  id: string
+  value: string
+  field?: string
+  type: 'case' | 'client' | 'lawyer' | 'tag' | 'field'
+  label: string
+  description?: string
+  count?: number
+}
+
+export interface SearchHistory {
+  id: string
+  query: string
+  timestamp: number
+  resultCount?: number
+  mode: SearchMode
+}
+
+interface SearchPerformanceMetrics {
+  queryTime: number
+  resultCount: number
+  suggestionsTime: number
+  cacheHit: boolean
+}
+
+const STORAGE_KEY = 'search-history'
+const MAX_HISTORY_SIZE = 50
+const DEBOUNCE_DELAY = 300
+const MIN_QUERY_LENGTH = 2
+
+/**
+ * Advanced search composable with type-ahead suggestions, search modes, and history
+ * Supports fuzzy search, exact matching, and field-specific queries
+ */
+export function useAdvancedSearch() {
+  const isClient = process.client
   
-  // Search statistics
-  const searchStats = ref({
-    totalQueries: 0,
-    averageQueryTime: 0,
-    lastQueryTime: 0
+  // Search state
+  const query = ref('')
+  const searchMode = ref<SearchMode>('fuzzy')
+  const isSearching = ref(false)
+  const searchHistory = ref<SearchHistory[]>([])
+  const suggestions = ref<SearchSuggestion[]>([])
+  const selectedSuggestionIndex = ref(-1)
+  const showSuggestions = ref(false)
+  const searchMetrics = ref<SearchPerformanceMetrics | null>(null)
+  
+  // Debouncing
+  const searchTimer = ref<NodeJS.Timeout | null>(null)
+  
+  // Suggestion cache
+  const suggestionCache = new Map<string, { suggestions: SearchSuggestion[], timestamp: number }>()
+  const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
+
+  // Mock data for type-ahead suggestions (in production, this would come from APIs)
+  const mockSuggestions: SearchSuggestion[] = [
+    // Case numbers
+    { id: 'case-1', value: 'CC-2024-001', type: 'case', label: 'CC-2024-001', description: 'Corporate Merger Case' },
+    { id: 'case-2', value: 'ED-2024-002', type: 'case', label: 'ED-2024-002', description: 'Employment Dispute' },
+    { id: 'case-3', value: 'RE-2024-003', type: 'case', label: 'RE-2024-003', description: 'Real Estate Transaction' },
+    
+    // Client names
+    { id: 'client-1', value: 'ABC Corporation', type: 'client', label: 'ABC Corporation', count: 12 },
+    { id: 'client-2', value: 'John Doe', type: 'client', label: 'John Doe', count: 3 },
+    { id: 'client-3', value: 'Property Holdings LLC', type: 'client', label: 'Property Holdings LLC', count: 8 },
+    { id: 'client-4', value: 'Tech Solutions Inc', type: 'client', label: 'Tech Solutions Inc', count: 5 },
+    
+    // Lawyer names
+    { id: 'lawyer-1', value: 'Takeshi Yamamoto', type: 'lawyer', label: 'Takeshi Yamamoto', description: 'Corporate Law' },
+    { id: 'lawyer-2', value: 'Kenji Nakamura', type: 'lawyer', label: 'Kenji Nakamura', description: 'Litigation' },
+    { id: 'lawyer-3', value: 'Hiroshi Tanaka', type: 'lawyer', label: 'Hiroshi Tanaka', description: 'Family Law' },
+    
+    // Tags
+    { id: 'tag-1', value: 'corporate', type: 'tag', label: 'corporate', count: 25 },
+    { id: 'tag-2', value: 'litigation', type: 'tag', label: 'litigation', count: 18 },
+    { id: 'tag-3', value: 'high-priority', type: 'tag', label: 'high-priority', count: 12 },
+    { id: 'tag-4', value: 'merger', type: 'tag', label: 'merger', count: 8 },
+    { id: 'tag-5', value: 'employment', type: 'tag', label: 'employment', count: 15 },
+    
+    // Field search patterns
+    { id: 'field-1', value: 'case:', type: 'field', label: 'case:', description: 'Search by case number' },
+    { id: 'field-2', value: 'client:', type: 'field', label: 'client:', description: 'Search by client name' },
+    { id: 'field-3', value: 'lawyer:', type: 'field', label: 'lawyer:', description: 'Search by assigned lawyer' },
+    { id: 'field-4', value: 'status:', type: 'field', label: 'status:', description: 'Search by status' },
+    { id: 'field-5', value: 'priority:', type: 'field', label: 'priority:', description: 'Search by priority' },
+    { id: 'field-6', value: 'tag:', type: 'field', label: 'tag:', description: 'Search by tags' }
+  ]
+
+  // Field search patterns
+  const fieldPatterns = {
+    case: /^case:\s*(.+)/i,
+    client: /^client:\s*(.+)/i,
+    lawyer: /^lawyer:\s*(.+)/i,
+    status: /^status:\s*(.+)/i,
+    priority: /^priority:\s*(.+)/i,
+    tag: /^tag:\s*(.+)/i
+  }
+
+  // Computed properties
+  const hasQuery = computed(() => query.value.trim().length >= MIN_QUERY_LENGTH)
+  const isFieldSearch = computed(() => {
+    const q = query.value.trim()
+    return Object.values(fieldPatterns).some(pattern => pattern.test(q))
+  })
+  
+  const parsedFieldSearch = computed(() => {
+    const q = query.value.trim()
+    for (const [field, pattern] of Object.entries(fieldPatterns)) {
+      const match = q.match(pattern)
+      if (match) {
+        return {
+          field,
+          value: match[1].trim()
+        }
+      }
+    }
+    return null
   })
 
-  // Field search patterns for parsing advanced queries
-  const fieldPatterns = {
-    case: /case:(\S+)/gi,
-    client: /client:("[^"]+"|[\w-]+)/gi,
-    lawyer: /lawyer:("[^"]+"|[\w\s]+)/gi,
-    status: /status:(\w+)/gi,
-    priority: /priority:(\w+)/gi,
-    tag: /tag:(\w+)/gi
-  }
+  const recentSearches = computed(() => 
+    searchHistory.value
+      .slice(0, 10)
+      .map(history => ({
+        id: `history-${history.id}`,
+        value: history.query,
+        type: 'field' as const,
+        label: history.query,
+        description: `${history.resultCount || 0} results • ${new Date(history.timestamp).toLocaleDateString()}`
+      }))
+  )
 
-  // Parse field-specific search queries
-  const parseSearchQuery = (query: string) => {
-    const parsedQuery = {
-      fields: {} as Record<string, string[]>,
-      freeText: query
-    }
-    
-    // Extract field queries
-    Object.entries(fieldPatterns).forEach(([field, pattern]) => {
-      const matches = Array.from(query.matchAll(pattern))
-      if (matches.length > 0) {
-        parsedQuery.fields[field] = matches.map(match => 
-          match[1].replace(/"/g, '').trim()
-        )
-        // Remove field queries from free text
-        parsedQuery.freeText = parsedQuery.freeText.replace(pattern, '').trim()
-      }
-    })
-    
-    return parsedQuery
-  }
-
-  // Fuzzy search matching
-  const performFuzzySearch = async (query: string, matters: Matter[]): Promise<Matter[]> => {
-    const startTime = performance.now()
-    
-    const queryWords = query.toLowerCase().split(/\s+/).filter(word => word.length > 0)
-    
-    const results = matters.filter(matter => {
-      const searchableText = [
-        matter.title,
-        matter.description,
-        matter.clientName,
-        matter.opponentName,
-        matter.assignedLawyer,
-        ...(matter.tags || [])
-      ].join(' ').toLowerCase()
-      
-      return queryWords.some(word => 
-        searchableText.includes(word) ||
-        word.length > 2 && searchableText.includes(word.slice(0, -1)) // Partial match
-      )
-    })
-
-    // Update search stats
-    const queryTime = performance.now() - startTime
-    updateSearchStats(queryTime)
-    
-    return results
-  }
-
-  // Exact search matching
-  const performExactSearch = async (query: string, matters: Matter[]): Promise<Matter[]> => {
-    const startTime = performance.now()
-    
-    const exactQuery = query.replace(/"/g, '').toLowerCase()
-    
-    const results = matters.filter(matter => {
-      const searchableText = [
-        matter.title,
-        matter.description,
-        matter.clientName,
-        matter.opponentName,
-        matter.assignedLawyer,
-        ...(matter.tags || [])
-      ].join(' ').toLowerCase()
-      
-      return searchableText.includes(exactQuery)
-    })
-
-    const queryTime = performance.now() - startTime
-    updateSearchStats(queryTime)
-    
-    return results
-  }
-
-  // Field-specific search
-  const performFieldSearch = async (query: string, matters: Matter[]): Promise<Matter[]> => {
-    const startTime = performance.now()
-    
-    const parsedQuery = parseSearchQuery(query)
-    
-    const results = matters.filter(matter => {
-      // Check field-specific matches
-      for (const [field, values] of Object.entries(parsedQuery.fields)) {
-        const fieldMatches = values.some(value => {
-          switch (field) {
-            case 'case':
-              return matter.caseNumber.toLowerCase().includes(value.toLowerCase())
-            case 'client':
-              return matter.clientName.toLowerCase().includes(value.toLowerCase())
-            case 'lawyer':
-              const lawyerName = typeof matter.assignedLawyer === 'string' ? matter.assignedLawyer : matter.assignedLawyer?.name
-              return lawyerName?.toLowerCase().includes(value.toLowerCase())
-            case 'status':
-              return matter.status.toLowerCase() === value.toLowerCase()
-            case 'priority':
-              return matter.priority.toLowerCase() === value.toLowerCase()
-            case 'tag':
-              return matter.tags?.some(tag => 
-                tag.toLowerCase().includes(value.toLowerCase())
-              )
-            default:
-              return false
-          }
-        })
-        
-        if (!fieldMatches) return false
-      }
-      
-      // Check free text if present
-      if (parsedQuery.freeText) {
-        const freeTextMatches = [
-          matter.title,
-          matter.description,
-          matter.clientName
-        ].some(text => 
-          text?.toLowerCase().includes(parsedQuery.freeText.toLowerCase())
-        )
-        
-        if (!freeTextMatches) return false
-      }
-      
-      return true
-    })
-
-    const queryTime = performance.now() - startTime
-    updateSearchStats(queryTime)
-    
-    return results
-  }
-
-  // Update search statistics
-  const updateSearchStats = (queryTime: number) => {
-    searchStats.value.totalQueries++
-    searchStats.value.lastQueryTime = queryTime
-    
-    // Calculate rolling average
-    const { totalQueries, averageQueryTime } = searchStats.value
-    searchStats.value.averageQueryTime = 
-      (averageQueryTime * (totalQueries - 1) + queryTime) / totalQueries
-  }
-
-  // Main search execution
-  const performSearch = async (query: string, matters: Matter[]): Promise<Matter[]> => {
-    if (!query.trim()) {
-      searchResults.value = []
-      return []
-    }
-
-    isSearching.value = true
+  /**
+   * Load search history from localStorage
+   */
+  const loadSearchHistory = () => {
+    if (!isClient) return
     
     try {
-      let results: Matter[] = []
-      
-      if (searchMode.value === 'field' && query.includes(':')) {
-        results = await performFieldSearch(query, matters)
-      } else if (searchMode.value === 'exact' && query.startsWith('"')) {
-        results = await performExactSearch(query, matters)
-      } else {
-        results = await performFuzzySearch(query, matters)
+      const stored = localStorage.getItem(STORAGE_KEY)
+      if (stored) {
+        searchHistory.value = JSON.parse(stored)
       }
-      
-      searchResults.value = results
-      return results
-    } finally {
-      isSearching.value = false
+    } catch (error) {
+      console.error('Failed to load search history:', error)
     }
   }
 
-  // Generate search suggestions
-  const generateSuggestions = async (query: string, matters: Matter[]): Promise<SearchSuggestion[]> => {
-    if (!query.trim() || query.length < 2) {
-      return []
+  /**
+   * Save search history to localStorage
+   */
+  const saveSearchHistory = () => {
+    if (!isClient) return
+    
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(searchHistory.value))
+    } catch (error) {
+      console.error('Failed to save search history:', error)
     }
+  }
 
-    const queryLower = query.toLowerCase()
-    const suggestionMap = new Map<string, SearchSuggestion>()
+  /**
+   * Add search to history
+   */
+  const addToHistory = (searchQuery: string, resultCount?: number) => {
+    // Don't add empty queries or duplicates
+    if (!searchQuery.trim()) return
+    
+    // Remove existing entry for same query
+    searchHistory.value = searchHistory.value.filter(h => h.query !== searchQuery)
+    
+    // Add new entry at the beginning
+    searchHistory.value.unshift({
+      id: `${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+      query: searchQuery,
+      timestamp: Date.now(),
+      resultCount,
+      mode: searchMode.value
+    })
+    
+    // Limit history size
+    if (searchHistory.value.length > MAX_HISTORY_SIZE) {
+      searchHistory.value = searchHistory.value.slice(0, MAX_HISTORY_SIZE)
+    }
+    
+    saveSearchHistory()
+  }
 
-    // Collect suggestions from different sources
-    matters.forEach(matter => {
-      // Case numbers
-      if (matter.caseNumber.toLowerCase().includes(queryLower)) {
-        const key = `case-${matter.caseNumber}`
-        suggestionMap.set(key, {
-          id: key,
-          value: matter.caseNumber,
-          type: 'case',
-          count: 1,
-          category: 'Case Numbers'
-        })
-      }
+  /**
+   * Clear search history
+   */
+  const clearHistory = () => {
+    searchHistory.value = []
+    saveSearchHistory()
+  }
 
-      // Client names
-      if (matter.clientName.toLowerCase().includes(queryLower)) {
-        const key = `client-${matter.clientName}`
-        const existing = suggestionMap.get(key)
-        if (existing) {
-          existing.count++
-        } else {
-          suggestionMap.set(key, {
-            id: key,
-            value: matter.clientName,
-            type: 'client',
-            count: 1,
-            category: 'Clients'
-          })
-        }
-      }
-
-      // Lawyers
-      const lawyerName = typeof matter.assignedLawyer === 'string' ? matter.assignedLawyer : matter.assignedLawyer?.name
-      if (lawyerName?.toLowerCase().includes(queryLower)) {
-        const key = `lawyer-${lawyerName}`
-        const existing = suggestionMap.get(key)
-        if (existing) {
-          existing.count++
-        } else {
-          suggestionMap.set(key, {
-            id: key,
-            value: lawyerName,
-            type: 'lawyer',
-            count: 1,
-            category: 'Lawyers'
-          })
-        }
-      }
-
-      // Tags
-      matter.tags?.forEach(tag => {
-        if (tag.toLowerCase().includes(queryLower)) {
-          const key = `tag-${tag}`
-          const existing = suggestionMap.get(key)
-          if (existing) {
-            existing.count++
-          } else {
-            suggestionMap.set(key, {
-              id: key,
-              value: tag,
-              type: 'tag',
-              count: 1,
-              category: 'Tags'
-            })
+  /**
+   * Generate fuzzy search suggestions
+   */
+  const getFuzzySuggestions = (searchQuery: string): SearchSuggestion[] => {
+    const queryLower = searchQuery.toLowerCase()
+    
+    return mockSuggestions
+      .filter(suggestion => {
+        // Simple fuzzy matching - contains query characters in order
+        const labelLower = suggestion.label.toLowerCase()
+        let queryIndex = 0
+        
+        for (let i = 0; i < labelLower.length && queryIndex < queryLower.length; i++) {
+          if (labelLower[i] === queryLower[queryIndex]) {
+            queryIndex++
           }
         }
+        
+        return queryIndex === queryLower.length
       })
-    })
-
-    // Convert to array and sort by relevance
-    return Array.from(suggestionMap.values())
-      .sort((a, b) => {
-        // Sort by count (descending), then alphabetically
-        if (a.count !== b.count) {
-          return b.count - a.count
-        }
-        return a.value.localeCompare(b.value)
-      })
-      .slice(0, 10) // Limit to top 10 suggestions
+      .slice(0, 8) // Limit suggestions
   }
 
-  // Debounced search execution
-  watchDebounced(
-    searchQuery,
-    async (query) => {
-      if (!query.trim()) {
-        searchResults.value = []
+  /**
+   * Generate exact search suggestions
+   */
+  const getExactSuggestions = (searchQuery: string): SearchSuggestion[] => {
+    const queryLower = searchQuery.toLowerCase()
+    
+    return mockSuggestions
+      .filter(suggestion => 
+        suggestion.label.toLowerCase().includes(queryLower) ||
+        suggestion.value.toLowerCase().includes(queryLower)
+      )
+      .slice(0, 8)
+  }
+
+  /**
+   * Generate field-specific suggestions
+   */
+  const getFieldSuggestions = (searchQuery: string): SearchSuggestion[] => {
+    const queryLower = searchQuery.toLowerCase()
+    
+    // If query starts with a field pattern, show field-specific suggestions
+    const fieldMatch = parsedFieldSearch.value
+    if (fieldMatch) {
+      const fieldType = fieldMatch.field as keyof typeof fieldPatterns
+      return mockSuggestions
+        .filter(suggestion => suggestion.type === fieldType)
+        .filter(suggestion => 
+          suggestion.label.toLowerCase().includes(fieldMatch.value.toLowerCase())
+        )
+        .slice(0, 8)
+    }
+    
+    // Otherwise, show field pattern suggestions
+    return mockSuggestions
+      .filter(suggestion => suggestion.type === 'field')
+      .filter(suggestion => 
+        suggestion.value.toLowerCase().includes(queryLower)
+      )
+  }
+
+  /**
+   * Get suggestions with caching
+   */
+  const getSuggestions = async (searchQuery: string): Promise<SearchSuggestion[]> => {
+    const cacheKey = `${searchMode.value}-${searchQuery.toLowerCase()}`
+    const cached = suggestionCache.get(cacheKey)
+    
+    // Check cache
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      return cached.suggestions
+    }
+    
+    const startTime = performance.now()
+    let results: SearchSuggestion[] = []
+    
+    // Generate suggestions based on search mode
+    switch (searchMode.value) {
+      case 'fuzzy':
+        results = getFuzzySuggestions(searchQuery)
+        break
+      case 'exact':
+        results = getExactSuggestions(searchQuery)
+        break
+      case 'field':
+        results = getFieldSuggestions(searchQuery)
+        break
+    }
+    
+    // Add recent searches if query is short
+    if (searchQuery.length < 4 && recentSearches.value.length > 0) {
+      results = [...recentSearches.value.slice(0, 3), ...results]
+    }
+    
+    const suggestionsTime = performance.now() - startTime
+    
+    // Update metrics
+    searchMetrics.value = {
+      queryTime: 0, // This would be set by the actual search
+      resultCount: results.length,
+      suggestionsTime,
+      cacheHit: false
+    }
+    
+    // Cache results
+    suggestionCache.set(cacheKey, { suggestions: results, timestamp: Date.now() })
+    
+    return results
+  }
+
+  /**
+   * Debounced search with suggestions
+   */
+  const performSearch = async (searchQuery: string) => {
+    if (searchTimer.value) {
+      clearTimeout(searchTimer.value)
+    }
+    
+    searchTimer.value = setTimeout(async () => {
+      if (searchQuery.trim().length < MIN_QUERY_LENGTH) {
         suggestions.value = []
         showSuggestions.value = false
         return
       }
       
-      if (query.length >= 2) {
-        // Get matters from store (this would be injected from parent)
-        // For now, using empty array - parent component will handle this
-        await performSearch(query, [])
-      }
-    },
-    { debounce: 300 }
-  )
-
-  // Separate debounced suggestions
-  watchDebounced(
-    searchQuery,
-    async (query) => {
-      if (query.length >= 2) {
-        suggestions.value = await generateSuggestions(query, [])
+      isSearching.value = true
+      
+      try {
+        suggestions.value = await getSuggestions(searchQuery)
         showSuggestions.value = suggestions.value.length > 0
-      } else {
+        selectedSuggestionIndex.value = -1
+      } catch (error) {
+        console.error('Search failed:', error)
         suggestions.value = []
         showSuggestions.value = false
+      } finally {
+        isSearching.value = false
       }
-    },
-    { debounce: 150 }
-  )
-
-  // Keyboard navigation for suggestions
-  const { ArrowDown, ArrowUp, Enter, Escape } = useMagicKeys()
-  
-  whenever(ArrowDown, () => {
-    if (showSuggestions.value && suggestions.value.length > 0) {
-      selectedSuggestionIndex.value = Math.min(
-        selectedSuggestionIndex.value + 1,
-        suggestions.value.length - 1
-      )
-    }
-  })
-  
-  whenever(ArrowUp, () => {
-    if (showSuggestions.value) {
-      selectedSuggestionIndex.value = Math.max(
-        selectedSuggestionIndex.value - 1,
-        -1
-      )
-    }
-  })
-  
-  whenever(Enter, () => {
-    if (showSuggestions.value && selectedSuggestionIndex.value >= 0) {
-      const selected = suggestions.value[selectedSuggestionIndex.value]
-      selectSuggestion(selected)
-    }
-  })
-  
-  whenever(Escape, () => {
-    hideSuggestions()
-  })
-
-  // Suggestion selection
-  const selectSuggestion = (suggestion: SearchSuggestion) => {
-    searchQuery.value = suggestion.value
-    hideSuggestions()
-    nextTick(() => {
-      // Trigger search with the selected suggestion
-      performSearch(suggestion.value, [])
-    })
+    }, DEBOUNCE_DELAY)
   }
 
-  // Hide suggestions
+  /**
+   * Handle keyboard navigation
+   */
+  const handleKeydown = (event: KeyboardEvent) => {
+    if (!showSuggestions.value || suggestions.value.length === 0) return false
+    
+    switch (event.key) {
+      case 'ArrowDown':
+        event.preventDefault()
+        selectedSuggestionIndex.value = Math.min(
+          selectedSuggestionIndex.value + 1,
+          suggestions.value.length - 1
+        )
+        return true
+        
+      case 'ArrowUp':
+        event.preventDefault()
+        selectedSuggestionIndex.value = Math.max(
+          selectedSuggestionIndex.value - 1,
+          -1
+        )
+        return true
+        
+      case 'Enter':
+        event.preventDefault()
+        if (selectedSuggestionIndex.value >= 0) {
+          const suggestion = suggestions.value[selectedSuggestionIndex.value]
+          selectSuggestion(suggestion)
+        } else {
+          executeSearch(query.value)
+        }
+        return true
+        
+      case 'Escape':
+        event.preventDefault()
+        hideSuggestions()
+        return true
+        
+      default:
+        return false
+    }
+  }
+
+  /**
+   * Select a suggestion
+   */
+  const selectSuggestion = (suggestion: SearchSuggestion) => {
+    query.value = suggestion.value
+    hideSuggestions()
+    executeSearch(suggestion.value)
+  }
+
+  /**
+   * Execute search and add to history
+   */
+  const executeSearch = (searchQuery: string) => {
+    const trimmedQuery = searchQuery.trim()
+    if (!trimmedQuery) return
+    
+    hideSuggestions()
+    addToHistory(trimmedQuery)
+    
+    // This would trigger the actual search in the parent component
+    return {
+      query: trimmedQuery,
+      mode: searchMode.value,
+      parsedField: parsedFieldSearch.value
+    }
+  }
+
+  /**
+   * Hide suggestions
+   */
   const hideSuggestions = () => {
     showSuggestions.value = false
     selectedSuggestionIndex.value = -1
   }
 
-  // Clear search
-  const clearSearch = () => {
-    searchQuery.value = ''
-    searchResults.value = []
-    suggestions.value = []
-    showSuggestions.value = false
-    selectedSuggestionIndex.value = -1
-  }
-
-  // Search mode helpers
-  const setSearchMode = (mode: 'fuzzy' | 'exact' | 'field') => {
-    searchMode.value = mode
-    // Re-trigger search if there's a query
-    if (searchQuery.value.trim()) {
-      performSearch(searchQuery.value, [])
+  /**
+   * Toggle search mode
+   */
+  const toggleSearchMode = () => {
+    const modes: SearchMode[] = ['fuzzy', 'exact', 'field']
+    const currentIndex = modes.indexOf(searchMode.value)
+    const nextIndex = (currentIndex + 1) % modes.length
+    searchMode.value = modes[nextIndex]
+    
+    // Re-trigger search with new mode
+    if (hasQuery.value) {
+      performSearch(query.value)
     }
   }
 
-  // Computed properties
-  const hasActiveSearch = computed(() => searchQuery.value.length > 0)
-  const hasResults = computed(() => searchResults.value.length > 0)
-  const isFieldSearch = computed(() => searchMode.value === 'field')
-  const isExactSearch = computed(() => searchMode.value === 'exact')
-  const isFuzzySearch = computed(() => searchMode.value === 'fuzzy')
+  /**
+   * Get search mode description
+   */
+  const getSearchModeDescription = (mode: SearchMode) => {
+    switch (mode) {
+      case 'fuzzy':
+        return 'Smart search - finds partial matches'
+      case 'exact':
+        return 'Exact search - finds exact text matches'
+      case 'field':
+        return 'Field search - use "field:value" syntax'
+      default:
+        return ''
+    }
+  }
+
+  // Watch query changes
+  watch(query, (newQuery) => {
+    if (newQuery.trim().length >= MIN_QUERY_LENGTH) {
+      performSearch(newQuery)
+    } else {
+      hideSuggestions()
+    }
+  })
+
+  // Initialize
+  if (isClient) {
+    loadSearchHistory()
+  }
 
   return {
     // State
-    searchQuery,
-    searchResults,
-    suggestions,
-    isSearching,
+    query,
     searchMode,
-    showSuggestions,
+    isSearching,
+    suggestions,
     selectedSuggestionIndex,
-    searchStats,
-    
-    // Actions
-    performSearch,
-    generateSuggestions,
-    selectSuggestion,
-    hideSuggestions,
-    clearSearch,
-    setSearchMode,
-    parseSearchQuery,
+    showSuggestions,
+    searchHistory,
+    searchMetrics,
     
     // Computed
-    hasActiveSearch,
-    hasResults,
+    hasQuery,
     isFieldSearch,
-    isExactSearch,
-    isFuzzySearch
+    parsedFieldSearch,
+    recentSearches,
+    
+    // Methods
+    performSearch,
+    executeSearch,
+    selectSuggestion,
+    hideSuggestions,
+    handleKeydown,
+    toggleSearchMode,
+    addToHistory,
+    clearHistory,
+    getSearchModeDescription,
+    
+    // Utils
+    getSuggestions
   }
 }

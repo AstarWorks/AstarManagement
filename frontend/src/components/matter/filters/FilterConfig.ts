@@ -49,6 +49,8 @@ export interface FilterPreset {
   filters: FilterValue[]
   isDefault?: boolean
   isPublic?: boolean
+  isSystem?: boolean
+  lastUsed?: string
   createdBy?: string
   createdAt?: string
 }
@@ -156,6 +158,24 @@ export const MATTER_FILTER_CONFIGS: FilterConfig[] = [
     type: 'select',
     label: 'Assigned Lawyer',
     placeholder: 'Select lawyer...',
+    searchable: true,
+    clearable: true,
+    // Options will be populated dynamically from API
+    options: []
+  },
+  {
+    field: 'opponentName',
+    type: 'text',
+    label: 'Opponent Name',
+    placeholder: 'Search by opponent...',
+    searchable: true,
+    clearable: true
+  },
+  {
+    field: 'assignedClerk',
+    type: 'select',
+    label: 'Assigned Clerk',
+    placeholder: 'Select clerk...',
     searchable: true,
     clearable: true,
     // Options will be populated dynamically from API

@@ -1,19 +1,22 @@
-<script setup lang="ts">
-import type { TabsListProps } from 'radix-vue'
-import { TabsList } from 'radix-vue'
-import { cn } from '~/lib/utils'
-
-const props = defineProps<TabsListProps & { class?: string }>()
-</script>
-
 <template>
-  <TabsList
-    v-bind="props"
+  <TabsListPrimitive
+    v-bind="$attrs"
     :class="cn(
-      'inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground',
+      'inline-flex h-9 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground',
       props.class
     )"
   >
     <slot />
-  </TabsList>
+  </TabsListPrimitive>
 </template>
+
+<script setup lang="ts">
+import { cn } from '~/lib/utils'
+import { TabsList as TabsListPrimitive } from 'radix-vue'
+
+interface Props {
+  class?: string
+}
+
+const props = defineProps<Props>()
+</script>
