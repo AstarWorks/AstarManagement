@@ -13,9 +13,11 @@ export interface Matter {
   title: string
   description?: string
   clientName: string
+  clientEmail?: string
+  clientPhone?: string
   opponentName?: string
   assignedLawyer?: string | LawyerInfo
-  assignedClerk?: LawyerInfo
+  assignedClerk?: string | LawyerInfo
   status: MatterStatus
   priority: MatterPriority
   dueDate?: string
@@ -31,6 +33,13 @@ export interface Matter {
   // Additional properties for column access
   client?: { name: string; id?: string }
   assignee?: { name: string; id?: string }
+  // Additional properties for detail view
+  matterType?: string
+  taskCount?: number
+  documentCount?: number
+  progressPercentage?: number
+  budget?: number
+  amountSpent?: number
 }
 
 // Re-export for backward compatibility
@@ -84,7 +93,7 @@ export interface FilterState {
 export interface SearchSuggestion {
   id: string
   value: string
-  type: 'case' | 'client' | 'lawyer' | 'tag'
+  type: 'case' | 'client' | 'lawyer' | 'tag' | 'field'
   count: number
   highlight?: string
   category?: string

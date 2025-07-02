@@ -518,7 +518,7 @@ const searchModeTooltip = computed(() => {
 })
 
 // Search suggestion icon helper
-const getSuggestionIcon = (type: SearchSuggestion['type']) => {
+const getSuggestionIcon = (type: string) => {
   switch (type) {
     case 'case': return FileText
     case 'client': return User
@@ -544,7 +544,7 @@ watchDebounced(
   (query) => {
     updateFilters({ quickSearch: query })
     if (query.trim().length >= 2) {
-      performSearch(query, props.matters)
+      performSearch(query)
       emit('searchPerformed', query)
     }
   },

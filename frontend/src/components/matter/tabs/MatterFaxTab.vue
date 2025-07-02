@@ -16,7 +16,7 @@
     <!-- Placeholder Content -->
     <Card>
       <CardContent class="p-8 text-center">
-        <Fax class="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+        <FileText class="w-12 h-12 mx-auto text-muted-foreground mb-4" />
         <h4 class="text-lg font-medium mb-2">FAX Integration Coming Soon</h4>
         <p class="text-muted-foreground">
           FAX management and OCR functionality will be implemented in the next iteration.
@@ -27,7 +27,7 @@
 </template>
 
 <script setup lang="ts">
-import { Send, Fax } from 'lucide-vue-next'
+import { Send, FileText } from 'lucide-vue-next'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent } from '~/components/ui/card'
 

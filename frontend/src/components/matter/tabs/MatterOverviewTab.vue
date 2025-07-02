@@ -206,9 +206,9 @@ const formatCurrency = (amount: number) => {
   }).format(amount)
 }
 
-const getStatusVariant = (status?: string) => {
+const getStatusVariant = (status?: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
   if (!status) return 'secondary'
-  const variants: Record<string, string> = {
+  const variants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
     'INTAKE': 'secondary',
     'INITIAL_REVIEW': 'secondary',
     'IN_PROGRESS': 'default',
@@ -220,9 +220,9 @@ const getStatusVariant = (status?: string) => {
   return variants[status] || 'secondary'
 }
 
-const getPriorityVariant = (priority?: string) => {
+const getPriorityVariant = (priority?: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
   if (!priority) return 'secondary'
-  const variants: Record<string, string> = {
+  const variants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
     'LOW': 'secondary',
     'MEDIUM': 'outline',
     'HIGH': 'destructive',

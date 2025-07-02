@@ -58,7 +58,7 @@ const activeFilters = ref<Record<string, any>>({})
 // Preset dialog state
 const isPresetDialogOpen = ref(false)
 const presetDialogMode = ref<'create' | 'edit' | 'manage'>('create')
-const selectedPresetForEdit = ref<FilterPreset | null>(null)
+const selectedPresetForEdit = ref<FilterPreset | undefined>(undefined)
 
 // Initialize from model value
 watch(() => props.modelValue, (newValue) => {
@@ -165,13 +165,13 @@ const applyPreset = async (preset: FilterPreset) => {
 // Preset dialog handlers
 const openCreatePresetDialog = () => {
   presetDialogMode.value = 'create'
-  selectedPresetForEdit.value = null
+  selectedPresetForEdit.value = undefined
   isPresetDialogOpen.value = true
 }
 
 const openManagePresetsDialog = () => {
   presetDialogMode.value = 'manage'
-  selectedPresetForEdit.value = null
+  selectedPresetForEdit.value = undefined
   isPresetDialogOpen.value = true
 }
 

@@ -147,7 +147,7 @@
                     :key="tab.id"
                     :value="tab.id"
                     class="text-xs lg:text-sm"
-                    :disabled="tab.disabled"
+                    :disabled="false"
                   >
                     <component :is="tab.icon" class="w-4 h-4 mr-1 lg:mr-2" />
                     <span class="hidden sm:inline">{{ tab.label }}</span>
@@ -292,7 +292,7 @@ import {
   Calendar,
   MessageSquare,
   FolderOpen,
-  Fax,
+  FileText as FaxIcon,
   DollarSign,
   StickyNote
 } from 'lucide-vue-next'
@@ -317,6 +317,9 @@ import MatterNotesTab from '~/components/matter/tabs/MatterNotesTab.vue'
 
 // Types
 import type { Matter } from '~/types/matter'
+
+// Stores
+import { useMatterDetailStore } from '~/stores/matterDetail'
 
 // Meta tags
 definePageMeta({
@@ -345,7 +348,7 @@ const tabConfig = [
   { id: 'schedule', label: 'Schedule', icon: Calendar, roles: ['lawyer', 'clerk'] },
   { id: 'communications', label: 'Communications', icon: MessageSquare, roles: ['lawyer', 'clerk'] },
   { id: 'documents', label: 'Documents', icon: FolderOpen, roles: ['client', 'lawyer', 'clerk'] },
-  { id: 'fax', label: 'FAX', icon: Fax, roles: ['lawyer', 'clerk'] },
+  { id: 'fax', label: 'FAX', icon: FaxIcon, roles: ['lawyer', 'clerk'] },
   { id: 'billing', label: 'Billing', icon: DollarSign, roles: ['client', 'lawyer', 'clerk'] },
   { id: 'notes', label: 'Notes', icon: StickyNote, roles: ['lawyer', 'clerk'] }
 ]
@@ -358,7 +361,7 @@ const availableTabs = computed(() => {
   if (!user.value) return tabConfig.slice(0, 1) // Only overview for unauthenticated
   
   return tabConfig.filter(tab => 
-    tab.roles.includes(user.value.role.toLowerCase())
+    tab.roles.includes(user.value?.role?.toLowerCase() || 'client')
   )
 })
 

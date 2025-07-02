@@ -27,12 +27,12 @@
       <!-- Status Badge and Priority -->
       <div class="space-y-3">
         <div class="flex items-center gap-2">
-          <Badge :variant="getStatusVariant(matter.status)" class="text-xs">
+          <Badge :variant="getStatusVariant(matter.status) as any" class="text-xs">
             {{ formatStatus(matter.status) }}
           </Badge>
           <Badge 
             v-if="matter.priority" 
-            :variant="getPriorityVariant(matter.priority)"
+            :variant="getPriorityVariant(matter.priority) as any"
             class="text-xs"
           >
             {{ formatPriority(matter.priority) }}

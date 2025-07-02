@@ -6,6 +6,7 @@ import { Label } from '~/components/ui/label'
 import { Textarea } from '~/components/ui/textarea'
 import { Switch } from '~/components/ui/switch'
 import { Badge } from '~/components/ui/badge'
+import { cn } from '~/lib/utils'
 import {
   Dialog,
   DialogContent,
@@ -46,6 +47,7 @@ const emit = defineEmits<{
   'preset:updated': [preset: FilterPreset]
   'preset:deleted': [presetId: string]
   'preset:applied': [preset: FilterPreset]
+  'preset:edit': [preset: FilterPreset]
 }>()
 
 const {
@@ -272,7 +274,7 @@ const formatDate = (dateString: string) => {
             id="preset-name"
             v-model="formData.name"
             placeholder="Enter preset name..."
-            maxlength="50"
+            :maxlength="50"
             :class="{ 'border-destructive': formData.name.length > 50 }"
           />
           <p class="text-xs text-muted-foreground">{{ formData.name.length }}/50 characters</p>
@@ -284,9 +286,9 @@ const formatDate = (dateString: string) => {
             id="preset-description"
             v-model="formData.description"
             placeholder="Optional description..."
-            maxlength="200"
-            rows="3"
-            :class="{ 'border-destructive': formData.description.length > 200 }"
+            :maxlength="200"
+            :rows="3"
+            :class="cn(formData.description.length > 200 && 'border-destructive')"
           />
           <p class="text-xs text-muted-foreground">{{ formData.description.length }}/200 characters</p>
         </div>

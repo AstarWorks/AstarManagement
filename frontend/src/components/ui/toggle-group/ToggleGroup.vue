@@ -8,7 +8,7 @@
 </template>
 
 <script setup lang="ts">
-import { ToggleGroup as ToggleGroupPrimitive } from 'radix-vue'
+import { ToggleGroupRoot as ToggleGroupPrimitive } from 'radix-vue'
 import { cn } from '~/lib/utils'
 
 interface Props {

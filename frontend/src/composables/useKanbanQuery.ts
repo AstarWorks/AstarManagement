@@ -41,6 +41,26 @@ function transformToMatterCard(matter: Matter): MatterCard {
     }
   }
   
+  // Handle assignedClerk similarly
+  let assignedClerkInfo = undefined
+  if (matter.assignedClerk) {
+    if (typeof matter.assignedClerk === 'string') {
+      // Convert string to the expected object format
+      assignedClerkInfo = {
+        id: matter.assignedClerk,
+        name: matter.assignedClerk,
+        initials: matter.assignedClerk.substring(0, 2).toUpperCase()
+      }
+    } else {
+      // It's already a LawyerInfo object
+      assignedClerkInfo = {
+        id: matter.assignedClerk.id,
+        name: matter.assignedClerk.name,
+        initials: matter.assignedClerk.initials
+      }
+    }
+  }
+  
   return {
     id: matter.id,
     caseNumber: matter.caseNumber,
@@ -57,7 +77,7 @@ function transformToMatterCard(matter: Matter): MatterCard {
     // Copy over optional fields if they exist
     description: matter.description,
     opponentName: matter.opponentName,
-    assignedClerk: matter.assignedClerk,
+    assignedClerk: assignedClerkInfo,
     statusDuration: matter.statusDuration,
     isOverdue: matter.isOverdue,
     relatedDocuments: matter.relatedDocuments,

@@ -4,6 +4,7 @@ import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '~/components/ui/popover'
+import { cn } from '~/lib/utils'
 import type { FilterConfig } from './FilterConfig'
 
 interface Props {
@@ -77,8 +78,10 @@ const handleKeyDown = (event: KeyboardEvent) => {
       <PopoverTrigger as-child>
         <Button
           variant="outline"
-          class="w-full justify-start text-left font-normal"
-          :class="{ 'text-muted-foreground': currentTags.length === 0 }"
+          :class="cn(
+            'w-full justify-start text-left font-normal',
+            currentTags.length === 0 && 'text-muted-foreground'
+          )"
           :disabled="disabled"
         >
           <Icon name="lucide:tag" class="mr-2 h-4 w-4" />

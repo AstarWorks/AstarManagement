@@ -134,8 +134,8 @@ export const useSearchStore = defineStore('kanban-search', () => {
           matter.clientName,
           matter.opponentName,
           matter.description,
-          typeof matter.assignedLawyer === 'string' ? matter.assignedLawyer : matter.assignedLawyer?.name,
-          matter.assignedClerk?.name,
+          typeof matter.assignedLawyer === 'string' ? matter.assignedLawyer : (matter.assignedLawyer as any)?.name,
+          typeof matter.assignedClerk === 'string' ? matter.assignedClerk : (matter.assignedClerk as any)?.name,
           ...(matter.tags || [])
         ].filter(Boolean).join(' ').toLowerCase()
         

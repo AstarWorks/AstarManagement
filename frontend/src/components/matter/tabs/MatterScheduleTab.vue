@@ -284,6 +284,8 @@ interface Props {
 const props = defineProps<Props>()
 
 // Get matter detail store for sub-tab state
+import { useMatterDetailStore } from '~/stores/matterDetail'
+
 const matterDetailStore = useMatterDetailStore()
 
 // Current view from store
