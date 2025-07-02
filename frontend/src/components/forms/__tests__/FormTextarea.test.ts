@@ -17,7 +17,7 @@ import {
   createValidationTestCases,
   testFieldValidation,
   type FormMountingOptions
-} from '~/test/utils/form-test-utils'
+} from '../../../test/utils/form-test-utils'
 
 describe('FormTextarea.vue', () => {
   let wrapper: VueWrapper<any>

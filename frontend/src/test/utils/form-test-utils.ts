@@ -7,7 +7,8 @@
 
 /// <reference types="vitest/globals" />
 
-// vi is available globally due to vitest config with globals: true
+// Import vi explicitly for better TypeScript support
+import { vi } from 'vitest'
 import { mount, shallowMount, type VueWrapper, type MountingOptions } from '@vue/test-utils'
 import { createPinia, setActivePinia, type Pinia } from 'pinia'
 import { useForm } from 'vee-validate'
@@ -297,28 +298,42 @@ export function createValidationTestCases(): Record<string, ValidationTestCase[]
  * Creates mock VeeValidate form
  */
 export function createMockVeeValidateForm(overrides: Record<string, any> = {}) {
+  const mockField = () => ({
+    value: ref(''),
+    errorMessage: ref(''),
+    meta: ref({ valid: true, dirty: false, touched: false }),
+    handleChange: vi.fn(),
+    handleBlur: vi.fn(),
+    resetField: vi.fn(),
+    setValue: vi.fn(),
+    setTouched: vi.fn(),
+    ...overrides.field
+  })
+
+  const mockForm = () => ({
+    handleSubmit: vi.fn((fn) => vi.fn(fn)),
+    resetForm: vi.fn(),
+    setFieldValue: vi.fn(),
+    setFieldError: vi.fn(),
+    defineField: vi.fn(() => [ref(''), {}]),
+    errors: ref({}),
+    meta: ref({ valid: true, dirty: false }),
+    values: ref({}),
+    isSubmitting: ref(false),
+    validate: vi.fn(),
+    validateField: vi.fn(),
+    setErrors: vi.fn(),
+    setValues: vi.fn(),
+    ...overrides.form
+  })
+
   return {
-    useForm: vi.fn(() => ({
-      handleSubmit: vi.fn(),
-      resetForm: vi.fn(),
-      setFieldValue: vi.fn(),
-      setFieldError: vi.fn(),
-      defineField: vi.fn(() => [ref(''), {}]),
-      errors: ref({}),
-      meta: ref({ valid: true, dirty: false }),
-      values: ref({}),
-      isSubmitting: ref(false),
-      ...overrides.form
-    })),
-    useField: vi.fn(() => ({
-      value: ref(''),
-      errorMessage: ref(''),
-      meta: ref({ valid: true, dirty: false, touched: false }),
-      handleChange: vi.fn(),
-      handleBlur: vi.fn(),
-      resetField: vi.fn(),
-      ...overrides.field
-    }))
+    useForm: vi.fn(mockForm),
+    useField: vi.fn(mockField),
+    useFormContext: vi.fn(() => mockForm()),
+    useFormValues: vi.fn(() => ref({})),
+    useFormErrors: vi.fn(() => ref({})),
+    useIsFormValid: vi.fn(() => ref(true))
   }
 }
 
@@ -430,15 +445,44 @@ export function mountFormComponent(
   } = options
 
   // Set up global mocks for form components
-  if (mockValidation) {
-    const veeValidateMocks = createMockVeeValidateForm(mockComposables)
-    const formUtilityMocks = createMockFormUtilities(mockComposables)
+  const globalMocks: Record<string, any> = {
+    $t: (key: string) => key, // Mock i18n
+    $route: { params: {}, query: {} },
+    $router: { push: vi.fn(), replace: vi.fn() }
+  }
 
-    // Mock VeeValidate composables
-    vi.doMock('vee-validate', () => veeValidateMocks)
-    vi.doMock('~/composables/form/useForm', () => formUtilityMocks.useFormState)
-    vi.doMock('~/composables/form/useField', () => formUtilityMocks.useFormState)
-    vi.doMock('~/composables/form/useFormState', () => formUtilityMocks.useFormState)
+  if (mockValidation) {
+    // Add VeeValidate mocks to global mocks
+    const mockField = {
+      value: ref(''),
+      errorMessage: ref(''),
+      meta: ref({ valid: true, dirty: false, touched: false }),
+      handleChange: vi.fn(),
+      handleBlur: vi.fn(),
+      resetField: vi.fn(),
+      setValue: vi.fn(),
+      setTouched: vi.fn(),
+      ...mockComposables.field
+    }
+
+    globalMocks.field = mockField
+    globalMocks.useField = vi.fn(() => mockField)
+    globalMocks.useForm = vi.fn(() => ({
+      handleSubmit: vi.fn((fn) => vi.fn(fn)),
+      resetForm: vi.fn(),
+      setFieldValue: vi.fn(),
+      setFieldError: vi.fn(),
+      defineField: vi.fn(() => [ref(''), {}]),
+      errors: ref({}),
+      meta: ref({ valid: true, dirty: false }),
+      values: ref({}),
+      isSubmitting: ref(false),
+      validate: vi.fn(),
+      validateField: vi.fn(),
+      setErrors: vi.fn(),
+      setValues: vi.fn(),
+      ...mockComposables.form
+    }))
   }
 
   const mountFunction = shallow ? shallowMount : mount
@@ -447,22 +491,48 @@ export function mountFormComponent(
     global: {
       plugins: [pinia],
       stubs: {
-        'Transition': false,
-        'TransitionGroup': false,
-        'NuxtLink': {
+        Transition: false,
+        TransitionGroup: false,
+        NuxtLink: {
           template: '<a><slot /></a>',
           props: ['to', 'href']
         },
-        'RouterLink': {
+        RouterLink: {
           template: '<a><slot /></a>',
           props: ['to']
+        },
+        // Stub Form components
+        FormFieldWrapper: {
+          template: '<div class="form-field-wrapper-stub"><slot /></div>',
+          props: ['label', 'name', 'required', 'error', 'description', 'hint']
+        },
+        ErrorMessage: {
+          template: '<div class="error-message-stub">{{ error }}</div>',
+          props: ['error', 'name']
+        },
+        // Stub shadcn-vue components
+        Button: {
+          template: '<button class="button-stub"><slot /></button>',
+          props: ['variant', 'size', 'disabled']
+        },
+        Input: {
+          template: '<input class="input-stub" v-bind="$attrs" />',
+          props: ['type', 'placeholder', 'disabled', 'modelValue']
+        },
+        Textarea: {
+          template: '<textarea class="textarea-stub" v-bind="$attrs"><slot /></textarea>',
+          props: ['placeholder', 'disabled', 'rows', 'modelValue']
+        },
+        Select: {
+          template: '<select class="select-stub" v-bind="$attrs"><slot /></select>',
+          props: ['disabled', 'modelValue']
+        },
+        Checkbox: {
+          template: '<input type="checkbox" class="checkbox-stub" v-bind="$attrs" />',
+          props: ['checked', 'disabled', 'modelValue']
         }
       },
-      mocks: {
-        $t: (key: string) => key, // Mock i18n
-        $route: { params: {}, query: {} },
-        $router: { push: vi.fn(), replace: vi.fn() }
-      },
+      mocks: globalMocks,
       ...mountingOptions.global
     },
     props: {

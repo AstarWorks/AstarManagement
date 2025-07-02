@@ -16,7 +16,7 @@ import {
   assertFormAccessibility,
   createValidationTestCases,
   type FormMountingOptions
-} from '~/test/utils/form-test-utils'
+} from '../../../test/utils/form-test-utils'
 
 describe('FormInput.vue', () => {
   let wrapper: VueWrapper<any>

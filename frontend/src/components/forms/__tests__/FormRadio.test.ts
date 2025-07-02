@@ -15,7 +15,7 @@ import {
   waitForValidation,
   expectFieldError,
   expectFieldValid
-} from '~/test/utils/form-test-utils'
+} from '../../../test/utils/form-test-utils'
 
 // Mock shadcn-vue components
 vi.mock('~/components/ui/radio-group', () => ({

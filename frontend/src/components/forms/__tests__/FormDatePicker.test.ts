@@ -18,7 +18,7 @@ import {
   createValidationTestCases,
   testFieldValidation,
   type FormMountingOptions
-} from '~/test/utils/form-test-utils'
+} from '../../../test/utils/form-test-utils'
 
 // Mock date-fns for consistent testing
 vi.mock('date-fns', async () => {

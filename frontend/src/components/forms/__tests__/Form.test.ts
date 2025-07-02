@@ -23,7 +23,7 @@ import {
   testFormKeyboardNavigation,
   testErrorAnnouncements,
   type FormMountingOptions
-} from '~/test/utils/form-test-utils'
+} from '../../../test/utils/form-test-utils'
 
 // Mock composables
 vi.mock('vee-validate')
