@@ -5,6 +5,7 @@ export interface LawyerInfo {
   id: string
   name: string
   initials: string
+  avatar?: string
 }
 
 export interface Matter {
