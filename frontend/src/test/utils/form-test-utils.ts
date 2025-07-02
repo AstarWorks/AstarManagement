@@ -7,14 +7,55 @@
 
 /// <reference types="vitest/globals" />
 
-// Import vi explicitly for better TypeScript support
-import { vi } from 'vitest'
+// vi is available globally through vitest config globals: true
+
+// Type definitions for form handling
+type FormValues = Record<string, unknown>
+type SubmitHandler<TValues = FormValues> = (values: TValues) => void | Promise<void>
+
+// Type for mock overrides
+interface MockOverrides {
+  field?: Partial<{
+    value: ReturnType<typeof ref>
+    errorMessage: ReturnType<typeof ref>
+    meta: ReturnType<typeof ref>
+    handleChange: ReturnType<typeof vi.fn>
+    handleBlur: ReturnType<typeof vi.fn>
+    resetField: ReturnType<typeof vi.fn>
+    setValue: ReturnType<typeof vi.fn>
+    setTouched: ReturnType<typeof vi.fn>
+  }>
+  form?: Partial<{
+    handleSubmit: ReturnType<typeof vi.fn>
+    resetForm: ReturnType<typeof vi.fn>
+    setFieldValue: ReturnType<typeof vi.fn>
+    setFieldError: ReturnType<typeof vi.fn>
+    defineField: ReturnType<typeof vi.fn>
+    errors: ReturnType<typeof ref>
+    meta: ReturnType<typeof ref>
+    values: ReturnType<typeof ref>
+    isSubmitting: ReturnType<typeof ref>
+    validate: ReturnType<typeof vi.fn>
+    validateField: ReturnType<typeof vi.fn>
+    setErrors: ReturnType<typeof vi.fn>
+    setValues: ReturnType<typeof vi.fn>
+  }>
+  [key: string]: unknown
+}
+
+// Type for utility overrides
+interface UtilityOverrides {
+  state?: Record<string, unknown>
+  autoSave?: Record<string, unknown>
+  conditional?: Record<string, unknown>
+  [key: string]: unknown
+}
 import { mount, shallowMount, type VueWrapper, type MountingOptions } from '@vue/test-utils'
 import { createPinia, setActivePinia, type Pinia } from 'pinia'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import { z } from 'zod'
-import { ref } from 'vue'
+import { ref, type Component } from 'vue'
 import type { App } from 'vue'
 
 // ===== FORM DATA FACTORIES =====
@@ -24,7 +65,7 @@ import type { App } from 'vue'
  */
 export interface FormTestData {
   id: string
-  values: Record<string, any>
+  values: Record<string, unknown>
   errors?: Record<string, string[]>
   isValid?: boolean
   isDirty?: boolean
@@ -36,7 +77,7 @@ export interface FormTestData {
  */
 export interface ValidationTestCase {
   name: string
-  input: any
+  input: unknown
   expected: {
     valid: boolean
     errors?: string[]
@@ -81,7 +122,7 @@ export function createMockFormData(overrides: Partial<FormTestData> = {}): FormT
 /**
  * Creates mock legal matter form data
  */
-export function createMockMatterFormData(overrides: Partial<any> = {}) {
+export function createMockMatterFormData(overrides: Partial<FormTestData['values']> = {}) {
   return {
     id: `matter-form-${Math.random().toString(36).substr(2, 9)}`,
     values: {
@@ -111,7 +152,7 @@ export function createMockMatterFormData(overrides: Partial<any> = {}) {
 /**
  * Creates mock user registration form data
  */
-export function createMockUserRegistrationData(overrides: Partial<any> = {}) {
+export function createMockUserRegistrationData(overrides: Partial<FormTestData['values']> = {}) {
   return {
     id: `user-registration-${Math.random().toString(36).substr(2, 9)}`,
     values: {
@@ -297,7 +338,7 @@ export function createValidationTestCases(): Record<string, ValidationTestCase[]
 /**
  * Creates mock VeeValidate form
  */
-export function createMockVeeValidateForm(overrides: Record<string, any> = {}) {
+export function createMockVeeValidateForm(overrides: MockOverrides = {}) {
   const mockField = () => ({
     value: ref(''),
     errorMessage: ref(''),
@@ -307,11 +348,11 @@ export function createMockVeeValidateForm(overrides: Record<string, any> = {}) {
     resetField: vi.fn(),
     setValue: vi.fn(),
     setTouched: vi.fn(),
-    ...overrides.field
+    ...(overrides.field || {})
   })
 
   const mockForm = () => ({
-    handleSubmit: vi.fn((fn) => vi.fn(fn)),
+    handleSubmit: vi.fn((fn: SubmitHandler) => vi.fn(fn)),
     resetForm: vi.fn(),
     setFieldValue: vi.fn(),
     setFieldError: vi.fn(),
@@ -324,7 +365,7 @@ export function createMockVeeValidateForm(overrides: Record<string, any> = {}) {
     validateField: vi.fn(),
     setErrors: vi.fn(),
     setValues: vi.fn(),
-    ...overrides.form
+    ...(overrides.form || {})
   })
 
   return {
@@ -340,7 +381,7 @@ export function createMockVeeValidateForm(overrides: Record<string, any> = {}) {
 /**
  * Creates mock form utilities
  */
-export function createMockFormUtilities(overrides: Record<string, any> = {}) {
+export function createMockFormUtilities(overrides: UtilityOverrides = {}) {
   return {
     useFormState: vi.fn(() => ({
       isDirty: ref(false),
@@ -348,7 +389,7 @@ export function createMockFormUtilities(overrides: Record<string, any> = {}) {
       isSubmitting: ref(false),
       canSubmit: ref(true),
       resetState: vi.fn(),
-      ...overrides.state
+      ...(overrides.state || {})
     })),
     useAutoSave: vi.fn(() => ({
       isAutoSaving: ref(false),
@@ -357,14 +398,14 @@ export function createMockFormUtilities(overrides: Record<string, any> = {}) {
       saveNow: vi.fn(),
       enableAutoSave: vi.fn(),
       disableAutoSave: vi.fn(),
-      ...overrides.autoSave
+      ...(overrides.autoSave || {})
     })),
     useConditionalField: vi.fn(() => ({
       isVisible: ref(true),
       isRequired: ref(false),
       conditions: ref([]),
       evaluateConditions: vi.fn(),
-      ...overrides.conditional
+      ...(overrides.conditional || {})
     }))
   }
 }
@@ -409,11 +450,11 @@ export function createMockZodSchemas() {
 /**
  * Configuration for form component mounting
  */
-export interface FormMountingOptions extends Partial<MountingOptions<any>> {
+export interface FormMountingOptions extends Partial<MountingOptions<unknown>> {
   pinia?: Pinia
   formData?: FormTestData
-  validationSchema?: any
-  mockComposables?: Record<string, any>
+  validationSchema?: unknown
+  mockComposables?: Record<string, unknown>
   mockValidation?: boolean
   shallow?: boolean
 }
@@ -431,9 +472,9 @@ export function createFormTestPinia(): Pinia {
  * Mounts a form component with all necessary providers and mocks
  */
 export function mountFormComponent(
-  component: any,
+  component: Component,
   options: FormMountingOptions = {}
-): VueWrapper<any> {
+): VueWrapper {
   const {
     pinia = createFormTestPinia(),
     formData = createMockFormData(),
@@ -462,13 +503,13 @@ export function mountFormComponent(
       resetField: vi.fn(),
       setValue: vi.fn(),
       setTouched: vi.fn(),
-      ...mockComposables.field
+      ...(mockComposables?.field || {})
     }
 
     globalMocks.field = mockField
     globalMocks.useField = vi.fn(() => mockField)
     globalMocks.useForm = vi.fn(() => ({
-      handleSubmit: vi.fn((fn) => vi.fn(fn)),
+      handleSubmit: vi.fn((fn: SubmitHandler) => vi.fn(fn)),
       resetForm: vi.fn(),
       setFieldValue: vi.fn(),
       setFieldError: vi.fn(),
@@ -481,7 +522,7 @@ export function mountFormComponent(
       validateField: vi.fn(),
       setErrors: vi.fn(),
       setValues: vi.fn(),
-      ...mockComposables.form
+      ...(mockComposables?.form || {})
     }))
   }
 
@@ -549,9 +590,9 @@ export function mountFormComponent(
  * Simulates user input in a form field
  */
 export async function simulateUserInput(
-  wrapper: VueWrapper<any>,
+  wrapper: VueWrapper,
   fieldSelector: string,
-  value: any,
+  value: unknown,
   eventType: 'input' | 'change' = 'input'
 ): Promise<void> {
   const field = wrapper.find(fieldSelector)
@@ -569,7 +610,7 @@ export async function simulateUserInput(
  * Simulates form submission
  */
 export async function simulateFormSubmit(
-  wrapper: VueWrapper<any>,
+  wrapper: VueWrapper,
   formSelector: string = 'form'
 ): Promise<void> {
   const form = wrapper.find(formSelector)
@@ -586,7 +627,7 @@ export async function simulateFormSubmit(
  * Simulates multi-step form navigation
  */
 export async function simulateMultiStepNavigation(
-  wrapper: VueWrapper<any>,
+  wrapper: VueWrapper,
   direction: 'next' | 'prev' | 'step',
   stepIndex?: number
 ): Promise<void> {
@@ -615,8 +656,8 @@ export async function simulateMultiStepNavigation(
  * Fills out a complete form with test data
  */
 export async function fillFormWithData(
-  wrapper: VueWrapper<any>,
-  formData: Record<string, any>
+  wrapper: VueWrapper,
+  formData: Record<string, unknown>
 ): Promise<void> {
   for (const [fieldName, value] of Object.entries(formData)) {
     const selectors = [
@@ -644,7 +685,7 @@ export async function fillFormWithData(
  * Tests field validation with multiple scenarios
  */
 export async function testFieldValidation(
-  wrapper: VueWrapper<any>,
+  wrapper: VueWrapper,
   fieldSelector: string,
   testCases: ValidationTestCase[]
 ): Promise<void> {
@@ -682,10 +723,10 @@ export async function testFieldValidation(
  * Tests cross-field validation scenarios
  */
 export async function testCrossFieldValidation(
-  wrapper: VueWrapper<any>,
+  wrapper: VueWrapper,
   fieldPairs: Array<{
-    field1: { selector: string; value: any }
-    field2: { selector: string; value: any }
+    field1: { selector: string; value: unknown }
+    field2: { selector: string; value: unknown }
     expectedValid: boolean
     expectedError?: string
   }>
@@ -718,7 +759,7 @@ export async function testCrossFieldValidation(
  * Asserts form accessibility attributes
  */
 export function assertFormAccessibility(
-  wrapper: VueWrapper<any>,
+  wrapper: VueWrapper,
   formSelector: string = 'form'
 ): void {
   const form = wrapper.find(formSelector)
@@ -750,7 +791,7 @@ export function assertFormAccessibility(
  * Tests keyboard navigation in forms
  */
 export async function testFormKeyboardNavigation(
-  wrapper: VueWrapper<any>,
+  wrapper: VueWrapper,
   expectedTabOrder: string[]
 ): Promise<void> {
   // Focus first element
@@ -772,9 +813,9 @@ export async function testFormKeyboardNavigation(
  * Tests form error announcements for screen readers
  */
 export async function testErrorAnnouncements(
-  wrapper: VueWrapper<any>,
+  wrapper: VueWrapper,
   fieldSelector: string,
-  invalidValue: any
+  invalidValue: unknown
 ): Promise<void> {
   await simulateUserInput(wrapper, fieldSelector, invalidValue)
   
@@ -799,8 +840,8 @@ export async function testErrorAnnouncements(
  * Measures form render time
  */
 export async function measureFormRenderTime(
-  component: any,
-  props: Record<string, any> = {},
+  component: Component,
+  props: Record<string, unknown> = {},
   iterations: number = 10
 ): Promise<{ average: number; min: number; max: number }> {
   const times: number[] = []
@@ -825,10 +866,10 @@ export async function measureFormRenderTime(
  * Tests form memory usage and cleanup
  */
 export async function testFormMemoryLeaks(
-  component: any,
+  component: Component,
   iterations: number = 50
 ): Promise<void> {
-  const initialMemory = (performance as any).memory?.usedJSHeapSize || 0
+  const initialMemory = (performance as Performance & { memory?: { usedJSHeapSize: number } }).memory?.usedJSHeapSize || 0
 
   for (let i = 0; i < iterations; i++) {
     const wrapper = mountFormComponent(component)
@@ -841,7 +882,7 @@ export async function testFormMemoryLeaks(
     global.gc()
   }
 
-  const finalMemory = (performance as any).memory?.usedJSHeapSize || 0
+  const finalMemory = (performance as Performance & { memory?: { usedJSHeapSize: number } }).memory?.usedJSHeapSize || 0
   const memoryIncrease = finalMemory - initialMemory
 
   // Memory should not increase significantly (more than 5MB)
