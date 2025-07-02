@@ -76,7 +76,7 @@ const attemptsRemaining = ref(5)
 const codeInputs = ref<HTMLInputElement[]>([])
 
 // Computed
-const isFormValid = computed(() => meta.value.valid && code.value.length === 6)
+const isFormValid = computed(() => meta.value.valid && code.value && code.value.length === 6)
 const canResendCode = computed(() => resendCooldown.value === 0 && !isResendingCode.value)
 const displayEmail = computed(() => props.email || authStore.lastEmail || 'your email')
 
@@ -178,7 +178,7 @@ const handleCodeInput = (event: Event, index: number) => {
   }
   
   // Update the code value
-  const codeArray = code.value.split('')
+  const codeArray = (code.value || '').split('')
   codeArray[index] = value
   code.value = codeArray.join('')
   
@@ -195,7 +195,7 @@ const handleCodeInput = (event: Event, index: number) => {
 
 const handleCodeKeydown = (event: KeyboardEvent, index: number) => {
   // Handle backspace
-  if (event.key === 'Backspace' && !code.value[index] && index > 0) {
+  if (event.key === 'Backspace' && !(code.value || '')[index] && index > 0) {
     codeInputs.value[index - 1]?.focus()
   }
   
@@ -268,15 +268,15 @@ onMounted(() => {
               v-for="(digit, index) in 6"
               :key="index"
               :ref="el => codeInputs[index] = el as HTMLInputElement"
-              :value="code[index] || ''"
+              :value="(code || '')[index] || ''"
               @input="handleCodeInput($event, index)"
               @keydown="handleCodeKeydown($event, index)"
               type="text"
               inputmode="numeric"
-              maxlength="1"
+              :maxlength="1"
               class="w-12 h-12 text-center text-lg font-mono"
               :disabled="isSubmitting || disabled"
-              :class="{ 'border-destructive': errors.code }"
+              :class="errors.code ? 'border-destructive' : ''"
               autocomplete="one-time-code"
             />
           </div>

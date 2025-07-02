@@ -544,15 +544,11 @@ function handleMobileZoomChange(level: number) {
 
 // Zoom operations
 const handleZoomFit = () => {
-  if (!pdfContainer.value) return
-  const rect = pdfContainer.value.getBoundingClientRect()
-  zoomToFit(rect.width - 32, rect.height - 32) // Account for padding
+  zoomToFit()
 }
 
 const handleZoomWidth = () => {
-  if (!pdfContainer.value) return
-  const rect = pdfContainer.value.getBoundingClientRect()
-  zoomToWidth(rect.width - 32) // Account for padding
+  zoomToWidth()
 }
 
 const handleZoomActual = () => {

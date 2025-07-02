@@ -5,7 +5,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
@@ -19,6 +18,7 @@ import {
   ChevronDown,
   Bell
 } from 'lucide-vue-next'
+import type { UserRole } from '~/types/auth'
 
 // Component props
 interface Props {

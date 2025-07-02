@@ -1,39 +1,6 @@
 import { defineStore } from 'pinia'
 import { useStorage } from '@vueuse/core'
-
-// Authentication Types
-interface User {
-  id: string
-  email: string
-  name: string
-  role: 'lawyer' | 'clerk' | 'client'
-  permissions: string[]
-  avatar?: string
-  twoFactorEnabled: boolean
-  lastLoginAt?: string
-  profile?: UserProfile
-}
-
-interface UserProfile {
-  firstName: string
-  lastName: string
-  title?: string
-  department?: string
-  phone?: string
-  timezone?: string
-  language?: string
-}
-
-interface LoginCredentials {
-  email: string
-  password: string
-  rememberMe?: boolean
-}
-
-interface TwoFactorCredentials {
-  code: string
-  trustDevice?: boolean
-}
+import type { User, LoginCredentials, TwoFactorCredentials, UserProfile } from '~/types/auth'
 
 interface AuthState {
   user: User | null

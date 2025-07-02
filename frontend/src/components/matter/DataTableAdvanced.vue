@@ -3,6 +3,7 @@ import { ref, computed, watch } from 'vue'
 import { Button } from '~/components/ui/button'
 import { Checkbox } from '~/components/ui/checkbox'
 import type { SortDirection } from '~/types/table'
+import type { Matter } from '~/types/matter'
 import { cn } from '~/lib/utils'
 import DataTablePagination from './DataTablePagination.vue'
 import BulkActionToolbar from './BulkActionToolbar.vue'
@@ -239,12 +240,12 @@ watch(() => props.selectedRows, (newSelection) => {
     <!-- Bulk Action Toolbar -->
     <BulkActionToolbar
       v-if="bulkActions && selectable"
-      :selected-items="selectedRows"
+      :selected-items="selectedRows as Matter[]"
       :total-items="total"
       :disabled="loading"
-      @action:delete="(items) => $emit('bulk:delete', items)"
-      @action:status-update="(items, status) => $emit('bulk:status-update', items, status)"
-      @action:export="(items, format) => $emit('bulk:export', items, format)"
+      @action:delete="(items: Matter[]) => $emit('bulk:delete', items as TData[])"
+      @action:status-update="(items: any[], status: any) => $emit('bulk:status-update', items as TData[], status)"
+      @action:export="(items: any[], format: 'csv' | 'excel') => $emit('bulk:export', items as TData[], format)"
       @selection:clear="clearSelection"
       @selection:all="selectAll"
     />

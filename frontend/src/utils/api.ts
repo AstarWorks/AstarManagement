@@ -1,7 +1,7 @@
-import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios'
+import axios, { type AxiosInstance, type InternalAxiosRequestConfig, type AxiosRequestConfig, type AxiosResponse } from 'axios'
 
 // Extended config with metadata
-interface ExtendedAxiosRequestConfig extends AxiosRequestConfig {
+interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
   metadata?: {
     startTime: number
   }

@@ -317,18 +317,19 @@ defineExpose({
 
         <!-- Virtual Scroller Body -->
         <div class="virtual-table-body" :style="{ height: `${tableHeight}px` }">
-          <RecycleScroller
+          <component
+            :is="RecycleScroller as any"
             ref="scrollerRef"
             class="scroller"
             :items="data"
             :item-size="itemHeight"
             :buffer="bufferSize"
             key-field="id"
-            v-slot="{ item: row, index }"
           >
+            <template v-slot="slotProps">
             <div
               class="virtual-row border-b hover:bg-muted/50 transition-colors"
-              :class="{ 'bg-muted/30': isRowSelected(row) }"
+              :class="{ 'bg-muted/30': isRowSelected(slotProps.item) }"
               :style="{ height: `${itemHeight}px` }"
             >
               <table class="w-full h-full">
@@ -337,8 +338,8 @@ defineExpose({
                     <!-- Selection checkbox -->
                     <td v-if="selectable" class="px-4 py-3 w-12">
                       <Checkbox
-                        :checked="isRowSelected(row)"
-                        @update:checked="handleRowSelect(row, $event)"
+                        :checked="isRowSelected(slotProps.item)"
+                        @update:checked="handleRowSelect(slotProps.item, $event)"
                       />
                     </td>
 
@@ -353,17 +354,18 @@ defineExpose({
                         column.className
                       )"
                       :style="{ width: column.width }"
-                      @click="selectable && handleRowSelect(row, $event)"
+                      @click="selectable && handleRowSelect(slotProps.item, $event)"
                     >
-                      <div class="truncate" :title="formatValue(column, row)">
-                        {{ formatValue(column, row) }}
+                      <div class="truncate" :title="formatValue(column, slotProps.item)">
+                        {{ formatValue(column, slotProps.item) }}
                       </div>
                     </td>
                   </tr>
                 </tbody>
               </table>
             </div>
-          </RecycleScroller>
+            </template>
+          </component>
         </div>
       </div>
 

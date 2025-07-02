@@ -54,7 +54,7 @@ const emit = defineEmits<{
 }>()
 
 // Refs
-const tableRef = ref<InstanceType<typeof VirtualDataTable>>()
+const tableRef = ref()
 
 // Column definitions with advanced features
 const columns = ref<AdvancedDataTableColumn<Matter>[]>([
@@ -401,7 +401,7 @@ onMounted(() => {
     <!-- Filter Bar -->
     <FilterBar
       :configs="MATTER_FILTER_CONFIGS"
-      :presets="[...(MATTER_FILTER_PRESETS as FilterPreset[]), ...savedPresets]"
+      :presets="[...MATTER_FILTER_PRESETS as any, ...savedPresets]"
       :model-value="filterState as FilterState"
       :loading="loading"
       @update:model-value="handleFilterChange"
