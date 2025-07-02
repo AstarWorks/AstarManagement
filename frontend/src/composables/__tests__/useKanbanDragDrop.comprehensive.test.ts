@@ -14,7 +14,7 @@ import {
   createMockMatter,
   createMockDragEvent,
   createMockTouchEvent
-} from '~/test/utils/kanban-test-utils'
+} from '../../test/utils/kanban-test-utils'
 
 // Mock Nuxt composables
 vi.mock('#app', () => ({

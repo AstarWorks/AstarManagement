@@ -19,7 +19,7 @@ import {
   assertDragDropEnabled,
   assertAccessibilityAttributes,
   simulateDragAndDrop
-} from '~/test/utils/kanban-test-utils'
+} from '../../../test/utils/kanban-test-utils'
 
 // Mock drag and drop composables
 vi.mock('~/composables/useKanbanDragDrop')

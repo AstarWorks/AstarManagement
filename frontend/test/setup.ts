@@ -237,34 +237,64 @@ vi.mock('pinia', () => ({
   storeToRefs: vi.fn((store) => store)
 }))
 
-// Mock VueUse composables
-vi.mock('@vueuse/core', () => ({
-  useEventListener: vi.fn(),
-  useWebSocket: vi.fn(() => ({
-    status: { value: 'CLOSED' },
-    data: { value: null },
-    send: vi.fn(),
-    close: vi.fn(),
-    open: vi.fn()
-  })),
-  useNetwork: vi.fn(() => ({
-    isOnline: { value: true },
-    effectiveType: { value: '4g' }
-  })),
-  useTimestamp: vi.fn(() => ({ timestamp: { value: Date.now() } })),
-  useLocalStorage: vi.fn((key, defaultValue) => ({
-    value: defaultValue
-  })),
-  useSessionStorage: vi.fn((key, defaultValue) => ({
-    value: defaultValue
-  })),
-  useDebounceFn: vi.fn((fn) => fn),
-  useThrottleFn: vi.fn((fn) => fn),
-  whenever: vi.fn(),
-  until: vi.fn(() => ({
-    toBe: vi.fn(() => Promise.resolve())
-  }))
-}))
+// Mock VueUse composables - use partial mock approach to avoid missing exports
+vi.mock('@vueuse/core', async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    // Override only the ones that need mocking
+    useEventListener: vi.fn(),
+    useWebSocket: vi.fn(() => ({
+      status: { value: 'CLOSED' },
+      data: { value: null },
+      send: vi.fn(),
+      close: vi.fn(),
+      open: vi.fn()
+    })),
+    useNetwork: vi.fn(() => ({
+      isOnline: { value: true },
+      effectiveType: { value: '4g' }
+    })),
+    useTimestamp: vi.fn(() => ({ timestamp: { value: Date.now() } })),
+    useLocalStorage: vi.fn((key, defaultValue) => ({
+      value: defaultValue
+    })),
+    useSessionStorage: vi.fn((key, defaultValue) => ({
+      value: defaultValue
+    })),
+    useDebounceFn: vi.fn((fn) => fn),
+    useThrottleFn: vi.fn((fn) => fn),
+    useBreakpoints: vi.fn(() => ({
+      smaller: vi.fn(() => ({ value: false })),
+      between: vi.fn(() => ({ value: false })),
+      greaterOrEqual: vi.fn(() => ({ value: true })),
+      active: vi.fn(() => ({ value: 'lg' })),
+      md: { value: false },
+      lg: { value: true },
+      xl: { value: false }
+    })),
+    useWindowSize: vi.fn(() => ({
+      width: { value: 1024 },
+      height: { value: 768 }
+    })),
+    useElementSize: vi.fn(() => ({
+      width: { value: 0 },
+      height: { value: 0 }
+    })),
+    useClickOutside: vi.fn(),
+    useFocus: vi.fn(() => ({ focused: { value: false } })),
+    useSwipe: vi.fn(() => ({
+      direction: { value: null },
+      lengthX: { value: 0 },
+      lengthY: { value: 0 },
+      isSwiping: { value: false }
+    })),
+    whenever: vi.fn(),
+    until: vi.fn(() => ({
+      toBe: vi.fn(() => Promise.resolve())
+    }))
+  }
+})
 
 // Mock performance APIs
 if (typeof performance === 'undefined') {

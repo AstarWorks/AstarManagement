@@ -17,7 +17,7 @@ import {
   createMockTouchEvent,
   assertAccessibilityAttributes,
   assertDragDropEnabled
-} from '~/test/utils/kanban-test-utils'
+} from '../../../test/utils/kanban-test-utils'
 
 // Mock composables
 vi.mock('~/composables/useKanbanMutations')

@@ -352,6 +352,27 @@ export function mountKanbanComponent(
         'RouterLink': {
           template: '<a><slot /></a>',
           props: ['to']
+        },
+        // Stub Kanban components
+        'KanbanColumn': {
+          template: '<div class="kanban-column-stub"><slot /></div>',
+          props: ['column', 'matters', 'showJapanese', 'style']
+        },
+        // Stub UI components
+        'ScrollArea': {
+          template: '<div class="scroll-area-stub"><slot /></div>'
+        },
+        'ScrollBar': {
+          template: '<div class="scroll-bar-stub"></div>',
+          props: ['orientation']
+        },
+        'UpdateIndicator': {
+          template: '<div class="update-indicator-stub"><slot /></div>',
+          props: ['isUpdating', 'lastUpdate']
+        },
+        'ConnectionStatus': {
+          template: '<div class="connection-status-stub"></div>',
+          props: ['isConnected']
         }
       },
       ...mountingOptions.global

@@ -6,7 +6,7 @@
  * Uses TanStack Query mocks and Pinia store mocks for isolated testing.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { nextTick } from 'vue'
 import type { VueWrapper } from '@vue/test-utils'
 import KanbanBoard from '../KanbanBoard.vue'
@@ -26,10 +26,29 @@ import {
   assertAccessibilityAttributes,
   createMockDragEvent,
   createMockTouchEvent
-} from '~/test/utils/kanban-test-utils'
+} from '../../../test/utils/kanban-test-utils'
 
-// Mock composables
-vi.mock('~/composables/useKanbanQuery')
+// Mock composables - provide actual mock implementations instead of just vi.mock
+vi.mock('~/composables/useKanbanQuery', () => ({
+  useKanbanMattersQuery: vi.fn(() => ({
+    data: { value: [] },
+    matterCards: { value: [] },
+    mattersByStatus: { value: {} },
+    columnsWithCounts: { value: [] },
+    isLoading: { value: false },
+    isError: { value: false },
+    error: { value: null },
+    refetch: vi.fn()
+  })),
+  useKanbanRealTimeQuery: vi.fn(() => ({
+    isConnected: { value: true },
+    lastUpdate: { value: null },
+    pendingUpdates: { value: 0 },
+    syncNow: vi.fn(),
+    subscribeToUpdates: vi.fn(() => vi.fn())
+  }))
+}))
+
 vi.mock('~/composables/useKanbanMutations')
 vi.mock('~/composables/useKanbanDragDrop')
 vi.mock('~/composables/useKanbanDragDropEnhanced')

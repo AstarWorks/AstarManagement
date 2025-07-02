@@ -14,7 +14,7 @@ import { nextTick } from 'vue'
 import { createTestingPinia } from '@pinia/testing'
 import { QueryClient } from '@tanstack/vue-query'
 import { useKanbanDragDropMutations } from '../useKanbanDragDropMutations'
-import { renderComposable } from '~/test/utils/test-helpers'
+import { renderComposable } from '../../../e2e/utils/test-helpers'
 import type { MatterCard, MatterStatus } from '~/types/kanban'
 import type { BatchMoveInput } from '../useKanbanDragDropMutations'
 
