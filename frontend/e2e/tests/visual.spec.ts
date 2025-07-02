@@ -3,7 +3,7 @@ import { LoginPage } from '../pages/LoginPage'
 import { KanbanPage } from '../pages/KanbanPage'
 import { MatterPage } from '../pages/MatterPage'
 import { waitForNuxtReady, clearAppData, mockAPI } from '../utils/helpers'
-import { mockResponses, matterFactory } from '../fixtures/test-data'
+import { MockResponses, MatterFactory } from '../fixtures/test-data'
 
 test.describe('Visual Regression Tests', () => {
   test.beforeEach(async ({ page }) => {
@@ -54,9 +54,9 @@ test.describe('Visual Regression Tests', () => {
     test.beforeEach(async ({ page }) => {
       // Mock authentication
       await mockAPI(page, {
-        '**/api/auth/login': mockResponses.auth.success(),
-        '**/api/matters': mockResponses.matters.success(),
-        '**/api/matters/*': mockResponses.matters.success([matterFactory.create()])
+        '**/api/auth/login': MockResponses.auth.success(),
+        '**/api/matters': MockResponses.matters.success(),
+        '**/api/matters/*': MockResponses.matters.success([new MatterFactory().create()])
       })
     })
 
@@ -89,8 +89,8 @@ test.describe('Visual Regression Tests', () => {
       
       // Mock empty response
       await mockAPI(page, {
-        '**/api/auth/login': mockResponses.auth.success(),
-        '**/api/matters': mockResponses.matters.empty()
+        '**/api/auth/login': MockResponses.auth.success(),
+        '**/api/matters': MockResponses.matters.empty()
       })
       
       await loginPage.goto()
@@ -109,16 +109,16 @@ test.describe('Visual Regression Tests', () => {
       
       // Create test data with multiple matters in different columns
       const testMatters = [
-        matterFactory.create({ status: 'intake', title: 'Matter 1' }),
-        matterFactory.create({ status: 'initial_review', title: 'Matter 2' }),
-        matterFactory.create({ status: 'investigation', title: 'Matter 3' }),
-        matterFactory.create({ status: 'draft_pleadings', title: 'Matter 4' }),
-        matterFactory.create({ status: 'filed', title: 'Matter 5' })
+        new MatterFactory().create({ status: 'intake', title: 'Matter 1' }),
+        new MatterFactory().create({ status: 'initial_review', title: 'Matter 2' }),
+        new MatterFactory().create({ status: 'investigation', title: 'Matter 3' }),
+        new MatterFactory().create({ status: 'draft_pleadings', title: 'Matter 4' }),
+        new MatterFactory().create({ status: 'filed', title: 'Matter 5' })
       ]
       
       await mockAPI(page, {
-        '**/api/auth/login': mockResponses.auth.success(),
-        '**/api/matters': mockResponses.matters.success(testMatters)
+        '**/api/auth/login': MockResponses.auth.success(),
+        '**/api/matters': MockResponses.matters.success(testMatters)
       })
       
       await loginPage.goto()
@@ -136,8 +136,8 @@ test.describe('Visual Regression Tests', () => {
       const kanbanPage = new KanbanPage(page)
       
       await mockAPI(page, {
-        '**/api/auth/login': mockResponses.auth.success(),
-        '**/api/matters': mockResponses.matters.success()
+        '**/api/auth/login': MockResponses.auth.success(),
+        '**/api/matters': MockResponses.matters.success()
       })
       
       // Mobile viewport
@@ -157,9 +157,9 @@ test.describe('Visual Regression Tests', () => {
   test.describe('Matter Pages', () => {
     test.beforeEach(async ({ page }) => {
       await mockAPI(page, {
-        '**/api/auth/login': mockResponses.auth.success(),
-        '**/api/matters': mockResponses.matters.success(),
-        '**/api/matters/*': mockResponses.matters.success([matterFactory.create()])
+        '**/api/auth/login': MockResponses.auth.success(),
+        '**/api/matters': MockResponses.matters.success(),
+        '**/api/matters/*': MockResponses.matters.success([new MatterFactory().create()])
       })
     })
 
@@ -208,8 +208,8 @@ test.describe('Visual Regression Tests', () => {
   test.describe('Navigation and Layout', () => {
     test.beforeEach(async ({ page }) => {
       await mockAPI(page, {
-        '**/api/auth/login': mockResponses.auth.success(),
-        '**/api/matters': mockResponses.matters.success()
+        '**/api/auth/login': MockResponses.auth.success(),
+        '**/api/matters': MockResponses.matters.success()
       })
     })
 
@@ -257,8 +257,8 @@ test.describe('Visual Regression Tests', () => {
   test.describe('Dark Mode Theme', () => {
     test.beforeEach(async ({ page }) => {
       await mockAPI(page, {
-        '**/api/auth/login': mockResponses.auth.success(),
-        '**/api/matters': mockResponses.matters.success()
+        '**/api/auth/login': MockResponses.auth.success(),
+        '**/api/matters': MockResponses.matters.success()
       })
     })
 
@@ -288,8 +288,8 @@ test.describe('Visual Regression Tests', () => {
   test.describe('Error States', () => {
     test('network error page', async ({ page }) => {
       await mockAPI(page, {
-        '**/api/auth/login': mockResponses.auth.success(),
-        '**/api/matters': mockResponses.matters.error('Network Error')
+        '**/api/auth/login': MockResponses.auth.success(),
+        '**/api/matters': MockResponses.matters.error('Network Error')
       })
       
       const loginPage = new LoginPage(page)

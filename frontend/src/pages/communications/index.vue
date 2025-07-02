@@ -1,118 +1,4 @@
 <script setup lang="ts">
-import { Mail, MessageSquare, Phone, FileText, Clock } from 'lucide-vue-next'
-
-// Navigation handler
-const handleNavigation = (type: string) => {
-  navigateTo(`/communications/${type}`)
-}
-
-// Mock data for stats
-const communicationStats = [
-  {
-    type: 'emails',
-    title: 'Emails',
-    count: 42,
-    description: 'Unread emails',
-    icon: Mail
-  },
-  {
-    type: 'memos',
-    title: 'Client Memos',
-    count: 15,
-    description: 'Recent memos',
-    icon: FileText
-  },
-  {
-    type: 'messages',
-    title: 'Messages',
-    count: 8,
-    description: 'New messages',
-    icon: MessageSquare
-  },
-  {
-    type: 'calls',
-    title: 'Call Logs',
-    count: 23,
-    description: 'Recent calls',
-    icon: Phone
-  }
-]
-
-// Mock recent activity
-const recentActivity = [
-  {
-    id: '1',
-    type: 'email',
-    title: 'Email from John Doe',
-    timestamp: '2 hours ago',
-    icon: Mail
-  },
-  {
-    id: '2',
-    type: 'memo',
-    title: 'Client memo created',
-    timestamp: '4 hours ago',
-    icon: FileText
-  }
-]
-</script>
-
-<template>
-  <CommunicationLayout>
-    <div class="communications-overview">
-      <div class="welcome-section">
-        <h2 class="text-2xl font-bold text-foreground mb-4">
-          Communications Hub
-        </h2>
-        <p class="text-muted-foreground mb-6">
-          Manage all your legal communications in one place. Access client memos, internal notes, 
-          email correspondence, messages, and phone call logs.
-        </p>
-      </div>
-      
-      <!-- Quick Stats -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-        <div 
-          v-for="stat in communicationStats"
-          :key="stat.type"
-          class="stat-card"
-          @click="() => handleNavigation(stat.type)"
-        >
-          <div class="stat-content">
-            <component :is="stat.icon" class="stat-icon" />
-            <div class="stat-details">
-              <h3 class="stat-title">{{ stat.title }}</h3>
-              <p class="stat-count">{{ stat.count }}</p>
-              <p class="stat-description">{{ stat.description }}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Recent Activity -->
-      <div class="recent-activity">
-        <h3 class="text-lg font-semibold mb-4">Recent Activity</h3>
-        <div class="activity-list">
-          <div 
-            v-for="activity in recentActivity"
-            :key="activity.id"
-            class="activity-item"
-          >
-            <div class="activity-icon">
-              <component :is="activity.icon" class="size-4" />
-            </div>
-            <div class="activity-content">
-              <p class="activity-title">{{ activity.title }}</p>
-              <p class="activity-meta">{{ activity.type }} • {{ activity.timestamp }}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </CommunicationLayout>
-</template>
-
-<script setup lang="ts">
 import { 
   MessageSquare,
   StickyNote,
@@ -127,6 +13,11 @@ definePageMeta({
   title: 'Communications',
   description: 'Legal communications management hub'
 })
+
+// Navigation handler
+const handleNavigation = (type: string) => {
+  navigateTo(`/communications/${type}`)
+}
 
 // Communication statistics (mock data)
 const communicationStats = [
@@ -198,7 +89,61 @@ const recentActivity = [
     icon: Phone
   }
 ]
-</script>
+
+<template>
+  <CommunicationLayout>
+    <div class="communications-overview">
+      <div class="welcome-section">
+        <h2 class="text-2xl font-bold text-foreground mb-4">
+          Communications Hub
+        </h2>
+        <p class="text-muted-foreground mb-6">
+          Manage all your legal communications in one place. Access client memos, internal notes, 
+          email correspondence, messages, and phone call logs.
+        </p>
+      </div>
+      
+      <!-- Quick Stats -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+        <div 
+          v-for="stat in communicationStats"
+          :key="stat.type"
+          class="stat-card"
+          @click="() => handleNavigation(stat.type)"
+        >
+          <div class="stat-content">
+            <component :is="stat.icon" class="stat-icon" />
+            <div class="stat-details">
+              <h3 class="stat-title">{{ stat.title }}</h3>
+              <p class="stat-count">{{ stat.count }}</p>
+              <p class="stat-description">{{ stat.description }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Recent Activity -->
+      <div class="recent-activity">
+        <h3 class="text-lg font-semibold mb-4">Recent Activity</h3>
+        <div class="activity-list">
+          <div 
+            v-for="activity in recentActivity"
+            :key="activity.id"
+            class="activity-item"
+          >
+            <div class="activity-icon">
+              <component :is="activity.icon" class="size-4" />
+            </div>
+            <div class="activity-content">
+              <p class="activity-title">{{ activity.title }}</p>
+              <p class="activity-meta">{{ activity.type }} • {{ activity.time }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </CommunicationLayout>
+</template>
 
 <style scoped>
 .communications-overview {

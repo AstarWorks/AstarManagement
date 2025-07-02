@@ -121,6 +121,8 @@
     "zod": "^3.25.67"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.10.2",
+    "@faker-js/faker": "^9.9.0",
     "@lhci/cli": "^0.15.1",
     "@nuxt/devtools": "^2.5.0",
     "@nuxt/eslint-config": "^0.7.2",
