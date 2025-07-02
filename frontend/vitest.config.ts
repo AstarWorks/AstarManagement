@@ -7,7 +7,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'happy-dom',
-    setupFiles: ['./test/setup.ts'],
+    setupFiles: ['./test/setup.ts', './tests/integration/setup.ts'],
     includeSource: ['src/**/*.{js,ts}'],
     testTimeout: 10000, // Increase timeout to 10 seconds
     hookTimeout: 10000, // Increase hook timeout
@@ -46,7 +46,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '~': resolve(__dirname, './src'),
-      '@': resolve(__dirname, './src')
+      '@': resolve(__dirname, './src'),
+      '@/test': resolve(__dirname, './tests')
     }
   }
 })
