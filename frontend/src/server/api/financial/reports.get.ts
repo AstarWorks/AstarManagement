@@ -5,7 +5,44 @@
  * This prepares for future backend integration.
  */
 
-export default defineEventHandler(async (event: any) => {
+import type { H3Event } from 'h3'
+
+interface MockReportExecution {
+  id: string
+  reportName: string
+  reportType: 'EXPENSE_SUMMARY' | 'BILLABLE_HOURS' | 'MATTER_COSTS' | 'COMPLIANCE'
+  status: 'completed' | 'failed' | 'processing' | 'pending'
+  filename: string
+  format: 'csv' | 'pdf' | 'json'
+  size: number
+  filePath?: string
+  errorMessage?: string
+  progress?: number
+  parameters: Record<string, unknown>
+  startedAt: Date
+  completedAt: Date | null
+  executedBy: string
+  executionType: 'manual' | 'scheduled'
+}
+
+interface ReportSummary {
+  total: number
+  completed: number
+  failed: number
+  processing: number
+  pending: number
+}
+
+interface PaginationInfo {
+  page: number
+  size: number
+  totalElements: number
+  totalPages: number
+  hasNext: boolean
+  hasPrevious: boolean
+}
+
+export default defineEventHandler(async (event: H3Event) => {
   try {
     // Parse query parameters
     const query = getQuery(event)
@@ -14,7 +51,7 @@ export default defineEventHandler(async (event: any) => {
     const status = query.status as string
     
     // Mock report execution data
-    const mockReports = [
+    const mockReports: MockReportExecution[] = [
       {
         id: 'rpt_001',
         reportName: 'Monthly Expense Report',
@@ -154,7 +191,7 @@ export default defineEventHandler(async (event: any) => {
         totalPages: Math.ceil(filteredReports.length / size),
         hasNext: endIndex < filteredReports.length,
         hasPrevious: page > 0
-      },
+      } as PaginationInfo,
       summary,
       generatedAt: new Date().toISOString()
     }

@@ -2,8 +2,8 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { Download, FileText, Database, FileImage, Settings, Eye, X, CheckCircle, AlertCircle, Clock, RotateCcw } from 'lucide-vue-next'
 import type { FinancialFilters } from '~/types/financial'
-import type { ExportOptions } from '~/composables/useFinancialExport'
-import type { ExportQueueItem, CurrentExport } from '~/types/chart'
+import type { ExportOptions, ExportStatus } from '~/composables/useFinancialExport'
+import { useFinancialExport } from '~/composables/useFinancialExport'
 
 /**
  * Financial Export Dialog Component
@@ -122,7 +122,7 @@ const canExport = computed(() =>
 
 const queueSummary = computed(() => ({
   total: exportQueue.value.length,
-  active: exportQueue.value.filter((exp: ExportQueueItem) => exp.status === 'pending' || exp.status === 'processing').length,
+  active: exportQueue.value.filter((exp: ExportStatus) => exp.status === 'pending' || exp.status === 'processing').length,
   completed: completedExports.value.length,
   failed: failedExports.value.length
 }))

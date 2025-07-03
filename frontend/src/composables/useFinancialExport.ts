@@ -8,6 +8,17 @@
 import { ref, computed } from 'vue'
 import type { FinancialFilters } from '~/types/financial'
 
+interface FinancialDataItem {
+  date: string
+  description: string
+  category: string
+  amount: number
+  matter: string
+  type: string
+  billable: boolean
+  notes: string
+}
+
 export interface ExportOptions {
   includeCharts?: boolean
   includeRawData?: boolean
@@ -55,7 +66,7 @@ export function useFinancialExport() {
   )
 
   // Generate CSV content from financial data
-  const generateCSVContent = (data: any[], filters: FinancialFilters): string => {
+  const generateCSVContent = (data: FinancialDataItem[], filters: FinancialFilters): string => {
     const headers = [
       'Date',
       'Description', 
@@ -87,7 +98,7 @@ export function useFinancialExport() {
   }
 
   // Generate PDF content from financial data
-  const generatePDFContent = async (data: any[], filters: FinancialFilters): Promise<Blob> => {
+  const generatePDFContent = async (data: FinancialDataItem[], filters: FinancialFilters): Promise<Blob> => {
     // Create HTML content for PDF generation
     const htmlContent = `
       <!DOCTYPE html>
@@ -172,7 +183,7 @@ export function useFinancialExport() {
   }
 
   // Get mock financial data based on filters
-  const getMockFinancialData = (filters: FinancialFilters) => {
+  const getMockFinancialData = (filters: FinancialFilters): FinancialDataItem[] => {
     const baseData = [
       {
         date: '2025-07-01',

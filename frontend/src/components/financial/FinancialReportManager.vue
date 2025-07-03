@@ -1,8 +1,9 @@
 <!-- Financial Report Manager Component -->
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { Download, Clock, FileText, Database, FileImage, CheckCircle, AlertCircle, RotateCcw, X, RefreshCw, Settings } from 'lucide-vue-next'
 import type { ExportStatus } from '~/composables/useFinancialExport'
+import { useFinancialExport } from '~/composables/useFinancialExport'
 
 /**
  * Financial Report Manager Component

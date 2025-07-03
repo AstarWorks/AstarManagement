@@ -5,7 +5,36 @@
  * This is a Nuxt server API route that prepares for backend integration.
  */
 
-export default defineEventHandler(async (event: any) => {
+import type { H3Event } from 'h3'
+
+interface ExportRequestBody {
+  format: 'csv' | 'pdf' | 'json'
+  filters: {
+    categories?: string[]
+    matterIds?: string[]
+    period?: string
+  }
+  options?: {
+    filename?: string
+    includeCharts?: boolean
+    includeRawData?: boolean
+  }
+}
+
+interface MockExpenseData {
+  id: string
+  date: string
+  description: string
+  category: string
+  amount: number
+  currency: string
+  matter: string
+  billable: boolean
+  lawyer: string
+  notes: string
+}
+
+export default defineEventHandler(async (event: H3Event) => {
   // Validate request method
   if (event.node.req.method !== 'POST') {
     throw createError({
@@ -16,7 +45,7 @@ export default defineEventHandler(async (event: any) => {
   
   try {
     // Parse request body
-    const body = await readBody(event)
+    const body = await readBody<ExportRequestBody>(event)
     const { format, filters, options } = body
     
     // Validate required fields
@@ -28,7 +57,7 @@ export default defineEventHandler(async (event: any) => {
     }
     
     // Mock financial data for testing
-    const mockData = [
+    const mockData: MockExpenseData[] = [
       {
         id: '1',
         date: '2025-07-01',
@@ -70,13 +99,13 @@ export default defineEventHandler(async (event: any) => {
     // Apply basic filtering
     let filteredData = [...mockData]
     
-    if (filters?.categories?.length > 0) {
+    if (filters?.categories && Array.isArray(filters.categories) && filters.categories.length > 0) {
       filteredData = filteredData.filter(item => 
         filters.categories.includes(item.category)
       )
     }
     
-    if (filters?.matterIds?.length > 0) {
+    if (filters?.matterIds && Array.isArray(filters.matterIds) && filters.matterIds.length > 0) {
       filteredData = filteredData.filter(item =>
         filters.matterIds.some((id: string) => item.matter.includes(id))
       )
@@ -114,11 +143,11 @@ export default defineEventHandler(async (event: any) => {
       }
     }
     
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Export API error:', error)
     
     // Handle known errors
-    if (error?.statusCode) {
+    if (error && typeof error === 'object' && 'statusCode' in error) {
       throw error
     }
     
