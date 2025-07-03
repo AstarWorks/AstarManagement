@@ -27,6 +27,7 @@ import { useFilterOptions } from '~/composables/useFilterOptions'
 // Store
 import { useKanbanStore } from '~/stores/kanban'
 import { storeToRefs } from 'pinia'
+import { useLocalStorage } from '@vueuse/core'
 
 // Meta and SEO
 definePageMeta({

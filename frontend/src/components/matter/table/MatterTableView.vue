@@ -7,7 +7,7 @@ import {
   getSortedRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
-  flexRender,
+  FlexRender,
   type ColumnDef,
   type SortingState,
   type ColumnFiltersState,
@@ -19,9 +19,8 @@ import { ArrowUpDown, ChevronDown, Eye, EyeOff, Settings2 } from 'lucide-vue-nex
 import { Button } from '~/components/ui/button'
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuLabel,
+  DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
@@ -102,7 +101,7 @@ const getStatusVariant = (status: MatterStatus) => {
 }
 
 // Column definitions
-const columns = computed<ColumnDef<Matter>[]>(() => [
+const columns = computed(() => [
   // Selection column
   columnHelper.display({
     id: 'select',
@@ -210,7 +209,7 @@ const columns = computed<ColumnDef<Matter>[]>(() => [
     cell: ({ row }) => h(
       Badge,
       { variant: getStatusVariant(row.getValue('status')) },
-      () => row.getValue('status').replace(/_/g, ' ')
+      () => (row.getValue('status') as string).replace(/_/g, ' ')
     ),
     size: 140,
   }),
@@ -306,7 +305,7 @@ const columns = computed<ColumnDef<Matter>[]>(() => [
 // Create table instance
 const table = computed(() =>
   useVueTable({
-    data: matters.value,
+    data: [...matters.value],
     columns: columns.value,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -377,16 +376,22 @@ const selectedRows = computed(() => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" class="w-[200px]">
-            <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
+            <div class="px-2 py-1.5 text-sm font-semibold">Toggle columns</div>
             <DropdownMenuSeparator />
-            <DropdownMenuCheckboxItem
+            <DropdownMenuItem
               v-for="column in table.getAllColumns().filter(col => col.getCanHide())"
               :key="column.id"
-              :checked="column.getIsVisible()"
-              @update:checked="(value) => column.toggleVisibility(!!value)"
+              @click="() => column.toggleVisibility()"
+              class="flex items-center gap-2"
             >
+              <input
+                type="checkbox"
+                :checked="column.getIsVisible()"
+                @click.stop="() => column.toggleVisibility()"
+                class="w-4 h-4"
+              />
               {{ column.id }}
-            </DropdownMenuCheckboxItem>
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -407,8 +412,9 @@ const selectedRows = computed(() => {
                   header.column.getCanSort() && 'cursor-pointer select-none'
                 ]"
               >
-                <component
-                  :is="flexRender(header.column.columnDef.header, header.getContext())"
+                <FlexRender
+                  :render="header.column.columnDef.header"
+                  :props="header.getContext()"
                   v-if="!header.isPlaceholder"
                 />
               </th>
@@ -431,7 +437,7 @@ const selectedRows = computed(() => {
                   :style="{ width: `${cell.column.getSize()}px` }"
                   class="table-cell"
                 >
-                  <component :is="flexRender(cell.column.columnDef.cell, cell.getContext())" />
+                  <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
                 </td>
               </tr>
             </template>
@@ -487,7 +493,7 @@ const selectedRows = computed(() => {
             <select
               class="h-8 w-[70px] rounded border border-input bg-background px-2 text-sm"
               :value="table.getState().pagination.pageSize"
-              @change="table.setPageSize(Number($event.target.value))"
+              @change="table.setPageSize(Number(($event.target as HTMLSelectElement).value))"
             >
               <option v-for="pageSize in [10, 20, 30, 50, 100]" :key="pageSize" :value="pageSize">
                 {{ pageSize }}

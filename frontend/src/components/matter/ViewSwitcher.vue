@@ -6,7 +6,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
@@ -126,16 +125,14 @@ const isSingleButtonMode = computed(() => views.value.length === 2 && !props.sho
     </DropdownMenuTrigger>
     
     <DropdownMenuContent align="end" class="w-56">
-      <DropdownMenuLabel>View Mode</DropdownMenuLabel>
+      <div class="px-2 py-1.5 text-sm font-semibold">View Mode</div>
       <DropdownMenuSeparator />
       
       <DropdownMenuItem
         v-for="view in views"
         :key="view.id"
-        :class="[
-          'cursor-pointer',
-          view.id === modelValue && 'bg-accent'
-        ]"
+        class="cursor-pointer"
+        :class="view.id === modelValue ? 'bg-accent' : ''"
         @click="handleViewChange(view.id as ViewMode)"
       >
         <component 

@@ -7,7 +7,7 @@ import {
   getCoreRowModel,
   getSortedRowModel,
   getFilteredRowModel,
-  flexRender,
+  FlexRender,
   type ColumnDef,
   type SortingState,
   type ColumnFiltersState,
@@ -17,9 +17,8 @@ import { ArrowUpDown, Settings2, ChevronDown } from 'lucide-vue-next'
 import { Button } from '~/components/ui/button'
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuLabel,
+  DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
@@ -120,7 +119,7 @@ const getStatusVariant = (status: MatterStatus) => {
 }
 
 // Column definitions
-const columns = computed<ColumnDef<Matter>[]>(() => [
+const columns = computed(() => [
   // Selection column
   columnHelper.display({
     id: 'select',
@@ -229,7 +228,7 @@ const columns = computed<ColumnDef<Matter>[]>(() => [
     cell: ({ row }) => h(
       Badge,
       { variant: getStatusVariant(row.getValue('status')) },
-      () => row.getValue('status').replace(/_/g, ' ')
+      () => (row.getValue('status') as string).replace(/_/g, ' ')
     ),
     size: 140,
   }),
@@ -355,22 +354,25 @@ const table = computed(() =>
 const rows = computed(() => table.value.getRowModel().rows)
 
 // Row virtualizer
-const rowVirtualizer = computed(() =>
-  tableContainerRef.value
-    ? useVirtualizer({
-        count: rows.value.length,
-        getScrollElement: () => tableContainerRef.value!,
-        estimateSize: () => actualRowHeight.value,
-        overscan: props.overscan,
-      })
-    : null
-)
+const rowVirtualizer = ref()
 
 // Virtual items
 const virtualRows = computed(() => rowVirtualizer.value?.getVirtualItems?.() ?? [])
 
 // Total size for virtual container  
 const totalSize = computed(() => rowVirtualizer.value?.getTotalSize?.() ?? 0)
+
+// Update virtualizer when needed
+watchEffect(() => {
+  if (tableContainerRef.value) {
+    rowVirtualizer.value = useVirtualizer({
+      count: rows.value.length,
+      getScrollElement: () => tableContainerRef.value!,
+      estimateSize: () => actualRowHeight.value,
+      overscan: props.overscan,
+    })
+  }
+})
 
 // Density classes
 const densityClasses = computed(() => {
@@ -420,16 +422,22 @@ watch(rowSelection, () => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" class="w-[200px]">
-            <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
+            <div class="px-2 py-1.5 text-sm font-semibold">Toggle columns</div>
             <DropdownMenuSeparator />
-            <DropdownMenuCheckboxItem
+            <DropdownMenuItem
               v-for="column in table.getAllColumns().filter(col => col.getCanHide())"
               :key="column.id"
-              :checked="column.getIsVisible()"
-              @update:checked="(value) => column.toggleVisibility(!!value)"
+              @click="() => column.toggleVisibility()"
+              class="flex items-center gap-2"
             >
+              <input
+                type="checkbox"
+                :checked="column.getIsVisible()"
+                @click.stop="() => column.toggleVisibility()"
+                class="w-4 h-4"
+              />
               {{ column.id }}
-            </DropdownMenuCheckboxItem>
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -451,8 +459,9 @@ watch(rowSelection, () => {
                   header.column.getCanSort() && 'cursor-pointer select-none'
                 ]"
               >
-                <component
-                  :is="flexRender(header.column.columnDef.header, header.getContext())"
+                <FlexRender
+                  :render="header.column.columnDef.header"
+                  :props="header.getContext()"
                   v-if="!header.isPlaceholder"
                 />
               </th>
@@ -472,7 +481,7 @@ watch(rowSelection, () => {
                 v-for="virtualRow in virtualRows"
                 :key="virtualRow.key"
                 :data-index="virtualRow.index"
-                :ref="(el) => rowVirtualizer?.measureElement?.(el as HTMLElement)"
+                :ref="(el) => rowVirtualizer.value?.measureElement?.(el as HTMLElement)"
                 :class="[
                   'table-row',
                   densityClasses,
@@ -485,7 +494,7 @@ watch(rowSelection, () => {
                   :style="{ width: `${cell.column.getSize()}px` }"
                   class="table-cell"
                 >
-                  <component :is="flexRender(cell.column.columnDef.cell, cell.getContext())" />
+                  <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
                 </td>
               </tr>
               
