@@ -119,14 +119,14 @@ const filteredCommunications = computed(() => {
 })
 
 // Communication type icons
-const typeIcons = {
+const typeIcons: Record<string, any> = {
   email: Mail,
   note: StickyNote,
   call: Phone
 }
 
 // Communication type colors
-const typeColors = {
+const typeColors: Record<string, string> = {
   email: 'text-blue-600 bg-blue-50',
   note: 'text-yellow-600 bg-yellow-50',
   call: 'text-green-600 bg-green-50'
@@ -227,9 +227,9 @@ const handleCommunicationAction = (action: string, communicationId: string) => {
                     v-if="comm.type === 'email'" 
                     variant="outline" 
                     class="text-xs"
-                    :class="getDirectionColor(comm.direction)"
+                    :class="getDirectionColor(comm.direction || 'outbound')"
                   >
-                    {{ getDirectionLabel(comm.direction) }}
+                    {{ getDirectionLabel(comm.direction || 'outbound') }}
                   </Badge>
                   <Badge 
                     v-if="comm.importance === 'high'" 
@@ -265,14 +265,14 @@ const handleCommunicationAction = (action: string, communicationId: string) => {
               <!-- Sender/Recipient Info -->
               <div class="flex items-center gap-2 mb-2 text-xs">
                 <Avatar class="w-4 h-4">
-                  <AvatarImage :src="comm.from.avatar" />
+                  <AvatarImage :src="comm.from.avatar ?? ''" :alt="comm.from.name || ''" />
                   <AvatarFallback class="text-xs">
-                    {{ comm.from.name.split(' ').map(n => n[0]).join('') }}
+                    {{ comm.from.name.split(' ').map((n: string) => n[0]).join('') }}
                   </AvatarFallback>
                 </Avatar>
                 <span class="font-medium">{{ comm.from.name }}</span>
                 <span v-if="comm.to && comm.to.length > 0" class="text-muted-foreground">
-                  to {{ comm.to.map(t => t.name).join(', ') }}
+                  to {{ comm.to.map((t: any) => t.name).join(', ') }}
                 </span>
                 <span class="text-muted-foreground">{{ formatTimestamp(comm.timestamp) }}</span>
               </div>

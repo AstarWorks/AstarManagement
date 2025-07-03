@@ -275,7 +275,7 @@ const formatDate = (dateString: string) => {
             v-model="formData.name"
             placeholder="Enter preset name..."
             :maxlength="50"
-            :class="{ 'border-destructive': formData.name.length > 50 }"
+            :class="formData.name.length > 50 ? 'border-destructive' : ''"
           />
           <p class="text-xs text-muted-foreground">{{ formData.name.length }}/50 characters</p>
         </div>

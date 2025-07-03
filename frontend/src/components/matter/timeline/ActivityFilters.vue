@@ -66,10 +66,14 @@ const emit = defineEmits<{
   'clear': []
 }>()
 
-// Local state
-const selectedTypes = ref<ActivityType[]>(props.filters.types || [])
-const selectedActors = ref<string[]>(props.filters.actors || [])
-const dateRange = ref<{ from: Date; to: Date } | undefined>(props.filters.dateRange)
+// Local state  
+const selectedTypes = ref<ActivityType[]>([...(props.filters.types || [])])
+const selectedActors = ref<string[]>([...(props.filters.actors || [])])
+const dateRange = ref<{ from: Date; to: Date } | undefined>(
+  props.filters.dateRange 
+    ? { from: props.filters.dateRange.from, to: props.filters.dateRange.to }
+    : undefined
+)
 const showTypePopover = ref(false)
 const showActorPopover = ref(false)
 const showDatePopover = ref(false)
@@ -278,9 +282,11 @@ watch([selectedTypes, selectedActors, dateRange], () => {
 
 // Initialize from props
 watch(() => props.filters, (newFilters) => {
-  selectedTypes.value = newFilters.types || []
-  selectedActors.value = newFilters.actors || []
-  dateRange.value = newFilters.dateRange
+  selectedTypes.value = [...(newFilters.types || [])]
+  selectedActors.value = [...(newFilters.actors || [])]
+  dateRange.value = newFilters.dateRange 
+    ? { from: newFilters.dateRange.from, to: newFilters.dateRange.to }
+    : undefined
 }, { immediate: true })
 </script>
 
@@ -385,7 +391,7 @@ watch(() => props.filters, (newFilters) => {
                         <Checkbox
                           :id="type.value"
                           :checked="selectedTypes.includes(type.value as ActivityType)"
-                          @update:checked="(checked) => handleTypeChange(type.value as ActivityType, checked)"
+                          @update:checked="(checked: boolean) => handleTypeChange(type.value as ActivityType, checked)"
                         />
                         <Label :for="type.value" class="text-xs">
                           {{ type.label }}
@@ -433,7 +439,7 @@ watch(() => props.filters, (newFilters) => {
                     <Checkbox
                       :id="`user-${user.id}`"
                       :checked="selectedActors.includes(user.id)"
-                      @update:checked="(checked) => handleActorChange(user.id, checked)"
+                      @update:checked="(checked: boolean) => handleActorChange(user.id, checked)"
                     />
                     <Label :for="`user-${user.id}`" class="flex items-center gap-2 text-sm">
                       <span>{{ user.name }}</span>

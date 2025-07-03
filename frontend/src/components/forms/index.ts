@@ -1,7 +1,11 @@
-// Form components index - export actual components only
-// TODO: Add other form components as they are implemented
-
-// Currently, no form components exist yet in the forms directory
-// This file is prepared for future form component exports
-
-export {}
+// Form components index - export actual components
+export { default as Form } from './Form.vue'
+export { default as FormErrorSummary } from './FormErrorSummary.vue'
+export { default as FormFieldWrapper } from './FormFieldWrapper.vue'
+export { default as FormInput } from './FormInput.vue'
+export { default as FormTextarea } from './FormTextarea.vue'
+export { default as FormSelect } from './FormSelect.vue'
+export { default as FormDatePicker } from './FormDatePicker.vue'
+export { default as FormCheckbox } from './FormCheckbox.vue'
+export { default as FormRadio } from './FormRadio.vue'
+export { default as FormSwitch } from './FormSwitch.vue'

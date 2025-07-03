@@ -108,18 +108,21 @@ const isCompactView = computed(() => props.viewMode === 'compact')
 const isDetailedView = computed(() => props.viewMode === 'detailed')
 
 const hasExpandableContent = computed(() => {
+  const metadata = props.activity.metadata as any
+  const activity = props.activity as any
   return !!(
-    props.activity.metadata?.content ||
-    props.activity.metadata?.description ||
-    props.activity.oldValue ||
-    props.activity.newValue ||
-    (props.activity.type === 'communication_email' && props.activity.metadata?.attachmentCount) ||
-    (props.activity.type === 'document_upload' && props.activity.metadata?.fileSize)
+    metadata?.content ||
+    metadata?.description ||
+    activity?.oldValue ||
+    activity?.newValue ||
+    (props.activity.type === 'communication_email' && metadata?.attachmentCount) ||
+    (props.activity.type === 'document_upload' && metadata?.fileSize)
   )
 })
 
 const displayContent = computed(() => {
-  const content = props.activity.metadata?.content || props.activity.description
+  const metadata = props.activity.metadata as any
+  const content = metadata?.content || props.activity.description
   if (!content) return ''
   
   if (showFullContent.value || content.length <= 150) {
@@ -171,21 +174,23 @@ const handleActivityAction = (action: string) => {
 }
 
 const handleViewActivity = () => {
+  const metadata = props.activity.metadata as any
   if (props.activity.type.startsWith('document_')) {
     // Navigate to document viewer
-    navigateTo(`/matters/${props.matterId}/documents/${props.activity.metadata?.documentId}`)
+    navigateTo(`/matters/${props.matterId}/documents/${metadata?.documentId}`)
   } else if (props.activity.type.startsWith('communication_')) {
     // Navigate to communication detail
-    navigateTo(`/matters/${props.matterId}/communications/${props.activity.metadata?.communicationId}`)
+    navigateTo(`/matters/${props.matterId}/communications/${metadata?.communicationId}`)
   } else if (props.activity.type === 'task_created') {
     // Navigate to task detail
-    navigateTo(`/matters/${props.matterId}/tasks/${props.activity.metadata?.taskId}`)
+    navigateTo(`/matters/${props.matterId}/tasks/${metadata?.taskId}`)
   }
 }
 
 const handleDownloadDocument = () => {
-  if (props.activity.type === 'document_upload' && props.activity.metadata?.documentId) {
-    window.open(`/api/documents/${props.activity.metadata.documentId}/download`, '_blank')
+  const metadata = props.activity.metadata as any
+  if (props.activity.type === 'document_upload' && metadata?.documentId) {
+    window.open(`/api/documents/${metadata.documentId}/download`, '_blank')
   }
 }
 
@@ -212,11 +217,12 @@ const handleShareActivity = () => {
 }
 
 const getChangeIndicator = () => {
-  if (props.activity.oldValue && props.activity.newValue) {
+  const activity = props.activity as any
+  if (activity.oldValue && activity.newValue) {
     return {
-      from: props.activity.oldValue,
-      to: props.activity.newValue,
-      field: props.activity.fieldName
+      from: activity.oldValue,
+      to: activity.newValue,
+      field: activity.fieldName
     }
   }
   return null
@@ -300,7 +306,7 @@ const getChangeIndicator = () => {
             <div class="flex items-center gap-2">
               <!-- User Avatar -->
               <Avatar class="w-6 h-6">
-                <AvatarImage :src="activity.actor.avatar" :alt="activity.actor.name" />
+                <AvatarImage :src="activity.actor.avatar ?? ''" :alt="activity.actor.name || ''" />
                 <AvatarFallback class="text-xs">
                   {{ activity.actor.name.split(' ').map(n => n[0]).join('').toUpperCase() }}
                 </AvatarFallback>
@@ -371,23 +377,23 @@ const getChangeIndicator = () => {
               v-if="activity.type.startsWith('document_') && activity.metadata"
               class="flex items-center gap-2 text-sm text-muted-foreground"
             >
-              <span>{{ activity.metadata.fileName }}</span>
-              <span v-if="activity.metadata.fileSize" class="text-xs">
-                ({{ (activity.metadata.fileSize / 1024 / 1024).toFixed(1) }} MB)
+              <span>{{ (activity.metadata as any).fileName }}</span>
+              <span v-if="(activity.metadata as any).fileSize" class="text-xs">
+                ({{ ((activity.metadata as any).fileSize / 1024 / 1024).toFixed(1) }} MB)
               </span>
-              <Badge v-if="activity.metadata.category" variant="secondary" class="text-xs">
-                {{ activity.metadata.category }}
+              <Badge v-if="(activity.metadata as any).category" variant="secondary" class="text-xs">
+                {{ (activity.metadata as any).category }}
               </Badge>
             </div>
             
             <!-- Email Information -->
             <div 
-              v-if="activity.type === 'communication_email' && activity.metadata?.subject"
+              v-if="activity.type === 'communication_email' && (activity.metadata as any)?.subject"
               class="text-sm"
             >
-              <div class="font-medium">{{ activity.metadata.subject }}</div>
-              <div v-if="activity.metadata.attachmentCount" class="text-xs text-muted-foreground">
-                {{ activity.metadata.attachmentCount }} attachment(s)
+              <div class="font-medium">{{ (activity.metadata as any).subject }}</div>
+              <div v-if="(activity.metadata as any).attachmentCount" class="text-xs text-muted-foreground">
+                {{ (activity.metadata as any).attachmentCount }} attachment(s)
               </div>
             </div>
             
@@ -396,11 +402,11 @@ const getChangeIndicator = () => {
               v-if="activity.type === 'communication_call' && activity.metadata"
               class="flex items-center gap-2 text-sm text-muted-foreground"
             >
-              <span v-if="activity.metadata.duration">
-                Duration: {{ activity.metadata.duration }} minutes
+              <span v-if="(activity.metadata as any).duration">
+                Duration: {{ (activity.metadata as any).duration }} minutes
               </span>
-              <span v-if="activity.metadata.phoneNumber">
-                {{ activity.metadata.phoneNumber }}
+              <span v-if="(activity.metadata as any).phoneNumber">
+                {{ (activity.metadata as any).phoneNumber }}
               </span>
             </div>
             
@@ -444,8 +450,8 @@ const getChangeIndicator = () => {
                 <!-- Additional Metadata -->
                 <div v-if="activity.metadata" class="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
                   <div v-for="(value, key) in activity.metadata" :key="key" class="flex justify-between">
-                    <span class="capitalize">{{ key.replace(/([A-Z])/g, ' $1').toLowerCase() }}:</span>
-                    <span class="font-mono">{{ value }}</span>
+                    <span class="capitalize">{{ String(key).replace(/([A-Z])/g, ' $1').toLowerCase() }}:</span>
+                    <span class="font-mono">{{ String(value) }}</span>
                   </div>
                 </div>
               </div>

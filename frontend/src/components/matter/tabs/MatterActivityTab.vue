@@ -153,7 +153,7 @@ const toggleFilters = () => {
             @click="toggleFilters"
             variant="outline"
             size="sm"
-            :class="{ 'bg-accent': showFilters }"
+            :class="showFilters ? 'bg-accent' : ''"
           >
             <Filter class="w-4 h-4" />
           </Button>

@@ -272,7 +272,7 @@ watch(() => props.initialViewMode, (newMode) => {
             variant="outline" 
             size="sm"
             @click="showFilters = !showFilters"
-            :class="{ 'bg-accent': isFilterActive }"
+            :class="isFilterActive ? 'bg-accent' : ''"
           >
             <Filter class="w-4 h-4 mr-2" />
             Filters

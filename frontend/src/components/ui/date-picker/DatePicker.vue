@@ -101,8 +101,7 @@ const clearSelection = () => {
     <PopoverTrigger asChild>
       <Button 
         variant="outline" 
-        class="w-full justify-start text-left font-normal"
-        :class="{ 'text-muted-foreground': !displayValue || displayValue === placeholder }"
+        :class="`w-full justify-start text-left font-normal ${(!displayValue || displayValue === placeholder) ? 'text-muted-foreground' : ''}`"
       >
         <Calendar class="w-4 h-4 mr-2" />
         {{ displayValue }}

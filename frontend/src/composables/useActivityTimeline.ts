@@ -13,6 +13,7 @@ import type {
   ActivityViewMode,
   ActivityExportOptions,
   ActivityType,
+  BaseActivity,
   DocumentActivity,
   CommunicationActivity,
   MatterActivity,
@@ -124,15 +125,15 @@ export function useActivityTimeline(matterId: string) {
   })
 
   // Activity type filter methods
-  const setTypeFilter = (types: ActivityType[]) => {
+  const setTypeFilter = (types: readonly ActivityType[]) => {
     filters.value = { ...filters.value, types }
   }
 
-  const setActorFilter = (actors: string[]) => {
+  const setActorFilter = (actors: readonly string[]) => {
     filters.value = { ...filters.value, actors }
   }
 
-  const setDateRangeFilter = (dateRange: { from: Date; to: Date } | undefined) => {
+  const setDateRangeFilter = (dateRange: { readonly from: Date; readonly to: Date } | undefined) => {
     filters.value = { ...filters.value, dateRange }
   }
 
@@ -305,7 +306,7 @@ export const useActivityUtils = () => {
       case 'audit_action':
         return `performed ${(activity as AuditActivity).action} on ${(activity as AuditActivity).entityType}`
       default:
-        return activity.description
+        return (activity as BaseActivity).description
     }
   }
   

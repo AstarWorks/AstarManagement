@@ -16,7 +16,7 @@ export interface User {
   /** User's role in the system */
   role: UserRole
   /** List of user permissions */
-  permissions: string[]
+  permissions: readonly string[]
   /** User's avatar URL */
   avatar?: string
   /** Whether two-factor authentication is enabled */

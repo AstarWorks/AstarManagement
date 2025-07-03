@@ -24,7 +24,7 @@ export default defineNuxtRouteMiddleware((to: RouteLocationNormalized, from: Rou
   const { $pinia } = useNuxtApp()
   const authStore = useAuthStore($pinia)
   const userRoles: string[] = authStore.user?.role ? [authStore.user.role] : []
-  const userPermissions: string[] = authStore.permissions
+  const userPermissions: readonly string[] = authStore.permissions
   
   // Check role requirements
   if (requiredRoles && requiredRoles.length > 0) {

@@ -12,7 +12,7 @@ import type { NavItem } from '~/types/navigation'
  */
 export function filterNavigationByPermissions(
   items: NavItem[],
-  userPermissions: string[] = []
+  userPermissions: readonly string[] = []
 ): NavItem[] {
   return items.filter(item => {
     // If item has no permission requirements, it's visible

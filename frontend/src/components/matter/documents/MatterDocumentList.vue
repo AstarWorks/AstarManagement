@@ -212,9 +212,9 @@ const handleDocumentAction = (action: string, documentId: string) => {
                 <!-- Upload Info -->
                 <div class="flex items-center gap-2 text-xs">
                   <Avatar class="w-4 h-4">
-                    <AvatarImage :src="document.uploadedBy.avatar" />
+                    <AvatarImage :src="document.uploadedBy.avatar ?? ''" :alt="document.uploadedBy.name || ''" />
                     <AvatarFallback class="text-xs">
-                      {{ document.uploadedBy.name.split(' ').map(n => n[0]).join('') }}
+                      {{ document.uploadedBy.name.split(' ').map((n: string) => n[0]).join('') }}
                     </AvatarFallback>
                   </Avatar>
                   <span class="text-muted-foreground">

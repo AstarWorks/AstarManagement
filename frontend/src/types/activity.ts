@@ -49,7 +49,7 @@ export interface DocumentActivity extends BaseActivity {
     fileName: string
     mimeType: string
     category?: string
-    tags?: string[]
+    tags?: readonly string[]
   }
 }
 
@@ -61,7 +61,7 @@ export interface CommunicationActivity extends BaseActivity {
   communicationId: string
   subject?: string
   content?: string
-  participants?: User[]
+  participants?: readonly User[]
   direction?: 'inbound' | 'outbound'
   duration?: number // for calls, in minutes
   metadata: {
@@ -137,11 +137,11 @@ export type Activity =
  * Activity filter options
  */
 export interface ActivityFilters {
-  types?: ActivityType[]
-  actors?: string[] // user IDs
+  types?: readonly ActivityType[]
+  actors?: readonly string[] // user IDs
   dateRange?: {
-    from: Date
-    to: Date
+    readonly from: Date
+    readonly to: Date
   }
   searchTerm?: string
 }
