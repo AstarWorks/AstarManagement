@@ -8,6 +8,9 @@
 // OCR processing status
 export type OcrStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED'
 
+// Supported MIME types for receipt images
+export type ReceiptMimeType = 'image/jpeg' | 'image/jpg' | 'image/png' | 'image/webp' | 'image/heic' | 'image/heif'
+
 // Receipt metadata interface
 export interface Receipt {
   id: string
@@ -15,7 +18,7 @@ export interface Receipt {
   originalFilename: string
   storedFilename: string
   fileSize: number
-  mimeType: string
+  mimeType: ReceiptMimeType
   imageWidth?: number
   imageHeight?: number
   
@@ -71,7 +74,7 @@ export interface ReceiptFilters {
   dateFrom?: string
   dateTo?: string
   hasOcrData?: boolean
-  mimeType?: string
+  mimeType?: ReceiptMimeType
 }
 
 // Receipt gallery view options

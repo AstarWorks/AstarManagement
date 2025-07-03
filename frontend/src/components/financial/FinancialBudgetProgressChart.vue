@@ -10,6 +10,7 @@ import {
   CategoryScale,
   LinearScale
 } from 'chart.js'
+import type { TooltipContext } from '~/types/chart'
 
 // Register Chart.js components
 ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale)
@@ -98,7 +99,7 @@ const chartOptions = computed(() => ({
       text: props.title,
       font: {
         size: 14,
-        weight: 'bold'
+        weight: 'bold' as const
       },
       padding: {
         bottom: 20
@@ -113,21 +114,21 @@ const chartOptions = computed(() => ({
       cornerRadius: 8,
       padding: 12,
       callbacks: {
-        title: (context: any) => {
+        title: (context: TooltipContext[]) => {
           return context[0].label
         },
-        afterTitle: (context: any) => {
+        afterTitle: (context: TooltipContext[]) => {
           const categoryName = context[0].label
           const budgetData = props.data[categoryName]
           const utilization = ((budgetData.spent / budgetData.allocated) * 100).toFixed(1)
           return `Utilization: ${utilization}%`
         },
-        label: (context: any) => {
+        label: (context: TooltipContext) => {
           const label = context.dataset.label || ''
           const value = context.parsed.x || context.parsed.y || 0
           return `${label}: ¥${value.toLocaleString('ja-JP')}`
         },
-        afterBody: (context: any) => {
+        afterBody: (context: TooltipContext[]) => {
           const categoryName = context[0].label
           const budgetData = props.data[categoryName]
           return [
@@ -147,14 +148,14 @@ const chartOptions = computed(() => ({
         text: props.horizontal ? 'Amount (¥)' : 'Category',
         font: {
           size: 12,
-          weight: 'bold'
+          weight: 'bold' as const
         }
       },
       grid: {
         display: props.horizontal
       },
       ticks: props.horizontal ? {
-        callback: (value: any) => {
+        callback: (value: string | number) => {
           return '¥' + Number(value).toLocaleString('ja-JP')
         }
       } : {}
@@ -167,14 +168,14 @@ const chartOptions = computed(() => ({
         text: props.horizontal ? 'Category' : 'Amount (¥)',
         font: {
           size: 12,
-          weight: 'bold'
+          weight: 'bold' as const
         }
       },
       grid: {
         display: !props.horizontal
       },
       ticks: !props.horizontal ? {
-        callback: (value: any) => {
+        callback: (value: string | number) => {
           return '¥' + Number(value).toLocaleString('ja-JP')
         }
       } : {}
@@ -182,7 +183,7 @@ const chartOptions = computed(() => ({
   },
   animation: {
     duration: 1000,
-    easing: 'easeOutQuart'
+    easing: 'easeOutQuart' as const
   }
 }))
 

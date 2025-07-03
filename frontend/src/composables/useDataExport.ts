@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import type { DataTableColumn } from '~/components/matter/DataTable.vue'
+import type { DataTableColumn } from '~/types/table'
 
 export interface ExportConfig {
   filename?: string
@@ -144,7 +144,7 @@ export function useDataExport() {
     
     // Add headers if requested
     if (config.includeHeaders) {
-      const headers = columns.map(col => escapeCSVField(col.header))
+      const headers = columns.map(col => escapeCSVField(col.header || col.title || ''))
       rows.push(headers.join(','))
     }
     
@@ -185,7 +185,7 @@ export function useDataExport() {
     
     // Add headers if requested
     if (config.includeHeaders) {
-      worksheetData.push(columns.map(col => col.header))
+      worksheetData.push(columns.map(col => col.header || col.title || ''))
     }
     
     // Process data in chunks

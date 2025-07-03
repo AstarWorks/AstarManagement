@@ -286,7 +286,6 @@ onUnmounted(() => {
 
 .timeline-container {
   @apply flex-1 overflow-auto;
-  @apply scrollbar-thin scrollbar-thumb-muted scrollbar-track-muted/50;
 }
 
 .timeline-content {
@@ -350,9 +349,7 @@ onUnmounted(() => {
 
 /* Dark mode adjustments */
 @media (prefers-color-scheme: dark) {
-  .timeline-container {
-    @apply scrollbar-thumb-muted-foreground/20 scrollbar-track-background;
-  }
+  /* Additional dark mode styles can be added here */
 }
 
 /* Reduced motion support */

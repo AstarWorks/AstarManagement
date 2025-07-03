@@ -1,5 +1,5 @@
 import { ref, reactive, computed, watch } from 'vue'
-import type { OperationProgress } from '~/components/matter/OperationProgressTracker.vue'
+import type { OperationProgress } from '~/types/table'
 
 export interface QueuedOperation {
   id: string

@@ -69,11 +69,11 @@ export const Default: Story = {
     loading: false,
     open: false
   },
-  render: (args) => ({
+  render: (args: any) => ({
     components: { MobileFilterDrawer },
     setup() {
-      const isOpen = ref(args.open)
-      const filterState = ref(args.modelValue)
+      const isOpen = ref(args.open || false)
+      const filterState = ref(args.modelValue || defaultFilterState)
       
       const handleOpenChange = (open: boolean) => {
         isOpen.value = open
@@ -168,11 +168,11 @@ export const TouchInteraction: Story = {
     loading: false,
     open: true
   },
-  render: (args) => ({
+  render: (args: any) => ({
     components: { MobileFilterDrawer },
     setup() {
-      const isOpen = ref(args.open)
-      const filterState = ref(args.modelValue)
+      const isOpen = ref(args.open || false)
+      const filterState = ref(args.modelValue || defaultFilterState)
       const touchActions = ref<string[]>([])
       
       const handleOpenChange = (open: boolean) => {
@@ -242,11 +242,11 @@ export const PresetManagement: Story = {
     loading: false,
     open: true
   },
-  render: (args) => ({
+  render: (args: any) => ({
     components: { MobileFilterDrawer },
     setup() {
-      const isOpen = ref(args.open)
-      const filterState = ref(args.modelValue)
+      const isOpen = ref(args.open || false)
+      const filterState = ref(args.modelValue || defaultFilterState)
       const presetActions = ref<string[]>([])
       
       const handlePresetApply = (preset: any) => {

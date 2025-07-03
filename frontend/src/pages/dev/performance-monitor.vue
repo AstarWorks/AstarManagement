@@ -209,7 +209,7 @@ if (cachedData) {
           Steps to integrate performance monitoring in your application
         </CardDescription>
       </CardHeader>
-      <CardContent class="prose prose-sm max-w-none">
+      <CardContent class="text-sm max-w-none">
         <ol class="space-y-2">
           <li>
             <strong>Add the performance monitor component to your layout:</strong>

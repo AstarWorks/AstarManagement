@@ -391,7 +391,7 @@ const handleCardClick = (event: MouseEvent | KeyboardEvent) => {
   }
   
   .document-title {
-    @apply text-xs;
+    font-size: 0.75rem; line-height: 1rem;
   }
   
   .quick-actions-overlay {

@@ -431,7 +431,7 @@ watch(() => props.initialValues, () => {
 
 .type-badge,
 .required-badge {
-  @apply text-xs;
+  font-size: 0.75rem; line-height: 1rem;
 }
 
 .default-value {
@@ -443,7 +443,7 @@ watch(() => props.initialValues, () => {
 }
 
 .option-badge {
-  @apply text-xs;
+  font-size: 0.75rem; line-height: 1rem;
 }
 
 .variables-summary {

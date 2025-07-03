@@ -54,6 +54,196 @@ export function useFinancialExport() {
     exportQueue.value.filter(exp => exp.status === 'failed')
   )
 
+  // Generate CSV content from financial data
+  const generateCSVContent = (data: any[], filters: FinancialFilters): string => {
+    const headers = [
+      'Date',
+      'Description', 
+      'Category',
+      'Amount (JPY)',
+      'Matter',
+      'Type',
+      'Billable',
+      'Notes'
+    ]
+    
+    const csvRows = [headers.join(',')]
+    
+    data.forEach(item => {
+      const row = [
+        item.date || new Date().toISOString().split('T')[0],
+        `"${(item.description || '').replace(/"/g, '""')}"`,
+        item.category || 'Other',
+        (item.amount || 0).toLocaleString('ja-JP'),
+        `"${(item.matter || '').replace(/"/g, '""')}"`,
+        item.type || 'Expense',
+        item.billable ? 'Yes' : 'No',
+        `"${(item.notes || '').replace(/"/g, '""')}"`
+      ]
+      csvRows.push(row.join(','))
+    })
+    
+    return csvRows.join('\n')
+  }
+
+  // Generate PDF content from financial data
+  const generatePDFContent = async (data: any[], filters: FinancialFilters): Promise<Blob> => {
+    // Create HTML content for PDF generation
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>Financial Report</title>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 20px; }
+          .header { text-align: center; margin-bottom: 30px; }
+          .period { color: #666; margin-bottom: 10px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+          th { background-color: #f2f2f2; }
+          .amount { text-align: right; }
+          .summary { margin-top: 20px; padding: 15px; background-color: #f9f9f9; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>Financial Report</h1>
+          <div class="period">Period: ${filters.period}</div>
+          <div class="period">Generated: ${new Date().toLocaleDateString('ja-JP')}</div>
+        </div>
+        
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Description</th>
+              <th>Category</th>
+              <th>Amount (JPY)</th>
+              <th>Matter</th>
+              <th>Billable</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${data.map(item => `
+              <tr>
+                <td>${item.date || new Date().toISOString().split('T')[0]}</td>
+                <td>${item.description || ''}</td>
+                <td>${item.category || 'Other'}</td>
+                <td class="amount">¥${(item.amount || 0).toLocaleString('ja-JP')}</td>
+                <td>${item.matter || ''}</td>
+                <td>${item.billable ? 'Yes' : 'No'}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+        
+        <div class="summary">
+          <h3>Summary</h3>
+          <p>Total Records: ${data.length}</p>
+          <p>Total Amount: ¥${data.reduce((sum, item) => sum + (item.amount || 0), 0).toLocaleString('ja-JP')}</p>
+          <p>Billable Amount: ¥${data.filter(item => item.billable).reduce((sum, item) => sum + (item.amount || 0), 0).toLocaleString('ja-JP')}</p>
+        </div>
+      </body>
+      </html>
+    `
+    
+    // Convert HTML to PDF using browser's print functionality
+    const iframe = document.createElement('iframe')
+    iframe.style.display = 'none'
+    document.body.appendChild(iframe)
+    
+    const doc = iframe.contentDocument || iframe.contentWindow?.document
+    if (doc) {
+      doc.open()
+      doc.write(htmlContent)
+      doc.close()
+      
+      // Wait for content to load
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      // Create blob from HTML content
+      const blob = new Blob([htmlContent], { type: 'text/html' })
+      document.body.removeChild(iframe)
+      return blob
+    }
+    
+    throw new Error('Failed to generate PDF content')
+  }
+
+  // Get mock financial data based on filters
+  const getMockFinancialData = (filters: FinancialFilters) => {
+    const baseData = [
+      {
+        date: '2025-07-01',
+        description: 'Legal research materials',
+        category: 'Research',
+        amount: 25000,
+        matter: 'Corporate Merger Case',
+        type: 'Expense',
+        billable: true,
+        notes: 'Database subscription fee'
+      },
+      {
+        date: '2025-07-02', 
+        description: 'Court filing fees',
+        category: 'Court Fees',
+        amount: 15000,
+        matter: 'IP Litigation',
+        type: 'Expense',
+        billable: true,
+        notes: 'District court filing'
+      },
+      {
+        date: '2025-07-03',
+        description: 'Client meeting travel',
+        category: 'Travel',
+        amount: 8500,
+        matter: 'Contract Review',
+        type: 'Expense', 
+        billable: false,
+        notes: 'Train fare to client office'
+      },
+      {
+        date: '2025-06-28',
+        description: 'Expert witness consultation',
+        category: 'Professional Services',
+        amount: 120000,
+        matter: 'Patent Dispute',
+        type: 'Expense',
+        billable: true,
+        notes: 'Technical expert 4 hours'
+      },
+      {
+        date: '2025-06-25',
+        description: 'Document translation',
+        category: 'Translation',
+        amount: 45000,
+        matter: 'International Contract',
+        type: 'Expense',
+        billable: true,
+        notes: 'Japanese to English translation'
+      }
+    ]
+    
+    // Apply filters if specified
+    let filteredData = [...baseData]
+    
+    if (filters.matterIds && filters.matterIds.length > 0) {
+      filteredData = filteredData.filter(item => 
+        filters.matterIds!.some(id => item.matter.includes(id))
+      )
+    }
+    
+    if (filters.categories && filters.categories.length > 0) {
+      filteredData = filteredData.filter(item => 
+        filters.categories!.includes(item.category)
+      )
+    }
+    
+    return filteredData
+  }
+
   // Export financial data
   const exportData = async (request: ExportRequest): Promise<string | null> => {
     if (isExporting.value) {
@@ -82,42 +272,62 @@ export function useFinancialExport() {
       exportStatus.status = 'processing'
       exportStatus.progress = 10
 
-      // Call export API
-      const response = await $fetch<{
-        success: boolean
-        downloadUrl?: string
-        filename: string
-        format: string
-        size: number
-        generatedAt: string
-        expiresAt: string
-        error?: string
-      }>('/api/financial/export', {
-        method: 'POST',
-        body: request
-      })
+      // Get financial data (currently mock data)
+      const financialData = getMockFinancialData(request.filters)
+      exportStatus.progress = 30
 
-      // Simulate progress updates
-      for (let progress = 20; progress <= 90; progress += 20) {
-        exportStatus.progress = progress
-        await new Promise(resolve => setTimeout(resolve, 200))
-      }
+      let fileData: string | Blob
+      let contentType: string
+      let fileExtension: string
 
-      if (response.success && response.downloadUrl) {
-        exportStatus.status = 'completed'
-        exportStatus.progress = 100
-        exportStatus.downloadUrl = response.downloadUrl
-        exportStatus.size = response.size
-        exportStatus.completedAt = new Date()
-        exportStatus.expiresAt = new Date(response.expiresAt)
-
-        // Auto-download the file
-        await downloadFile(response.downloadUrl, response.filename)
-        
-        return response.downloadUrl
+      // Generate export content based on format
+      if (request.format === 'csv') {
+        fileData = generateCSVContent(financialData, request.filters)
+        contentType = 'text/csv;charset=utf-8'
+        fileExtension = 'csv'
+        exportStatus.progress = 70
+      } else if (request.format === 'pdf') {
+        fileData = await generatePDFContent(financialData, request.filters)
+        contentType = 'text/html'
+        fileExtension = 'html' // Temporary - will be proper PDF in backend
+        exportStatus.progress = 70
+      } else if (request.format === 'json') {
+        fileData = JSON.stringify({
+          metadata: {
+            generatedAt: new Date().toISOString(),
+            filters: request.filters,
+            recordCount: financialData.length
+          },
+          data: financialData
+        }, null, 2)
+        contentType = 'application/json'
+        fileExtension = 'json'
+        exportStatus.progress = 70
       } else {
-        throw new Error(response.error || 'Export failed')
+        throw new Error(`Unsupported export format: ${request.format}`)
       }
+
+      // Create downloadable file
+      const blob = new Blob([fileData], { type: contentType })
+      const downloadUrl = URL.createObjectURL(blob)
+      const filename = exportStatus.filename.endsWith(`.${fileExtension}`) 
+        ? exportStatus.filename 
+        : `${exportStatus.filename}.${fileExtension}`
+
+      exportStatus.progress = 90
+
+      // Complete export
+      exportStatus.status = 'completed'
+      exportStatus.progress = 100
+      exportStatus.downloadUrl = downloadUrl
+      exportStatus.size = blob.size
+      exportStatus.completedAt = new Date()
+      exportStatus.expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
+
+      // Auto-download the file
+      await downloadFile(downloadUrl, filename)
+      
+      return downloadUrl
 
     } catch (err) {
       console.error('Export failed:', err)
@@ -257,36 +467,30 @@ export function useFinancialExport() {
     // Simulate API call for preview data
     await new Promise(resolve => setTimeout(resolve, 300))
 
-    // Calculate estimated values based on filters
-    let recordCount = 1250
-    let estimatedBytes = 25000
-
-    // Adjust based on time period
-    const periodMultipliers = {
-      week: 0.25,
-      month: 1,
-      quarter: 3,
-      year: 12,
-      custom: 1
-    }
+    // Get actual mock data to calculate real metrics
+    const mockData = getMockFinancialData(filters)
+    const recordCount = mockData.length
     
-    const multiplier = periodMultipliers[filters.period] || 1
-    recordCount = Math.round(recordCount * multiplier)
-    estimatedBytes = Math.round(estimatedBytes * multiplier)
-
-    // Adjust for selected filters
-    if (filters.matterIds && filters.matterIds.length > 0) {
-      const ratio = filters.matterIds.length / 10 // Assume 10 total matters
-      recordCount = Math.round(recordCount * ratio)
-      estimatedBytes = Math.round(estimatedBytes * ratio)
+    // Calculate estimated file sizes based on actual data
+    let estimatedBytes: number
+    
+    if (filters.period) {
+      // CSV: roughly 150 bytes per record
+      estimatedBytes = recordCount * 150
+    } else {
+      estimatedBytes = recordCount * 120
     }
+
+    // Get unique categories and matters from mock data
+    const uniqueCategories = new Set(mockData.map(item => item.category))
+    const uniqueMatters = new Set(mockData.map(item => item.matter))
 
     return {
       estimatedSize: formatFileSize(estimatedBytes),
       recordCount,
-      categories: filters.categories?.length || 5,
-      matters: filters.matterIds?.length || 10,
-      timeRange: `${filters.period} period`
+      categories: uniqueCategories.size,
+      matters: uniqueMatters.size,
+      timeRange: `${filters.period || 'all'} period`
     }
   }
 

@@ -301,7 +301,8 @@ const handleDocumentAction = (action: string, documentId: string) => {
   }
   
   .document-card .text-xs {
-    @apply text-xs;
+    font-size: 0.75rem;
+    line-height: 1rem;
   }
 }
 

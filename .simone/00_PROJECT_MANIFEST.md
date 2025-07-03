@@ -2,9 +2,9 @@
 project_name: Aster Management
 current_milestone_id: M01
 highest_sprint_in_milestone: S14
-current_sprint_id: S13
+current_sprint_id: S14
 status: active
-last_updated: 2025-07-01 10:09
+last_updated: 2025-07-03 13:41
 ---
 
 # Project Manifest: Aster Management
@@ -20,10 +20,11 @@ This project follows a milestone-based development approach.
 ## 2. Current Focus
 
 - **Milestone:** M01 - Matter Management MVP
-- **Active Sprint:** S12 - Matter Management UI (IN PROGRESS)
-- **Current Task:** T13_S12 Table View Advanced Features (IN PROGRESS)
-- **M02 Status:** S05-S09 sprints complete, S10 Production Deployment ready
-- **Updated:** 2025-07-03 08:43
+- **Active Sprint:** S14 - Financial Management (ACTIVE)
+- **Current Task:** T05_S14 Reporting Export (COMPLETED)
+- **Recent Completion:** T05_S14 Financial Reporting and Export Functionality (COMPLETED)
+- **M02 Status:** S05-S09 sprints complete, S10 Production Deployment ready  
+- **Updated:** 2025-07-03 16:45
 
 ## 3. Sprints in Current Milestone
 
@@ -170,16 +171,25 @@ Implement production-ready infrastructure and CI/CD.
 - 📋 Terraform Infrastructure - High complexity
 - 📋 Production Deployment - High complexity
 
-### S12 Matter Management UI (📋 PLANNED)
+### S12 Matter Management UI (✅ COMPLETED)
 
-Implement comprehensive matter management interfaces.
+Comprehensive matter management interfaces implemented.
 
-- 📋 Matter List Screen (R04) - High complexity
-- 📋 Matter Detail Board (R05) - High complexity
-- 📋 Task Management Table (R06) - Medium complexity
-- 📋 Advanced Filtering UI - Medium complexity
-- 📋 Bulk Operations - Medium complexity
-- 📋 Export Functionality - Low complexity
+- ✅ T12_S12: Table View Basic Implementation - Medium complexity (COMPLETED)
+- ✅ T13_S12: Table View Advanced Features - Medium complexity (COMPLETED)
+  - ✅ Progress slider column (0-100% with 5% increments)
+  - ✅ Multi-select assignee functionality 
+  - ✅ Related documents link column with navigation
+  - ✅ Comments icon+count column with click navigation
+  - ✅ Drag-and-drop column reordering using vuedraggable
+  - ✅ Column-specific filters in headers
+  - ✅ Save/share filter combinations with localStorage
+  - ✅ Advanced inline editing with validation
+  - ✅ Bulk operations (select, delete, status updates, export)
+  - ✅ Export functionality (CSV/Excel format)
+  - ✅ Performance optimization with @tanstack/vue-table
+
+*All core requirements for matter management UI completed successfully*
 
 ### S13 Communication Documents UI (✅ COMPLETED)
 
@@ -201,7 +211,7 @@ Implement communication tracking and document creation interfaces.
 
 *All 13 active tasks completed successfully*
 
-### S14 Financial Management (📋 PLANNED)
+### S14 Financial Management (🚧 ACTIVE)
 
 Implement revenue and expense tracking features.
 
@@ -209,7 +219,7 @@ Implement revenue and expense tracking features.
 - 📋 Expense Record System (R11) - High complexity
 - 📋 Financial Charts and KPIs - Medium complexity
 - 📋 Receipt OCR Integration - Medium complexity
-- 📋 CSV Export and Reporting - Medium complexity
+- ✅ CSV Export and Reporting - Medium complexity (COMPLETED)
 - 📋 Mobile Optimization - Medium complexity
 
 ## 4. M02 - Frontend Framework Migration

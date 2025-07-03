@@ -494,7 +494,7 @@ defineExpose({
 
 /* Editor content styles */
 :deep(.memo-editor) {
-  @apply prose prose-sm max-w-none;
+  @apply text-sm max-w-none;
 }
 
 :deep(.memo-editor h1) {

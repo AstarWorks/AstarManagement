@@ -8,6 +8,7 @@ import {
   Legend,
   ArcElement
 } from 'chart.js'
+import type { TooltipContext } from '~/types/chart'
 
 // Register Chart.js components
 ChartJS.register(Title, Tooltip, Legend, ArcElement)
@@ -81,7 +82,7 @@ const chartOptions = computed(() => ({
       text: props.title,
       font: {
         size: 14,
-        weight: 'bold'
+        weight: 'bold' as const
       },
       padding: {
         bottom: 20
@@ -96,7 +97,7 @@ const chartOptions = computed(() => ({
       cornerRadius: 8,
       padding: 12,
       callbacks: {
-        label: (context: any) => {
+        label: (context: TooltipContext) => {
           const label = context.label || ''
           const value = context.parsed || 0
           const percentage = ((value / totalHours.value) * 100).toFixed(1)
@@ -120,7 +121,7 @@ const chartOptions = computed(() => ({
     animateRotate: true,
     animateScale: true,
     duration: 1000,
-    easing: 'easeOutQuart'
+    easing: 'easeOutQuart' as const
   }
 }))
 

@@ -437,7 +437,7 @@ const handleItemClick = (event: MouseEvent | KeyboardEvent) => {
 }
 
 .type-badge {
-  @apply text-xs;
+  font-size: 0.75rem; line-height: 1rem;
 }
 
 .date-column {
@@ -549,11 +549,11 @@ const handleItemClick = (event: MouseEvent | KeyboardEvent) => {
   }
   
   .file-name {
-    @apply text-xs;
+    font-size: 0.75rem; line-height: 1rem;
   }
   
   .file-description {
-    @apply text-xs;
+    font-size: 0.75rem; line-height: 1rem;
   }
   
   .actions-column {

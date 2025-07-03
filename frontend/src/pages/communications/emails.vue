@@ -358,7 +358,7 @@ const getEmptyStateDescription = () => {
 }
 
 .folder-badge {
-  @apply text-xs;
+  font-size: 0.75rem; line-height: 1rem;
 }
 
 .email-content {
@@ -446,7 +446,7 @@ const getEmptyStateDescription = () => {
 }
 
 .email-time {
-  @apply text-xs;
+  font-size: 0.75rem; line-height: 1rem;
 }
 
 .email-subject {

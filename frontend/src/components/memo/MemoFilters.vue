@@ -593,7 +593,7 @@ watch(() => filters.value.dateTo, (newDate) => {
 }
 
 .saved-preset {
-  @apply text-xs;
+  font-size: 0.75rem; line-height: 1rem;
 }
 
 .save-filter {
@@ -620,6 +620,7 @@ watch(() => filters.value.dateTo, (newDate) => {
 
 /* Animation for chevron rotation */
 .rotate-180 {
-  @apply transform rotate-180 transition-transform duration-200;
+  transform: rotate(180deg);
+  transition: transform 200ms;
 }
 </style>

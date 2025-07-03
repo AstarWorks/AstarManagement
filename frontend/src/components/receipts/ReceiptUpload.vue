@@ -108,6 +108,21 @@ const errorMessage = computed(() => {
   return localError.value || uploadError.value
 })
 
+// Card class computed for proper TypeScript typing
+const cardClasses = computed(() => {
+  const classes = ['border-2', 'border-dashed', 'transition-colors']
+  
+  if (dragOver.value) {
+    classes.push('border-primary', 'bg-primary/5')
+  } else if (errorMessage.value) {
+    classes.push('border-destructive')
+  } else {
+    classes.push('border-muted-foreground')
+  }
+  
+  return classes.join(' ')
+})
+
 // Handle file selection
 const handleFileSelect = (files: FileList | File[]) => {
   const fileArray = Array.from(files)
@@ -260,12 +275,7 @@ watch(linkedReceipts, (newReceipts) => {
   <div class="space-y-4">
     <!-- Upload Area -->
     <Card 
-      class="border-2 border-dashed transition-colors"
-      :class="{
-        'border-primary bg-primary/5': dragOver,
-        'border-destructive': errorMessage,
-        'border-muted-foreground': !dragOver && !errorMessage
-      }"
+      :class="cardClasses"
       @dragover="handleDragOver"
       @dragleave="handleDragLeave"
       @drop="handleDrop"

@@ -348,6 +348,6 @@ watch(currentFolderId, () => {
 
 /* Animation */
 .rotate-180 {
-  @apply transform rotate-180;
+  transform: rotate(180deg);
 }
 </style>

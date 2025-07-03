@@ -457,7 +457,7 @@ const formatFileSize = (bytes: number) => {
 }
 
 .content-text {
-  @apply text-sm text-foreground leading-relaxed prose prose-sm max-w-none;
+  @apply text-sm text-foreground leading-relaxed max-w-none;
 }
 
 .detail-attachments {

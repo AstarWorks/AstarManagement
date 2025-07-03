@@ -385,7 +385,7 @@ onMounted(() => {
 }
 
 .suggestion-count {
-  @apply text-xs;
+  font-size: 0.75rem; line-height: 1rem;
 }
 
 .help-content {
@@ -422,6 +422,6 @@ onMounted(() => {
 }
 
 .quick-filter {
-  @apply text-xs;
+  font-size: 0.75rem; line-height: 1rem;
 }
 </style>

@@ -185,7 +185,7 @@ onMounted(() => {
 }
 
 .menu-button--expanded .menu-chevron {
-  @apply rotate-180;
+  transform: rotate(180deg);
 }
 
 .menu-badge {

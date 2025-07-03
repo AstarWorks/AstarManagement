@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { CalendarDays, Filter, RotateCcw, Download, Users, Building, Tag } from 'lucide-vue-next'
+import { CalendarDays, Filter, RotateCcw, Download, Users, Building, Tag, ChevronDown } from 'lucide-vue-next'
 import type { FinancialFilters, TimePeriod } from '~/types/financial'
 
 /**
@@ -78,9 +78,9 @@ const showCustomDateRange = computed(() => localFilters.value.period === 'custom
 // Active filter count for badge
 const activeFilterCount = computed(() => {
   let count = 0
-  if (localFilters.value.matterIds.length > 0) count++
-  if (localFilters.value.lawyerIds.length > 0) count++
-  if (localFilters.value.categories.length > 0) count++
+  if (localFilters.value.matterIds && localFilters.value.matterIds.length > 0) count++
+  if (localFilters.value.lawyerIds && localFilters.value.lawyerIds.length > 0) count++
+  if (localFilters.value.categories && localFilters.value.categories.length > 0) count++
   if (localFilters.value.startDate || localFilters.value.endDate) count++
   if (localFilters.value.includeProjected) count++
   return count
@@ -121,6 +121,7 @@ const handlePeriodChange = (period: TimePeriod) => {
 
 // Handle multi-select changes
 const toggleMatter = (matterId: string) => {
+  if (!localFilters.value.matterIds) localFilters.value.matterIds = []
   const index = localFilters.value.matterIds.indexOf(matterId)
   if (index > -1) {
     localFilters.value.matterIds.splice(index, 1)
@@ -131,6 +132,7 @@ const toggleMatter = (matterId: string) => {
 }
 
 const toggleLawyer = (lawyerId: string) => {
+  if (!localFilters.value.lawyerIds) localFilters.value.lawyerIds = []
   const index = localFilters.value.lawyerIds.indexOf(lawyerId)
   if (index > -1) {
     localFilters.value.lawyerIds.splice(index, 1)
@@ -141,6 +143,7 @@ const toggleLawyer = (lawyerId: string) => {
 }
 
 const toggleCategory = (category: string) => {
+  if (!localFilters.value.categories) localFilters.value.categories = []
   const index = localFilters.value.categories.indexOf(category)
   if (index > -1) {
     localFilters.value.categories.splice(index, 1)
@@ -161,15 +164,17 @@ watch(() => props.filters, (newFilters) => {
 }, { deep: true })
 
 // Format date for input
-const formatDateForInput = (date: Date | undefined): string => {
+const formatDateForInput = (date: Date | string | undefined): string => {
   if (!date) return ''
+  if (typeof date === 'string') return date
   return date.toISOString().split('T')[0]
 }
 
 // Parse date from input
-const parseDateFromInput = (dateString: string): Date | undefined => {
+const parseDateFromInput = (dateString: string): string | undefined => {
   if (!dateString) return undefined
-  return new Date(dateString)
+  // Always return string to match FinancialFilters type
+  return dateString
 }
 </script>
 
@@ -255,7 +260,7 @@ const parseDateFromInput = (dateString: string): Date | undefined => {
               <input
                 id="start-date"
                 type="date"
-                :value="formatDateForInput(localFilters.startDate)"
+                :value="formatDateForInput(localFilters.startDate) || ''"
                 @input="localFilters.startDate = parseDateFromInput(($event.target as HTMLInputElement).value); applyFilters()"
                 class="form-input"
               />
@@ -267,7 +272,7 @@ const parseDateFromInput = (dateString: string): Date | undefined => {
               <input
                 id="end-date"
                 type="date"
-                :value="formatDateForInput(localFilters.endDate)"
+                :value="formatDateForInput(localFilters.endDate) || ''"
                 @input="localFilters.endDate = parseDateFromInput(($event.target as HTMLInputElement).value); applyFilters()"
                 class="form-input"
               />
@@ -297,7 +302,7 @@ const parseDateFromInput = (dateString: string): Date | undefined => {
             <h4 class="filter-section-title">
               <Building class="w-4 h-4" />
               Matters
-              <Badge v-if="localFilters.matterIds.length > 0" variant="secondary" class="text-xs">
+              <Badge v-if="localFilters.matterIds && localFilters.matterIds.length > 0" variant="secondary" class="text-xs">
                 {{ localFilters.matterIds.length }} selected
               </Badge>
             </h4>
@@ -310,7 +315,7 @@ const parseDateFromInput = (dateString: string): Date | undefined => {
               >
                 <Checkbox
                   :id="`matter-${matter.id}`"
-                  :checked="localFilters.matterIds.includes(matter.id)"
+                  :checked="localFilters.matterIds?.includes(matter.id) || false"
                   @update:checked="toggleMatter(matter.id)"
                 />
                 <label
@@ -328,7 +333,7 @@ const parseDateFromInput = (dateString: string): Date | undefined => {
             <h4 class="filter-section-title">
               <Users class="w-4 h-4" />
               Lawyers
-              <Badge v-if="localFilters.lawyerIds.length > 0" variant="secondary" class="text-xs">
+              <Badge v-if="localFilters.lawyerIds && localFilters.lawyerIds.length > 0" variant="secondary" class="text-xs">
                 {{ localFilters.lawyerIds.length }} selected
               </Badge>
             </h4>
@@ -341,7 +346,7 @@ const parseDateFromInput = (dateString: string): Date | undefined => {
               >
                 <Checkbox
                   :id="`lawyer-${lawyer.id}`"
-                  :checked="localFilters.lawyerIds.includes(lawyer.id)"
+                  :checked="localFilters.lawyerIds?.includes(lawyer.id)"
                   @update:checked="toggleLawyer(lawyer.id)"
                 />
                 <label
@@ -359,7 +364,7 @@ const parseDateFromInput = (dateString: string): Date | undefined => {
             <h4 class="filter-section-title">
               <Tag class="w-4 h-4" />
               Categories
-              <Badge v-if="localFilters.categories.length > 0" variant="secondary" class="text-xs">
+              <Badge v-if="localFilters.categories && localFilters.categories.length > 0" variant="secondary" class="text-xs">
                 {{ localFilters.categories.length }} selected
               </Badge>
             </h4>
@@ -372,7 +377,7 @@ const parseDateFromInput = (dateString: string): Date | undefined => {
               >
                 <Checkbox
                   :id="`category-${category}`"
-                  :checked="localFilters.categories.includes(category)"
+                  :checked="localFilters.categories?.includes(category)"
                   @update:checked="toggleCategory(category)"
                 />
                 <label

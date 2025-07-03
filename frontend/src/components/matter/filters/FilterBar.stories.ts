@@ -72,10 +72,10 @@ export const Default: Story = {
     loading: false,
     collapsible: true
   },
-  render: (args) => ({
+  render: (args: any) => ({
     components: { FilterBar },
     setup() {
-      const filterState = ref(args.modelValue)
+      const filterState = ref(args.modelValue || defaultFilterState)
       
       const handleFilterChange = (newState: FilterState) => {
         filterState.value = newState
@@ -191,10 +191,10 @@ export const InteractiveDemo: Story = {
     loading: false,
     collapsible: true
   },
-  render: (args) => ({
+  render: (args: any) => ({
     components: { FilterBar },
     setup() {
-      const filterState = ref(args.modelValue)
+      const filterState = ref(args.modelValue || defaultFilterState)
       const resultCount = ref(156)
       
       const handleFilterChange = (newState: FilterState) => {

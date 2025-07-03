@@ -348,12 +348,12 @@ export function useFinancialMetrics(options: UseFinancialMetricsOptions = {}) {
     }
   }
 
-  const exportAsCSV = (data: any): void => {
+  const exportAsCSV = (data: { metrics: FinancialMetrics }): void => {
     const csvContent = convertToCSV(data.metrics)
     downloadFile(csvContent, 'financial-metrics.csv', 'text/csv')
   }
 
-  const exportAsJSON = (data: any): void => {
+  const exportAsJSON = (data: { metrics: FinancialMetrics }): void => {
     const jsonContent = JSON.stringify(data, null, 2)
     downloadFile(jsonContent, 'financial-metrics.json', 'application/json')
   }

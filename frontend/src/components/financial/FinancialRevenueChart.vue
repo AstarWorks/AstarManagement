@@ -12,6 +12,7 @@ import {
   LinearScale,
   Filler
 } from 'chart.js'
+import type { TooltipContext } from '~/types/chart'
 
 // Register Chart.js components
 ChartJS.register(
@@ -109,7 +110,7 @@ const chartData = computed(() => {
       pointRadius: 4,
       pointHoverRadius: 6,
       tension: 0.4,
-      fill: 'origin' as const
+      fill: false as const
     })
   }
 
@@ -159,17 +160,17 @@ const chartOptions = computed(() => ({
       cornerRadius: 8,
       padding: 12,
       callbacks: {
-        title: (context: any) => {
+        title: (context: TooltipContext[]) => {
           const dataIndex = context[0].dataIndex
           const monthData = props.data[dataIndex]
           return `${monthData.month} ${new Date(monthData.date).getFullYear()}`
         },
-        label: (context: any) => {
+        label: (context: TooltipContext) => {
           const label = context.dataset.label || ''
           const value = context.parsed.y || 0
           return `${label}: ¥${value.toLocaleString('ja-JP')}`
         },
-        afterBody: (context: any) => {
+        afterBody: (context: TooltipContext[]) => {
           const dataIndex = context[0].dataIndex
           const monthData = props.data[dataIndex]
           const profitMargin = ((monthData.profit / monthData.revenue) * 100).toFixed(1)
@@ -190,7 +191,7 @@ const chartOptions = computed(() => ({
         text: 'Month',
         font: {
           size: 12,
-          weight: 'bold'
+          weight: 'bold' as const
         }
       },
       grid: {
@@ -204,15 +205,16 @@ const chartOptions = computed(() => ({
         text: 'Amount (¥)',
         font: {
           size: 12,
-          weight: 'bold'
+          weight: 'bold' as const
         }
       },
       beginAtZero: true,
       grid: {
+        display: true,
         color: 'rgba(0, 0, 0, 0.1)'
       },
       ticks: {
-        callback: (value: any) => {
+        callback: (value: string | number) => {
           return '¥' + Number(value).toLocaleString('ja-JP')
         }
       }

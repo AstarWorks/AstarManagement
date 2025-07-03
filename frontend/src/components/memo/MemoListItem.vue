@@ -413,7 +413,7 @@ const highlightText = (text: string, searchTerms: string[] = []) => {
 }
 
 .tags-count {
-  @apply text-xs;
+  font-size: 0.75rem; line-height: 1rem;
 }
 
 .item-recipient {
@@ -445,7 +445,7 @@ const highlightText = (text: string, searchTerms: string[] = []) => {
 }
 
 .status-badge {
-  @apply text-xs;
+  font-size: 0.75rem; line-height: 1rem;
 }
 
 .item-date {
@@ -527,7 +527,7 @@ const highlightText = (text: string, searchTerms: string[] = []) => {
   }
   
   .date-primary {
-    @apply text-xs;
+    font-size: 0.75rem; line-height: 1rem;
   }
 }
 </style>

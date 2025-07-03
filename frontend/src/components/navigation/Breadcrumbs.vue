@@ -112,7 +112,7 @@ const breadcrumbs = computed(() =>
   
   .breadcrumb-link,
   .breadcrumb-current {
-    @apply text-xs;
+    font-size: 0.75rem; line-height: 1rem;
   }
   
   /* Hide intermediate items on very small screens */

@@ -27,7 +27,7 @@ export default defineNuxtConfig({
         output: {
           manualChunks: {
             'vendor': ['vue', 'vue-router'],
-            'ui': ['@radix-ui/vue-accordion', '@radix-ui/vue-alert-dialog'],
+            'ui': ['radix-vue'],
             'utils': ['date-fns', 'clsx', 'tailwind-merge']
           }
         }

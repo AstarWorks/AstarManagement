@@ -10,6 +10,7 @@ import {
   CategoryScale,
   LinearScale
 } from 'chart.js'
+import type { TooltipContext, LegendContext } from '~/types/chart'
 
 // Register Chart.js components
 ChartJS.register(Title, Tooltip, Legend, ArcElement, CategoryScale, LinearScale)
@@ -83,7 +84,7 @@ const chartOptions = computed(() => ({
         font: {
           size: 12
         },
-        generateLabels: (chart: any) => {
+        generateLabels: (chart: LegendContext) => {
           const data = chart.data
           return data.labels.map((label: string, index: number) => ({
             text: label,
@@ -101,7 +102,7 @@ const chartOptions = computed(() => ({
       text: props.title,
       font: {
         size: 14,
-        weight: 'bold'
+        weight: 'bold' as const
       },
       padding: {
         bottom: 20
@@ -116,15 +117,15 @@ const chartOptions = computed(() => ({
       cornerRadius: 8,
       padding: 12,
       callbacks: {
-        label: (context: any) => {
+        label: (context: TooltipContext) => {
           const label = context.label || ''
-          const value = context.parsed || 0
+          const value = Number(context.parsed) || 0
           const total = context.dataset.data.reduce((sum: number, val: number) => sum + val, 0)
           const percentage = ((value / total) * 100).toFixed(1)
           
           return [
             `${label}`,
-            `¥${value.toLocaleString('ja-JP')}`,
+            `¥${Number(value).toLocaleString('ja-JP')}`,
             `${percentage}% of total`
           ]
         }
@@ -135,7 +136,7 @@ const chartOptions = computed(() => ({
     animateRotate: true,
     animateScale: true,
     duration: 1000,
-    easing: 'easeOutQuart'
+    easing: 'easeOutQuart' as const
   },
   elements: {
     arc: {

@@ -71,25 +71,29 @@ export function useCamera() {
         stopCamera()
       }
 
-      // Build constraints
-      const constraints: MediaStreamConstraints = {
-        video: {
-          facingMode: options.facingMode || 'environment',
-          width: { ideal: options.width || 1920 },
-          height: { ideal: options.height || 1080 }
-        },
-        audio: false
+      // Build base video constraints
+      const baseVideoConstraints: MediaTrackConstraints = {
+        facingMode: options.facingMode || 'environment',
+        width: { ideal: options.width || 1920 },
+        height: { ideal: options.height || 1080 }
       }
 
-      // If specific camera is requested
+      // If specific camera is requested, add device ID
+      let videoConstraints: MediaTrackConstraints = baseVideoConstraints
       if (currentCamera.value && availableCameras.value.length > 0) {
         const camera = availableCameras.value.find(c => c.deviceId === currentCamera.value)
         if (camera) {
-          constraints.video = {
-            ...constraints.video,
+          videoConstraints = {
+            ...baseVideoConstraints,
             deviceId: { exact: camera.deviceId }
           }
         }
+      }
+
+      // Build final constraints
+      const constraints: MediaStreamConstraints = {
+        video: videoConstraints,
+        audio: false
       }
 
       console.log('Requesting camera access with constraints:', constraints)

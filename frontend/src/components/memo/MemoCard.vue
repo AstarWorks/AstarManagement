@@ -418,7 +418,7 @@ const highlightText = (text: string, searchTerms: string[] = []) => {
 }
 
 .status-badge {
-  @apply text-xs;
+  font-size: 0.75rem; line-height: 1rem;
 }
 
 .header-bottom {
@@ -458,7 +458,7 @@ const highlightText = (text: string, searchTerms: string[] = []) => {
 }
 
 .tag-badge {
-  @apply text-xs;
+  font-size: 0.75rem; line-height: 1rem;
 }
 
 .more-tags {
@@ -470,7 +470,7 @@ const highlightText = (text: string, searchTerms: string[] = []) => {
 }
 
 .action-button {
-  @apply text-xs;
+  font-size: 0.75rem; line-height: 1rem;
 }
 
 /* Mobile responsiveness */

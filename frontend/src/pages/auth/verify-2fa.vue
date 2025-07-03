@@ -169,7 +169,7 @@ watch(() => authStore.pendingTwoFactor, (pending) => {
 /* Responsive adjustments */
 @media (max-width: 640px) {
   .help-section {
-    @apply text-xs;
+    font-size: 0.75rem; line-height: 1rem;
   }
   
   .security-notice {

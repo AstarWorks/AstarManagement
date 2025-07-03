@@ -30,11 +30,30 @@ useSeoMeta({
 })
 
 // Composables - temporary mock implementation
-const metrics = ref(null)
+const metrics = ref({
+  budgetUtilizationPercentage: 75,
+  profitMargin: 25,
+  billableHours: 150,
+  nonBillableHours: 30,
+  monthlyTrends: [],
+  totalRevenue: 1000000,
+  totalExpenses: 750000,
+  expensesByCategory: {},
+  budgetsByCategory: {},
+  averageHourlyRate: 18500,
+  expensesByMatter: {}
+})
 const loading = ref(false)
 const error = ref(null)
-const kpis = ref([])
-const updateFilters = async (newFilters: any) => {}
+const kpis = ref([{
+  id: 'test',
+  title: 'Test KPI',
+  value: 100,
+  formattedValue: '¥100',
+  icon: 'DollarSign',
+  color: 'text-green-500'
+}])
+const updateFilters = async (newFilters: FinancialFilters) => {}
 const exportData = async (format: string) => {}
 
 // Page state

@@ -12,6 +12,7 @@ import {
   LinearScale,
   Filler
 } from 'chart.js'
+import type { TooltipContext } from '~/types/chart'
 
 // Register Chart.js components
 ChartJS.register(
@@ -139,7 +140,7 @@ const chartOptions = computed(() => ({
       text: props.title,
       font: {
         size: 16,
-        weight: 'bold'
+        weight: 'bold' as const
       },
       padding: {
         bottom: 30
@@ -155,17 +156,17 @@ const chartOptions = computed(() => ({
       padding: 16,
       displayColors: true,
       callbacks: {
-        title: (context: any) => {
+        title: (context: TooltipContext[]) => {
           const dataIndex = context[0].dataIndex
           const monthData = props.data[dataIndex]
           return `${monthData.month} ${new Date(monthData.date).getFullYear()}`
         },
-        label: (context: any) => {
+        label: (context: TooltipContext) => {
           const label = context.dataset.label || ''
           const value = context.parsed.y || 0
           return `${label}: ¥${value.toLocaleString('ja-JP')}`
         },
-        afterBody: (context: any) => {
+        afterBody: (context: TooltipContext[]) => {
           const dataIndex = context[0].dataIndex
           const monthData = props.data[dataIndex]
           const profitMargin = ((monthData.profit / monthData.revenue) * 100).toFixed(1)
@@ -189,7 +190,7 @@ const chartOptions = computed(() => ({
         text: 'Month',
         font: {
           size: 14,
-          weight: 'bold'
+          weight: 'bold' as const
         }
       },
       grid: {
@@ -208,7 +209,7 @@ const chartOptions = computed(() => ({
         text: 'Amount (¥)',
         font: {
           size: 14,
-          weight: 'bold'
+          weight: 'bold' as const
         }
       },
       beginAtZero: true,
@@ -219,7 +220,7 @@ const chartOptions = computed(() => ({
         font: {
           size: 12
         },
-        callback: (value: any) => {
+        callback: (value: string | number) => {
           return '¥' + Number(value).toLocaleString('ja-JP')
         }
       }

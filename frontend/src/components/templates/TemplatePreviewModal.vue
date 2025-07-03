@@ -319,7 +319,7 @@ onUnmounted(() => {
 }
 
 .meta-text {
-  @apply text-xs;
+  font-size: 0.75rem; line-height: 1rem;
 }
 
 .header-actions {

@@ -660,7 +660,8 @@ const formatDate = (dateString: string) => {
 
 /* Animation for chevron rotation */
 .rotate-180 {
-  @apply transform rotate-180 transition-transform duration-200;
+  transform: rotate(180deg);
+  transition: transform 200ms;
 }
 
 /* Mobile responsiveness */

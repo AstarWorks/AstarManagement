@@ -339,7 +339,7 @@ const formatDate = (date: Date) => {
 }
 
 .note-category .badge {
-  @apply text-xs;
+  font-size: 0.75rem; line-height: 1rem;
 }
 
 .note-date {

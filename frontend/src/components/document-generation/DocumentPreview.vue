@@ -488,7 +488,7 @@ onUnmounted(() => {
 }
 
 .document-content {
-  @apply prose prose-sm max-w-none;
+  @apply text-sm max-w-none;
   /* Legal document styling */
   font-family: 'Times New Roman', serif;
   line-height: 1.6;

@@ -3,6 +3,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { Download, FileText, Database, FileImage, Settings, Eye, X, CheckCircle, AlertCircle, Clock, RotateCcw } from 'lucide-vue-next'
 import type { FinancialFilters } from '~/types/financial'
 import type { ExportOptions } from '~/composables/useFinancialExport'
+import type { ExportQueueItem, CurrentExport } from '~/types/chart'
 
 /**
  * Financial Export Dialog Component
@@ -31,23 +32,25 @@ const emit = defineEmits<{
   export: [format: string, options: ExportOptions]
 }>()
 
-// Composables - temporary mock implementation
-const isExporting = ref(false)
-const exportQueue = ref<any[]>([])
-const currentExport = ref<any>(null)
-const hasActiveExports = computed(() => false)
-const completedExports = computed(() => [])
-const failedExports = computed(() => [])
-const exportAsCSV = async () => {}
-const exportAsJSON = async () => {}
-const exportAsPDF = async () => {}
-const exportMultiple = async () => {}
-const generatePreview = async () => ({ estimatedSize: '1MB', recordCount: 100, categories: 5, matters: 10, timeRange: 'month' })
-const retryExport = async (id: string) => {}
-const removeExport = (id: string) => {}
-const clearCompleted = () => {}
-const clearFailed = () => {}
-const formatFileSize = (bytes: number) => `${bytes} bytes`
+// Import and use the enhanced financial export composable
+const {
+  isExporting,
+  exportQueue,
+  currentExport,
+  hasActiveExports,
+  completedExports,
+  failedExports,
+  exportAsCSV,
+  exportAsJSON,
+  exportAsPDF,
+  exportMultiple,
+  generatePreview,
+  retryExport,
+  removeExport,
+  clearCompleted,
+  clearFailed,
+  formatFileSize
+} = useFinancialExport()
 
 // Local state
 const selectedFormat = ref<'csv' | 'json' | 'pdf' | 'multiple'>('csv')
@@ -119,7 +122,7 @@ const canExport = computed(() =>
 
 const queueSummary = computed(() => ({
   total: exportQueue.value.length,
-  active: exportQueue.value.filter((exp: any) => exp.status === 'pending' || exp.status === 'processing').length,
+  active: exportQueue.value.filter((exp: ExportQueueItem) => exp.status === 'pending' || exp.status === 'processing').length,
   completed: completedExports.value.length,
   failed: failedExports.value.length
 }))
@@ -133,7 +136,7 @@ const updateFormatDefaults = () => {
   }
 }
 
-const toggleFormat = (format: any) => {
+const toggleFormat = (format: 'csv' | 'json' | 'pdf') => {
   const index = selectedFormats.value.indexOf(format)
   if (index > -1) {
     selectedFormats.value.splice(index, 1)
@@ -148,26 +151,30 @@ const loadPreview = async () => {
     preview.value = await generatePreview(props.filters)
   } catch (err) {
     console.error('Failed to load preview:', err)
+    preview.value = null
   }
 }
 
 const handleExport = async () => {
   try {
+    let downloadUrl: string | null = null
+    
     if (selectedFormat.value === 'multiple') {
-      await exportMultiple(selectedFormats.value, props.filters, exportOptions.value)
+      // Export multiple formats
+      const urls = await exportMultiple(
+        selectedFormats.value,
+        props.filters,
+        exportOptions.value
+      )
+      downloadUrl = urls[0] || null
     } else {
-      const format = selectedFormat.value
-      
-      switch (format) {
-        case 'csv':
-          await exportAsCSV(props.filters, exportOptions.value)
-          break
-        case 'json':
-          await exportAsJSON(props.filters, exportOptions.value)
-          break
-        case 'pdf':
-          await exportAsPDF(props.filters, exportOptions.value)
-          break
+      // Export single format
+      if (selectedFormat.value === 'csv') {
+        downloadUrl = await exportAsCSV(props.filters, exportOptions.value)
+      } else if (selectedFormat.value === 'json') {
+        downloadUrl = await exportAsJSON(props.filters, exportOptions.value)
+      } else if (selectedFormat.value === 'pdf') {
+        downloadUrl = await exportAsPDF(props.filters, exportOptions.value)
       }
     }
     
@@ -175,15 +182,20 @@ const handleExport = async () => {
     
     // Show queue after export
     showQueue.value = true
+    
+    if (downloadUrl) {
+      console.log('Export completed successfully')
+    }
   } catch (err) {
     console.error('Export failed:', err)
+    // Error is already handled by the composable
   }
 }
 
 const generateFilename = () => {
   const date = new Date().toISOString().split('T')[0]
   const period = props.filters.period
-  const format = selectedFormat.value === 'multiple' ? 'package' : selectedFormat.value
+  const format = selectedFormat.value === 'multiple' ? 'package' : selectedFormat.value as string
   
   customFilename.value = `financial-report-${period}-${date}.${format}`
 }
@@ -203,6 +215,12 @@ const getStatusColor = (status: string) => {
     case 'failed': return 'text-red-600'
     case 'processing': return 'text-blue-600'
     default: return 'text-gray-600'
+  }
+}
+
+const handleDownload = (url: string) => {
+  if (typeof window !== 'undefined') {
+    window.open(url, '_blank')
   }
 }
 
@@ -248,7 +266,7 @@ onMounted(() => {
                 <div
                   v-for="option in formatOptions"
                   :key="option.value"
-                  @click="selectedFormat = option.value"
+                  @click="selectedFormat = option.value as 'csv' | 'json' | 'pdf' | 'multiple'"
                   class="format-option"
                   :class="{ 'selected': selectedFormat === option.value }"
                 >
@@ -279,10 +297,10 @@ onMounted(() => {
                     class="flex items-center gap-2 cursor-pointer"
                   >
                     <Checkbox
-                      :checked="selectedFormats.includes(format)"
-                      @update:checked="toggleFormat(format)"
+                      :checked="selectedFormats.includes(format as 'csv' | 'json' | 'pdf')"
+                      @update:checked="() => toggleFormat(format as 'csv' | 'json' | 'pdf')"
                     />
-                    <span class="text-sm font-medium">{{ format.toUpperCase() }}</span>
+                    <span class="text-sm font-medium">{{ (format as string).toUpperCase() }}</span>
                   </label>
                 </div>
               </div>
@@ -495,7 +513,7 @@ onMounted(() => {
                       v-if="exportItem.status === 'completed' && exportItem.downloadUrl"
                       variant="ghost"
                       size="sm"
-                      @click="window.open(exportItem.downloadUrl, '_blank')"
+                      @click="() => exportItem.downloadUrl && handleDownload(exportItem.downloadUrl)"
                     >
                       <Download class="w-3 h-3" />
                     </Button>

@@ -354,7 +354,8 @@ const handleCommunicationAction = (action: string, communicationId: string) => {
   }
   
   .communication-card .text-xs {
-    @apply text-xs;
+    font-size: 0.75rem;
+    line-height: 1rem;
   }
 }
 

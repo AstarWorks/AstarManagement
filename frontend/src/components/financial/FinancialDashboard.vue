@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import { RefreshCw, Download, Settings, Filter } from 'lucide-vue-next'
 import type { FinancialMetrics, FinancialFilters, TimePeriod } from '~/types/financial'
 

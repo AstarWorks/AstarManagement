@@ -1,5 +1,5 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import type { AdvancedDataTableColumn } from '~/components/matter/DataTableAdvanced.vue'
+import type { AdvancedDataTableColumn } from '~/types/table'
 
 export interface ColumnResizeOptions {
   minWidth?: number
@@ -160,7 +160,7 @@ export function useColumnResize<T>(
 
     try {
       // Measure header width
-      measureElement.textContent = column.header
+      measureElement.textContent = column.header || column.title || ''
       maxWidth = Math.max(maxWidth, measureElement.offsetWidth)
 
       // Measure cell content widths (sample first 100 rows for performance)

@@ -15,7 +15,7 @@ import {
   type PaginationState,
   type RowSelectionState
 } from '@tanstack/vue-table'
-import { ArrowUpDown, ChevronDown, Settings2, Download, FileText, Printer } from 'lucide-vue-next'
+import { ArrowUpDown, ChevronDown, Settings2, Download, FileText, Printer, MessageSquare, FileCheck, GripVertical, Users, Filter } from 'lucide-vue-next'
 import { Button } from '~/components/ui/button'
 import {
   DropdownMenu,
@@ -26,12 +26,20 @@ import {
 } from '~/components/ui/dropdown-menu'
 import { Badge } from '~/components/ui/badge'
 import { Checkbox } from '~/components/ui/checkbox'
+import { Slider } from '~/components/ui/slider'
+import { Input } from '~/components/ui/input'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '~/components/ui/popover'
 import { useKanbanStore } from '~/stores/kanban'
 import { storeToRefs } from 'pinia'
 import type { Matter, MatterStatus, MatterPriority } from '~/types/matter'
 import { formatDate } from '~/utils/formatters'
 import EditableCell from './EditableCell.vue'
 import BulkActionToolbar from '../BulkActionToolbar.vue'
+import draggable from 'vuedraggable'
 
 interface Props {
   density?: 'compact' | 'comfortable' | 'spacious'
@@ -161,6 +169,10 @@ const validateFieldValue = async (field: keyof Matter, value: any, matter: Matte
       return ['LOW', 'MEDIUM', 'HIGH', 'URGENT'].includes(value)
     case 'dueDate':
       return !value || !isNaN(new Date(value).getTime())
+    case 'progressPercentage':
+      return typeof value === 'number' && value >= 0 && value <= 100 && value % 5 === 0
+    case 'assignee':
+      return Array.isArray(value) && value.every(id => typeof id === 'string')
     default:
       return true
   }
@@ -243,7 +255,110 @@ const navigateToNextRow = (rowIndex: number, columnIndex: number, direction: num
 
 // Check if column is editable
 const isEditableColumn = (columnId: string): boolean => {
-  return ['title', 'clientName', 'status', 'priority', 'dueDate'].includes(columnId)
+  return ['title', 'clientName', 'status', 'priority', 'dueDate', 'progressPercentage', 'assignee'].includes(columnId)
+}
+
+// Column filtering state
+const columnFiltersOpen = ref<Record<string, boolean>>({})
+const progressFilter = ref<number[]>([0, 100])
+const clientFilter = ref('')
+const statusFilter = ref<string[]>([])
+const priorityFilter = ref<string[]>([])
+const assigneeFilter = ref<string[]>([])
+
+// Column ordering state
+const isReorderingColumns = ref(false)
+const columnOrder = ref<string[]>([
+  'select',
+  'caseNumber', 
+  'title',
+  'clientName',
+  'status',
+  'priority',
+  'progressPercentage',
+  'assignee',
+  'dueDate',
+  'relatedDocuments',
+  'comments',
+  'updatedAt'
+])
+
+// Load saved column order
+onMounted(() => {
+  const savedOrder = localStorage.getItem('matter-table-column-order')
+  if (savedOrder) {
+    columnOrder.value = JSON.parse(savedOrder)
+  }
+})
+
+// Save column order
+watch(columnOrder, (newOrder) => {
+  localStorage.setItem('matter-table-column-order', JSON.stringify(newOrder))
+}, { deep: true })
+
+// Progress slider update handler
+const updateProgress = async (rowId: string, value: number[]) => {
+  const matter = matters.value.find(m => m.id === rowId)
+  if (!matter) return
+  
+  const progressValue = value[0]
+  await saveInlineEdit(rowId, 'progressPercentage', progressValue)
+}
+
+// Multi-select assignee handler
+const updateAssignee = async (rowId: string, assigneeIds: string[]) => {
+  const matter = matters.value.find(m => m.id === rowId)
+  if (!matter) return
+  
+  await saveInlineEdit(rowId, 'assignee', assigneeIds)
+}
+
+// Toggle column filter dropdown
+const toggleColumnFilter = (columnId: string) => {
+  columnFiltersOpen.value[columnId] = !columnFiltersOpen.value[columnId]
+}
+
+// Apply column-specific filters
+const applyColumnFilter = (columnId: string, value: any) => {
+  const existingFilter = columnFilters.value.find(f => f.id === columnId)
+  
+  if (existingFilter) {
+    existingFilter.value = value
+  } else {
+    columnFilters.value.push({ id: columnId, value })
+  }
+}
+
+// Clear column filter
+const clearColumnFilter = (columnId: string) => {
+  columnFilters.value = columnFilters.value.filter(f => f.id !== columnId)
+  columnFiltersOpen.value[columnId] = false
+}
+
+// Get available assignees (mock data for now)
+const availableAssignees = computed(() => [
+  { id: '1', name: 'John Doe' },
+  { id: '2', name: 'Jane Smith' },
+  { id: '3', name: 'Mike Johnson' },
+  { id: '4', name: 'Sarah Wilson' }
+])
+
+// Get matter comments count (mock for now)
+const getCommentsCount = (matterId: string): number => {
+  // In real implementation, this would come from the store or API
+  return Math.floor(Math.random() * 10)
+}
+
+// Handle related documents navigation
+const navigateToDocuments = (matterId: string) => {
+  // Navigate to documents page for this matter
+  navigateTo(`/matters/${matterId}/documents`)
+}
+
+// Handle comments navigation
+const navigateToComments = (matterId: string) => {
+  // Navigate to comments view for this matter
+  navigateTo(`/matters/${matterId}/comments`)
 }
 
 // Get cell editing state
@@ -256,10 +371,10 @@ const getCellEditState = (rowId: string, columnId: string) => {
   }
 }
 
-// Column definitions with inline editing
-const columns = computed(() => [
+// Base column definitions with inline editing
+const baseColumns = computed(() => ({
   // Selection column
-  columnHelper.display({
+  select: columnHelper.display({
     id: 'select',
     header: ({ table }) => h(
       Checkbox,
@@ -280,7 +395,7 @@ const columns = computed(() => [
   }),
   
   // Matter Number - editable
-  columnHelper.accessor('caseNumber', {
+  caseNumber: columnHelper.accessor('caseNumber', {
     header: ({ column }) => h(
       Button,
       {
@@ -313,7 +428,7 @@ const columns = computed(() => [
   }),
   
   // Title - editable
-  columnHelper.accessor('title', {
+  title: columnHelper.accessor('title', {
     header: ({ column }) => h(
       Button,
       {
@@ -346,7 +461,7 @@ const columns = computed(() => [
   }),
   
   // Client - editable
-  columnHelper.accessor('clientName', {
+  clientName: columnHelper.accessor('clientName', {
     header: ({ column }) => h(
       Button,
       {
@@ -378,7 +493,7 @@ const columns = computed(() => [
   }),
   
   // Status - editable
-  columnHelper.accessor('status', {
+  status: columnHelper.accessor('status', {
     header: ({ column }) => h(
       Button,
       {
@@ -409,18 +524,98 @@ const columns = computed(() => [
     size: 140,
   }),
   
-  // Priority - editable
-  columnHelper.accessor('priority', {
+  // Priority - editable with column filter
+  priority: columnHelper.accessor('priority', {
     header: ({ column }) => h(
-      Button,
-      {
-        variant: 'ghost',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-        class: 'h-8 p-0 font-medium'
-      },
-      () => [
-        'Priority',
-        h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })
+      'div',
+      { class: 'flex items-center justify-between w-full' },
+      [
+        h(
+          Button,
+          {
+            variant: 'ghost',
+            onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
+            class: 'h-8 p-0 font-medium flex-1 justify-start'
+          },
+          () => [
+            'Priority',
+            h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })
+          ]
+        ),
+        h(
+          Popover,
+          {
+            open: columnFiltersOpen.value['priority'],
+            'onUpdate:open': (open: boolean) => columnFiltersOpen.value['priority'] = open
+          },
+          {
+            default: () => [
+              h(
+                PopoverTrigger,
+                { asChild: true },
+                {
+                  default: () => h(
+                    Button,
+                    {
+                      variant: 'ghost',
+                      size: 'sm',
+                      class: 'h-6 w-6 p-0',
+                      onClick: () => toggleColumnFilter('priority')
+                    },
+                    () => h(Filter, { class: 'h-3 w-3' })
+                  )
+                }
+              ),
+              h(
+                PopoverContent,
+                { class: 'w-48' },
+                {
+                  default: () => h(
+                    'div',
+                    { class: 'space-y-2' },
+                    [
+                      h('h4', { class: 'font-medium' }, 'Filter Priority'),
+                      ...['LOW', 'MEDIUM', 'HIGH', 'URGENT'].map(priority =>
+                        h(
+                          'div',
+                          { class: 'flex items-center space-x-2' },
+                          [
+                            h(Checkbox, {
+                              id: `priority-${priority}`,
+                              checked: priorityFilter.value.includes(priority),
+                              'onUpdate:checked': (checked: boolean) => {
+                                if (checked) {
+                                  priorityFilter.value.push(priority)
+                                } else {
+                                  priorityFilter.value = priorityFilter.value.filter(p => p !== priority)
+                                }
+                                applyColumnFilter('priority', priorityFilter.value)
+                              }
+                            }),
+                            h('label', { for: `priority-${priority}`, class: 'text-sm' }, priority)
+                          ]
+                        )
+                      ),
+                      h(
+                        Button,
+                        {
+                          variant: 'outline',
+                          size: 'sm',
+                          class: 'w-full',
+                          onClick: () => {
+                            priorityFilter.value = []
+                            clearColumnFilter('priority')
+                          }
+                        },
+                        'Clear'
+                      )
+                    ]
+                  )
+                }
+              )
+            ]
+          }
+        )
       ]
     ),
     cell: ({ row }) => {
@@ -438,23 +633,387 @@ const columns = computed(() => [
         onEditSave: (value: MatterPriority) => saveInlineEdit(row.id, 'priority', value)
       })
     },
-    size: 100,
+    size: 120,
   }),
   
-  // Assignee - read-only for now
-  columnHelper.display({
-    id: 'assignee',
-    header: 'Assignee',
+  // Progress - editable slider
+  progressPercentage: columnHelper.display({
+    id: 'progressPercentage',
+    header: ({ column }) => h(
+      'div',
+      { class: 'flex items-center justify-between w-full' },
+      [
+        h(
+          Button,
+          {
+            variant: 'ghost',
+            onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
+            class: 'h-8 p-0 font-medium flex-1 justify-start'
+          },
+          () => [
+            'Progress',
+            h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })
+          ]
+        ),
+        h(
+          Popover,
+          {
+            open: columnFiltersOpen.value['progress'],
+            'onUpdate:open': (open: boolean) => columnFiltersOpen.value['progress'] = open
+          },
+          {
+            default: () => [
+              h(
+                PopoverTrigger,
+                { asChild: true },
+                {
+                  default: () => h(
+                    Button,
+                    {
+                      variant: 'ghost',
+                      size: 'sm',
+                      class: 'h-6 w-6 p-0',
+                      onClick: () => toggleColumnFilter('progress')
+                    },
+                    () => h(Filter, { class: 'h-3 w-3' })
+                  )
+                }
+              ),
+              h(
+                PopoverContent,
+                { class: 'w-64' },
+                {
+                  default: () => h(
+                    'div',
+                    { class: 'space-y-4' },
+                    [
+                      h('h4', { class: 'font-medium' }, 'Filter Progress'),
+                      h(
+                        'div',
+                        { class: 'space-y-2' },
+                        [
+                          h('label', { class: 'text-sm' }, `${progressFilter.value[0]}% - ${progressFilter.value[1]}%`),
+                          h(Slider, {
+                            modelValue: progressFilter.value,
+                            'onUpdate:modelValue': (value: number[] | undefined) => {
+                              if (value) {
+                                progressFilter.value = value
+                                applyColumnFilter('progressPercentage', value)
+                              }
+                            },
+                            min: 0,
+                            max: 100,
+                            step: 5,
+                            class: 'w-full'
+                          })
+                        ]
+                      ),
+                      h(
+                        Button,
+                        {
+                          variant: 'outline',
+                          size: 'sm',
+                          class: 'w-full',
+                          onClick: () => {
+                            progressFilter.value = [0, 100]
+                            clearColumnFilter('progress')
+                          }
+                        },
+                        'Clear'
+                      )
+                    ]
+                  )
+                }
+              )
+            ]
+          }
+        )
+      ]
+    ),
     cell: ({ row }) => {
-      const lawyer = row.original.assignedLawyer
-      if (!lawyer) return '-'
-      return typeof lawyer === 'string' ? lawyer : lawyer.name
+      const progress = row.original.progressPercentage || 0
+      const cellState = getCellEditState(row.id, 'progressPercentage')
+      
+      if (cellState.isEditing) {
+        return h(
+          'div',
+          { class: 'flex items-center space-x-2 py-1' },
+          [
+            h(Slider, {
+              modelValue: [progress],
+              'onUpdate:modelValue': (value: number[] | undefined) => {
+                if (value) updateProgress(row.id, value)
+              },
+              min: 0,
+              max: 100,
+              step: 5,
+              class: 'flex-1'
+            }),
+            h('span', { class: 'text-xs w-12 text-right' }, `${progress}%`)
+          ]
+        )
+      }
+      
+      return h(
+        'div',
+        {
+          class: 'flex items-center space-x-2 cursor-pointer',
+          onClick: () => startInlineEdit(row.id, 'progressPercentage')
+        },
+        [
+          h(
+            'div',
+            { class: 'flex-1 bg-secondary rounded-full h-2' },
+            [
+              h(
+                'div',
+                {
+                  class: 'bg-primary h-2 rounded-full transition-all',
+                  style: { width: `${progress}%` }
+                }
+              )
+            ]
+          ),
+          h('span', { class: 'text-xs w-12 text-right' }, `${progress}%`)
+        ]
+      )
+    },
+    size: 150,
+  }),
+  
+  // Assignee - multi-select editable
+  assignee: columnHelper.display({
+    id: 'assignee',
+    header: ({ column }) => h(
+      'div',
+      { class: 'flex items-center justify-between w-full' },
+      [
+        h(
+          Button,
+          {
+            variant: 'ghost',
+            onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
+            class: 'h-8 p-0 font-medium flex-1 justify-start'
+          },
+          () => [
+            'Assignee',
+            h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })
+          ]
+        ),
+        h(
+          Popover,
+          {
+            open: columnFiltersOpen.value['assignee'],
+            'onUpdate:open': (open: boolean) => columnFiltersOpen.value['assignee'] = open
+          },
+          {
+            default: () => [
+              h(
+                PopoverTrigger,
+                { asChild: true },
+                {
+                  default: () => h(
+                    Button,
+                    {
+                      variant: 'ghost',
+                      size: 'sm',
+                      class: 'h-6 w-6 p-0',
+                      onClick: () => toggleColumnFilter('assignee')
+                    },
+                    () => h(Filter, { class: 'h-3 w-3' })
+                  )
+                }
+              ),
+              h(
+                PopoverContent,
+                { class: 'w-48' },
+                {
+                  default: () => h(
+                    'div',
+                    { class: 'space-y-2' },
+                    [
+                      h('h4', { class: 'font-medium' }, 'Filter Assignee'),
+                      ...availableAssignees.value.map(assignee =>
+                        h(
+                          'div',
+                          { class: 'flex items-center space-x-2' },
+                          [
+                            h(Checkbox, {
+                              id: `assignee-${assignee.id}`,
+                              checked: assigneeFilter.value.includes(assignee.id),
+                              'onUpdate:checked': (checked: boolean) => {
+                                if (checked) {
+                                  assigneeFilter.value.push(assignee.id)
+                                } else {
+                                  assigneeFilter.value = assigneeFilter.value.filter(a => a !== assignee.id)
+                                }
+                                applyColumnFilter('assignee', assigneeFilter.value)
+                              }
+                            }),
+                            h('label', { for: `assignee-${assignee.id}`, class: 'text-sm' }, assignee.name)
+                          ]
+                        )
+                      ),
+                      h(
+                        Button,
+                        {
+                          variant: 'outline',
+                          size: 'sm',
+                          class: 'w-full',
+                          onClick: () => {
+                            assigneeFilter.value = []
+                            clearColumnFilter('assignee')
+                          }
+                        },
+                        'Clear'
+                      )
+                    ]
+                  )
+                }
+              )
+            ]
+          }
+        )
+      ]
+    ),
+    cell: ({ row }) => {
+      const assignees = row.original.assignedLawyer ? [row.original.assignedLawyer] : []
+      const cellState = getCellEditState(row.id, 'assignee')
+      
+      if (cellState.isEditing) {
+        return h(
+          'div',
+          { class: 'space-y-1' },
+          [
+            h(
+              Popover,
+              { open: true },
+              {
+                default: () => [
+                  h(
+                    PopoverTrigger,
+                    { asChild: true },
+                    {
+                      default: () => h(
+                        Button,
+                        {
+                          variant: 'outline',
+                          size: 'sm',
+                          class: 'h-8 w-full justify-start'
+                        },
+                        () => [
+                          h(Users, { class: 'h-4 w-4 mr-2' }),
+                          assignees.length > 0 ? `${assignees.length} assigned` : 'Select assignees'
+                        ]
+                      )
+                    }
+                  ),
+                  h(
+                    PopoverContent,
+                    { class: 'w-48' },
+                    {
+                      default: () => h(
+                        'div',
+                        { class: 'space-y-2' },
+                        [
+                          h('h4', { class: 'font-medium' }, 'Select Assignees'),
+                          ...availableAssignees.value.map(assignee =>
+                            h(
+                              'div',
+                              { class: 'flex items-center space-x-2' },
+                              [
+                                h(Checkbox, {
+                                  id: `edit-assignee-${assignee.id}`,
+                                  checked: assignees.some((a: any) => a.id === assignee.id),
+                                  'onUpdate:checked': (checked: boolean) => {
+                                    let newAssignees
+                                    if (checked) {
+                                      newAssignees = [...assignees, assignee]
+                                    } else {
+                                      newAssignees = assignees.filter((a: any) => a.id !== assignee.id)
+                                    }
+                                    updateAssignee(row.id, newAssignees.map((a: any) => a.id))
+                                  }
+                                }),
+                                h('label', { for: `edit-assignee-${assignee.id}`, class: 'text-sm' }, assignee.name)
+                              ]
+                            )
+                          ),
+                          h(
+                            'div',
+                            { class: 'flex gap-2 pt-2' },
+                            [
+                              h(
+                                Button,
+                                {
+                                  variant: 'outline',
+                                  size: 'sm',
+                                  onClick: () => cancelInlineEdit()
+                                },
+                                'Cancel'
+                              ),
+                              h(
+                                Button,
+                                {
+                                  size: 'sm',
+                                  onClick: () => cancelInlineEdit()
+                                },
+                                'Done'
+                              )
+                            ]
+                          )
+                        ]
+                      )
+                    }
+                  )
+                ]
+              }
+            )
+          ]
+        )
+      }
+      
+      if (assignees.length === 0) {
+        return h(
+          'div',
+          {
+            class: 'text-muted-foreground cursor-pointer hover:text-foreground',
+            onClick: () => startInlineEdit(row.id, 'assignee')
+          },
+          'Unassigned'
+        )
+      }
+      
+      if (assignees.length === 1) {
+        const assignee = assignees[0]
+        const name = typeof assignee === 'string' ? assignee : assignee.name
+        return h(
+          'div',
+          {
+            class: 'cursor-pointer hover:bg-muted/50 px-2 py-1 rounded',
+            onClick: () => startInlineEdit(row.id, 'assignee')
+          },
+          name
+        )
+      }
+      
+      return h(
+        'div',
+        {
+          class: 'cursor-pointer hover:bg-muted/50 px-2 py-1 rounded',
+          onClick: () => startInlineEdit(row.id, 'assignee')
+        },
+        [
+          h(Users, { class: 'h-4 w-4 inline mr-1' }),
+          `${assignees.length} assigned`
+        ]
+      )
     },
     size: 150,
   }),
   
   // Due Date - editable
-  columnHelper.accessor('dueDate', {
+  dueDate: columnHelper.accessor('dueDate', {
     header: ({ column }) => h(
       Button,
       {
@@ -485,22 +1044,73 @@ const columns = computed(() => [
     size: 140,
   }),
   
-  // Documents - read-only
-  columnHelper.accessor('relatedDocuments', {
-    header: 'Docs',
+  // Documents - clickable link
+  relatedDocuments: columnHelper.accessor('relatedDocuments', {
+    header: 'Related Docs',
     cell: ({ row }) => {
       const count = (row.getValue('relatedDocuments') as number) || 0
       return h(
         'div',
-        { class: 'text-center' },
-        count > 0 ? count.toString() : '-'
+        { class: 'flex items-center justify-center' },
+        [
+          count > 0 ? h(
+            Button,
+            {
+              variant: 'ghost',
+              size: 'sm',
+              class: 'h-8 px-2 text-primary hover:text-primary/80',
+              onClick: () => navigateToDocuments(row.id)
+            },
+            () => [
+              h(FileCheck, { class: 'h-4 w-4 mr-1' }),
+              count.toString()
+            ]
+          ) : h(
+            'span',
+            { class: 'text-muted-foreground' },
+            '-'
+          )
+        ]
       )
     },
-    size: 80,
+    size: 120,
+  }),
+  
+  // Comments - clickable with count
+  comments: columnHelper.display({
+    id: 'comments',
+    header: 'Comments',
+    cell: ({ row }) => {
+      const count = getCommentsCount(row.id)
+      return h(
+        'div',
+        { class: 'flex items-center justify-center' },
+        [
+          count > 0 ? h(
+            Button,
+            {
+              variant: 'ghost',
+              size: 'sm',
+              class: 'h-8 px-2 text-primary hover:text-primary/80',
+              onClick: () => navigateToComments(row.id)
+            },
+            () => [
+              h(MessageSquare, { class: 'h-4 w-4 mr-1' }),
+              count.toString()
+            ]
+          ) : h(
+            'span',
+            { class: 'text-muted-foreground' },
+            '-'
+          )
+        ]
+      )
+    },
+    size: 100,
   }),
   
   // Updated - read-only
-  columnHelper.accessor('updatedAt', {
+  updatedAt: columnHelper.accessor('updatedAt', {
     header: ({ column }) => h(
       Button,
       {
@@ -516,7 +1126,14 @@ const columns = computed(() => [
     cell: ({ row }) => formatDate(row.getValue('updatedAt')),
     size: 120,
   }),
-])
+}))
+
+// Ordered columns based on column order
+const columns = computed(() => 
+  columnOrder.value
+    .filter(id => baseColumns.value[id as keyof typeof baseColumns.value])
+    .map(id => baseColumns.value[id as keyof typeof baseColumns.value])
+)
 
 // Create table instance
 const table = computed(() =>
@@ -614,6 +1231,25 @@ const selectAll = () => {
   }, {} as RowSelectionState)
   rowSelection.value = allRowIds
 }
+
+// Get column display name for reordering
+const getColumnDisplayName = (columnId: string): string => {
+  const names: Record<string, string> = {
+    select: '☑',
+    caseNumber: 'Matter #',
+    title: 'Title',
+    clientName: 'Client',
+    status: 'Status',
+    priority: 'Priority',
+    progressPercentage: 'Progress',
+    assignee: 'Assignee',
+    dueDate: 'Due Date',
+    relatedDocuments: 'Related Docs',
+    comments: 'Comments',
+    updatedAt: 'Updated'
+  }
+  return names[columnId] || columnId
+}
 </script>
 
 <template>
@@ -683,6 +1319,17 @@ const selectAll = () => {
           Print
         </Button>
 
+        <!-- Column reordering toggle -->
+        <Button 
+          variant="outline" 
+          size="sm"
+          :class="isReorderingColumns ? 'bg-primary/10 text-primary' : ''"
+          @click="isReorderingColumns = !isReorderingColumns"
+        >
+          <GripVertical class="h-4 w-4 mr-2" />
+          {{ isReorderingColumns ? 'Done Reordering' : 'Reorder Columns' }}
+        </Button>
+
         <!-- Column visibility toggle -->
         <DropdownMenu v-if="showColumnVisibility">
           <DropdownMenuTrigger asChild>
@@ -718,21 +1365,62 @@ const selectAll = () => {
         <table class="matter-table">
           <thead>
             <tr v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
-              <th
-                v-for="header in headerGroup.headers"
-                :key="header.id"
-                :style="{ width: `${header.getSize()}px` }"
-                :class="[
-                  'table-header',
-                  header.column.getCanSort() && 'cursor-pointer select-none'
-                ]"
-              >
-                <FlexRender
-                  :render="header.column.columnDef.header"
-                  :props="header.getContext()"
-                  v-if="!header.isPlaceholder"
-                />
-              </th>
+              <template v-if="isReorderingColumns">
+                <!-- Draggable headers for reordering -->
+                <draggable
+                  v-model="columnOrder"
+                  tag="template"
+                  item-key="id"
+                  :component-data="{ tag: 'template' }"
+                  ghost-class="column-ghost"
+                  chosen-class="column-chosen"
+                  drag-class="column-drag"
+                  @start="() => {}"
+                  @end="() => {}"
+                >
+                  <template #item="{ element: columnId }">
+                    <th
+                      v-if="(baseColumns as any)[columnId]"
+                      :key="columnId"
+                      :style="{ width: `${(baseColumns as any)[columnId]?.size || 120}px` }"
+                      :class="[
+                        'table-header',
+                        'cursor-move',
+                        'transition-all duration-200',
+                        'hover:bg-muted/80',
+                        'relative group'
+                      ]"
+                    >
+                      <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                          <GripVertical class="h-4 w-4 text-muted-foreground opacity-50 group-hover:opacity-100" />
+                          <span class="font-medium text-sm">
+                            {{ getColumnDisplayName(columnId) }}
+                          </span>
+                        </div>
+                      </div>
+                    </th>
+                  </template>
+                </draggable>
+              </template>
+              <template v-else>
+                <!-- Normal headers -->
+                <th
+                  v-for="header in headerGroup.headers"
+                  :key="header.id"
+                  :style="{ width: `${header.getSize()}px` }"
+                  :class="[
+                    'table-header',
+                    header.column.getCanSort() && 'cursor-pointer select-none'
+                  ]"
+                >
+                  <FlexRender
+                    :render="header.column.columnDef.header"
+                    :props="header.getContext()"
+                    v-if="!header.isPlaceholder"
+                  />
+                </th>
+              </template>
             </tr>
           </thead>
           <tbody>
@@ -925,5 +1613,27 @@ const selectAll = () => {
 /* Keyboard navigation hints */
 kbd {
   @apply inline-flex items-center px-1.5 py-0.5 text-xs font-mono bg-muted border border-border rounded;
+}
+
+/* Column reordering drag styles */
+.column-ghost {
+  @apply opacity-50 bg-primary/20;
+}
+
+.column-chosen {
+  @apply bg-primary/10 transform scale-105 z-50;
+}
+
+.column-drag {
+  @apply transform rotate-2 shadow-lg opacity-80;
+}
+
+/* Column reordering transition */
+.table-header.cursor-move {
+  @apply transition-all duration-200 ease-in-out;
+}
+
+.table-header.cursor-move:hover {
+  @apply shadow-md transform translateY(-1px);
 }
 </style>

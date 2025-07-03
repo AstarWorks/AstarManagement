@@ -401,7 +401,7 @@ const formatMessageTime = (date: Date) => {
 }
 
 .platform-badge {
-  @apply text-xs;
+  font-size: 0.75rem; line-height: 1rem;
 }
 
 .messages-layout {
@@ -446,7 +446,7 @@ const formatMessageTime = (date: Date) => {
 }
 
 .channel-badge {
-  @apply text-xs;
+  font-size: 0.75rem; line-height: 1rem;
 }
 
 .channel-time {

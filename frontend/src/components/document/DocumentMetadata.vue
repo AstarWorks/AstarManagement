@@ -118,7 +118,7 @@ const getFileTypeLabel = (mimeType: string) => {
 }
 
 .document-metadata.compact .metadata-value {
-  @apply text-xs;
+  font-size: 0.75rem; line-height: 1rem;
 }
 
 /* Mobile responsive */
@@ -128,7 +128,7 @@ const getFileTypeLabel = (mimeType: string) => {
   }
   
   .metadata-value {
-    @apply text-xs;
+    font-size: 0.75rem; line-height: 1rem;
   }
 }
 </style>

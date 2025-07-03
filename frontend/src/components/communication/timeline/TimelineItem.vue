@@ -294,7 +294,7 @@ const addNote = () => {
 }
 
 .type-badge {
-  @apply text-xs;
+  font-size: 0.75rem; line-height: 1rem;
 }
 
 .importance-indicator {
@@ -387,7 +387,7 @@ const addNote = () => {
 }
 
 .tag-badge {
-  @apply text-xs;
+  font-size: 0.75rem; line-height: 1rem;
 }
 
 .timeline-footer {

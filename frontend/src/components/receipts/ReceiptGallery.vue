@@ -381,7 +381,7 @@ onMounted(() => {
                 <SelectValue placeholder="All statuses" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem :value="undefined">All statuses</SelectItem>
+                <SelectItem value="">All statuses</SelectItem>
                 <SelectItem value="PENDING">Pending</SelectItem>
                 <SelectItem value="PROCESSING">Processing</SelectItem>
                 <SelectItem value="COMPLETED">Completed</SelectItem>

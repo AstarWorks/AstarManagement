@@ -225,7 +225,7 @@ export const TabletView: Story = {
 }
 
 export const AccessibilityDemo: Story = {
-  render: (args) => ({
+  render: (args: any) => ({
     components: { MobileKanbanNav },
     setup() {
       const activeColumn = ref('intake')
@@ -233,7 +233,7 @@ export const AccessibilityDemo: Story = {
       
       const handleColumnChange = (columnId: string) => {
         activeColumn.value = columnId
-        const column = args.columns.find(c => c.id === columnId)
+        const column = args.columns?.find((c: any) => c.id === columnId)
         if (column) {
           announcements.value.unshift(`Switched to ${column.title} column with ${column.currentItemCount} matters`)
           if (announcements.value.length > 3) {

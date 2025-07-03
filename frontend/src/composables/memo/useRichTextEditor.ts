@@ -99,7 +99,7 @@ export function useRichTextEditor(options: EditorOptions = {}) {
     content: initialContent,
     editorProps: {
       attributes: {
-        class: 'memo-editor prose prose-sm max-w-none focus:outline-none min-h-[200px] p-4',
+        class: 'memo-editor text-sm max-w-none focus:outline-none min-h-[200px] p-4',
         spellcheck: 'true',
       },
       handleKeyDown: (view, event) => {

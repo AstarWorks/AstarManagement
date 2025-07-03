@@ -2,6 +2,18 @@ import type { Meta, StoryObj } from '@storybook/vue3'
 import { ref } from 'vue'
 import MatterCardEnhanced from './MatterCardEnhanced.vue'
 import type { MatterCard } from '~/types/kanban'
+import type { ViewPreferences } from '~/types/matter'
+
+const defaultViewPreferences: ViewPreferences = {
+  cardSize: 'normal',
+  showAvatars: true,
+  showDueDates: true,
+  showPriority: true,
+  showTags: true,
+  groupBy: 'status',
+  sortBy: 'priority',
+  sortOrder: 'desc'
+}
 
 const meta: Meta<typeof MatterCardEnhanced> = {
   title: 'Kanban/MatterCardEnhanced',
@@ -186,10 +198,10 @@ export const OverdueMatter: Story = {
 }
 
 export const EditModeDemo: Story = {
-  render: (args) => ({
+  render: (args: any) => ({
     components: { MatterCardEnhanced },
     setup() {
-      const matterRef = ref(args.matter)
+      const matterRef = ref(args.matter || sampleMatter)
       
       const handleUpdate = (matter: MatterCard, field: string, value: any) => {
         console.log('Update:', field, value)
@@ -200,7 +212,7 @@ export const EditModeDemo: Story = {
         }
       }
       
-      return { matterRef, handleUpdate, viewPreferences: args.viewPreferences }
+      return { matterRef, handleUpdate, viewPreferences: args.viewPreferences || defaultViewPreferences }
     },
     template: `
       <div class="p-4 bg-gray-50">

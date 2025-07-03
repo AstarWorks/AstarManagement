@@ -103,7 +103,13 @@ export interface ChartOptions {
       callbacks?: Record<string, Function>
     }
   }
-  scales?: Record<string, any>
+  scales?: Record<string, {
+    display?: boolean
+    beginAtZero?: boolean
+    ticks?: {
+      callback?: (value: string | number) => string
+    }
+  }>
   animation?: {
     duration?: number
     easing?: string
