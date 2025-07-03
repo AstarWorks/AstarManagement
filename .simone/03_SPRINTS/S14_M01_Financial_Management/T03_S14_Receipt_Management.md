@@ -5,7 +5,7 @@
 **Sprint**: S14_M01_Financial_Management  
 **Type**: Feature Development  
 **Complexity**: Medium  
-**Status**: Todo  
+**Status**: Completed  
 **Estimated Hours**: 12-16
 
 ### Description
