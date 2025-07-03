@@ -11,7 +11,7 @@ import { dehydrate } from '@tanstack/vue-query'
 import type { DehydratedState } from '@tanstack/vue-query'
 import { useState } from '#imports'
 
-export default defineNuxtPlugin(async (nuxtApp: any) => {
+export default defineNuxtPlugin(async (nuxtApp: ReturnType<typeof useNuxtApp>) => {
   // Get the query client from the existing plugin
   const { vueApp } = nuxtApp
   const queryClient = vueApp.config.globalProperties.$queryClient

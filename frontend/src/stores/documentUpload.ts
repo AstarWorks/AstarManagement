@@ -256,8 +256,9 @@ export const useDocumentUploadStore = defineStore('documentUpload', () => {
       // Process next in queue
       processQueue()
       
-    } catch (error: any) {
-      if (error.name === 'AbortError') {
+    } catch (error: unknown) {
+      const uploadError = error as { name?: string }
+      if (uploadError.name === 'AbortError') {
         // Don't change status if cancelled/paused - already handled
         if (item.status === 'uploading') {
           item.status = 'cancelled'

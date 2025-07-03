@@ -23,7 +23,7 @@ interface AuthResponse {
 interface ApiError {
   message: string
   code?: string
-  details?: Record<string, any>
+  details?: Record<string, unknown>
 }
 
 // RBAC Permission mappings
@@ -140,8 +140,9 @@ export const useAuthStore = defineStore('auth', () => {
           lastEmail.value = credentials.email
         }
       }
-    } catch (err: any) {
-      error.value = err.data?.message || 'Login failed'
+    } catch (err: unknown) {
+      const errorData = err as { data?: { message?: string } }
+      error.value = errorData.data?.message || 'Login failed'
       throw err
     } finally {
       isLoading.value = false
@@ -172,8 +173,9 @@ export const useAuthStore = defineStore('auth', () => {
       pendingTwoFactor.value = false
       lastActivity.value = Date.now()
       
-    } catch (err: any) {
-      error.value = err.data?.message || 'Two-factor verification failed'
+    } catch (err: unknown) {
+      const errorData = err as { data?: { message?: string } }
+      error.value = errorData.data?.message || 'Two-factor verification failed'
       throw err
     } finally {
       isLoading.value = false
@@ -233,7 +235,7 @@ export const useAuthStore = defineStore('auth', () => {
         sessionId.value = response.sessionId
         lastActivity.value = Date.now()
         
-      } catch (err: any) {
+      } catch (err: unknown) {
         // Refresh failed, logout user
         console.warn('Token refresh failed:', err)
         await logout()
@@ -259,8 +261,9 @@ export const useAuthStore = defineStore('auth', () => {
       })
       
       user.value = updatedUser
-    } catch (err: any) {
-      error.value = err.data?.message || 'Profile update failed'
+    } catch (err: unknown) {
+      const errorData = err as { data?: { message?: string } }
+      error.value = errorData.data?.message || 'Profile update failed'
       throw err
     } finally {
       isLoading.value = false

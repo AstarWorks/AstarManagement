@@ -5,7 +5,7 @@ import type { Matter } from '~/types/matter'
 // Advanced state management pattern for matter detail pages
 export interface TabState {
   scrollPosition: number
-  formData: Record<string, any>
+  formData: Record<string, unknown>
   selectedItems: string[]
   viewMode: string
   lastUpdated: number
@@ -135,8 +135,9 @@ export const useMatterDetailStore = defineStore('matterDetail', () => {
       // Trigger prefetch for adjacent matters
       await prefetchAdjacentMatters(matterId)
       
-    } catch (err: any) {
-      error.value = err.data?.message || 'Failed to load matter'
+    } catch (err: unknown) {
+      const errorData = err as { data?: { message?: string } }
+      error.value = errorData.data?.message || 'Failed to load matter'
       console.error('Error loading matter:', err)
     } finally {
       loading.value = false
@@ -153,7 +154,14 @@ export const useMatterDetailStore = defineStore('matterDetail', () => {
     
     // Handle sub-view switching
     if (subView && tabId in subTabs.value) {
-      (subTabs.value as any)[tabId] = subView
+      const validTabId = tabId as keyof typeof subTabs.value
+      if (validTabId === 'tasks' && (subView === 'kanban' || subView === 'table')) {
+        subTabs.value.tasks = subView
+      } else if (validTabId === 'schedule' && (subView === 'list' || subView === 'calendar')) {
+        subTabs.value.schedule = subView
+      } else if (validTabId === 'documents' && (subView === 'grid' || subView === 'list')) {
+        subTabs.value.documents = subView
+      }
     }
     
     // Initialize tab state if not exists
@@ -168,7 +176,13 @@ export const useMatterDetailStore = defineStore('matterDetail', () => {
   
   const setSubTabView = (tabId: keyof typeof subTabs.value, view: string) => {
     if (tabId in subTabs.value) {
-      (subTabs.value as any)[tabId] = view
+      if (tabId === 'tasks' && (view === 'kanban' || view === 'table')) {
+        subTabs.value.tasks = view
+      } else if (tabId === 'schedule' && (view === 'list' || view === 'calendar')) {
+        subTabs.value.schedule = view
+      } else if (tabId === 'documents' && (view === 'grid' || view === 'list')) {
+        subTabs.value.documents = view
+      }
       
       // Update URL to reflect sub-view
       const route = useRoute()
@@ -429,7 +443,7 @@ export const useMatterDetailStore = defineStore('matterDetail', () => {
 })
 
 // Helper function to get available tabs based on user role
-const getAvailableTabsForUser = (user: any) => {
+const getAvailableTabsForUser = (user: { role: string } | null) => {
   const tabConfig = [
     { id: 'overview', roles: ['client', 'lawyer', 'clerk'] },
     { id: 'tasks', roles: ['lawyer', 'clerk'] },

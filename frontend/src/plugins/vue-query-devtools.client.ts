@@ -20,7 +20,7 @@
 import type { QueryClient } from '@tanstack/vue-query'
 import { defineAsyncComponent } from 'vue'
 
-export default defineNuxtPlugin(async (nuxtApp: any) => {
+export default defineNuxtPlugin(async (nuxtApp: ReturnType<typeof useNuxtApp>) => {
   // Only load in development
   if (process.env.NODE_ENV !== 'production') {
     // Lazy load devtools to reduce initial bundle size
@@ -76,23 +76,23 @@ export default defineNuxtPlugin(async (nuxtApp: any) => {
       errorTypes: [
         {
           name: 'Legal Validation',
-          initializer: (query: any) => query.state.error?.code?.startsWith('LEGAL_VALIDATION')
+          initializer: (query: { state: { error?: { code?: string } } }) => query.state.error?.code?.startsWith('LEGAL_VALIDATION')
         },
         {
           name: 'Matter Access',
-          initializer: (query: any) => query.state.error?.code?.startsWith('MATTER_ACCESS')
+          initializer: (query: { state: { error?: { code?: string } } }) => query.state.error?.code?.startsWith('MATTER_ACCESS')
         },
         {
           name: 'Document Processing',
-          initializer: (query: any) => query.state.error?.code?.startsWith('DOC_')
+          initializer: (query: { state: { error?: { code?: string } } }) => query.state.error?.code?.startsWith('DOC_')
         },
         {
           name: 'Permission Denied',
-          initializer: (query: any) => query.state.error?.status === 403
+          initializer: (query: { state: { error?: { status?: number } } }) => query.state.error?.status === 403
         },
         {
           name: 'Network Error',
-          initializer: (query: any) => query.state.error?.code === 'NETWORK_ERROR'
+          initializer: (query: { state: { error?: { code?: string } } }) => query.state.error?.code === 'NETWORK_ERROR'
         }
       ],
       
@@ -100,44 +100,44 @@ export default defineNuxtPlugin(async (nuxtApp: any) => {
       queryGroups: [
         {
           name: 'Matters',
-          matcher: (query: any) => query.queryKey[0] === 'matters'
+          matcher: (query: { queryKey: readonly unknown[] }) => query.queryKey[0] === 'matters'
         },
         {
           name: 'Documents',
-          matcher: (query: any) => query.queryKey[0] === 'documents'
+          matcher: (query: { queryKey: readonly unknown[] }) => query.queryKey[0] === 'documents'
         },
         {
           name: 'Search',
-          matcher: (query: any) => query.queryKey[0] === 'search'
+          matcher: (query: { queryKey: readonly unknown[] }) => query.queryKey[0] === 'search'
         },
         {
           name: 'User Settings',
-          matcher: (query: any) => query.queryKey[0] === 'userSettings'
+          matcher: (query: { queryKey: readonly unknown[] }) => query.queryKey[0] === 'userSettings'
         }
       ],
       
       // Performance monitoring integration
-      onQueryStart: (query: any) => {
+      onQueryStart: (query: { queryHash: string }) => {
         metrics.recordQueryStart(query.queryHash)
       },
       
-      onQuerySuccess: (query: any) => {
+      onQuerySuccess: (query: { queryHash: string }) => {
         metrics.recordQuerySuccess(query.queryHash)
       },
       
-      onQueryError: (query: any) => {
+      onQueryError: (query: { queryHash: string; state: { error: unknown } }) => {
         metrics.recordQueryError(query.queryHash, query.state.error)
       },
       
-      onMutationStart: (mutation: any) => {
+      onMutationStart: (mutation: { mutationId: string }) => {
         metrics.recordMutationStart(mutation.mutationId)
       },
       
-      onMutationSuccess: (mutation: any) => {
+      onMutationSuccess: (mutation: { mutationId: string }) => {
         metrics.recordMutationSuccess(mutation.mutationId)
       },
       
-      onMutationError: (mutation: any) => {
+      onMutationError: (mutation: { mutationId: string; state: { error: unknown } }) => {
         metrics.recordMutationError(mutation.mutationId, mutation.state.error)
       }
     })
@@ -148,7 +148,12 @@ export default defineNuxtPlugin(async (nuxtApp: any) => {
     // Monitor cache size and memory usage
     if ('performance' in window && 'memory' in performance) {
       setInterval(() => {
-        const memory = (performance as any).memory
+        const performance = window.performance as any
+        const memory = performance.memory as {
+          usedJSHeapSize: number
+          totalJSHeapSize: number
+          jsHeapSizeLimit: number
+        }
         
         metrics.updateMemoryUsage({
           usedJSHeapSize: memory.usedJSHeapSize,
