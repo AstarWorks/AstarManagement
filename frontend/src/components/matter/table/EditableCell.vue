@@ -247,8 +247,7 @@ watch(() => props.isEditing, (isEditing) => {
         v-if="type === 'text'"
         ref="inputRef"
         v-model="editValue"
-        class="h-8 text-sm"
-        :class="{ 'border-destructive': error }"
+        :class="`h-8 text-sm ${error ? 'border-destructive' : ''}`"
         @keydown="handleKeydown"
         @blur="saveEdit"
       />
@@ -259,8 +258,7 @@ watch(() => props.isEditing, (isEditing) => {
         ref="inputRef"
         v-model="editValue"
         type="date"
-        class="h-8 text-sm"
-        :class="{ 'border-destructive': error }"
+        :class="`h-8 text-sm ${error ? 'border-destructive' : ''}`"
         @keydown="handleKeydown"
         @blur="saveEdit"
       />
@@ -271,7 +269,7 @@ watch(() => props.isEditing, (isEditing) => {
         v-model="editValue"
         @update:model-value="saveEdit"
       >
-        <SelectTrigger class="h-8 text-sm" :class="{ 'border-destructive': error }">
+        <SelectTrigger :class="`h-8 text-sm ${error ? 'border-destructive' : ''}`">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

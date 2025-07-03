@@ -20,7 +20,7 @@ interface EditHistory {
   timestamp: number
 }
 
-export function useInlineEdit() {
+export function useInlineEdit(data?: any, columns?: any, getRowId?: any, options?: any) {
   // Current editing state
   const editingCell = ref<{ row: string; column: string } | null>(null)
   const editStates = reactive<Record<string, EditState>>({})
@@ -327,6 +327,19 @@ export function useInlineEdit() {
     )
   }
 
+  // Legacy compatibility methods for older components
+  const handleKeyDown = handleKeydown // Alias for old naming
+  const handleBlur = () => {} // Legacy method - no-op for now
+  const handleDoubleClick = () => {} // Legacy method - no-op for now
+  const hasPendingChanges = computed(() => Object.values(editStates).some(state => state.isDirty))
+  const updateCellValue = updateEditValue // Alias
+  const saveCell = saveEdit // Alias 
+  const saveAllEdits = async () => {} // Legacy method - no-op for now
+  const cancelAllEdits = () => cancelEdit() // Legacy method
+  const isCellEditing = isEditing // Alias
+  const getCellValue = (row: any, column: string) => row[column] // Simple getter
+  const getCellEditState = getEditState // Alias
+
   return {
     // State
     editingCell: readonly(editingCell),
@@ -353,6 +366,19 @@ export function useInlineEdit() {
     
     // Event handlers
     handleKeydown,
-    createDebouncedSave
+    createDebouncedSave,
+    
+    // Legacy compatibility methods
+    handleKeyDown,
+    handleBlur,
+    handleDoubleClick,
+    hasPendingChanges,
+    updateCellValue,
+    saveCell,
+    saveAllEdits,
+    cancelAllEdits,
+    isCellEditing,
+    getCellValue,
+    getCellEditState
   }
 }

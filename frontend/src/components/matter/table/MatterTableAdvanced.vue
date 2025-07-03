@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, nextTick, h } from 'vue'
 import {
   useVueTable,
   createColumnHelper,
@@ -190,6 +190,17 @@ const handleCellKeydown = (event: KeyboardEvent, rowIndex: number, columnIndex: 
   }
 }
 
+// Wrapper for global keyboard events
+const handleKeydownWrapper = (event: KeyboardEvent) => {
+  // Only handle if we have an active edit and can determine position
+  if (!editingCell.value) return
+  
+  // For now, just handle escape to cancel editing
+  if (event.key === 'Escape') {
+    cancelInlineEdit()
+  }
+}
+
 // Navigate to next cell
 const navigateToNextCell = (rowIndex: number, columnIndex: number, direction: number) => {
   const rows = table.value.getRowModel().rows
@@ -255,14 +266,14 @@ const columns = computed(() => [
       {
         checked: table.getIsAllPageRowsSelected(),
         indeterminate: table.getIsSomePageRowsSelected(),
-        onUpdate:checked: table.getToggleAllPageRowsSelectedHandler()
+        'onUpdate:checked': table.getToggleAllPageRowsSelectedHandler()
       }
     ),
     cell: ({ row }) => h(
       Checkbox,
       {
         checked: row.getIsSelected(),
-        onUpdate:checked: row.getToggleSelectedHandler()
+        'onUpdate:checked': row.getToggleSelectedHandler()
       }
     ),
     size: 40,
@@ -563,12 +574,12 @@ const selectedRows = computed(() => {
 
 // Export functions
 const exportToCSV = (selectedOnly = false) => {
-  const dataToExport = selectedOnly ? selectedRows.value : matters.value
+  const dataToExport = selectedOnly ? selectedRows.value : [...matters.value]
   emit('bulk-export', dataToExport, 'csv')
 }
 
 const exportToExcel = (selectedOnly = false) => {
-  const dataToExport = selectedOnly ? selectedRows.value : matters.value
+  const dataToExport = selectedOnly ? selectedRows.value : [...matters.value]
   emit('bulk-export', dataToExport, 'excel')
 }
 
@@ -702,7 +713,7 @@ const selectAll = () => {
     </div>
     
     <!-- Table -->
-    <div class="table-container" @keydown="handleCellKeydown">
+    <div class="table-container" @keydown="(event: KeyboardEvent) => handleKeydownWrapper(event)">
       <div class="table-wrapper">
         <table class="matter-table">
           <thead>
