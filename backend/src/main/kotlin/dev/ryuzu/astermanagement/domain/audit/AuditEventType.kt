@@ -10,6 +10,8 @@ enum class AuditEventType {
     MATTER_UPDATED, 
     MATTER_STATUS_CHANGED,
     MATTER_DELETED,
+    MATTER_BULK_UPDATED,
+    MATTER_BULK_DELETED,
     
     // Document-related events
     DOCUMENT_UPLOADED,
@@ -32,6 +34,14 @@ enum class AuditEventType {
     EXPENSE_CREATED,
     EXPENSE_UPDATED,
     EXPENSE_DELETED,
+    
+    // Operation-related events
+    OPERATION_CREATED,
+    OPERATION_STARTED,
+    OPERATION_COMPLETED,
+    OPERATION_FAILED,
+    OPERATION_CANCELLED,
+    OPERATION_RETRIED,
     
     // System events
     SECURITY_EVENT,

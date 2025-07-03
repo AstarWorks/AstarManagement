@@ -8,7 +8,8 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 
 /**
  * WebSocket configuration for real-time communication
- * Enables WebSocket messaging with STOMP protocol for upload progress tracking
+ * Enables WebSocket messaging with STOMP protocol for operation progress tracking,
+ * upload progress, and real-time notifications
  */
 @Configuration
 @EnableWebSocketMessageBroker

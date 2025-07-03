@@ -7,6 +7,45 @@ import org.springframework.data.domain.Pageable
 import java.util.*
 
 /**
+ * Result of bulk matter operations
+ */
+data class BulkMatterOperationResult(
+    val totalRequested: Int,
+    val totalProcessed: Int,
+    val totalSuccessful: Int,
+    val totalFailed: Int,
+    val totalSkipped: Int,
+    val errors: List<MatterOperationError>,
+    val warnings: List<String> = emptyList(),
+    val updatedMatterIds: List<UUID> = emptyList(),
+    val skippedMatterIds: List<UUID> = emptyList()
+)
+
+/**
+ * Error details for matter operations
+ */
+data class MatterOperationError(
+    val matterId: UUID,
+    val errorCode: String,
+    val errorMessage: String,
+    val field: String? = null,
+    val currentValue: Any? = null,
+    val attemptedValue: Any? = null
+)
+
+/**
+ * Validation error for matter updates
+ */
+data class MatterValidationError(
+    val matterId: UUID,
+    val field: String,
+    val errorMessage: String,
+    val currentValue: Any? = null,
+    val attemptedValue: Any? = null,
+    val violatedRule: String? = null
+)
+
+/**
  * Service interface for matter management operations.
  * Defines business logic for handling matters using the backend domain model.
  */
@@ -101,4 +140,47 @@ interface MatterService {
      * @return The updated matter
      */
     fun assignClerk(matterId: UUID, clerkId: UUID): Matter?
+    
+    /**
+     * Bulk update matters with transaction support
+     * 
+     * @param matterIds List of matter IDs to update
+     * @param updates Map of field updates to apply
+     * @param validateTransitions Whether to validate status transitions
+     * @param stopOnFirstError Whether to stop on first error or continue
+     * @return Bulk operation result with success/failure details
+     */
+    fun bulkUpdateMatters(
+        matterIds: List<UUID>,
+        updates: Map<String, Any?>,
+        validateTransitions: Boolean = true,
+        stopOnFirstError: Boolean = false
+    ): BulkMatterOperationResult
+    
+    /**
+     * Bulk delete matters with transaction support
+     * 
+     * @param matterIds List of matter IDs to delete
+     * @param reason Reason for deletion
+     * @param forceDelete Whether to force delete non-closed matters
+     * @return Bulk operation result with success/failure details
+     */
+    fun bulkDeleteMatters(
+        matterIds: List<UUID>,
+        reason: String,
+        forceDelete: Boolean = false
+    ): BulkMatterOperationResult
+    
+    /**
+     * Validate bulk matter updates without executing them
+     * 
+     * @param matterIds List of matter IDs to validate
+     * @param updates Map of field updates to validate
+     * @return List of validation errors
+     */
+    fun validateBulkMatterUpdates(
+        matterIds: List<UUID>,
+        updates: Map<String, Any?>
+    ): List<MatterValidationError>
+}
 }
