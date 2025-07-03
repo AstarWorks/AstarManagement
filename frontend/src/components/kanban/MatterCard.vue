@@ -2,7 +2,7 @@
 // 1. Imports - external libraries first
 import { ref, computed, toRefs, watch } from 'vue'
 import { format, isAfter, parseISO } from 'date-fns'
-import { Calendar, Clock, User, AlertTriangle, AlertCircle, Info, Minus, FileText, MoreVertical, Check, X, Archive } from 'lucide-vue-next'
+import { Calendar, Clock, User, AlertTriangle, AlertCircle, Info, Minus, FileText, MoreVertical, Check, X, Archive, Square, CheckSquare } from 'lucide-vue-next'
 import { useBreakpoints } from '@vueuse/core'
 
 // 2. Internal imports
@@ -29,22 +29,32 @@ interface Props {
   viewPreferences: ViewPreferences
   searchTerms?: string[]
   className?: string
+  // Multi-select props
+  isSelected?: boolean
+  isMultiSelectMode?: boolean
+  canSelect?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   isDragging: false,
   searchTerms: () => [],
-  className: ''
+  className: '',
+  isSelected: false,
+  isMultiSelectMode: false,
+  canSelect: true
 })
 
 // 5. Emits definition
 const emit = defineEmits<{
-  click: [matter: MatterCard]
+  click: [matter: MatterCard, event?: MouseEvent]
   edit: [matter: MatterCard]
   statusChange: [matterId: string, newStatus: string]
   archive: [matter: MatterCard]
   complete: [matter: MatterCard]
   swipeAction: [action: string, matter: MatterCard]
+  // Multi-select events
+  select: [matterId: string, event?: MouseEvent]
+  longPress: [matterId: string]
 }>()
 
 // 6. Template refs
@@ -89,14 +99,20 @@ watch(swipeDirection, (direction) => {
   }
 })
 
-// Watch for long press to show context menu
+// Watch for long press to show context menu or trigger selection
 watch(isLongPress, (pressed) => {
   if (!isMobile.value || !pressed || isDragging.value) return
   
-  // Trigger haptic feedback and show mobile context menu
-  showSwipeActions.value = true
-  swipeActionType.value = 'left' // Default to left actions
-  resetGestures()
+  if (props.isMultiSelectMode || props.canSelect) {
+    // Long press triggers selection in multi-select mode
+    emit('longPress', matter.value.id)
+    resetGestures()
+  } else {
+    // Otherwise show context menu
+    showSwipeActions.value = true
+    swipeActionType.value = 'left' // Default to left actions
+    resetGestures()
+  }
 })
 
 // Priority configuration
@@ -156,6 +172,10 @@ const cardClasses = computed(() => cn(
   isMobile.value && 'touch-manipulation active:scale-[0.98]',
   isPressed.value && !isDragging.value && 'scale-[0.98] shadow-lg',
   showSwipeActions.value && 'transform',
+  // Selection state styling
+  props.isSelected && 'ring-2 ring-primary bg-primary/5 shadow-lg',
+  props.isMultiSelectMode && 'cursor-pointer',
+  props.isMultiSelectMode && !props.isSelected && 'hover:ring-1 hover:ring-primary/30',
   props.className
 ))
 
@@ -189,9 +209,15 @@ const getInitials = (name: string): string => {
 }
 
 // Event handlers with mobile optimization
-const handleClick = useTouchClick(() => {
+const handleClick = useTouchClick((event?: MouseEvent) => {
   if (!showSwipeActions.value) {
-    emit('click', matter.value)
+    if (props.isMultiSelectMode || props.canSelect) {
+      // Handle selection click
+      emit('select', matter.value.id, event)
+    } else {
+      // Normal card click
+      emit('click', matter.value, event)
+    }
   }
 })
 
@@ -233,6 +259,11 @@ const cardLabel = computed(() => {
   
   if (isOverdue.value) {
     parts.push('This matter is overdue')
+  }
+
+  // Add selection state
+  if (props.isMultiSelectMode) {
+    parts.push(props.isSelected ? 'Selected' : 'Not selected')
   }
   
   return parts.join('. ')
@@ -327,11 +358,42 @@ const dragAttributes = computed(() => ({
         class="absolute inset-0 bg-primary/5 rounded-lg pointer-events-none"
       />
 
+      <!-- Selection Checkbox (Multi-select mode) -->
+      <div 
+        v-if="isMultiSelectMode || canSelect"
+        :class="[
+          'absolute top-2 right-2 z-10 transition-all duration-200',
+          isMultiSelectMode ? 'opacity-100 scale-100' : 'opacity-0 hover:opacity-100 scale-90 hover:scale-100'
+        ]"
+      >
+        <button
+          type="button"
+          @click.stop="emit('select', matter.id, $event)"
+          :aria-label="`${isSelected ? 'Deselect' : 'Select'} matter ${matter.caseNumber}`"
+          class="flex items-center justify-center w-6 h-6 rounded-md bg-background/80 backdrop-blur-sm border border-border hover:bg-background transition-colors"
+          :class="{
+            'bg-primary border-primary text-primary-foreground': isSelected,
+            'hover:border-primary/50': !isSelected
+          }"
+        >
+          <CheckSquare 
+            v-if="isSelected" 
+            class="w-4 h-4" 
+          />
+          <Square 
+            v-else 
+            class="w-4 h-4" 
+          />
+        </button>
+      </div>
+
       <!-- Drag Handle -->
       <div 
         :class="[
           'absolute top-2 left-2 transition-opacity',
-          isMobile ? 'opacity-20' : 'opacity-0 hover:opacity-40'
+          isMobile ? 'opacity-20' : 'opacity-0 hover:opacity-40',
+          // Hide drag handle when in multi-select mode
+          isMultiSelectMode && 'opacity-0'
         ]"
         aria-hidden="true"
       >

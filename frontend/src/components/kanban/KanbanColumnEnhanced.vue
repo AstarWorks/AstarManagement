@@ -98,20 +98,17 @@
         tag="div"
         class="matters-list"
       >
-        <MatterCardEnhanced
+        <MatterCard
           v-for="(matter, index) in visibleMatters"
           :key="matter.id"
           :matter="matter"
-          :index="index"
+          :view-preferences="{ cardSize: 'normal', showAvatars: true, showDueDates: true, showPriority: true, showTags: true, groupBy: 'status' }"
           :is-selected="selectedMatters.has(matter.id)"
           :is-multi-select-mode="isMultiSelectMode"
-          :collaborator-info="getMatterCollaborator(matter.id)"
-          :show-position-indicator="showPositions"
-          @select="$emit('matter-select', matter.id)"
-          @drag-start="handleMatterDragStart"
-          @drag-end="handleMatterDragEnd"
-          @click="handleMatterClick"
-          @contextmenu="handleMatterContextMenu"
+          :can-select="true"
+          @select="(matterId: string, event?: MouseEvent) => emit('matter-select', matterId)"
+          @click="(matter: MatterCardType, event?: MouseEvent) => handleMatterClick(matter, event!)"
+          @long-press="(matterId: string) => emit('matter-select', matterId)"
           class="matter-card-item"
         />
       </TransitionGroup>
@@ -145,13 +142,16 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import type { MatterCard, KanbanColumn, MatterStatus } from '~/types/kanban'
+import type { MatterCard as MatterCardType, KanbanColumn, MatterStatus } from '~/types/kanban'
 import type { CollaboratorInfo } from '~/composables/useKanbanRealTimeSync'
+import MatterCard from './MatterCard.vue'
+import { Badge } from '~/components/ui/badge'
+import { Button } from '~/components/ui/button'
 
 // Props
 interface Props {
   column: KanbanColumn
-  matters: MatterCard[]
+  matters: MatterCardType[]
   isDropTarget?: boolean
   selectedMatters: Set<string>
   isMultiSelectMode?: boolean
@@ -173,18 +173,18 @@ const props = withDefaults(defineProps<Props>(), {
 // Emits
 const emit = defineEmits<{
   'matter-select': [matterId: string]
-  'matter-drag-start': [event: DragEvent, matter: MatterCard]
+  'matter-drag-start': [event: DragEvent, matter: MatterCardType]
   'matter-drag-end': [event: DragEvent, targetStatus: MatterStatus, targetIndex: number]
-  'matter-drop': [matter: MatterCard, targetStatus: MatterStatus, targetIndex: number]
+  'matter-drop': [matter: MatterCardType, targetStatus: MatterStatus, targetIndex: number]
   'column-drop': [columnId: string]
-  'select-all': [matters: MatterCard[]]
+  'select-all': [matters: MatterCardType[]]
   'clear-selection': []
 }>()
 
 // Local state
 const isCollapsed = ref(false)
 const currentPage = ref(1)
-const draggedMatter = ref<MatterCard | null>(null)
+const draggedMatter = ref<MatterCardType | null>(null)
 
 // Computed properties
 const columnClasses = computed(() => [
@@ -246,7 +246,7 @@ const handleDrop = (event: DragEvent) => {
   draggedMatter.value = null
 }
 
-const handleMatterDragStart = (event: DragEvent, matter: MatterCard) => {
+const handleMatterDragStart = (event: DragEvent, matter: MatterCardType) => {
   draggedMatter.value = matter
   emit('matter-drag-start', event, matter)
 }
@@ -258,7 +258,7 @@ const handleMatterDragEnd = (event: DragEvent) => {
 }
 
 // Matter interaction handlers
-const handleMatterClick = (matter: MatterCard, event: MouseEvent) => {
+const handleMatterClick = (matter: MatterCardType, event: MouseEvent) => {
   if (props.isMultiSelectMode) {
     if (event.ctrlKey || event.metaKey) {
       emit('matter-select', matter.id)
@@ -274,12 +274,12 @@ const handleMatterClick = (matter: MatterCard, event: MouseEvent) => {
   }
 }
 
-const handleMatterContextMenu = (matter: MatterCard, event: MouseEvent) => {
+const handleMatterContextMenu = (matter: MatterCardType, event: MouseEvent) => {
   event.preventDefault()
   // TODO: Show context menu with actions
 }
 
-const handleRangeSelect = (endMatter: MatterCard) => {
+const handleRangeSelect = (endMatter: MatterCardType) => {
   // Find the range between last selected and current
   const lastSelected = Array.from(props.selectedMatters).pop()
   if (!lastSelected) {
