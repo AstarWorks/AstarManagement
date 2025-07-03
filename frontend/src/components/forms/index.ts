@@ -9,3 +9,7 @@ export { default as FormDatePicker } from './FormDatePicker.vue'
 export { default as FormCheckbox } from './FormCheckbox.vue'
 export { default as FormRadio } from './FormRadio.vue'
 export { default as FormSwitch } from './FormSwitch.vue'
+
+// Currency form components
+export { default as FormCurrencySelect } from './FormCurrencySelect.vue'
+export { default as FormCurrencyInput } from './FormCurrencyInput.vue'

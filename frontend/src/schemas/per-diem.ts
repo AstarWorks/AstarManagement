@@ -27,8 +27,8 @@ export const transportationModeSchema = z.enum([
   'OTHER'
 ])
 
-// Currency enum (JPY focused)
-export const currencySchema = z.enum(['JPY', 'USD', 'EUR'])
+// Enhanced currency support with extended options
+export const currencySchema = z.enum(['JPY', 'USD', 'EUR', 'GBP', 'KRW', 'CNY', 'SGD']).default('JPY')
 
 // Per-diem category enum (specific to Japanese legal practice)
 export const perDiemCategorySchema = z.enum([

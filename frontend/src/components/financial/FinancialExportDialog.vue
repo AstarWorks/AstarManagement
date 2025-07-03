@@ -4,6 +4,7 @@ import { Download, FileText, Database, FileImage, Settings, Eye, X, CheckCircle,
 import type { FinancialFilters } from '~/types/financial'
 import type { ExportOptions, ExportStatus } from '~/composables/useFinancialExport'
 import { useFinancialExport } from '~/composables/useFinancialExport'
+import { formatCurrency } from '~/utils/currencyFormatters'
 
 /**
  * Financial Export Dialog Component

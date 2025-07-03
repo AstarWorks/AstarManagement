@@ -13,6 +13,7 @@ import {
   Filler
 } from 'chart.js'
 import type { TooltipContext } from '~/types/chart'
+import { formatCurrency } from '~/utils/currencyFormatters'
 
 // Register Chart.js components
 ChartJS.register(
@@ -164,7 +165,7 @@ const chartOptions = computed(() => ({
         label: (context: TooltipContext) => {
           const label = context.dataset.label || ''
           const value = context.parsed.y || 0
-          return `${label}: ¥${value.toLocaleString('ja-JP')}`
+          return `${label}: ${formatCurrency(value, 'JPY')}`
         },
         afterBody: (context: TooltipContext[]) => {
           const dataIndex = context[0].dataIndex
@@ -176,7 +177,7 @@ const chartOptions = computed(() => ({
             '',
             `Profit Margin: ${profitMargin}%`,
             `Expense Ratio: ${expenseRatio}%`,
-            `Net Profit: ¥${monthData.profit.toLocaleString('ja-JP')}`
+            `Net Profit: ${formatCurrency(monthData.profit, 'JPY')}`
           ]
         }
       }
@@ -221,7 +222,7 @@ const chartOptions = computed(() => ({
           size: 12
         },
         callback: (value: string | number) => {
-          return '¥' + Number(value).toLocaleString('ja-JP')
+          return formatCurrency(Number(value), 'JPY')
         }
       }
     }
@@ -268,13 +269,9 @@ const analysis = computed(() => {
   }
 })
 
-// Format currency
-const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('ja-JP', {
-    style: 'currency',
-    currency: 'JPY',
-    maximumFractionDigits: 0
-  }).format(amount)
+// Format currency (using the imported formatCurrency function)
+const formatCurrencyLocal = (amount: number): string => {
+  return formatCurrency(amount, 'JPY')
 }
 
 // Format percentage with color

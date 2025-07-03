@@ -80,7 +80,7 @@
             </div>
             <div class="summary-item">
               <span class="summary-label">Estimated Total:</span>
-              <span class="summary-value text-primary">¥{{ estimatedTotal.toLocaleString() }}</span>
+              <span class="summary-value text-primary">{{ formatCurrency(estimatedTotal, currencyAmount.currency) }}</span>
             </div>
           </div>
         </section>
@@ -114,40 +114,33 @@
               <FormMessage>{{ errors.category }}</FormMessage>
             </FormField>
 
-            <!-- Daily Amount -->
-            <FormField name="dailyAmount" class="form-group">
-              <FormLabel class="form-label required">Daily Allowance</FormLabel>
-              <FormControl>
-                <div class="input-with-prefix">
-                  <span class="input-prefix">¥</span>
-                  <Input
-                    v-model="dailyAmount"
-                    v-bind="dailyAmountAttrs"
-                    type="number"
-                    class="form-input pl-8"
-                    :min="1000"
-                    :max="50000"
-                    :step="100"
-                    placeholder="10000"
-                    required
-                  />
-                </div>
-              </FormControl>
-              <!-- Amount Suggestions -->
-              <div v-if="suggestedAmounts.length" class="amount-suggestions">
-                <span class="suggestions-label">Suggested:</span>
-                <button
-                  v-for="amount in suggestedAmounts"
-                  :key="amount"
-                  type="button"
-                  class="suggestion-btn"
-                  @click="dailyAmount = amount"
-                >
-                  ¥{{ amount.toLocaleString() }}
-                </button>
-              </div>
-              <FormMessage>{{ errors.dailyAmount }}</FormMessage>
-            </FormField>
+            <!-- Daily Amount with Currency -->
+            <FormCurrencyInput
+              v-model="currencyAmount"
+              name="dailyAmount"
+              label="Daily Allowance"
+              description="Enter the daily allowance amount and currency"
+              placeholder="Enter daily amount"
+              :min="1000"
+              :max="50000"
+              :available-currencies="['JPY', 'USD', 'EUR']"
+              required
+              @change="handleCurrencyChange"
+            />
+            
+            <!-- Amount Suggestions -->
+            <div v-if="suggestedAmounts.length" class="amount-suggestions">
+              <span class="suggestions-label">Suggested:</span>
+              <button
+                v-for="amount in suggestedAmounts"
+                :key="amount"
+                type="button"
+                class="suggestion-btn"
+                @click="handleSuggestedAmount(amount)"
+              >
+                {{ formatCurrency(amount, currencyAmount.currency) }}
+              </button>
+            </div>
           </div>
 
           <!-- Location -->
@@ -381,6 +374,9 @@ import { perDiemEntrySchema, commonPerDiemPresets, type PerDiemEntryForm, type P
 import { usePerDiemManagement } from '~/composables/usePerDiem'
 import { FormField, FormLabel, FormControl, FormMessage } from '~/components/ui/form'
 import { Input } from '~/components/ui/input'
+import { FormCurrencyInput } from '~/components/forms'
+import { formatCurrency } from '~/utils/currencyFormatters'
+import type { CurrencyFormValue, CurrencyChangeEvent } from '~/types/currency'
 
 // Props interface
 interface Props {
@@ -483,6 +479,10 @@ const isSubmitting = ref(false)
 const formError = ref<string | null>(null)
 const selectedPreset = ref('')
 const saveAsTemplate = ref(false)
+const currencyAmount = ref<CurrencyFormValue>({ 
+  amount: 8000, 
+  currency: 'JPY' 
+})
 
 // Generate unique IDs for form elements
 const accommodationFieldId = `accommodation-${Math.random().toString(36).substr(2, 9)}`
@@ -507,8 +507,8 @@ const totalDays = computed(() => {
 })
 
 const estimatedTotal = computed(() => {
-  if (!dailyAmount.value || totalDays.value <= 0) return 0
-  return totalDays.value * dailyAmount.value
+  if (!currencyAmount.value.amount || totalDays.value <= 0) return 0
+  return totalDays.value * Number(currencyAmount.value.amount)
 })
 
 const locationSuggestions = computed(() => 
@@ -554,8 +554,8 @@ const onSubmit = handleSubmit(async (values: any) => {
       location: values.location,
       purpose: values.purpose,
       category: values.category,
-      dailyAmount: values.dailyAmount,
-      currency: 'JPY' as const,
+      dailyAmount: Number(currencyAmount.value.amount),
+      currency: currencyAmount.value.currency as 'JPY' | 'USD' | 'EUR',
       matterId: values.matterId || undefined,
       transportationMode: values.transportationMode || undefined,
       accommodationType: values.accommodationType || 'NONE',
@@ -585,6 +585,23 @@ const onSubmit = handleSubmit(async (values: any) => {
     isSubmitting.value = false
   }
 })
+
+const handleCurrencyChange = (event: CurrencyChangeEvent) => {
+  currencyAmount.value = {
+    amount: event.amount,
+    currency: event.currency
+  }
+  // Update the form field
+  dailyAmount.value = event.amount
+}
+
+const handleSuggestedAmount = (amount: number) => {
+  currencyAmount.value = {
+    amount,
+    currency: currencyAmount.value.currency
+  }
+  dailyAmount.value = amount
+}
 
 const handleCancel = () => {
   if (meta.value.dirty) {

@@ -110,8 +110,8 @@
             <!-- Card Footer -->
             <div class="card-footer">
               <div class="amount-info">
-                <span class="daily-amount">¥{{ entry.dailyAmount.toLocaleString() }}/day</span>
-                <span class="total-amount">Total: ¥{{ entry.totalAmount.toLocaleString() }}</span>
+                <span class="daily-amount">{{ formatCurrency(entry.dailyAmount, entry.currency || 'JPY') }}/day</span>
+                <span class="total-amount">Total: {{ formatCurrency(entry.totalAmount, entry.currency || 'JPY') }}</span>
               </div>
               
               <div class="billing-info">
@@ -210,6 +210,7 @@ import { ref, computed, watch } from 'vue'
 import { PlusIcon, CalendarIcon, XIcon } from 'lucide-vue-next'
 import { usePerDiemManagement } from '~/composables/usePerDiem'
 import type { PerDiemCategory } from '~/schemas/per-diem'
+import { formatCurrency } from '~/utils/currencyFormatters'
 import PerDiemForm from '~/components/expenses/PerDiemForm.vue'
 
 // Page metadata
