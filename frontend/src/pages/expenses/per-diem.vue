@@ -209,6 +209,7 @@
 import { ref, computed, watch } from 'vue'
 import { PlusIcon, CalendarIcon, XIcon } from 'lucide-vue-next'
 import { usePerDiemManagement } from '~/composables/usePerDiem'
+import type { PerDiemCategory } from '~/schemas/per-diem'
 import PerDiemForm from '~/components/expenses/PerDiemForm.vue'
 
 // Page metadata
@@ -230,15 +231,27 @@ const currentPage = ref(1)
 const pageSize = ref(20)
 
 // Build query filters
-const queryFilters = computed(() => ({
-  page: currentPage.value,
-  limit: pageSize.value,
-  category: selectedCategory.value || undefined,
-  isApproved: approvalFilter.value === 'approved' ? true : 
-              approvalFilter.value === 'pending' ? false : undefined,
+const queryFilters = ref({
+  page: 1,
+  limit: 20,
+  category: undefined as PerDiemCategory | undefined,
+  isApproved: undefined as boolean | undefined,
   sortBy: 'dateRange.startDate' as const,
   sortOrder: 'desc' as const
-}))
+})
+
+// Update filters reactively
+watch([currentPage, pageSize, selectedCategory, approvalFilter], () => {
+  queryFilters.value = {
+    page: currentPage.value,
+    limit: pageSize.value,
+    category: (selectedCategory.value as PerDiemCategory) || undefined,
+    isApproved: approvalFilter.value === 'approved' ? true : 
+                approvalFilter.value === 'pending' ? false : undefined,
+    sortBy: 'dateRange.startDate' as const,
+    sortOrder: 'desc' as const
+  }
+})
 
 // Per-diem query
 const perDiemQuery = usePerDiemList(queryFilters)
@@ -309,9 +322,9 @@ const formatCategory = (category: string) => {
   return categoryMap[category] || category
 }
 
-// Watchers
+// Reset to first page when filters change
 watch([selectedCategory, approvalFilter], () => {
-  currentPage.value = 1 // Reset to first page when filters change
+  currentPage.value = 1
 })
 </script>
 
