@@ -21,9 +21,9 @@ This project follows a milestone-based development approach.
 
 - **Milestone:** M01 - Matter Management MVP
 - **Active Sprint:** S12 - Matter Management UI (IN PROGRESS)
-- **Current Task:** S12 tasks continue - T10_S12 Kanban Multi Select next
+- **Current Task:** T13_S12 Table View Advanced Features (IN PROGRESS)
 - **M02 Status:** S05-S09 sprints complete, S10 Production Deployment ready
-- **Updated:** 2025-07-03 05:50
+- **Updated:** 2025-07-03 08:43
 
 ## 3. Sprints in Current Milestone
 

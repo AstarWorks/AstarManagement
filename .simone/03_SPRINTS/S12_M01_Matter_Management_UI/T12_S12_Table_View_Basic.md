@@ -1,7 +1,8 @@
 ---
 task_id: T12_S12
 sprint_sequence_id: S12
-status: open
+status: in_progress
+started_at: 2025-01-03T13:19:00-03:00
 complexity: Medium
 last_updated: 2025-01-29T00:00:00Z
 ---
