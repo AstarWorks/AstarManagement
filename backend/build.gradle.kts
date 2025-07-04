@@ -217,7 +217,7 @@ spotbugs {
 tasks.spotbugsMain {
     reports.create("html") {
         required = true
-        outputLocation = file("${buildDir}/reports/spotbugs/main.html")
+        outputLocation = file("${layout.buildDirectory.get()}/reports/spotbugs/main.html")
         setStylesheet("fancy-hist.xsl")
     }
 }
@@ -225,7 +225,7 @@ tasks.spotbugsMain {
 tasks.spotbugsTest {
     reports.create("html") {
         required = true
-        outputLocation = file("${buildDir}/reports/spotbugs/test.html")
+        outputLocation = file("${layout.buildDirectory.get()}/reports/spotbugs/test.html")
         setStylesheet("fancy-hist.xsl")
     }
 }
@@ -234,22 +234,14 @@ tasks.spotbugsTest {
 dependencyCheck {
     failBuildOnCVSS = 7.0f
     suppressionFile = "${rootDir}/config/owasp/suppressions.xml"
-    analyzers {
-        assemblyEnabled = false
-        nugetconfEnabled = false
-        nodeEnabled = false
-        cocoapodsEnabled = false
-        swiftEnabled = false
-    }
-    format = org.owasp.dependencycheck.reporting.ReportGenerator.Format.ALL
-    outputDirectory = "${buildDir}/reports"
+    format = "ALL"
+    outputDirectory = "${layout.buildDirectory.get()}/reports"
 }
 
 // PMD Configuration for Security Analysis
 pmd {
     isConsoleOutput = true
     toolVersion = "6.55.0"
-    rulePriority = 2
     ruleSetFiles = files("${rootDir}/config/pmd/security-ruleset.xml")
 }
 

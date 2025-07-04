@@ -133,4 +133,30 @@ interface AuditEventPublisher {
         correlationId: String? = null,
         userId: String? = null
     )
+    
+    // Extension methods for event listener compatibility
+    fun publishMatterCreated(matterId: UUID, caseNumber: String, userId: UUID)
+    fun publishMatterUpdated(matterId: UUID, changes: List<String>, userId: UUID)
+    fun publishMatterStatusChanged(matterId: UUID, oldStatus: String, newStatus: String, userId: UUID)
+    fun publishMatterAssigned(matterId: UUID, oldAssignee: UUID?, newAssignee: UUID, userId: UUID)
+    fun publishMatterCompleted(matterId: UUID, completionDate: java.time.LocalDateTime, userId: UUID)
+    fun publishMatterDeleted(matterId: UUID, userId: UUID)
+    fun publishDocumentUploaded(documentId: UUID, fileName: String, userId: UUID)
+    fun publishDocumentProcessed(documentId: UUID, status: String, userId: UUID)
+    fun publishDocumentAssociated(documentId: UUID, matterId: UUID, userId: UUID)
+    fun publishDocumentDisassociated(documentId: UUID, matterId: UUID, userId: UUID)
+    fun publishDocumentUpdated(documentId: UUID, changes: List<String>, userId: UUID)
+    fun publishDocumentDeleted(documentId: UUID, userId: UUID)
+    fun publishDocumentVersionCreated(documentId: UUID, parentDocumentId: UUID, versionNumber: Int, userId: UUID)
+    fun publishDocumentAccessed(documentId: UUID, accessType: String, userId: UUID)
+    fun publishDocumentIndexed(documentId: UUID, wordCount: Int?, userId: UUID)
+    
+    // Event listener specific methods
+    fun publishDocumentWorkspaceCreated(matterId: UUID, caseNumber: String, userId: UUID)
+    fun publishDocumentsArchived(matterId: UUID, userId: UUID)
+    fun publishDocumentAssociationsRemoved(matterId: UUID, userId: UUID)
+    fun publishMatterDocumentAdded(matterId: UUID, documentId: UUID, fileName: String, userId: UUID)
+    fun publishMatterDocumentAssociated(matterId: UUID, documentId: UUID, associationType: String, userId: UUID)
+    fun publishMatterDocumentRemoved(matterId: UUID, documentId: UUID, userId: UUID)
+    fun publishMatterDocumentDeleted(matterId: UUID, documentId: UUID, userId: UUID)
 }

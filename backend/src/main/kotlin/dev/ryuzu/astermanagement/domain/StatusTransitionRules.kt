@@ -1,7 +1,7 @@
 package dev.ryuzu.astermanagement.domain
 
-import dev.ryuzu.astermanagement.domain.matter.MatterStatus
-import dev.ryuzu.astermanagement.domain.matter.MatterStatus.*
+import dev.ryuzu.astermanagement.modules.matter.domain.MatterStatus
+import dev.ryuzu.astermanagement.modules.matter.domain.MatterStatus.*
 import dev.ryuzu.astermanagement.domain.user.UserRole
 import dev.ryuzu.astermanagement.domain.user.UserRole.*
 

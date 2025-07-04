@@ -378,6 +378,237 @@ class AuditEventPublisherImpl(
         logger.error("Failed to publish audit event: ${event.eventType} for ${event.entityType}:${event.entityId}", exception)
     }
     
+    // Extension method implementations for event listener compatibility
+    override fun publishMatterCreated(matterId: UUID, caseNumber: String, userId: UUID) {
+        publishMatterCreated(
+            matterId = matterId,
+            matterTitle = caseNumber,
+            clientName = "",
+            assignedLawyer = null,
+            userId = userId.toString()
+        )
+    }
+    
+    override fun publishMatterUpdated(matterId: UUID, changes: List<String>, userId: UUID) {
+        publishMatterUpdated(
+            matterId = matterId,
+            fieldsChanged = changes,
+            oldValues = emptyMap(),
+            newValues = emptyMap(),
+            userId = userId.toString()
+        )
+    }
+    
+    override fun publishMatterStatusChanged(matterId: UUID, oldStatus: String, newStatus: String, userId: UUID) {
+        publishMatterStatusChanged(
+            matterId = matterId,
+            oldStatus = oldStatus,
+            newStatus = newStatus,
+            reason = null,
+            userId = userId.toString()
+        )
+    }
+    
+    override fun publishMatterAssigned(matterId: UUID, oldAssignee: UUID?, newAssignee: UUID, userId: UUID) {
+        publishCustomEvent(
+            eventType = AuditEventType.MATTER_UPDATED,
+            entityType = "matter",
+            entityId = matterId.toString(),
+            details = mapOf(
+                "oldAssignee" to oldAssignee?.toString(),
+                "newAssignee" to newAssignee.toString()
+            ),
+            userId = userId.toString()
+        )
+    }
+    
+    override fun publishMatterCompleted(matterId: UUID, completionDate: java.time.LocalDateTime, userId: UUID) {
+        publishCustomEvent(
+            eventType = AuditEventType.MATTER_UPDATED,
+            entityType = "matter",
+            entityId = matterId.toString(),
+            details = mapOf("completionDate" to completionDate.toString()),
+            userId = userId.toString()
+        )
+    }
+    
+    override fun publishMatterDeleted(matterId: UUID, userId: UUID) {
+        publishMatterDeleted(
+            matterId = matterId,
+            matterTitle = "",
+            reason = null,
+            userId = userId.toString()
+        )
+    }
+    
+    override fun publishDocumentUploaded(documentId: UUID, fileName: String, userId: UUID) {
+        publishDocumentUploaded(
+            documentId = documentId,
+            matterId = UUID.randomUUID(),
+            documentName = fileName,
+            documentType = "unknown",
+            fileSize = 0L,
+            userId = userId.toString()
+        )
+    }
+    
+    override fun publishDocumentProcessed(documentId: UUID, status: String, userId: UUID) {
+        publishCustomEvent(
+            eventType = AuditEventType.DOCUMENT_MODIFIED,
+            entityType = "document",
+            entityId = documentId.toString(),
+            details = mapOf("status" to status),
+            userId = userId.toString()
+        )
+    }
+    
+    override fun publishDocumentAssociated(documentId: UUID, matterId: UUID, userId: UUID) {
+        publishCustomEvent(
+            eventType = AuditEventType.DOCUMENT_MODIFIED,
+            entityType = "document",
+            entityId = documentId.toString(),
+            details = mapOf("matterId" to matterId.toString()),
+            userId = userId.toString()
+        )
+    }
+    
+    override fun publishDocumentDisassociated(documentId: UUID, matterId: UUID, userId: UUID) {
+        publishCustomEvent(
+            eventType = AuditEventType.DOCUMENT_MODIFIED,
+            entityType = "document",
+            entityId = documentId.toString(),
+            details = mapOf("removedFromMatter" to matterId.toString()),
+            userId = userId.toString()
+        )
+    }
+    
+    override fun publishDocumentUpdated(documentId: UUID, changes: List<String>, userId: UUID) {
+        publishCustomEvent(
+            eventType = AuditEventType.DOCUMENT_MODIFIED,
+            entityType = "document",
+            entityId = documentId.toString(),
+            details = mapOf("changes" to changes),
+            userId = userId.toString()
+        )
+    }
+    
+    override fun publishDocumentDeleted(documentId: UUID, userId: UUID) {
+        publishCustomEvent(
+            eventType = AuditEventType.DOCUMENT_DELETED,
+            entityType = "document",
+            entityId = documentId.toString(),
+            userId = userId.toString()
+        )
+    }
+    
+    override fun publishDocumentVersionCreated(documentId: UUID, parentDocumentId: UUID, versionNumber: Int, userId: UUID) {
+        publishCustomEvent(
+            eventType = AuditEventType.DOCUMENT_UPLOADED,
+            entityType = "document",
+            entityId = documentId.toString(),
+            details = mapOf(
+                "parentDocumentId" to parentDocumentId.toString(),
+                "versionNumber" to versionNumber
+            ),
+            userId = userId.toString()
+        )
+    }
+    
+    override fun publishDocumentAccessed(documentId: UUID, accessType: String, userId: UUID) {
+        publishDocumentAccessed(
+            documentId = documentId,
+            matterId = UUID.randomUUID(),
+            documentName = "",
+            accessType = DocumentAccessType.VIEW,
+            userId = userId.toString()
+        )
+    }
+    
+    override fun publishDocumentIndexed(documentId: UUID, wordCount: Int?, userId: UUID) {
+        publishCustomEvent(
+            eventType = AuditEventType.DOCUMENT_MODIFIED,
+            entityType = "document",
+            entityId = documentId.toString(),
+            details = mapOf("wordCount" to wordCount),
+            userId = userId.toString()
+        )
+    }
+    
+    // Event listener specific methods
+    override fun publishDocumentWorkspaceCreated(matterId: UUID, caseNumber: String, userId: UUID) {
+        publishCustomEvent(
+            eventType = AuditEventType.DOCUMENT_UPLOADED,
+            entityType = "document_workspace",
+            entityId = matterId.toString(),
+            details = mapOf("caseNumber" to caseNumber),
+            userId = userId.toString()
+        )
+    }
+    
+    override fun publishDocumentsArchived(matterId: UUID, userId: UUID) {
+        publishCustomEvent(
+            eventType = AuditEventType.DOCUMENT_MODIFIED,
+            entityType = "document_archive",
+            entityId = matterId.toString(),
+            userId = userId.toString()
+        )
+    }
+    
+    override fun publishDocumentAssociationsRemoved(matterId: UUID, userId: UUID) {
+        publishCustomEvent(
+            eventType = AuditEventType.DOCUMENT_DELETED,
+            entityType = "document_association",
+            entityId = matterId.toString(),
+            userId = userId.toString()
+        )
+    }
+    
+    override fun publishMatterDocumentAdded(matterId: UUID, documentId: UUID, fileName: String, userId: UUID) {
+        publishCustomEvent(
+            eventType = AuditEventType.MATTER_UPDATED,
+            entityType = "matter_document",
+            entityId = matterId.toString(),
+            details = mapOf(
+                "documentId" to documentId.toString(),
+                "fileName" to fileName
+            ),
+            userId = userId.toString()
+        )
+    }
+    
+    override fun publishMatterDocumentAssociated(matterId: UUID, documentId: UUID, associationType: String, userId: UUID) {
+        publishCustomEvent(
+            eventType = AuditEventType.MATTER_UPDATED,
+            entityType = "matter_document",
+            entityId = matterId.toString(),
+            details = mapOf(
+                "documentId" to documentId.toString(),
+                "associationType" to associationType
+            ),
+            userId = userId.toString()
+        )
+    }
+    
+    override fun publishMatterDocumentRemoved(matterId: UUID, documentId: UUID, userId: UUID) {
+        publishCustomEvent(
+            eventType = AuditEventType.MATTER_UPDATED,
+            entityType = "matter_document",
+            entityId = matterId.toString(),
+            details = mapOf("removedDocumentId" to documentId.toString()),
+            userId = userId.toString()
+        )
+    }
+    
+    override fun publishMatterDocumentDeleted(matterId: UUID, documentId: UUID, userId: UUID) {
+        publishCustomEvent(
+            eventType = AuditEventType.DOCUMENT_DELETED,
+            entityType = "matter_document",
+            entityId = matterId.toString(),
+            details = mapOf("deletedDocumentId" to documentId.toString()),
+            userId = userId.toString()
+        )
+    }
+
     /**
      * Builds metadata map combining context and event-specific data
      */
