@@ -28,7 +28,7 @@ export interface FormLayout {
 
 export interface DynamicFormProps {
   variables: ParsedTemplateVariable[]
-  initialData?: Record<string, any>
+  initialData?: Record<string, unknown>
   layout?: FormLayout
   readonly?: boolean
   showSectionTitles?: boolean
@@ -40,15 +40,15 @@ export interface DynamicFormProps {
 }
 
 export interface DynamicFormEmits {
-  submit: [data: Record<string, any>]
-  change: [data: Record<string, any>]
+  submit: [data: Record<string, unknown>]
+  change: [data: Record<string, unknown>]
   reset: []
-  fieldChange: [fieldName: string, value: any]
+  fieldChange: [fieldName: string, value: unknown]
   validationChange: [isValid: boolean, errors: Record<string, string>]
 }
 
 export interface FieldComponentMapping {
-  [key: string]: () => Promise<any>
+  [key: string]: () => Promise<unknown>
 }
 
 export interface FieldProps {
@@ -67,7 +67,7 @@ export interface FieldProps {
 
 export interface DynamicFieldProps {
   variable: ParsedTemplateVariable
-  modelValue?: any
+  modelValue?: unknown
   errors?: string[]
   disabled?: boolean
   readonly?: boolean
@@ -75,22 +75,22 @@ export interface DynamicFieldProps {
 }
 
 export interface DynamicFieldEmits {
-  'update:modelValue': [value: any]
+  'update:modelValue': [value: unknown]
   blur: [event: FocusEvent]
   focus: [event: FocusEvent]
-  change: [value: any]
+  change: [value: unknown]
 }
 
 export interface FieldGroupProps {
   group: FieldGroup
-  formData: Record<string, any>
+  formData: Record<string, unknown>
   disabled?: boolean
   readonly?: boolean
   size?: 'sm' | 'md' | 'lg'
 }
 
 export interface FieldGroupEmits {
-  update: [fieldName: string, value: any]
+  update: [fieldName: string, value: unknown]
   groupToggle: [groupId: string, collapsed: boolean]
 }
 
@@ -111,6 +111,6 @@ export interface FormSubmissionState {
 export interface DynamicFormState {
   validation: FormValidationState
   submission: FormSubmissionState
-  formData: Record<string, any>
+  formData: Record<string, unknown>
   fieldGroups: FieldGroup[]
 }

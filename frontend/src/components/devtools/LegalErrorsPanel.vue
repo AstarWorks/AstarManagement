@@ -186,7 +186,27 @@ const filteredErrors = computed(() => {
 })
 
 // Parse and categorize legal domain errors
-const parseLegalError = (error: any, queryKey?: unknown[]): LegalError | null => {
+interface ErrorData {
+  code?: string
+  message?: string
+  response?: {
+    data?: {
+      code?: string
+      message?: string
+      requirements?: string[]
+      regulations?: string[]
+      matterId?: string
+      requiredRole?: string
+      currentStatus?: string
+      targetStatus?: string
+      operation?: string
+    }
+    status?: number
+  }
+  stack?: string
+}
+
+const parseLegalError = (error: ErrorData, queryKey?: unknown[]): LegalError | null => {
   const errorCode = error?.code || error?.response?.data?.code || 'UNKNOWN'
   const errorMessage = error?.message || error?.response?.data?.message || 'Unknown error'
   
@@ -258,7 +278,7 @@ const parseLegalError = (error: any, queryKey?: unknown[]): LegalError | null =>
 }
 
 // Extract legal requirements from validation errors
-const extractLegalRequirements = (error: any): string[] => {
+const extractLegalRequirements = (error: ErrorData): string[] => {
   const requirements: string[] = []
   
   if (error?.response?.data?.requirements) {
@@ -281,7 +301,7 @@ const extractLegalRequirements = (error: any): string[] => {
 }
 
 // Extract compliance requirements
-const extractComplianceRequirements = (error: any): string[] => {
+const extractComplianceRequirements = (error: ErrorData): string[] => {
   const requirements: string[] = []
   
   if (error?.response?.data?.regulations) {
@@ -296,7 +316,7 @@ const extractComplianceRequirements = (error: any): string[] => {
 }
 
 // Extract access control context
-const extractAccessContext = (error: any, queryKey?: unknown[]): Record<string, unknown> => {
+const extractAccessContext = (error: ErrorData, queryKey?: unknown[]): Record<string, unknown> => {
   const context: Record<string, unknown> = {}
   
   if (error?.response?.data?.matterId) {
@@ -315,7 +335,7 @@ const extractAccessContext = (error: any, queryKey?: unknown[]): Record<string, 
 }
 
 // Extract workflow context
-const extractWorkflowContext = (error: any, queryKey?: unknown[]): Record<string, unknown> => {
+const extractWorkflowContext = (error: ErrorData, queryKey?: unknown[]): Record<string, unknown> => {
   const context: Record<string, unknown> = {}
   
   if (error?.response?.data?.currentStatus) {

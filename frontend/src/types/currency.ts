@@ -26,14 +26,18 @@ export interface CurrencyAmount {
 }
 
 export interface CurrencyConversion {
-  /** Original amount and currency */
-  from: CurrencyAmount
-  /** Converted amount and currency */
-  to: CurrencyAmount
+  /** Original amount */
+  originalAmount: number
+  /** Original currency */
+  originalCurrency: string
+  /** Converted amount */
+  convertedAmount: number
+  /** Converted currency */
+  convertedCurrency: string
   /** Exchange rate used for conversion */
-  rate: number
+  exchangeRate: number
   /** Date of the exchange rate */
-  date: Date
+  conversionDate: Date
   /** Source of the exchange rate */
   source: string
 }
@@ -54,18 +58,39 @@ export interface CurrencyFormatOptions {
 }
 
 export interface ExchangeRate {
+  /** Unique identifier */
+  id: string
   /** Base currency code */
-  from: string
+  fromCurrency: string
   /** Target currency code */
-  to: string
+  toCurrency: string
   /** Exchange rate value */
   rate: number
   /** Date of the rate */
-  date: Date
+  rateDate: Date
   /** Source of the rate (e.g., 'BOJ', 'ECB', 'manual') */
   source: string
   /** Whether this rate is currently active */
   isActive: boolean
+  /** When this rate was created */
+  createdAt: Date
+}
+
+export interface ExchangeRateHistory {
+  /** Date of the rate */
+  date: Date
+  /** Exchange rate value */
+  rate: number
+  /** Source of the rate */
+  source: string
+}
+
+export interface RateUpdateRequest {
+  fromCurrency: string
+  toCurrency: string
+  rate: number
+  source?: string
+  effectiveDate?: string
 }
 
 export interface CurrencySettings {

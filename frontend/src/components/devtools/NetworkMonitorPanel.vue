@@ -134,15 +134,15 @@
           <div class="error-details">
             <div class="detail-item">
               <span class="detail-label">Message:</span>
-              <span class="detail-value error">{{ (selectedRequest.error as any)?.message || 'Unknown error' }}</span>
+              <span class="detail-value error">{{ getErrorMessage(selectedRequest.error) }}</span>
             </div>
-            <div v-if="(selectedRequest.error as any)?.code" class="detail-item">
+            <div v-if="getErrorCode(selectedRequest.error)" class="detail-item">
               <span class="detail-label">Code:</span>
-              <span class="detail-value">{{ (selectedRequest.error as any)?.code }}</span>
+              <span class="detail-value">{{ getErrorCode(selectedRequest.error) }}</span>
             </div>
-            <div v-if="(selectedRequest.error as any)?.stack" class="detail-item">
+            <div v-if="getErrorStack(selectedRequest.error)" class="detail-item">
               <span class="detail-label">Stack:</span>
-              <pre class="error-stack">{{ (selectedRequest.error as any)?.stack }}</pre>
+              <pre class="error-stack">{{ getErrorStack(selectedRequest.error) }}</pre>
             </div>
           </div>
         </div>
@@ -336,6 +336,31 @@ const interceptQueryActivity = () => {
     unsubscribeMutation()
     clearInterval(cleanupInterval)
   }
+}
+
+// Error handling helpers
+interface ErrorLike {
+  message?: string
+  code?: string | number
+  stack?: string
+}
+
+const getErrorMessage = (error: unknown): string => {
+  if (!error) return 'Unknown error'
+  const err = error as ErrorLike
+  return err.message || 'Unknown error'
+}
+
+const getErrorCode = (error: unknown): string | number | null => {
+  if (!error) return null
+  const err = error as ErrorLike
+  return err.code || null
+}
+
+const getErrorStack = (error: unknown): string | null => {
+  if (!error) return null
+  const err = error as ErrorLike
+  return err.stack || null
 }
 
 const formatQueryKey = (key: unknown[]): string => {

@@ -68,6 +68,17 @@
                     @input="handleAmountChange"
                   />
                 </FormControl>
+                <!-- Real-time conversion display -->
+                <FormDescription v-if="conversionInfo && conversionInfo.convertedCurrency !== currency">
+                  <div class="conversion-info">
+                    <span class="text-sm">
+                      ≈ {{ formatCurrency(conversionInfo.convertedAmount, conversionInfo.convertedCurrency) }}
+                    </span>
+                    <span class="text-xs text-muted-foreground ml-2">
+                      (Rate: {{ conversionInfo.exchangeRate.toFixed(4) }})
+                    </span>
+                  </div>
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             </FormField>
@@ -75,36 +86,64 @@
             <FormField v-slot="{ componentField }" name="currency">
               <FormItem class="flex-1">
                 <FormLabel>Currency</FormLabel>
-                <Select v-bind="componentField">
+                <Select v-bind="componentField" @update:model-value="handleCurrencyChange">
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select currency" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="JPY">
-                      <div class="flex items-center gap-2">
-                        <span class="font-medium">¥</span>
-                        <span>JPY - Japanese Yen</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="USD">
-                      <div class="flex items-center gap-2">
-                        <span class="font-medium">$</span>
-                        <span>USD - US Dollar</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="EUR">
-                      <div class="flex items-center gap-2">
-                        <span class="font-medium">€</span>
-                        <span>EUR - Euro</span>
-                      </div>
-                    </SelectItem>
+                    <SelectGroup v-for="group in currencyGroups" :key="group.label">
+                      <SelectLabel>{{ group.label }}</SelectLabel>
+                      <SelectItem 
+                        v-for="currencyCode in group.currencies" 
+                        :key="currencyCode"
+                        :value="currencyCode"
+                        :disabled="!isCurrencyAvailable(currencyCode)"
+                      >
+                        <div class="flex items-center gap-2">
+                          <span class="font-medium">{{ getCurrencySymbol(currencyCode) }}</span>
+                          <span>{{ currencyCode }} - {{ getCurrencyName(currencyCode) }}</span>
+                          <Badge v-if="!isRateAvailable(currencyCode)" variant="outline" class="ml-auto text-xs">
+                            Offline
+                          </Badge>
+                        </div>
+                      </SelectItem>
+                    </SelectGroup>
                   </SelectContent>
                 </Select>
+                <FormDescription v-if="ratesError">
+                  <span class="text-amber-600">
+                    <Icon name="AlertTriangle" class="w-3 h-3 inline mr-1" />
+                    Using cached exchange rates
+                  </span>
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             </FormField>
+          </div>
+
+          <!-- Exchange Rate Status -->
+          <div v-if="exchangeRateStatus" class="exchange-rate-status">
+            <div class="flex items-center gap-2 text-sm">
+              <Icon 
+                :name="exchangeRateStatus.icon" 
+                :class="['w-4 h-4', exchangeRateStatus.iconClass]" 
+              />
+              <span :class="exchangeRateStatus.textClass">
+                {{ exchangeRateStatus.message }}
+              </span>
+              <Button
+                v-if="exchangeRateStatus.showRefresh"
+                type="button"
+                variant="ghost"
+                size="sm"
+                @click="refreshExchangeRates"
+                :disabled="ratesLoading"
+              >
+                <Icon name="RefreshCw" :class="['w-3 h-3', { 'animate-spin': ratesLoading }]" />
+              </Button>
+            </div>
           </div>
 
           <!-- Expense Date -->
@@ -343,10 +382,12 @@ import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import { useToast } from '~/composables/useToast'
 import { useMatters } from '~/composables/useMatters'
+import { useCurrency } from '~/composables/useCurrency'
 import { expenseCreateSchema, type ExpenseCreateForm } from '~/schemas/expense'
 import { EXPENSE_CATEGORIES, calculateApprovalPriority } from '~/types/expense'
 import type { Expense, ExpenseCreateInput, ExpenseType } from '~/types/expense'
 import type { Matter } from '~/types/matter'
+import { SUPPORTED_CURRENCIES, CURRENCY_GROUPS } from '~/types/currency'
 
 // Component Props
 interface Props {
@@ -377,6 +418,20 @@ const emit = defineEmits<{
 // Composables
 const { showToast } = useToast()
 const { matters } = useMatters(ref({ page: 1, limit: 100 }))
+const { 
+  exchangeRates,
+  supportedCurrencies,
+  isOnline,
+  hasValidRates,
+  ratesLoading,
+  ratesError,
+  convertAmount,
+  formatCurrency,
+  refetchRates
+} = useCurrency({
+  baseCurrency: 'JPY',
+  enableOfflineCache: true
+})
 
 // Form Setup
 const { handleSubmit, defineField, errors, meta, setValues } = useForm({
@@ -444,6 +499,69 @@ const availableMatters = computed(() => {
   return matters.value || []
 })
 
+// Currency-related computed properties
+const currencyGroups = computed(() => CURRENCY_GROUPS)
+
+const conversionInfo = computed(() => {
+  if (!amount.value || !currency.value || currency.value === 'JPY') return null
+  
+  return convertAmount(amount.value, currency.value, 'JPY')
+})
+
+const exchangeRateStatus = computed(() => {
+  if (!hasValidRates.value) {
+    return {
+      icon: 'AlertCircle',
+      iconClass: 'text-destructive',
+      textClass: 'text-destructive',
+      message: 'Exchange rates unavailable',
+      showRefresh: true
+    }
+  }
+  
+  if (ratesError.value) {
+    return {
+      icon: 'AlertTriangle',
+      iconClass: 'text-amber-500',
+      textClass: 'text-amber-700',
+      message: 'Using cached exchange rates',
+      showRefresh: true
+    }
+  }
+  
+  if (!isOnline.value) {
+    return {
+      icon: 'WifiOff',
+      iconClass: 'text-amber-500',
+      textClass: 'text-amber-700',
+      message: 'Offline mode - using cached rates',
+      showRefresh: false
+    }
+  }
+  
+  return null
+})
+
+const getCurrencySymbol = (code: string) => {
+  return SUPPORTED_CURRENCIES[code]?.symbol || code
+}
+
+const getCurrencyName = (code: string) => {
+  return SUPPORTED_CURRENCIES[code]?.name || code
+}
+
+const isCurrencyAvailable = (code: string) => {
+  return supportedCurrencies.value?.some(c => c.code === code) ?? true
+}
+
+const isRateAvailable = (code: string) => {
+  if (code === 'JPY') return true
+  return exchangeRates.value?.some(rate => 
+    (rate.fromCurrency === code && rate.toCurrency === 'JPY') ||
+    (rate.fromCurrency === 'JPY' && rate.toCurrency === code)
+  ) ?? false
+}
+
 // Expense Type Grouping
 const expenseTypeGroups = computed(() => [
   {
@@ -487,6 +605,30 @@ const handleExpenseTypeChange = (type: string) => {
   const category = EXPENSE_CATEGORIES[type as keyof typeof EXPENSE_CATEGORIES]
   if (category) {
     billable.value = category.defaultBillable
+  }
+}
+
+const handleCurrencyChange = (newCurrency: string) => {
+  currency.value = newCurrency
+  
+  // Show conversion information if rates are available
+  if (amount.value && newCurrency !== 'JPY') {
+    const conversion = convertAmount(amount.value, newCurrency, 'JPY')
+    if (conversion) {
+      showToast(
+        `${formatCurrency(amount.value, newCurrency)} ≈ ${formatCurrency(conversion.convertedAmount, 'JPY')}`,
+        'success'
+      )
+    }
+  }
+}
+
+const refreshExchangeRates = async () => {
+  try {
+    await refetchRates()
+    showToast('Exchange rates updated', 'success')
+  } catch (error) {
+    showToast('Failed to update exchange rates', 'error')
   }
 }
 
@@ -735,6 +877,24 @@ onMounted(async () => {
   align-items: center;
   gap: 0.5rem;
   padding: 2rem;
+}
+
+.conversion-info {
+  display: flex;
+  align-items: center;
+  margin-top: 0.25rem;
+  padding: 0.5rem;
+  background: hsl(var(--muted) / 0.5);
+  border-radius: calc(var(--radius) - 2px);
+  border: 1px solid hsl(var(--border));
+}
+
+.exchange-rate-status {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background: hsl(var(--muted) / 0.3);
+  border-radius: calc(var(--radius) - 2px);
+  border: 1px solid hsl(var(--border));
 }
 
 .form-actions {

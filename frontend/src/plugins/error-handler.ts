@@ -5,15 +5,27 @@
  * This is the Vue/Nuxt equivalent of the React ErrorBoundary and ErrorToastProvider.
  */
 
-export default defineNuxtPlugin((nuxtApp: any) => {
+interface NuxtAppWithToast {
+  vueApp: {
+    config: {
+      errorHandler?: (error: unknown, instance: unknown, info: string) => void
+    }
+  }
+  $toast?: {
+    error: (title: string, message: string) => void
+  }
+  $handleError?: (error: unknown, context?: string) => void
+}
+
+export default defineNuxtPlugin((nuxtApp: NuxtAppWithToast) => {
   // Handle Vue errors
-  nuxtApp.vueApp.config.errorHandler = (error: any, instance: any, info: any) => {
+  nuxtApp.vueApp.config.errorHandler = (error: unknown, instance: unknown, info: string) => {
     console.error('Vue Error:', error)
     console.error('Error Info:', info)
     
     // Get toast plugin if available (client-side only)
-    if (process.client && (nuxtApp as any).$toast) {
-      (nuxtApp as any).$toast.error(
+    if (process.client && nuxtApp.$toast) {
+      nuxtApp.$toast.error(
         'Application Error',
         error instanceof Error ? error.message : 'An unexpected error occurred'
       )
@@ -63,7 +75,7 @@ export default defineNuxtPlugin((nuxtApp: any) => {
       },
       
       // Async error wrapper
-      wrapAsync: <T extends (...args: any[]) => Promise<any>>(
+      wrapAsync: <T extends (...args: never[]) => Promise<unknown>>(
         fn: T,
         context?: string
       ): T => {
@@ -71,7 +83,7 @@ export default defineNuxtPlugin((nuxtApp: any) => {
           try {
             return await fn(...args)
           } catch (error) {
-            (nuxtApp as any).$handleError(error, context)
+            nuxtApp.$handleError?.(error, context)
             throw error
           }
         }) as T
@@ -84,7 +96,7 @@ export default defineNuxtPlugin((nuxtApp: any) => {
 // declare module '#app' {
 //   interface NuxtApp {
 //     $handleError: (error: unknown, context?: string) => void
-//     $wrapAsync: <T extends (...args: any[]) => Promise<any>>(
+//     $wrapAsync: <T extends (...args: never[]) => Promise<unknown>>(
 //       fn: T,
 //       context?: string
 //     ) => T
@@ -94,7 +106,7 @@ export default defineNuxtPlugin((nuxtApp: any) => {
 declare module 'vue' {
   interface ComponentCustomProperties {
     $handleError: (error: unknown, context?: string) => void
-    $wrapAsync: <T extends (...args: any[]) => Promise<any>>(
+    $wrapAsync: <T extends (...args: never[]) => Promise<unknown>>(
       fn: T,
       context?: string
     ) => T

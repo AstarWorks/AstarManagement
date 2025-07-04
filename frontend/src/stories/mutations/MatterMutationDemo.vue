@@ -155,7 +155,7 @@ const handleMove = async (matter: Matter, newStatus: string) => {
     
     const moved = await moveMutation.mutateAsync({
       matterId: matter.id,
-      newStatus: newStatus as any,
+      newStatus: newStatus as MatterStatus,
       newPosition: 0
     })
     const latency = Date.now() - startTime

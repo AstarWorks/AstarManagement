@@ -109,7 +109,7 @@ const handleHeaderClick = () => {
   }
 }
 
-const handleFieldUpdate = (fieldName: string, value: any) => {
+const handleFieldUpdate = (fieldName: string, value: unknown) => {
   emit('update', fieldName, value)
 }
 

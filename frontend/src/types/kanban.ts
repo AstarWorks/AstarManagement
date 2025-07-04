@@ -12,6 +12,25 @@ export interface KanbanColumn {
   currentItemCount: number
 }
 
+export interface KanbanBoard {
+  id: string
+  title: string
+  description?: string
+  columns: KanbanColumn[]
+  settings?: {
+    showJapanese?: boolean
+    enableDragDrop?: boolean
+    autoSave?: boolean
+    allowReordering?: boolean
+    compactMode?: boolean
+    showEmptyColumns?: boolean
+  }
+  createdAt?: string
+  updatedAt?: string
+  lastUpdated?: string
+  version?: number
+}
+
 export interface KanbanBoardProps {
   title?: string
   columns?: KanbanColumn[]

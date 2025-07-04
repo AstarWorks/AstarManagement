@@ -23,25 +23,25 @@ const mockToast = {
   info: action('toast.info')
 }
 
-const mockFetch = async (url: string, options: any = {}) => {
-  const method = options.method || 'GET'
-  const body = options.body
+const mockFetch = async (url: string, options: Record<string, unknown> = {}) => {
+  const method = (options.method as string) || 'GET'
+  const body = options.body as Record<string, unknown> | undefined
   
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 1000))
   
   // Mock responses based on the request
   if (method === 'POST' && url === '/api/matters') {
-    if (body?.title === 'VALIDATION_ERROR') {
+    if ((body as { title?: string })?.title === 'VALIDATION_ERROR') {
       throw new Error('Validation failed')
     }
-    if (body?.title === 'NETWORK_ERROR') {
+    if ((body as { title?: string })?.title === 'NETWORK_ERROR') {
       throw new Error('Network error')
     }
     
     return {
       id: `matter-${Date.now()}`,
-      ...body,
+      ...(body || {}),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
@@ -51,7 +51,7 @@ const mockFetch = async (url: string, options: any = {}) => {
     const id = url.split('/').pop()
     return {
       id,
-      ...body,
+      ...(body || {}),
       updatedAt: new Date().toISOString()
     }
   }
@@ -81,7 +81,7 @@ const withVueQuery = (story: any) => ({
     }
     
     // Mock useNuxtApp globally
-    ;(globalThis as any).useNuxtApp = () => nuxtApp
+    ;(globalThis as { useNuxtApp?: () => unknown }).useNuxtApp = () => nuxtApp
     
     return { queryClient }
   },

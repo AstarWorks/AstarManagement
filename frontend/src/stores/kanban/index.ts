@@ -156,7 +156,7 @@ export const useKanbanStore = () => {
     Object.keys(grouped).forEach(key => {
       grouped[key].sort((a: Matter, b: Matter) => {
         const { sortBy, sortOrder } = viewPreferences
-        let aValue: any, bValue: any
+        let aValue: unknown, bValue: unknown
         
         switch (sortBy) {
           case 'priority':
@@ -182,9 +182,9 @@ export const useKanbanStore = () => {
         }
         
         if (sortOrder === 'asc') {
-          return aValue > bValue ? 1 : -1
+          return (aValue as any) > (bValue as any) ? 1 : -1
         } else {
-          return aValue < bValue ? 1 : -1
+          return (aValue as any) < (bValue as any) ? 1 : -1
         }
       })
     })

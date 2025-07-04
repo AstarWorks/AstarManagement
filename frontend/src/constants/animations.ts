@@ -208,7 +208,7 @@ export function getAnimationCSSVars(preset?: keyof typeof ANIMATION_PRESETS) {
   return {
     '--animation-duration': `${config.duration}ms`,
     '--animation-easing': config.easing,
-    '--animation-delay': `${(config as any).delay || 0}ms`,
+    '--animation-delay': `${(config as { delay?: number }).delay || 0}ms`,
   }
 }
 

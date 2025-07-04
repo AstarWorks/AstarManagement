@@ -10,8 +10,8 @@ interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
 
 // Request queue for handling concurrent requests during token refresh
 interface QueuedRequest {
-  resolve: (value?: any) => void
-  reject: (error?: any) => void
+  resolve: (value?: unknown) => void
+  reject: (error?: unknown) => void
   config: ExtendedAxiosRequestConfig
 }
 
@@ -107,7 +107,7 @@ class ApiClient {
     )
   }
   
-  private async handle401Error(originalRequest: ExtendedAxiosRequestConfig, errorData: any) {
+  private async handle401Error(originalRequest: ExtendedAxiosRequestConfig, errorData: unknown) {
     const authStore = useAuthStore()
     
     // Don't retry if this is already a refresh request or auth endpoint
@@ -184,32 +184,32 @@ class ApiClient {
   }
   
   // Public API methods
-  public get<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
+  public get<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> {
     return this.instance.get(url, config).then(response => response.data)
   }
   
-  public post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  public post<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
     return this.instance.post(url, data, config).then(response => response.data)
   }
   
-  public put<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  public put<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
     return this.instance.put(url, data, config).then(response => response.data)
   }
   
-  public patch<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  public patch<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
     return this.instance.patch(url, data, config).then(response => response.data)
   }
   
-  public delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
+  public delete<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> {
     return this.instance.delete(url, config).then(response => response.data)
   }
   
   // Upload file with progress tracking
-  public uploadFile<T = any>(
+  public uploadFile<T = unknown>(
     url: string, 
     file: File, 
     onProgress?: (progress: number) => void,
-    additionalData?: Record<string, any>
+    additionalData?: Record<string, unknown>
   ): Promise<T> {
     const formData = new FormData()
     formData.append('file', file)
@@ -217,7 +217,7 @@ class ApiClient {
     // Add additional form data
     if (additionalData) {
       Object.entries(additionalData).forEach(([key, value]) => {
-        formData.append(key, value)
+        formData.append(key, String(value))
       })
     }
     

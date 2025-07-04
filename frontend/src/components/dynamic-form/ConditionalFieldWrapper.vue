@@ -67,8 +67,8 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 // Inject conditional logic context
-const conditionalLogic = inject('conditionalLogic', null) as any
-const fieldDependencies = inject('fieldDependencies', null) as any
+const conditionalLogic = inject('conditionalLogic', null) as unknown
+const fieldDependencies = inject('fieldDependencies', null) as unknown
 
 // Field state
 const isVisible = computed(() => {

@@ -10,7 +10,7 @@ export const QUERY_KEYS = {
   matters: {
     all: ['matters'] as const,
     lists: () => [...QUERY_KEYS.matters.all, 'list'] as const,
-    list: (filters?: Record<string, any>) => [...QUERY_KEYS.matters.lists(), filters] as const,
+    list: (filters?: Record<string, unknown>) => [...QUERY_KEYS.matters.lists(), filters] as const,
     details: () => [...QUERY_KEYS.matters.all, 'detail'] as const,
     detail: (id: string) => [...QUERY_KEYS.matters.details(), id] as const,
   },
@@ -63,7 +63,7 @@ export type InvalidationScope = 'immediate' | 'background' | 'conditional'
  * Invalidation pattern configuration
  */
 export interface InvalidationPattern {
-  queries: Array<(() => readonly any[]) | ((data?: any) => readonly any[])>
+  queries: Array<((...args: any[]) => readonly unknown[])>
   scope?: InvalidationScope
   condition?: (data: any) => boolean
   delay?: number // milliseconds
@@ -373,7 +373,7 @@ export class InvalidationExecutor {
     
     await Promise.all(
       queryKeys.map(queryKey =>
-        this.queryClient.invalidateQueries({ queryKey })
+        this.queryClient.invalidateQueries({ queryKey: queryKey as readonly unknown[] })
       )
     )
   }

@@ -93,7 +93,7 @@ export function useKanbanQueryInvalidation(config: Partial<KanbanInvalidationCon
     const statusChangeRule: InvalidationRule = {
       id: 'kanban-status-change',
       eventTypes: ['matter_status_changed', 'kanban_move'],
-      queryKeys: [queryKeys.statusCounts()] as any,
+      queryKeys: [queryKeys.statusCounts()] as const,
       debounceMs: kanbanConfig.value.statusChangeDebounceMs,
       rateLimit: 10, // Allow up to 10 status changes per second
       cascade: false,
@@ -110,7 +110,7 @@ export function useKanbanQueryInvalidation(config: Partial<KanbanInvalidationCon
     const reorderRule: InvalidationRule = {
       id: 'kanban-reorder',
       eventTypes: ['matter_reordered', 'kanban_reorder'],
-      queryKeys: [] as any, // No immediate invalidation for pure reordering
+      queryKeys: [] as const, // No immediate invalidation for pure reordering
       debounceMs: kanbanConfig.value.reorderDebounceMs,
       rateLimit: 20, // High rate limit for smooth dragging
       cascade: false,
@@ -126,7 +126,7 @@ export function useKanbanQueryInvalidation(config: Partial<KanbanInvalidationCon
     const bulkOperationRule: InvalidationRule = {
       id: 'kanban-bulk-operation',
       eventTypes: ['matters_bulk_created', 'matters_bulk_deleted', 'matters_bulk_updated'],
-      queryKeys: [queryKeys.lists(), queryKeys.matters.statistics(), queryKeys.statusCounts()] as any,
+      queryKeys: [queryKeys.lists(), queryKeys.matters.statistics(), queryKeys.statusCounts()] as const,
       debounceMs: 1000, // Longer debounce for bulk operations
       cascade: true
     }
@@ -135,7 +135,7 @@ export function useKanbanQueryInvalidation(config: Partial<KanbanInvalidationCon
     const externalUpdateRule: InvalidationRule = {
       id: 'kanban-external-update',
       eventTypes: ['matter_updated_external', 'matter_created_external'],
-      queryKeys: [queryKeys.lists()] as any,
+      queryKeys: [queryKeys.lists()] as const,
       debounceMs: 500,
       cascade: false,
       condition: (event: RealTimeEvent) => {
@@ -270,31 +270,31 @@ export function useKanbanQueryInvalidation(config: Partial<KanbanInvalidationCon
     // For pure reordering, we only need to update the specific query cache
     // No server invalidation needed since order is often client-side only
     
-    queryClient.setQueryData(queryKeys.lists(), (old: any) => {
-      if (!old?.data) return old
+    queryClient.setQueryData(queryKeys.lists(), (old: unknown) => {
+      if (!old || !(old as { data?: unknown[] }).data) return old
       
       // Find and update the matter position
-      const matters = [...old.data]
-      const matterIndex = matters.findIndex(m => m.id === matterId)
+      const matters = [...(old as { data: unknown[] }).data]
+      const matterIndex = matters.findIndex((m: any) => m.id === matterId)
       
-      if (matterIndex !== -1 && matters[matterIndex].status === status) {
+      if (matterIndex !== -1 && (matters[matterIndex] as any).status === status) {
         // Simple position update - more sophisticated reordering would be needed
         // for a complete implementation
         matters[matterIndex] = {
-          ...matters[matterIndex],
+          ...(matters[matterIndex] as any),
           position,
           updatedAt: new Date().toISOString()
         }
       }
       
-      return { ...old, data: matters }
+      return { ...(old as any), data: matters }
     })
   }
 
   /**
    * Handle bulk operations with batched invalidation
    */
-  const handleBulkOperation = async (operations: Array<{ type: 'create' | 'update' | 'delete'; matterId: string; data?: any }>) => {
+  const handleBulkOperation = async (operations: Array<{ type: 'create' | 'update' | 'delete'; matterId: string; data?: unknown }>) => {
     const batchSize = kanbanConfig.value.bulkOperationBatchSize
     
     // Process operations in batches
@@ -306,32 +306,34 @@ export function useKanbanQueryInvalidation(config: Partial<KanbanInvalidationCon
         switch (operation.type) {
           case 'create':
             // Add to cache optimistically
-            queryClient.setQueryData(queryKeys.lists(), (old: any) => {
-              if (!old?.data) return old
+            queryClient.setQueryData(queryKeys.lists(), (old: unknown) => {
+              const typedOld = old as { data?: unknown[]; total?: number }
+              if (!typedOld?.data) return old
               return {
-                ...old,
-                data: [operation.data, ...old.data],
-                total: old.total + 1
+                ...typedOld,
+                data: [operation.data, ...typedOld.data],
+                total: (typedOld.total || 0) + 1
               }
             })
             break
             
           case 'update':
             // Update in cache
-            queryClient.setQueryData(queryKeys.detail(operation.matterId), (old: Matter | undefined) => {
+            queryClient.setQueryData(queryKeys.detail(operation.matterId), (old: unknown) => {
               if (!old) return old
-              return { ...old, ...operation.data }
+              return { ...(old as any), ...(operation.data as any) }
             })
             break
             
           case 'delete':
             // Remove from cache
-            queryClient.setQueryData(queryKeys.lists(), (old: any) => {
-              if (!old?.data) return old
+            queryClient.setQueryData(queryKeys.lists(), (old: unknown) => {
+              const typedOld = old as { data?: any[]; total?: number }
+              if (!typedOld?.data) return old
               return {
-                ...old,
-                data: old.data.filter((m: Matter) => m.id !== operation.matterId),
-                total: old.total - 1
+                ...typedOld,
+                data: typedOld.data.filter((m: any) => m.id !== operation.matterId),
+                total: (typedOld.total || 0) - 1
               }
             })
             break
@@ -376,11 +378,12 @@ export function useKanbanQueryInvalidation(config: Partial<KanbanInvalidationCon
       queryClient.setQueryData(queryKeys.detail(matterId), serverMatter)
       
       // Update lists cache as well
-      queryClient.setQueryData(queryKeys.lists(), (old: any) => {
-        if (!old?.data) return old
+      queryClient.setQueryData(queryKeys.lists(), (old: unknown) => {
+        const typedOld = old as { data?: any[] }
+        if (!typedOld?.data) return old
         return {
-          ...old,
-          data: old.data.map((m: Matter) => m.id === matterId ? serverMatter : m)
+          ...typedOld,
+          data: typedOld.data.map((m: any) => m.id === matterId ? serverMatter : m)
         }
       })
       

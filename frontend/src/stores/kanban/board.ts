@@ -1,20 +1,21 @@
 import { defineStore } from 'pinia'
 import { ref, computed, readonly } from 'vue'
-import type { KanbanColumn, MatterStatus } from '~/types/kanban'
+import type { KanbanColumn, KanbanBoard, MatterStatus } from '~/types/kanban'
+import type { Matter } from '~/types/matter'
 import { DEFAULT_KANBAN_COLUMNS } from '~/constants/kanban'
 
 export interface DragContext {
   activeId: string | null
   overId: string | null
   isDragging: boolean
-  draggedItem: any | null
+  draggedItem: unknown | null
   dragStartTime: number | null
   dragPreview: HTMLElement | null
 }
 
 export const useBoardStore = defineStore('kanban-board', () => {
   // State
-  const board = ref<any | null>(null)
+  const board = ref<KanbanBoard | null>(null)
   const columns = ref<KanbanColumn[]>([])
   
   // Initialize board on store creation
@@ -34,9 +35,9 @@ export const useBoardStore = defineStore('kanban-board', () => {
   })
 
   // Actions
-  const initializeBoard = (boardData?: Partial<any>) => {
+  const initializeBoard = (boardData?: Partial<KanbanBoard>) => {
     // Reset columns to fresh defaults (deep copy to avoid mutation)
-    columns.value = DEFAULT_KANBAN_COLUMNS.map((col: any) => ({ ...col }))
+    columns.value = DEFAULT_KANBAN_COLUMNS.map((col: KanbanColumn) => ({ ...col }))
     
     board.value = {
       id: boardData?.id || 'default-board',
@@ -63,7 +64,7 @@ export const useBoardStore = defineStore('kanban-board', () => {
     }
   }
 
-  const startDrag = (item: any, fromColumn?: string) => {
+  const startDrag = (item: Matter, fromColumn?: string) => {
     updateDragContext({
       activeId: typeof item === 'string' ? item : item?.id,
       isDragging: true,
@@ -102,7 +103,7 @@ export const useBoardStore = defineStore('kanban-board', () => {
     return context
   }
 
-  const updateBoardSettings = (settings: Partial<any>) => {
+  const updateBoardSettings = (settings: Partial<KanbanBoard>) => {
     if (board.value) {
       board.value.settings = {
         ...board.value.settings,

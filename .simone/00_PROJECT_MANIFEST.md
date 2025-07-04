@@ -22,7 +22,7 @@ This project follows a milestone-based development approach.
 - **Milestone:** M01 - Matter Management MVP
 - **Active Sprint:** S14 - Financial Management (ACTIVE)
 - **Current Task:** T08_S14 Mobile Optimization (IN PROGRESS)
-- **Recent Completion:** TX01_S14 Expense Entry Form (COMPLETED)
+- **Recent Completion:** TX06_S14 Multi-Currency Support (COMPLETED)
 - **M02 Status:** S05 complete, S06 26% complete (corrected), S07-S09 complete, S10 ready  
 - **Updated:** 2025-07-04 09:52
 
@@ -213,14 +213,16 @@ Implement communication tracking and document creation interfaces.
 
 ### S14 Financial Management (🚧 ACTIVE)
 
-Implement revenue and expense tracking features.
+Implement comprehensive financial management features including expense tracking, currency support, and reporting.
 
-- 📋 Revenue Management Dashboard (R10) - High complexity
-- 📋 Expense Record System (R11) - High complexity
-- 📋 Financial Charts and KPIs - Medium complexity
-- 📋 Receipt OCR Integration - Medium complexity
-- ✅ CSV Export and Reporting - Medium complexity (COMPLETED)
-- 📋 Mobile Optimization - Medium complexity
+- ✅ TX01_S14: Expense Entry Form - High complexity (COMPLETED)
+- 📋 T02_S14: Revenue Management Dashboard - High complexity  
+- 📋 T03_S14: Time Tracking Integration - Medium complexity
+- 📋 T04_S14: Financial Dashboard Overview - Medium complexity
+- 📋 T05_S14: Export and Reporting - Medium complexity
+- ✅ TX06_S14: Multi-Currency Support - Medium complexity (COMPLETED)
+- ✅ TX07_S14: Expense Approval Workflow - Medium complexity (COMPLETED)
+- 🚧 T08_S14: Mobile Optimization - Medium complexity (IN PROGRESS)
 
 ## 4. M02 - Frontend Framework Migration
 
