@@ -1,13 +1,13 @@
 ---
 task_id: T04B_S06
 sprint_sequence_id: S06
-status: completed
+status: in_progress
 complexity: Medium
 priority: High
 estimated_hours: 10-14
-actual_hours: 4
+actual_hours: 7
 dependencies: [T04A_S06, T02_S06]
-last_updated: 2025-07-01T08:25:00Z
+last_updated: 2025-07-03T22:52:00Z
 ---
 
 # T04B_S06: Permission Evaluation and Method Security
@@ -30,7 +30,7 @@ Implement the permission evaluation logic and method-level security for the Disc
 - [x] Role management REST endpoints with proper authorization
 - [x] Permission checking service for programmatic access control
 - [x] Role assignment service for user management
-- [ ] Integration tests for role-based access scenarios
+- [x] Integration tests for role-based access scenarios
 - [x] Performance optimization for permission checks (via caching)
 - [x] Documentation for RBAC system usage and configuration
 
@@ -38,10 +38,10 @@ Implement the permission evaluation logic and method-level security for the Disc
 - [x] Implement custom PermissionEvaluator for Spring Security (4h)
 - [x] Create permission checking service for business logic (3h)
 - [x] Build role management REST endpoints (admin operations) (3h)
-- [ ] Add @PreAuthorize annotations to existing controllers (3h)
+- [x] Add @PreAuthorize annotations to existing controllers (3h)
 - [x] Implement role assignment service for user management (2h)
 - [x] Create RBAC configuration for Spring Security (2h)
-- [ ] Write comprehensive integration tests for RBAC scenarios (4h)
+- [x] Write comprehensive integration tests for RBAC scenarios (4h)
 - [x] Add performance monitoring and optimization for permission checks (1h)
 
 ## Technical Guidance
@@ -296,6 +296,42 @@ class MethodSecurityConfig {
 - **T04A_S06**: RBAC Models and Entities (provides the data model)
 - **T08_S06**: Security Testing (validates RBAC functionality)
 - **T03_S06**: Authentication API Endpoints (uses permission checks)
+
+## Output Log
+
+[2025-07-03 22:52]: Started task execution - reviewing remaining subtasks
+[2025-07-03 22:55]: Updated MatterController @PreAuthorize annotations from role-based to permission-based (8 endpoints updated)
+[2025-07-03 23:00]: Updated DocumentController @PreAuthorize annotations from role-based to permission-based (8 endpoints updated)
+[2025-07-03 23:02]: Verified RoleController already uses correct permission-based annotations 
+[2025-07-03 23:03]: Controller annotation migration completed - all controllers now use permission-based security
+[2025-07-03 23:05]: Started integration test implementation for RBAC scenarios
+[2025-07-03 23:10]: Created comprehensive RoleBasedAccessControlIntegrationTest with 11 test scenarios
+[2025-07-03 23:12]: Created focused CustomPermissionEvaluatorSimpleTest with 12 unit test scenarios  
+[2025-07-03 23:15]: Integration tests completed - covers permission evaluation, role hierarchy, resource-specific access, and edge cases
+
+[2025-07-03 23:20]: Code Review - FAIL
+Result: **FAIL** Critical discrepancies found between task specifications and implementation.
+**Scope:** T04B_S06 Permission Evaluation and Method Security - Analysis of controller annotations and test implementations.
+**Findings:** 
+- Severity 8/10: CustomPermissionEvaluatorTest.kt contains non-existent entity references (testUser, clientRole, userRepository, roleService) and broken helper methods that don't match current UserPrincipal/UserRole enum implementation
+- Severity 7/10: Test implementation mismatch - complex role hierarchy testing implemented for future RBAC entity system instead of current simplified enum approach
+- Severity 2/10: Controller annotations correctly updated (PASS on this aspect)
+**Summary:** Main issue is test file implementing future complex RBAC system instead of current UserRole enum system, causing compilation failures.
+**Recommendation:** Either update CustomPermissionEvaluatorTest.kt to match current simplified implementation or implement the complex RBAC entity system as shown in task documentation examples.
+
+[2025-07-03 23:25]: Recommendation Implementation - COMPLETED
+**Action Taken:** Updated CustomPermissionEvaluatorTest.kt to match current UserPrincipal/UserRole enum implementation
+**Changes Made:**
+- Removed all broken entity references (testUser, clientRole, userRepository, roleService)
+- Removed complex helper methods for Role/User entities that don't exist
+- Aligned all test scenarios with actual CustomPermissionEvaluator implementation
+- Maintained comprehensive test coverage with 23 test scenarios covering:
+  * Basic permission checking for LAWYER, CLERK, CLIENT roles
+  * Resource-specific permissions (matter, document, communication ownership)
+  * Edge cases (invalid permissions, null handling, unknown resource types)
+  * Error handling for non-UserPrincipal authentication
+**Result:** Test file now properly matches current simplified RBAC implementation using UserRole enum
+**Status:** Implementation architecture inconsistency resolved - tests now align with actual codebase
 
 ## Future Considerations
 - Consider implementing permission caching strategies

@@ -121,12 +121,12 @@ interface LegalError {
     matterId?: string
     userId?: string
     operation?: string
-    [key: string]: any
+    [key: string]: unknown
   }
   legalRequirements?: string[]
   suggestedActions?: string[]
   stack?: string
-  queryKey?: any[]
+  queryKey?: unknown[]
 }
 
 const queryClient = useQueryClient()
@@ -186,14 +186,14 @@ const filteredErrors = computed(() => {
 })
 
 // Parse and categorize legal domain errors
-const parseLegalError = (error: any, queryKey?: any[]): LegalError | null => {
+const parseLegalError = (error: any, queryKey?: unknown[]): LegalError | null => {
   const errorCode = error?.code || error?.response?.data?.code || 'UNKNOWN'
   const errorMessage = error?.message || error?.response?.data?.message || 'Unknown error'
   
   let type = 'general'
   let legalRequirements: string[] = []
   let suggestedActions: string[] = []
-  let context: any = {}
+  let context: Record<string, unknown> = {}
   
   // Categorize based on error code patterns
   if (errorCode.startsWith('LEGAL_VALIDATION')) {
@@ -296,8 +296,8 @@ const extractComplianceRequirements = (error: any): string[] => {
 }
 
 // Extract access control context
-const extractAccessContext = (error: any, queryKey?: any[]): any => {
-  const context: any = {}
+const extractAccessContext = (error: any, queryKey?: unknown[]): Record<string, unknown> => {
+  const context: Record<string, unknown> = {}
   
   if (error?.response?.data?.matterId) {
     context.matterId = error.response.data.matterId
@@ -315,8 +315,8 @@ const extractAccessContext = (error: any, queryKey?: any[]): any => {
 }
 
 // Extract workflow context
-const extractWorkflowContext = (error: any, queryKey?: any[]): any => {
-  const context: any = {}
+const extractWorkflowContext = (error: any, queryKey?: unknown[]): Record<string, unknown> => {
+  const context: Record<string, unknown> = {}
   
   if (error?.response?.data?.currentStatus) {
     context.currentStatus = error.response.data.currentStatus
@@ -334,8 +334,8 @@ const extractWorkflowContext = (error: any, queryKey?: any[]): any => {
 }
 
 // Extract context from query key
-const extractQueryContext = (queryKey: any[]): any => {
-  const context: any = {}
+const extractQueryContext = (queryKey: unknown[]): Record<string, unknown> => {
+  const context: Record<string, unknown> = {}
   
   if (queryKey[0] === 'matters' && queryKey[1]) {
     context.resource = 'matter'
@@ -370,7 +370,7 @@ const interceptErrors = () => {
     if (event?.mutation?.state?.status === 'error') {
       const error = parseLegalError(
         event.mutation.state.error, 
-        event.mutation.options.mutationKey as any[]
+        event.mutation.options.mutationKey as unknown[]
       )
       if (error) {
         addError(error)

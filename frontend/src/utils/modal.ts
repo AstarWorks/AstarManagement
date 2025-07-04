@@ -326,7 +326,7 @@ export class ModalEventBus {
   /**
    * Emit modal event
    */
-  emit(event: string, ...args: any[]): void {
+  emit(event: string, ...args: unknown[]): void {
     const eventListeners = this.listeners.get(event)
     if (eventListeners) {
       eventListeners.forEach(callback => {

@@ -134,15 +134,15 @@
           <div class="error-details">
             <div class="detail-item">
               <span class="detail-label">Message:</span>
-              <span class="detail-value error">{{ selectedRequest.error.message }}</span>
+              <span class="detail-value error">{{ (selectedRequest.error as any)?.message || 'Unknown error' }}</span>
             </div>
-            <div v-if="selectedRequest.error.code" class="detail-item">
+            <div v-if="(selectedRequest.error as any)?.code" class="detail-item">
               <span class="detail-label">Code:</span>
-              <span class="detail-value">{{ selectedRequest.error.code }}</span>
+              <span class="detail-value">{{ (selectedRequest.error as any)?.code }}</span>
             </div>
-            <div v-if="selectedRequest.error.stack" class="detail-item">
+            <div v-if="(selectedRequest.error as any)?.stack" class="detail-item">
               <span class="detail-label">Stack:</span>
-              <pre class="error-stack">{{ selectedRequest.error.stack }}</pre>
+              <pre class="error-stack">{{ (selectedRequest.error as any)?.stack }}</pre>
             </div>
           </div>
         </div>
@@ -159,16 +159,16 @@ interface NetworkRequest {
   id: string
   type: 'query' | 'mutation'
   name: string
-  queryKey?: any[]
-  variables?: any
+  queryKey?: unknown[]
+  variables?: unknown
   startTime: number
   endTime?: number
   duration: number
   status: 'pending' | 'success' | 'error'
   statusText: string
   size: number
-  response?: any
-  error?: any
+  response?: unknown
+  error?: unknown
 }
 
 const queryClient = useQueryClient()
@@ -338,7 +338,7 @@ const interceptQueryActivity = () => {
   }
 }
 
-const formatQueryKey = (key: any[]): string => {
+const formatQueryKey = (key: unknown[]): string => {
   if (!key || key.length === 0) return 'Unknown'
   return key.map(k => {
     if (typeof k === 'string') return k

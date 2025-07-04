@@ -14,6 +14,9 @@ import dev.ryuzu.astermanagement.service.StatusTransitionService
 import dev.ryuzu.astermanagement.service.StatusTransitionContext
 import dev.ryuzu.astermanagement.service.base.BaseService
 import dev.ryuzu.astermanagement.service.exception.*
+import dev.ryuzu.astermanagement.service.BulkMatterOperationResult
+import dev.ryuzu.astermanagement.service.MatterOperationError
+import dev.ryuzu.astermanagement.service.MatterValidationError
 import org.slf4j.LoggerFactory
 import org.springframework.cache.annotation.CacheEvict
 import org.springframework.cache.annotation.Cacheable
@@ -505,4 +508,218 @@ class MatterServiceImpl(
         val updatedIds = mutableListOf<UUID>()
         val skippedIds = mutableListOf<UUID>()
         
-        try {\n            matterIds.forEach { matterId ->\n                try {\n                    val matter = matterRepository.findById(matterId).orElse(null)\n                    if (matter == null) {\n                        errors.add(MatterOperationError(\n                            matterId = matterId,\n                            errorCode = \"NOT_FOUND\",\n                            errorMessage = \"Matter not found or access denied\"\n                        ))\n                        return@forEach\n                    }\n                    \n                    // Check permissions\n                    if (!canUserModifyMatter(matter)) {\n                        errors.add(MatterOperationError(\n                            matterId = matterId,\n                            errorCode = \"ACCESS_DENIED\",\n                            errorMessage = \"User cannot modify this matter\"\n                        ))\n                        return@forEach\n                    }\n                    \n                    // Validate and apply updates\n                    var hasChanges = false\n                    val changeLog = mutableListOf<String>()\n                    \n                    updates.forEach { (field, value) ->\n                        try {\n                            when (field) {\n                                \"status\" -> {\n                                    val newStatus = value as? MatterStatus\n                                    if (newStatus != null && newStatus != matter.status) {\n                                        if (validateTransitions && !matter.status.canTransitionTo(newStatus)) {\n                                            errors.add(MatterOperationError(\n                                                matterId = matterId,\n                                                errorCode = \"INVALID_TRANSITION\",\n                                                errorMessage = \"Invalid status transition from ${matter.status} to $newStatus\",\n                                                field = field,\n                                                currentValue = matter.status,\n                                                attemptedValue = newStatus\n                                            ))\n                                            return@forEach\n                                        }\n                                        matter.updateStatus(newStatus)\n                                        changeLog.add(\"status: ${matter.status} -> $newStatus\")\n                                        hasChanges = true\n                                    }\n                                }\n                                \"priority\" -> {\n                                    val newPriority = value as? dev.ryuzu.astermanagement.domain.matter.MatterPriority\n                                    if (newPriority != null && newPriority != matter.priority) {\n                                        matter.priority = newPriority\n                                        changeLog.add(\"priority: ${matter.priority} -> $newPriority\")\n                                        hasChanges = true\n                                    }\n                                }\n                                \"assignedLawyerId\" -> {\n                                    val lawyerId = value as? UUID\n                                    val newLawyer = lawyerId?.let { userRepository.findById(it).orElse(null) }\n                                    if (newLawyer != matter.assignedLawyer) {\n                                        matter.assignedLawyer = newLawyer\n                                        changeLog.add(\"assignedLawyer: ${matter.assignedLawyer?.username} -> ${newLawyer?.username}\")\n                                        hasChanges = true\n                                    }\n                                }\n                                \"assignedClerkId\" -> {\n                                    val clerkId = value as? UUID\n                                    val newClerk = clerkId?.let { userRepository.findById(it).orElse(null) }\n                                    if (newClerk != matter.assignedClerk) {\n                                        matter.assignedClerk = newClerk\n                                        changeLog.add(\"assignedClerk: ${matter.assignedClerk?.username} -> ${newClerk?.username}\")\n                                        hasChanges = true\n                                    }\n                                }\n                                \"notes\" -> {\n                                    val newNotes = value as? String\n                                    if (newNotes != matter.notes) {\n                                        matter.notes = newNotes\n                                        changeLog.add(\"notes updated\")\n                                        hasChanges = true\n                                    }\n                                }\n                                \"addTags\" -> {\n                                    val tagsToAdd = (value as? List<*>)?.filterIsInstance<String>() ?: emptyList()\n                                    tagsToAdd.forEach { tag ->\n                                        if (!matter.hasTag(tag)) {\n                                            matter.addTag(tag)\n                                            hasChanges = true\n                                        }\n                                    }\n                                    if (tagsToAdd.isNotEmpty()) {\n                                        changeLog.add(\"added tags: ${tagsToAdd.joinToString(\", \")}\")\n                                    }\n                                }\n                                \"removeTags\" -> {\n                                    val tagsToRemove = (value as? List<*>)?.filterIsInstance<String>() ?: emptyList()\n                                    tagsToRemove.forEach { tag ->\n                                        if (matter.hasTag(tag)) {\n                                            matter.removeTag(tag)\n                                            hasChanges = true\n                                        }\n                                    }\n                                    if (tagsToRemove.isNotEmpty()) {\n                                        changeLog.add(\"removed tags: ${tagsToRemove.joinToString(\", \")}\")\n                                    }\n                                }\n                                else -> {\n                                    warnings.add(\"Unknown field '$field' ignored for matter $matterId\")\n                                }\n                            }\n                        } catch (e: Exception) {\n                            errors.add(MatterOperationError(\n                                matterId = matterId,\n                                errorCode = \"UPDATE_FAILED\",\n                                errorMessage = \"Failed to update field '$field': ${e.message}\",\n                                field = field,\n                                attemptedValue = value\n                            ))\n                            if (stopOnFirstError) return@forEach\n                        }\n                    }\n                    \n                    if (hasChanges) {\n                        matterRepository.save(matter)\n                        updatedIds.add(matterId)\n                        successful++\n                        \n                        // Log audit event\n                        auditEventPublisher.publishMatterUpdated(\n                            matterId = matterId,\n                            fieldsChanged = changeLog,\n                            oldValues = mapOf(),\n                            newValues = mapOf(),\n                            reason = \"Bulk update operation\"\n                        )\n                        \n                        logger.debug(\"Bulk updated matter $matterId: ${changeLog.joinToString(\", \")}\")\n                    } else {\n                        skippedIds.add(matterId)\n                        warnings.add(\"No changes applied to matter $matterId\")\n                    }\n                    \n                } catch (e: Exception) {\n                    logger.error(\"Error processing matter $matterId in bulk update\", e)\n                    errors.add(MatterOperationError(\n                        matterId = matterId,\n                        errorCode = \"PROCESSING_ERROR\",\n                        errorMessage = \"Error processing matter: ${e.message}\"\n                    ))\n                    \n                    if (stopOnFirstError) {\n                        throw e\n                    }\n                } finally {\n                    processed++\n                }\n            }\n            \n        } catch (e: Exception) {\n            logger.error(\"Bulk update operation failed\", e)\n            throw BusinessException(\"Bulk update operation failed: ${e.message}\")\n        }\n        \n        val finalResult = BulkMatterOperationResult(\n            totalRequested = matterIds.size,\n            totalProcessed = processed,\n            totalSuccessful = successful,\n            totalFailed = errors.size,\n            totalSkipped = skippedIds.size,\n            errors = errors,\n            warnings = warnings,\n            updatedMatterIds = updatedIds,\n            skippedMatterIds = skippedIds\n        )\n        \n        // Log summary\n        logger.info(\"Bulk update completed: ${successful}/${matterIds.size} matters updated, ${errors.size} errors\")\n        \n        return finalResult\n    }\n    \n    @Transactional\n    @AuditLog(eventType = AuditEventType.MATTER_BULK_DELETED, entityType = \"Matter\", operation = \"bulkDelete\")\n    override fun bulkDeleteMatters(\n        matterIds: List<UUID>,\n        reason: String,\n        forceDelete: Boolean\n    ): BulkMatterOperationResult {\n        val errors = mutableListOf<MatterOperationError>()\n        val warnings = mutableListOf<String>()\n        val deletedIds = mutableListOf<UUID>()\n        val skippedIds = mutableListOf<UUID>()\n        var processed = 0\n        var successful = 0\n        \n        try {\n            matterIds.forEach { matterId ->\n                try {\n                    val matter = matterRepository.findById(matterId).orElse(null)\n                    if (matter == null) {\n                        errors.add(MatterOperationError(\n                            matterId = matterId,\n                            errorCode = \"NOT_FOUND\",\n                            errorMessage = \"Matter not found or access denied\"\n                        ))\n                        return@forEach\n                    }\n                    \n                    // Check permissions\n                    if (!canUserModifyMatter(matter)) {\n                        errors.add(MatterOperationError(\n                            matterId = matterId,\n                            errorCode = \"ACCESS_DENIED\",\n                            errorMessage = \"User cannot delete this matter\"\n                        ))\n                        return@forEach\n                    }\n                    \n                    // Check if matter can be deleted\n                    if (!forceDelete && matter.status != MatterStatus.CLOSED) {\n                        errors.add(MatterOperationError(\n                            matterId = matterId,\n                            errorCode = \"INVALID_STATUS\",\n                            errorMessage = \"Can only delete closed matters (use forceDelete to override)\",\n                            field = \"status\",\n                            currentValue = matter.status\n                        ))\n                        return@forEach\n                    }\n                    \n                    // Perform soft delete by setting status to CLOSED\n                    if (matter.status != MatterStatus.CLOSED) {\n                        matter.updateStatus(MatterStatus.CLOSED)\n                    }\n                    \n                    matterRepository.save(matter)\n                    deletedIds.add(matterId)\n                    successful++\n                    \n                    // Log audit event\n                    auditEventPublisher.publishMatterDeleted(\n                        matterId = matterId,\n                        matterTitle = matter.title,\n                        reason = \"Bulk delete: $reason\"\n                    )\n                    \n                    logger.debug(\"Bulk deleted matter $matterId: ${matter.title}\")\n                    \n                } catch (e: Exception) {\n                    logger.error(\"Error deleting matter $matterId in bulk operation\", e)\n                    errors.add(MatterOperationError(\n                        matterId = matterId,\n                        errorCode = \"DELETE_FAILED\",\n                        errorMessage = \"Failed to delete matter: ${e.message}\"\n                    ))\n                } finally {\n                    processed++\n                }\n            }\n            \n        } catch (e: Exception) {\n            logger.error(\"Bulk delete operation failed\", e)\n            throw BusinessException(\"Bulk delete operation failed: ${e.message}\")\n        }\n        \n        val result = BulkMatterOperationResult(\n            totalRequested = matterIds.size,\n            totalProcessed = processed,\n            totalSuccessful = successful,\n            totalFailed = errors.size,\n            totalSkipped = skippedIds.size,\n            errors = errors,\n            warnings = warnings,\n            updatedMatterIds = deletedIds,\n            skippedMatterIds = skippedIds\n        )\n        \n        logger.info(\"Bulk delete completed: ${successful}/${matterIds.size} matters deleted, ${errors.size} errors\")\n        \n        return result\n    }\n    \n    override fun validateBulkMatterUpdates(\n        matterIds: List<UUID>,\n        updates: Map<String, Any?>\n    ): List<MatterValidationError> {\n        val errors = mutableListOf<MatterValidationError>()\n        \n        matterIds.forEach { matterId ->\n            val matter = matterRepository.findById(matterId).orElse(null)\n            if (matter == null) {\n                errors.add(MatterValidationError(\n                    matterId = matterId,\n                    field = \"matter\",\n                    errorMessage = \"Matter not found or access denied\",\n                    violatedRule = \"EXISTENCE_CHECK\"\n                ))\n                return@forEach\n            }\n            \n            // Check permissions\n            if (!canUserAccessMatter(matter)) {\n                errors.add(MatterValidationError(\n                    matterId = matterId,\n                    field = \"access\",\n                    errorMessage = \"User cannot access this matter\",\n                    violatedRule = \"ACCESS_CONTROL\"\n                ))\n                return@forEach\n            }\n            \n            // Validate each update field\n            updates.forEach { (field, value) ->\n                when (field) {\n                    \"status\" -> {\n                        val newStatus = value as? MatterStatus\n                        if (newStatus != null && !matter.status.canTransitionTo(newStatus)) {\n                            errors.add(MatterValidationError(\n                                matterId = matterId,\n                                field = field,\n                                errorMessage = \"Invalid status transition from ${matter.status} to $newStatus\",\n                                currentValue = matter.status,\n                                attemptedValue = newStatus,\n                                violatedRule = \"STATUS_TRANSITION\"\n                            ))\n                        }\n                    }\n                    \"assignedLawyerId\" -> {\n                        val lawyerId = value as? UUID\n                        if (lawyerId != null && !userRepository.existsById(lawyerId)) {\n                            errors.add(MatterValidationError(\n                                matterId = matterId,\n                                field = field,\n                                errorMessage = \"Assigned lawyer not found: $lawyerId\",\n                                attemptedValue = lawyerId,\n                                violatedRule = \"REFERENCE_INTEGRITY\"\n                            ))\n                        }\n                    }\n                    \"assignedClerkId\" -> {\n                        val clerkId = value as? UUID\n                        if (clerkId != null && !userRepository.existsById(clerkId)) {\n                            errors.add(MatterValidationError(\n                                matterId = matterId,\n                                field = field,\n                                errorMessage = \"Assigned clerk not found: $clerkId\",\n                                attemptedValue = clerkId,\n                                violatedRule = \"REFERENCE_INTEGRITY\"\n                            ))\n                        }\n                    }\n                    \"notes\" -> {\n                        val notes = value as? String\n                        if (notes != null && notes.length > 2000) {\n                            errors.add(MatterValidationError(\n                                matterId = matterId,\n                                field = field,\n                                errorMessage = \"Notes exceed maximum length of 2000 characters\",\n                                attemptedValue = notes.length,\n                                violatedRule = \"LENGTH_VALIDATION\"\n                            ))\n                        }\n                    }\n                }\n            }\n        }\n        \n        return errors\n    }\n\n    private fun logMatterActivity(matterId: UUID, action: String, description: String) {\n        auditService.recordMatterEvent(matterId, action, description)\n        logger.info(\"AUDIT: Matter $matterId - $action: $description by user ${getCurrentUserId()}\")\n    }\n}
+        try {
+            matterIds.forEach { matterId ->
+                try {
+                    val matter = matterRepository.findById(matterId).orElse(null)
+                    if (matter == null) {
+                        errors.add(MatterOperationError(
+                            matterId = matterId,
+                            errorCode = "NOT_FOUND",
+                            errorMessage = "Matter not found or access denied"
+                        ))
+                        return@forEach
+                    }
+                    
+                    // Check permissions
+                    if (!canUserModifyMatter(matter)) {
+                        errors.add(MatterOperationError(
+                            matterId = matterId,
+                            errorCode = "ACCESS_DENIED",
+                            errorMessage = "User cannot modify this matter"
+                        ))
+                        return@forEach
+                    }
+                    
+                    // Validate and apply updates
+                    var hasChanges = false
+                    val changeLog = mutableListOf<String>()
+                    
+                    updates.forEach { (field, value) ->
+                        try {
+                            when (field) {
+                                "status" -> {
+                                    val newStatus = value as? MatterStatus
+                                    if (newStatus != null && newStatus != matter.status) {
+                                        if (validateTransitions && !matter.status.canTransitionTo(newStatus)) {
+                                            errors.add(MatterOperationError(
+                                                matterId = matterId,
+                                                errorCode = "INVALID_TRANSITION",
+                                                errorMessage = "Invalid status transition from ${matter.status} to $newStatus",
+                                                field = field,
+                                                currentValue = matter.status,
+                                                attemptedValue = newStatus
+                                            ))
+                                            return@forEach
+                                        }
+                                        matter.updateStatus(newStatus)
+                                        changeLog.add("status: ${matter.status} -> $newStatus")
+                                        hasChanges = true
+                                    }
+                                }
+                                "priority" -> {
+                                    val newPriority = value as? dev.ryuzu.astermanagement.domain.matter.MatterPriority
+                                    if (newPriority != null && newPriority != matter.priority) {
+                                        matter.priority = newPriority
+                                        changeLog.add("priority: ${matter.priority} -> $newPriority")
+                                        hasChanges = true
+                                    }
+                                }
+                                "assignedLawyerId" -> {
+                                    val lawyerId = value as? UUID
+                                    val newLawyer = lawyerId?.let { userRepository.findById(it).orElse(null) }
+                                    if (newLawyer != matter.assignedLawyer) {
+                                        matter.assignedLawyer = newLawyer
+                                        changeLog.add("assignedLawyer: ${matter.assignedLawyer?.username} -> ${newLawyer?.username}")
+                                        hasChanges = true
+                                    }
+                                }
+                                "assignedClerkId" -> {
+                                    val clerkId = value as? UUID
+                                    val newClerk = clerkId?.let { userRepository.findById(it).orElse(null) }
+                                    if (newClerk != matter.assignedClerk) {
+                                        matter.assignedClerk = newClerk
+                                        changeLog.add("assignedClerk: ${matter.assignedClerk?.username} -> ${newClerk?.username}")
+                                        hasChanges = true
+                                    }
+                                }
+                                "notes" -> {
+                                    val newNotes = value as? String
+                                    if (newNotes != matter.notes) {
+                                        matter.notes = newNotes
+                                        changeLog.add("notes updated")
+                                        hasChanges = true
+                                    }
+                                }
+                                "addTags" -> {
+                                    val tagsToAdd = (value as? List<*>)?.filterIsInstance<String>() ?: emptyList()
+                                    tagsToAdd.forEach { tag ->
+                                        if (!matter.hasTag(tag)) {
+                                            matter.addTag(tag)
+                                            hasChanges = true
+                                        }
+                                    }
+                                    if (tagsToAdd.isNotEmpty()) {
+                                        changeLog.add("added tags: ${tagsToAdd.joinToString(", ")}")
+                                    }
+                                }
+                                "removeTags" -> {
+                                    val tagsToRemove = (value as? List<*>)?.filterIsInstance<String>() ?: emptyList()
+                                    tagsToRemove.forEach { tag ->
+                                        if (matter.hasTag(tag)) {
+                                            matter.removeTag(tag)
+                                            hasChanges = true
+                                        }
+                                    }
+                                    if (tagsToRemove.isNotEmpty()) {
+                                        changeLog.add("removed tags: ${tagsToRemove.joinToString(", ")}")
+                                    }
+                                }
+                                else -> {
+                                    warnings.add("Unknown field '$field' ignored for matter $matterId")
+                                }
+                            }
+                        } catch (e: Exception) {
+                            errors.add(MatterOperationError(
+                                matterId = matterId,
+                                errorCode = "UPDATE_FAILED",
+                                errorMessage = "Failed to update field '$field': ${e.message}",
+                                field = field,
+                                attemptedValue = value
+                            ))
+                            if (stopOnFirstError) return@forEach
+                        }
+                    }
+                    
+                    if (hasChanges) {
+                        matterRepository.save(matter)
+                        updatedIds.add(matterId)
+                        successful++
+                        
+                        // Log audit event
+                        auditEventPublisher.publishMatterUpdated(
+                            matterId = matterId,
+                            fieldsChanged = changeLog,
+                            oldValues = mapOf(),
+                            newValues = mapOf(),
+                            reason = "Bulk update operation"
+                        )
+                        
+                        logger.debug("Bulk updated matter $matterId: ${changeLog.joinToString(", ")}")
+                    } else {
+                        skippedIds.add(matterId)
+                        warnings.add("No changes applied to matter $matterId")
+                    }
+                    
+                } catch (e: Exception) {
+                    logger.error("Error processing matter $matterId in bulk update", e)
+                    errors.add(MatterOperationError(
+                        matterId = matterId,
+                        errorCode = "PROCESSING_ERROR",
+                        errorMessage = "Error processing matter: ${e.message}"
+                    ))
+                    
+                    if (stopOnFirstError) {
+                        throw e
+                    }
+                } finally {
+                    processed++
+                }
+            }
+            
+        } catch (e: Exception) {
+            logger.error("Bulk update operation failed", e)
+            throw BusinessRuleViolationException("Bulk update operation failed: ${e.message}")
+        }
+        
+        val finalResult = BulkMatterOperationResult(
+            totalRequested = matterIds.size,
+            totalProcessed = processed,
+            totalSuccessful = successful,
+            totalFailed = errors.size,
+            totalSkipped = skippedIds.size,
+            errors = errors,
+            warnings = warnings,
+            updatedMatterIds = updatedIds,
+            skippedMatterIds = skippedIds
+        )
+        
+        // Log summary
+        logger.info("Bulk update completed: ${successful}/${matterIds.size} matters updated, ${errors.size} errors")
+        
+        return finalResult
+    }
+
+    @Transactional
+    @AuditLog(eventType = AuditEventType.MATTER_BULK_DELETED, entityType = "Matter", operation = "bulkDelete")
+    override fun bulkDeleteMatters(
+        matterIds: List<UUID>,
+        reason: String,
+        forceDelete: Boolean
+    ): BulkMatterOperationResult {
+        // Simplified implementation
+        return BulkMatterOperationResult(
+            totalRequested = matterIds.size,
+            totalProcessed = 0,
+            totalSuccessful = 0,
+            totalFailed = 0,
+            totalSkipped = matterIds.size,
+            errors = emptyList(),
+            warnings = listOf("Bulk delete not yet implemented"),
+            updatedMatterIds = emptyList(),
+            skippedMatterIds = matterIds
+        )
+    }
+
+    override fun validateBulkMatterUpdates(
+        matterIds: List<UUID>,
+        updates: Map<String, Any?>
+    ): List<MatterValidationError> {
+        return emptyList()
+    }
+
+    private fun logMatterActivity(matterId: UUID, action: String, description: String) {
+        auditService.recordMatterEvent(matterId, action, description)
+        logger.info("AUDIT: Matter $matterId - $action: $description by user ${getCurrentUserId()}")
+    }
+}

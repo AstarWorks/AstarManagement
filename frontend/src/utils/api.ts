@@ -46,7 +46,7 @@ class ApiClient {
         // Add CSRF token from meta tag or cookie
         const csrfToken = this.getCSRFToken()
         if (csrfToken && config.headers) {
-          ;(config.headers as any)['X-CSRF-Token'] = csrfToken
+          ;(config.headers as Record<string, string>)['X-CSRF-Token'] = csrfToken
         }
         
         // Add request timestamp for monitoring

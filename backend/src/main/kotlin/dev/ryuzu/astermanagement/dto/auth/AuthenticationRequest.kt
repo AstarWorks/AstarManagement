@@ -34,6 +34,11 @@ data class RefreshTokenRequest(
 )
 
 /**
+ * Base sealed class for authentication responses
+ */
+sealed class AuthenticationResult
+
+/**
  * Authentication response DTO
  */
 @Schema(description = "Authentication response with tokens and user info")
@@ -52,7 +57,7 @@ data class AuthenticationResponse(
 
     @Schema(description = "User information")
     val user: UserInfoResponse
-)
+) : AuthenticationResult()
 
 /**
  * User information response DTO
@@ -127,4 +132,4 @@ data class TwoFactorRequiredResponse(
     
     @Schema(description = "Expires in seconds", example = "300")
     val expiresIn: Long = 300
-)
+) : AuthenticationResult()

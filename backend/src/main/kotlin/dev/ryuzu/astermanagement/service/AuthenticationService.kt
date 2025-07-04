@@ -47,7 +47,7 @@ class AuthenticationService(
      * Authenticates user with email and password
      * Returns either AuthenticationResponse or TwoFactorRequiredResponse
      */
-    fun authenticate(request: LoginRequest): Any {
+    fun authenticate(request: LoginRequest): AuthenticationResult {
         return try {
             // Authenticate with Spring Security
             val authentication = authenticationManager.authenticate(

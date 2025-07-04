@@ -41,7 +41,7 @@ class DocumentController(
      * Upload a single document.
      */
     @PostMapping("/upload", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
-    @PreAuthorize("hasRole('LAWYER') or hasRole('CLERK')")
+    @PreAuthorize("hasPermission(null, 'DOCUMENT_CREATE')")
     @Operation(
         summary = "Upload a single document",
         description = "Upload a document with optional metadata. File size limit is 100MB."
@@ -77,7 +77,7 @@ class DocumentController(
      * Upload multiple documents in batch.
      */
     @PostMapping("/upload/batch", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
-    @PreAuthorize("hasRole('LAWYER') or hasRole('CLERK')")
+    @PreAuthorize("hasPermission(null, 'DOCUMENT_CREATE')")
     @Operation(
         summary = "Upload multiple documents",
         description = "Upload multiple documents in a single request. Total size limit is 500MB."
@@ -104,7 +104,7 @@ class DocumentController(
      * Get upload progress for a document.
      */
     @GetMapping("/{documentId}/progress")
-    @RequireDocumentView
+    @PreAuthorize("hasPermission(#documentId, 'Document', 'DOCUMENT_READ')")
     @Operation(
         summary = "Get upload progress",
         description = "Get the current upload progress for a document"
@@ -126,7 +126,7 @@ class DocumentController(
      * Get document by ID.
      */
     @GetMapping("/{documentId}")
-    @RequireDocumentView
+    @PreAuthorize("hasPermission(#documentId, 'Document', 'DOCUMENT_READ')")
     @Operation(
         summary = "Get document by ID",
         description = "Retrieve document metadata by its ID. Clients can only access documents from their matters."
@@ -158,7 +158,7 @@ class DocumentController(
         ApiResponse(responseCode = "403", description = "Insufficient permissions"),
         ApiResponse(responseCode = "404", description = "Document not found")
     )
-    @RequireDocumentDownload
+    @PreAuthorize("hasPermission(#documentId, 'Document', 'DOCUMENT_READ')")
     fun downloadDocument(
         @PathVariable @Parameter(description = "Document ID") documentId: UUID
     ): ResponseEntity<org.springframework.core.io.Resource> {
@@ -175,7 +175,7 @@ class DocumentController(
      * Get document thumbnail.
      */
     @GetMapping("/{documentId}/thumbnail")
-    @RequireDocumentView
+    @PreAuthorize("hasPermission(#documentId, 'Document', 'DOCUMENT_READ')")
     @Operation(
         summary = "Get document thumbnail",
         description = "Get a thumbnail preview of the document if available (images and PDFs)."
@@ -202,7 +202,7 @@ class DocumentController(
      * Search documents with filtering.
      */
     @GetMapping("/search")
-    @PreAuthorize("hasRole('LAWYER') or hasRole('CLERK')")
+    @PreAuthorize("hasPermission(null, 'DOCUMENT_READ')")
     @Operation(
         summary = "Search documents",
         description = "Search documents with various filters including filename, content type, tags, and date range."
@@ -236,7 +236,7 @@ class DocumentController(
      * Update document metadata.
      */
     @PutMapping("/{documentId}/metadata")
-    @RequireDocumentEdit
+    @PreAuthorize("hasPermission(#documentId, 'Document', 'DOCUMENT_UPDATE')")
     @Operation(
         summary = "Update document metadata",
         description = "Update document description and tags. File content cannot be modified."
@@ -260,7 +260,7 @@ class DocumentController(
      * Delete document (soft delete).
      */
     @DeleteMapping("/{documentId}")
-    @RequireDocumentDelete
+    @PreAuthorize("hasPermission(#documentId, 'Document', 'DOCUMENT_DELETE')")
     @Operation(
         summary = "Delete document",
         description = "Soft delete a document. The file is marked as deleted but not physically removed."
@@ -285,7 +285,7 @@ class DocumentController(
      * Get document versions.
      */
     @GetMapping("/{documentId}/versions")
-    @RequireDocumentView
+    @PreAuthorize("hasPermission(#documentId, 'Document', 'DOCUMENT_READ')")
     @Operation(
         summary = "Get document versions",
         description = "Get all versions of a document including the version history."
@@ -311,7 +311,7 @@ class DocumentController(
      * Upload new version of document.
      */
     @PostMapping("/{documentId}/versions", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
-    @RequireDocumentEdit
+    @PreAuthorize("hasPermission(#documentId, 'Document', 'DOCUMENT_UPDATE')")
     @Operation(
         summary = "Upload new document version",
         description = "Upload a new version of an existing document. The original document is preserved."

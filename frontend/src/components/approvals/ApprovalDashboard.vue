@@ -316,7 +316,7 @@ const pagination = ref({
 })
 
 const sortOptions = ref({
-  sortBy: 'daysPending' as const,
+  sortBy: 'daysPending' as string,
   sortOrder: 'desc' as 'asc' | 'desc'
 })
 
@@ -339,7 +339,7 @@ const {
   delegateApproval,
   escalateApproval,
   refetch
-} = useApprovalQueue(queryParams)
+} = useApprovalQueue(queryParams as any)
 
 const {
   permissions,
@@ -410,7 +410,7 @@ const handlePageChange = (page: number) => {
 }
 
 const handleSort = (column: string, direction: 'asc' | 'desc') => {
-  sortOptions.value.sortBy = column as any
+  sortOptions.value.sortBy = column
   sortOptions.value.sortOrder = direction
 }
 

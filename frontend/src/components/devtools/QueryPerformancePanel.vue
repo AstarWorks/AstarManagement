@@ -211,7 +211,7 @@ const getAlertIcon = (type: string) => {
   return type === 'critical' ? 'alert-triangle' : 'alert-circle'
 }
 
-const formatQueryKey = (key: any[]) => {
+const formatQueryKey = (key: unknown[]) => {
   if (!key || key.length === 0) return 'Unknown'
   return key.map(k => typeof k === 'object' ? JSON.stringify(k) : k).join(' / ')
 }

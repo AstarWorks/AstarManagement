@@ -49,7 +49,7 @@ class MatterController(
      * Search matters with full-text search capabilities.
      */
     @GetMapping("/search")
-    @PreAuthorize("hasRole('LAWYER') or hasRole('CLERK')")
+    @PreAuthorize("hasPermission(null, 'MATTER_READ')")
     @Operation(
         summary = "Search matters",
         description = "Search matters using full-text search with highlighting and relevance scoring. Supports basic and advanced search modes."
@@ -79,7 +79,7 @@ class MatterController(
      * Get search suggestions for autocomplete.
      */
     @GetMapping("/search/suggestions")
-    @PreAuthorize("hasRole('LAWYER') or hasRole('CLERK')")
+    @PreAuthorize("hasPermission(null, 'MATTER_READ')")
     @Operation(
         summary = "Get search suggestions",
         description = "Get search suggestions for autocomplete functionality based on partial query."
@@ -104,7 +104,7 @@ class MatterController(
         consumes = [MediaType.APPLICATION_JSON_VALUE],
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
-    @PreAuthorize("hasRole('LAWYER')")
+    @PreAuthorize("hasPermission(null, 'MATTER_CREATE')")
     @Operation(
         summary = "Create a new matter",
         description = "Creates a new legal matter. Requires LAWYER role."
@@ -146,7 +146,7 @@ class MatterController(
      * Retrieves a matter by ID.
      */
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('LAWYER') or hasRole('CLERK') or (hasRole('CLIENT') and @matterSecurityService.isClientMatter(#id, authentication.name))")
+    @PreAuthorize("hasPermission(#id, 'Matter', 'MATTER_READ')")
     @Operation(
         summary = "Get matter by ID",
         description = "Retrieves a specific matter by its ID. Clients can only access their own matters."
@@ -168,7 +168,7 @@ class MatterController(
      * Retrieves all matters with pagination and filtering.
      */
     @GetMapping
-    @PreAuthorize("hasRole('LAWYER') or hasRole('CLERK')")
+    @PreAuthorize("hasPermission(null, 'MATTER_READ')")
     @Operation(
         summary = "List all matters",
         description = "Retrieves a paginated list of matters with optional filtering. Requires LAWYER or CLERK role."
@@ -201,7 +201,7 @@ class MatterController(
      * Updates an existing matter.
      */
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('LAWYER') or (hasRole('CLERK') and @matterSecurityService.isAssignedClerk(#id, authentication.name))")
+    @PreAuthorize("hasPermission(#id, 'Matter', 'MATTER_UPDATE')")
     @Operation(
         summary = "Update matter",
         description = "Updates an existing matter. Lawyers can update any matter, clerks can only update assigned matters."
@@ -244,7 +244,7 @@ class MatterController(
      * Updates the status of a matter.
      */
     @PatchMapping("/{id}/status")
-    @PreAuthorize("hasRole('LAWYER')")
+    @PreAuthorize("hasPermission(#id, 'Matter', 'MATTER_UPDATE')")
     @Operation(
         summary = "Update matter status",
         description = "Updates the status of a matter. Requires LAWYER role. Some transitions may require supervisor approval."
@@ -275,7 +275,7 @@ class MatterController(
      * Soft deletes a matter.
      */
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('LAWYER')")
+    @PreAuthorize("hasPermission(#id, 'Matter', 'MATTER_DELETE')")
     @Operation(
         summary = "Delete matter",
         description = "Soft deletes a matter by setting its status to CLOSED. Requires LAWYER role."
@@ -301,7 +301,7 @@ class MatterController(
      * Validate a status transition before execution.
      */
     @PostMapping("/{id}/validate-transition")
-    @PreAuthorize("hasRole('LAWYER') or hasRole('CLERK')")
+    @PreAuthorize("hasPermission(#id, 'Matter', 'MATTER_READ')")
     @Operation(
         summary = "Validate status transition",
         description = "Validate if a status transition is allowed for the current user and matter state"

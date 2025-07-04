@@ -183,4 +183,21 @@ interface MatterService {
         updates: Map<String, Any?>
     ): List<MatterValidationError>
 }
+
+/**
+ * Type-safe matter update value
+ */
+sealed class MatterUpdateValue {
+    data class StatusUpdate(val status: MatterStatus) : MatterUpdateValue()
+    data class PriorityUpdate(val priority: dev.ryuzu.astermanagement.domain.matter.MatterPriority) : MatterUpdateValue()
+    data class LawyerUpdate(val lawyerId: UUID?) : MatterUpdateValue()
+    data class ClerkUpdate(val clerkId: UUID?) : MatterUpdateValue()
+    data class NotesUpdate(val notes: String?) : MatterUpdateValue()
+    data class AddTagsUpdate(val tags: List<String>) : MatterUpdateValue()
+    data class RemoveTagsUpdate(val tags: List<String>) : MatterUpdateValue()
 }
+
+/**
+ * Type-safe matter updates
+ */
+typealias MatterUpdates = Map<String, MatterUpdateValue>
