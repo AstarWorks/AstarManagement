@@ -4,7 +4,7 @@ current_milestone_id: M01
 highest_sprint_in_milestone: S14
 current_sprint_id: S14
 status: active
-last_updated: 2025-07-03 23:47
+last_updated: 2025-07-04 09:52
 ---
 
 # Project Manifest: Aster Management
@@ -22,9 +22,9 @@ This project follows a milestone-based development approach.
 - **Milestone:** M01 - Matter Management MVP
 - **Active Sprint:** S14 - Financial Management (ACTIVE)
 - **Current Task:** T08_S14 Mobile Optimization (IN PROGRESS)
-- **Recent Completion:** T07_S14 Approval Workflow System (COMPLETED)
+- **Recent Completion:** TX01_S14 Expense Entry Form (COMPLETED)
 - **M02 Status:** S05 complete, S06 26% complete (corrected), S07-S09 complete, S10 ready  
-- **Updated:** 2025-07-03 23:47
+- **Updated:** 2025-07-04 09:52
 
 ## 3. Sprints in Current Milestone
 
