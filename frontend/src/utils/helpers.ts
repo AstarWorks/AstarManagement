@@ -222,3 +222,64 @@ export function unique<T>(array: T[], key?: keyof T): T[] {
     return true
   })
 }
+
+/**
+ * Highlight search terms in text with HTML spans
+ */
+export function highlightText(text: string, searchTerms: string[]): string {
+  if (!text || !searchTerms || searchTerms.length === 0) {
+    return text
+  }
+
+  // Escape HTML characters in text
+  const escapeHtml = (str: string) => {
+    const div = document.createElement('div')
+    div.textContent = str
+    return div.innerHTML
+  }
+
+  let highlightedText = escapeHtml(text)
+
+  // Sort search terms by length (longest first) to avoid partial matches
+  const sortedTerms = searchTerms
+    .filter(term => term.trim().length > 0)
+    .sort((a, b) => b.length - a.length)
+
+  sortedTerms.forEach(term => {
+    const escapedTerm = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const regex = new RegExp(`(${escapedTerm})`, 'gi')
+    highlightedText = highlightedText.replace(
+      regex, 
+      '<span class="bg-yellow-200 dark:bg-yellow-800 font-semibold rounded-sm px-1">$1</span>'
+    )
+  })
+
+  return highlightedText
+}
+
+/**
+ * Extract plain text from highlighted HTML
+ */
+export function extractHighlightedText(highlights: string[]): string[] {
+  return highlights.map(highlight => {
+    // Remove HTML tags to get plain text
+    const div = document.createElement('div')
+    div.innerHTML = highlight
+    return div.textContent || div.innerText || ''
+  })
+}
+
+/**
+ * Combine multiple highlight snippets for display
+ */
+export function combineHighlights(highlights: Map<string, string[]>, separator = ' ... '): string {
+  const allHighlights: string[] = []
+  
+  for (const [field, snippets] of highlights.entries()) {
+    snippets.forEach(snippet => {
+      allHighlights.push(snippet)
+    })
+  }
+  
+  return allHighlights.slice(0, 3).join(separator) // Limit to 3 snippets
+}

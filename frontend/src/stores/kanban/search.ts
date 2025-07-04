@@ -84,20 +84,53 @@ export const useSearchStore = defineStore('kanban-search', () => {
     const startTime = performance.now()
     
     try {
-      // TODO: Replace with actual API call
-      // const response = await $fetch<SearchResult>('/api/search/matters', {
-      //   method: 'POST',
-      //   body: searchFilters
-      // })
+      // Use real backend API for search
+      const response = await $fetch<any>('/api/v1/matters/search', {
+        method: 'GET',
+        query: {
+          query: searchFilters.query,
+          searchType: 'FULL_TEXT',
+          page: 0,
+          size: 100
+        }
+      })
       
-      // Simulate API search
-      await new Promise(resolve => setTimeout(resolve, 100 + Math.random() * 200))
-      
-      const result = performClientSideSearch(searchFilters)
       const executionTime = performance.now() - startTime
       
+      // Transform backend response to match frontend interface
       const searchResult: SearchResult = {
-        ...result,
+        matters: response.content.map((item: any) => ({
+          id: item.id,
+          caseNumber: item.caseNumber,
+          title: item.title,
+          clientName: item.clientName,
+          status: item.status,
+          priority: item.priority,
+          assignedLawyer: item.assignedLawyerName ? { 
+            id: item.assignedLawyerId || item.id, 
+            name: item.assignedLawyerName 
+          } : null,
+          assignedClerk: null,
+          filingDate: item.filingDate,
+          createdAt: item.createdAt,
+          updatedAt: item.createdAt,
+          description: '',
+          notes: '',
+          tags: [],
+          // Add search-specific fields
+          highlights: item.highlights || {},
+          relevanceScore: item.relevanceScore || 0,
+          // Extract search terms from query for highlighting
+          searchTerms: searchFilters.query ? searchFilters.query.split(/\s+/).filter(t => t.length > 0) : []
+        })),
+        totalCount: response.totalElements,
+        facets: {
+          statuses: [],
+          priorities: [],
+          lawyers: [],
+          clients: [],
+          tags: []
+        },
         executionTime
       }
       
@@ -114,7 +147,15 @@ export const useSearchStore = defineStore('kanban-search', () => {
       
       return searchResult
     } catch (error) {
-      throw new Error(`Search failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      // Fallback to client-side search if API fails
+      console.warn('Search API failed, falling back to client-side search:', error)
+      const result = performClientSideSearch(searchFilters)
+      const executionTime = performance.now() - startTime
+      
+      return {
+        ...result,
+        executionTime
+      }
     }
   }
 
@@ -277,6 +318,43 @@ export const useSearchStore = defineStore('kanban-search', () => {
   const generateSuggestions = async (query: string): Promise<SearchSuggestion[]> => {
     if (!query.trim() || query.length < 2) return []
 
+    try {
+      // Use backend API for suggestions
+      const response = await $fetch<any[]>('/api/v1/matters/search/suggestions', {
+        method: 'GET',
+        query: {
+          query,
+          limit: 10
+        }
+      })
+
+      // Transform backend suggestions to frontend format
+      return response.map((suggestion: any) => ({
+        id: `${suggestion.type.toLowerCase()}-${suggestion.value}`,
+        type: mapSuggestionType(suggestion.type),
+        text: suggestion.value,
+        count: suggestion.count
+      }))
+    } catch (error) {
+      // Fallback to client-side suggestions if API fails
+      console.warn('Suggestions API failed, falling back to client-side suggestions:', error)
+      return generateClientSideSuggestions(query)
+    }
+  }
+
+  // Map backend suggestion types to frontend types
+  const mapSuggestionType = (backendType: string): SearchSuggestion['type'] => {
+    switch (backendType) {
+      case 'CASE_NUMBER': return 'case_number'
+      case 'TITLE': return 'matter'
+      case 'CLIENT_NAME': return 'client'
+      case 'DESCRIPTION': return 'matter'
+      default: return 'matter'
+    }
+  }
+
+  // Client-side suggestions fallback
+  const generateClientSideSuggestions = (query: string): SearchSuggestion[] => {
     const { matters } = useMatterStore()
     const suggestions: SearchSuggestion[] = []
     const lowercaseQuery = query.toLowerCase()
@@ -305,26 +383,6 @@ export const useSearchStore = defineStore('kanban-search', () => {
         id: `client-${client}`,
         type: 'client',
         text: client,
-        count
-      })
-    })
-
-    // Lawyer suggestions
-    const lawyers = [...new Set(matters.filter((m: Matter) => m.assignedLawyer).map((m: Matter) => 
-      typeof m.assignedLawyer === 'string' ? m.assignedLawyer : m.assignedLawyer!.name
-    ))]
-      .filter((lawyer: string) => lawyer.toLowerCase().includes(lowercaseQuery))
-      .slice(0, 3)
-    
-    lawyers.forEach((lawyer: string) => {
-      const count = matters.filter((m: Matter) => {
-        const lawyerName = typeof m.assignedLawyer === 'string' ? m.assignedLawyer : m.assignedLawyer?.name
-        return lawyerName === lawyer
-      }).length
-      suggestions.push({
-        id: `lawyer-${lawyer}`,
-        type: 'lawyer',
-        text: lawyer,
         count
       })
     })
