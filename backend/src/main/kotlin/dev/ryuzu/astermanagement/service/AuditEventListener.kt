@@ -142,8 +142,8 @@ class AuditEventListener(
             sessionId = context.sessionId,
             requestId = context.requestId,
             eventDetails = enhancedDetails,
-            oldValues = if (oldValues.isNotEmpty()) oldValues.filterValues { it != null } as Map<String, Any> else null,
-            newValues = if (newValues.isNotEmpty()) newValues.filterValues { it != null } as Map<String, Any> else null
+            oldValues = if (oldValues.isNotEmpty()) oldValues.filterValues { it != null }.mapValues { it.value!! } else null,
+            newValues = if (newValues.isNotEmpty()) newValues.filterValues { it != null }.mapValues { it.value!! } else null
         )
     }
     

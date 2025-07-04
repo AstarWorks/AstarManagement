@@ -45,6 +45,17 @@ data class UpdateMigrationStatusRequest(
 )
 
 /**
+ * Migration status update request
+ */
+data class MigrationStatusUpdateDto(
+    val status: MigrationStatus? = null,
+    val vueLoc: Int? = null,
+    val testCoverage: Double? = null,
+    val notes: String? = null,
+    val verifiedBy: String? = null
+)
+
+/**
  * Migration statistics
  */
 data class MigrationStatsDto(

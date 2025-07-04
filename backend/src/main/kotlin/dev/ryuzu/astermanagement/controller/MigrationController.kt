@@ -40,7 +40,7 @@ class MigrationController(
     @Operation(summary = "Update specific fields of migration status")
     fun patchStatus(
         @PathVariable id: Long,
-        @RequestBody updates: Map<String, Any>
+        @RequestBody updates: MigrationStatusUpdateDto
     ): ResponseEntity<MigrationStatusDto> {
         return ResponseEntity.ok(migrationService.patchStatus(id, updates))
     }

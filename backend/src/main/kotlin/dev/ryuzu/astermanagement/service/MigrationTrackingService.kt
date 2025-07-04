@@ -129,28 +129,37 @@ class MigrationTrackingService(
     /**
      * Patch specific fields of migration status
      */
-    fun patchStatus(id: Long, updates: Map<String, Any>): MigrationStatusDto {
-        val allowedFields = setOf("status", "vue_loc", "test_coverage", "notes", "verified_by")
+    fun patchStatus(id: Long, updates: MigrationStatusUpdateDto): MigrationStatusDto {
         val updateClauses = mutableListOf<String>()
         val params = mutableListOf<Any?>()
         
-        updates.forEach { (key, value) ->
-            if (key in allowedFields) {
-                when (key) {
-                    "status" -> {
-                        updateClauses.add("status = ?")
-                        params.add(value.toString().lowercase())
-                        
-                        if (value.toString() == "VERIFIED") {
-                            updateClauses.add("verified_at = CURRENT_TIMESTAMP")
-                        }
-                    }
-                    else -> {
-                        updateClauses.add("$key = ?")
-                        params.add(value)
-                    }
-                }
+        updates.status?.let { status ->
+            updateClauses.add("status = ?")
+            params.add(status.name.lowercase())
+            
+            if (status == MigrationStatus.VERIFIED) {
+                updateClauses.add("verified_at = CURRENT_TIMESTAMP")
             }
+        }
+        
+        updates.vueLoc?.let { vueLoc ->
+            updateClauses.add("vue_loc = ?")
+            params.add(vueLoc)
+        }
+        
+        updates.testCoverage?.let { testCoverage ->
+            updateClauses.add("test_coverage = ?")
+            params.add(testCoverage)
+        }
+        
+        updates.notes?.let { notes ->
+            updateClauses.add("notes = ?")
+            params.add(notes)
+        }
+        
+        updates.verifiedBy?.let { verifiedBy ->
+            updateClauses.add("verified_by = ?")
+            params.add(verifiedBy)
         }
         
         if (updateClauses.isNotEmpty()) {
