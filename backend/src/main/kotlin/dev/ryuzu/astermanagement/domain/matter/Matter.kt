@@ -27,7 +27,8 @@ import java.util.*
         Index(name = "idx_matters_created_at", columnList = "created_at"),
         Index(name = "idx_matters_lawyer_status", columnList = "assigned_lawyer_id, status"),
         Index(name = "idx_matters_status_priority", columnList = "status, priority"),
-        Index(name = "idx_matters_client_status", columnList = "client_name, status")
+        Index(name = "idx_matters_client_status", columnList = "client_name, status"),
+        Index(name = "idx_matters_client_id", columnList = "client_id")
     ]
 )
 class Matter : BaseEntity() {
@@ -46,6 +47,10 @@ class Matter : BaseEntity() {
     var description: String? = null
 
     // Client information
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "client_id")
+    var client: User? = null
+
     @Column(name = "client_name", nullable = false, length = 255)
     @field:NotBlank(message = "Client name is required")
     @field:Size(max = 255, message = "Client name must not exceed 255 characters")

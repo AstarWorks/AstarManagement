@@ -93,9 +93,9 @@ class RoleBasedAccessControlIntegrationTest {
     @BeforeEach
     fun setupTestData() {
         // Create test roles with specific permissions
-        lawyerRole = createRole("LAWYER", "Lawyer", Permission.Defaults.LAWYER_PERMISSIONS)
-        clerkRole = createRole("CLERK", "Clerk", Permission.Defaults.CLERK_PERMISSIONS)
-        clientRole = createRole("CLIENT", "Client", Permission.Defaults.CLIENT_PERMISSIONS)
+        lawyerRole = createRole("LAWYER", "Lawyer", Permission.Companion.Defaults.LAWYER_PERMISSIONS)
+        clerkRole = createRole("CLERK", "Clerk", Permission.Companion.Defaults.CLERK_PERMISSIONS)
+        clientRole = createRole("CLIENT", "Client", Permission.Companion.Defaults.CLIENT_PERMISSIONS)
         
         // Create a restricted role for testing permission boundaries
         restrictedRole = createRole(
@@ -145,7 +145,7 @@ class RoleBasedAccessControlIntegrationTest {
             priority = MatterPriority.HIGH,
             clientName = "Test Client",
             clientContact = "client@rbac.test",
-            assignedLawyerId = lawyerUser.id,
+            assignedLawyerId = lawyerUser.id!!,
             filingDate = LocalDate.now(),
             estimatedCompletionDate = LocalDate.now().plusMonths(3)
         )
@@ -376,7 +376,7 @@ class RoleBasedAccessControlIntegrationTest {
             priority = MatterPriority.MEDIUM,
             clientName = "Test Client",
             clientContact = "client@test.com",
-            assignedLawyerId = juniorLawyerUser.id,
+            assignedLawyerId = juniorLawyerUser.id!!,
             filingDate = LocalDate.now(),
             estimatedCompletionDate = LocalDate.now().plusMonths(2)
         )
@@ -471,13 +471,13 @@ class RoleBasedAccessControlIntegrationTest {
             this.displayName = displayName
             this.description = "Test role: $displayName"
             this.permissions = permissions
-            this.hierarchy = when (name) {
+            this.hierarchyLevel = when (name) {
                 "LAWYER" -> 100
                 "CLERK" -> 50
                 "CLIENT" -> 10
                 else -> 25
             }
-            this.isSystem = false
+            this.isSystemRole = false
             this.isActive = true
             this.createdAt = LocalDateTime.now()
             this.updatedAt = LocalDateTime.now()
@@ -491,9 +491,8 @@ class RoleBasedAccessControlIntegrationTest {
             this.email = email
             this.firstName = name.split(" ")[0]
             this.lastName = name.split(" ").getOrElse(1) { "" }
-            this.password = passwordEncoder.encode("password123")
+            this.passwordHash = passwordEncoder.encode("password123")
             this.isActive = true
-            this.emailVerified = true
             this.createdAt = LocalDateTime.now()
             this.updatedAt = LocalDateTime.now()
         }
@@ -503,8 +502,8 @@ class RoleBasedAccessControlIntegrationTest {
         val userRole = UserRole().apply {
             this.user = savedUser
             this.role = role
-            this.assignedAt = LocalDateTime.now()
-            this.assignedBy = "SYSTEM"
+            this.grantedAt = LocalDateTime.now()
+            this.grantedBy = null
             this.isActive = true
         }
         userRoleRepository.save(userRole)

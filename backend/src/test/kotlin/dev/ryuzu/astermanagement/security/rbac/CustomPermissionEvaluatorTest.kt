@@ -34,6 +34,7 @@ class CustomPermissionEvaluatorTest {
     
     private lateinit var authentication: Authentication
     private lateinit var userPrincipal: UserPrincipal
+    private lateinit var userId: UUID
 
     @BeforeEach
     fun setup() {
@@ -43,9 +44,10 @@ class CustomPermissionEvaluatorTest {
         
         authentication = mockk()
         userPrincipal = mockk()
+        userId = UUID.randomUUID()
         
         every { authentication.principal } returns userPrincipal
-        every { userPrincipal.id } returns UUID.randomUUID()
+        every { userPrincipal.id } returns userId
         every { userPrincipal.role } returns UserRole.LAWYER
     }
 
@@ -162,7 +164,7 @@ class CustomPermissionEvaluatorTest {
         
         // Assert
         assertTrue(hasPermission)
-        verify { permissionService.isClientMatterOwnerById(userPrincipal.id!!, matterId) }
+        verify { permissionService.isClientMatterOwnerById(userId, matterId) }
     }
 
     @Test
@@ -182,7 +184,7 @@ class CustomPermissionEvaluatorTest {
         
         // Assert
         assertFalse(hasPermission)
-        verify { permissionService.isClientMatterOwnerById(userPrincipal.id!!, matterId) }
+        verify { permissionService.isClientMatterOwnerById(userId, matterId) }
     }
 
     @Test
@@ -202,7 +204,7 @@ class CustomPermissionEvaluatorTest {
         
         // Assert
         assertTrue(hasPermission)
-        verify { permissionService.isClientDocumentOwnerById(userPrincipal.id!!, documentId) }
+        verify { permissionService.isClientDocumentOwnerById(userId, documentId) }
     }
 
     @Test
@@ -344,7 +346,7 @@ class CustomPermissionEvaluatorTest {
             authentication, 
             communicationId, 
             "Communication", 
-            Permission.COMMUNICATION_READ.name
+            Permission.COMM_READ.name
         )
         
         // Assert
@@ -365,12 +367,12 @@ class CustomPermissionEvaluatorTest {
             authentication, 
             communicationId, 
             "Communication", 
-            Permission.COMMUNICATION_READ.name
+            Permission.COMM_READ.name
         )
         
         // Assert
         assertTrue(hasPermission)
-        verify { permissionService.isClientCommunicationOwnerById(userPrincipal.id!!, communicationId) }
+        verify { permissionService.isClientCommunicationOwnerById(userId, communicationId) }
     }
 
     @Test
@@ -425,7 +427,7 @@ class CustomPermissionEvaluatorTest {
     }
 
     @Test
-    fun `should properly deny CLIENT permissions for COMMUNICATION_CREATE`() {
+    fun `should properly deny CLIENT permissions for COMM_CREATE`() {
         // Arrange
         every { userPrincipal.role } returns UserRole.CLIENT
         
@@ -433,10 +435,10 @@ class CustomPermissionEvaluatorTest {
         val hasPermission = permissionEvaluator.hasPermission(
             authentication, 
             null, 
-            Permission.COMMUNICATION_CREATE.name
+            Permission.COMM_CREATE.name
         )
         
         // Assert
-        assertFalse(hasPermission) // CLIENT should not have COMMUNICATION_CREATE permission
+        assertFalse(hasPermission) // CLIENT should not have COMM_CREATE permission
     }
 }

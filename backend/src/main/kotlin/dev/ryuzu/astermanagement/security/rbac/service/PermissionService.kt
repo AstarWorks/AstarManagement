@@ -1,5 +1,6 @@
 package dev.ryuzu.astermanagement.security.rbac.service
 
+import dev.ryuzu.astermanagement.domain.matter.MatterRepository
 import dev.ryuzu.astermanagement.security.rbac.repository.UserRoleRepository
 import org.slf4j.LoggerFactory
 import org.springframework.cache.annotation.Cacheable
@@ -16,7 +17,8 @@ import java.util.*
  */
 @Service
 class PermissionService(
-    private val userRoleRepository: UserRoleRepository
+    private val userRoleRepository: UserRoleRepository,
+    private val matterRepository: MatterRepository
 ) {
     
     private val logger = LoggerFactory.getLogger(PermissionService::class.java)
@@ -281,14 +283,14 @@ class PermissionService(
      * TODO: Implement actual database query when matter repository is available.
      */
     private fun checkMatterOwnershipInDatabase(clientUserId: UUID, matterId: UUID): Boolean {
-        // Placeholder implementation - will be replaced with actual repository call
-        logger.debug("Checking matter ownership in database for client {} and matter {}", clientUserId, matterId)
-        
-        // TODO: Implement actual query like:
-        // return matterRepository.existsByIdAndClientId(matterId, clientUserId)
-        
-        // For now, return false as a safe default
-        return false
+        return try {
+            logger.debug("Checking matter ownership in database for client {} and matter {}", clientUserId, matterId)
+            matterRepository.existsByIdAndClientId(matterId, clientUserId)
+        } catch (e: Exception) {
+            logger.warn("Failed to check matter ownership in database for client {} and matter {}: {}", 
+                       clientUserId, matterId, e.message)
+            false
+        }
     }
 
     /**

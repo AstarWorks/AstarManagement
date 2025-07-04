@@ -148,6 +148,17 @@ interface MatterRepository : JpaRepository<Matter, UUID> {
     fun fullTextSearch(@Param("searchTerm") searchTerm: String): List<Matter>
 
     /**
+     * Check if a matter exists with the given ID and client ID
+     * Used for client ownership verification
+     */
+    fun existsByIdAndClientId(matterId: UUID, clientId: UUID): Boolean
+
+    /**
+     * Find a matter by ID and client ID for ownership verification
+     */
+    fun findByIdAndClientId(matterId: UUID, clientId: UUID): Matter?
+
+    /**
      * Get matters dashboard statistics
      */
     @Query("""
