@@ -12,6 +12,7 @@
 
 import { defineStore } from 'pinia'
 import { ref, computed, readonly } from 'vue'
+import { useAuthStore } from './auth'
 import type { 
   Expense, 
   ExpenseCreateInput, 
@@ -342,11 +343,27 @@ export const useExpenseStore = defineStore('expense', () => {
   
   // Approval Actions
   const approveExpense = async (id: string, reason?: string) => {
-    return updateExpenseApproval(id, { decision: 'APPROVED', reason })
+    const authStore = useAuthStore()
+    const approverId = authStore.user?.id
+    if (!approverId) throw new Error('User not authenticated')
+    
+    return updateExpenseApproval(id, { 
+      decision: 'APPROVED', 
+      reason,
+      approverId 
+    })
   }
   
   const rejectExpense = async (id: string, reason: string) => {
-    return updateExpenseApproval(id, { decision: 'REJECTED', reason })
+    const authStore = useAuthStore()
+    const approverId = authStore.user?.id
+    if (!approverId) throw new Error('User not authenticated')
+    
+    return updateExpenseApproval(id, { 
+      decision: 'REJECTED', 
+      reason,
+      approverId 
+    })
   }
   
   const updateExpenseApproval = async (id: string, decision: ApprovalDecision) => {

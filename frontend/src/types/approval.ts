@@ -346,14 +346,4 @@ export interface ApprovalPermissions {
   allowedExpenseTypes?: string[]
 }
 
-// Export commonly used types
-export type {
-  ApprovalQueueItem,
-  ApprovalQueueFilters,
-  ApprovalDecision,
-  BulkApprovalRequest,
-  ApprovalRule,
-  ApprovalDelegation,
-  ApprovalStatistics,
-  ApprovalNotification
-}
+// Export commonly used types (no conflicts with named exports above)

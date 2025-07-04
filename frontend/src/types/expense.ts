@@ -406,18 +406,4 @@ export interface ExpenseAuditEvent {
   ipAddress?: string
 }
 
-// Export Types for Components
-export type {
-  Expense,
-  ExpenseCreateInput,
-  ExpenseUpdateInput,
-  ApprovalQueueItem,
-  ApprovalQueueFilters,
-  BulkApprovalRequest,
-  BulkApprovalResult,
-  ExpenseFilters,
-  ExpenseListParams,
-  ExpenseListResponse,
-  ExpenseStatistics,
-  ReceiptUpload
-}
+// Export commonly used types (no conflicts with named exports above)

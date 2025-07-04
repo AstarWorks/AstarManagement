@@ -178,18 +178,18 @@
     </div>
 
     <!-- Pagination -->
-    <div v-if="pagination && pagination.pages > 1" class="pagination-section">
+    <div v-if="paginationData && paginationData.pages > 1" class="pagination-section">
       <div class="pagination-info">
-        Showing {{ (pagination.page - 1) * pagination.limit + 1 }} to 
-        {{ Math.min(pagination.page * pagination.limit, pagination.total) }} of 
-        {{ pagination.total }} expenses
+        Showing {{ (paginationData.page - 1) * paginationData.limit + 1 }} to 
+        {{ Math.min(paginationData.page * paginationData.limit, paginationData.total) }} of 
+        {{ paginationData.total }} expenses
       </div>
       <div class="pagination-controls">
         <Button
           variant="outline"
           size="sm"
-          :disabled="pagination.page <= 1"
-          @click="goToPage(pagination.page - 1)"
+          :disabled="paginationData.page <= 1"
+          @click="goToPage(paginationData.page - 1)"
         >
           <Icon name="ChevronLeft" class="w-4 h-4" />
           Previous
@@ -201,7 +201,7 @@
             :key="page"
             variant="ghost"
             size="sm"
-            :class="{ 'bg-primary text-primary-foreground': page === pagination.page }"
+            :class="{ 'bg-primary text-primary-foreground': page === paginationData.page }"
             @click="goToPage(page)"
           >
             {{ page }}
@@ -211,8 +211,8 @@
         <Button
           variant="outline"
           size="sm"
-          :disabled="pagination.page >= pagination.pages"
-          @click="goToPage(pagination.page + 1)"
+          :disabled="paginationData.page >= paginationData.pages"
+          @click="goToPage(paginationData.page + 1)"
         >
           Next
           <Icon name="ChevronRight" class="w-4 h-4" />
@@ -243,8 +243,9 @@ import type {
 } from '~/types/expense'
 import ExpenseCard from './ExpenseCard.vue'
 import ExpenseTable from './ExpenseTable.vue'
-import ExpenseFilters from './ExpenseFilters.vue'
-import BulkApprovalModal from './BulkApprovalModal.vue'
+// Remove duplicate import
+// import ExpenseFilters from './ExpenseFilters.vue'
+// import BulkApprovalModal from './BulkApprovalModal.vue'
 
 // Component Props
 interface Props {
@@ -348,7 +349,7 @@ const canEdit = (expense: Expense) => {
   }
   
   // Lawyers can edit any pending expense
-  return user.role === 'LAWYER' && expense.approvalStatus === 'PENDING'
+  return user.role === 'lawyer' && expense.approvalStatus === 'PENDING'
 }
 
 const canApprove = (expense: Expense) => {
@@ -359,8 +360,8 @@ const canApprove = (expense: Expense) => {
   if (expense.createdBy === user.id) return false
   
   // Role-based approval rules
-  if (user.role === 'LAWYER') return true
-  if (user.role === 'CLERK' && expense.amount <= 10000) return true
+  if (user.role === 'lawyer') return true
+  if (user.role === 'clerk' && expense.amount <= 10000) return true
   
   return false
 }
@@ -379,7 +380,7 @@ const canDelete = (expense: Expense) => {
   }
   
   // Lawyers can delete any pending expense
-  return user.role === 'LAWYER' && expense.approvalStatus === 'PENDING'
+  return user.role === 'lawyer' && expense.approvalStatus === 'PENDING'
 }
 
 // Event Handlers

@@ -120,3 +120,61 @@ export interface ViewPreferences {
   sortBy?: 'priority' | 'dueDate' | 'createdAt' | 'title' | 'updatedAt'
   sortOrder?: 'asc' | 'desc'
 }
+
+// Additional types for API integration
+export interface MatterFilters {
+  status?: MatterStatus[]
+  priority?: MatterPriority[]
+  assigneeId?: string
+  clientId?: string
+  searchQuery?: string
+  dateRange?: {
+    start: Date
+    end: Date
+  }
+  tags?: string[]
+}
+
+export interface MatterListParams extends MatterFilters {
+  page?: number
+  limit?: number
+  sortBy?: 'priority' | 'dueDate' | 'createdAt' | 'title' | 'updatedAt'
+  sortOrder?: 'asc' | 'desc'
+}
+
+export interface MatterListResponse {
+  data: Matter[]
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    pages: number
+  }
+  summary?: {
+    totalActive: number
+    totalCompleted: number
+    overdue: number
+  }
+}
+
+export interface CreateMatterInput {
+  title: string
+  description?: string
+  clientName: string
+  clientEmail?: string
+  clientPhone?: string
+  opponentName?: string
+  assignedLawyer?: string
+  assignedClerk?: string
+  priority: MatterPriority
+  dueDate?: Date
+  tags?: string[]
+  matterType?: string
+  budget?: number
+}
+
+export interface UpdateMatterInput extends Partial<CreateMatterInput> {
+  status?: MatterStatus
+  progressPercentage?: number
+  amountSpent?: number
+}

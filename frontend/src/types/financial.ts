@@ -1,241 +1,198 @@
 /**
- * Financial Dashboard Types
+ * Financial Data Types
  * 
- * Type definitions for financial dashboard components, metrics, and analytics.
+ * @description Type definitions for financial management features including
+ * expenses, receipts, and financial reporting with mobile optimization support.
+ * 
+ * @author Claude
+ * @created 2025-07-03
+ * @task T08_S14 - Mobile Optimization for Financial Features
  */
 
-// Time period for financial analysis
-export type TimePeriod = 'week' | 'month' | 'quarter' | 'year' | 'custom'
+// Base financial entities
+export interface Expense {
+  id: string
+  amount: number
+  currency: string
+  description: string
+  expenseDate: string | Date
+  expenseType: ExpenseType
+  billable: boolean
+  matterId?: string
+  receiptFile?: File | string
+  receiptUrl?: string
+  approvalStatus: ApprovalStatus
+  approvedBy?: string
+  approvedAt?: string | Date
+  notes?: string
+  tags?: string[]
+  createdBy: string
+  createdAt: string | Date
+  updatedAt: string | Date
+}
 
-// Trend direction for KPI indicators
-export type TrendDirection = 'up' | 'down' | 'stable'
+export interface Receipt {
+  id: string
+  expenseId?: string
+  filename: string
+  originalName: string
+  fileSize: number
+  mimeType: string
+  url: string
+  thumbnailUrl?: string
+  ocrText?: string
+  ocrConfidence?: number
+  metadata?: ReceiptMetadata
+  uploadedAt: string | Date
+  processedAt?: string | Date
+}
 
-// Chart types supported by the dashboard
-export type ChartType = 'pie' | 'doughnut' | 'bar' | 'line' | 'gauge' | 'area'
+export interface ReceiptMetadata {
+  vendor?: string
+  totalAmount?: number
+  taxAmount?: number
+  date?: string
+  paymentMethod?: string
+  confidence?: number
+  extractedFields?: Record<string, string | number | boolean>
+}
 
-// Financial KPI metrics
+// Enums
+export type ExpenseType = 
+  | 'TRAVEL'
+  | 'MEALS'
+  | 'ACCOMMODATION'
+  | 'COURT_FEES'
+  | 'FILING_FEES'
+  | 'COPYING'
+  | 'POSTAGE'
+  | 'TELEPHONE'
+  | 'RESEARCH'
+  | 'EXPERT_WITNESS'
+  | 'OTHER'
+
+export type ApprovalStatus = 
+  | 'PENDING'
+  | 'APPROVED'
+  | 'REJECTED'
+  | 'DRAFT'
+
+// Financial summary and reporting
+export interface FinancialSummary {
+  totalExpenses: number
+  expenseCount: number
+  pendingCount: number
+  pendingAmount: number
+  currentMonth: number
+  billableAmount: number
+  billableCount: number
+  recentExpenses?: Expense[]
+}
+
+// Alias for compatibility 
+export type FinancialSummaryResponse = FinancialSummary
+
+export interface ExpenseFilters {
+  status?: ApprovalStatus[]
+  expenseType?: ExpenseType[]
+  billable?: boolean
+  dateFrom?: string | Date
+  dateTo?: string | Date
+  matterId?: string
+  minAmount?: number
+  maxAmount?: number
+  search?: string
+}
+
+// Mobile and offline support
+export interface FinancialSyncItem<T = Expense | Receipt> {
+  id: string
+  action: 'create' | 'update' | 'delete'
+  type: 'expense' | 'receipt'
+  data: T
+  timestamp: number
+  priority: 'high' | 'medium' | 'low'
+  retryCount: number
+  lastRetry: number | null
+  conflict: SyncConflict<T> | null
+}
+
+export interface SyncConflict<T> {
+  localData: T
+  serverData: T
+  timestamp: number
+}
+
+// Form validation schemas (for Zod integration)
+export interface ExpenseFormData {
+  amount: number
+  currency: string
+  description: string
+  expenseDate: string
+  expenseType: ExpenseType
+  billable: boolean
+  matterId?: string
+  receiptFile?: File
+  notes?: string
+}
+
+// Additional types for compatibility with existing codebase
+export interface FinancialMetrics {
+  totalRevenue: number
+  totalExpenses: number
+  netProfit: number
+  profitMargin: number
+  expenseGrowth: number
+  revenueGrowth: number
+  budgetTotal?: number
+  budgetUtilized?: number
+  budgetUtilizationPercentage?: number
+  billableHours?: number
+  nonBillableHours?: number
+  expensesByCategory?: Array<{ category: string; amount: number }> | Record<string, number>
+  averageExpensePerMatter?: number
+  monthlyBurnRate?: number
+  projectedYearEndExpenses?: number
+  expensesByMatter?: Record<string, number>
+  expensesByLawyer?: Record<string, number>
+  monthlyTrends?: Array<{ month: string; amount?: number; date?: string; expenses?: number; revenue?: number; profit?: number }>
+  averageHourlyRate?: number
+  totalBilledAmount?: number
+  budgetsByCategory?: Record<string, { allocated: number; spent: number; remaining: number }>
+}
+
+export interface FinancialFilters {
+  dateFrom?: string | Date
+  dateTo?: string | Date
+  startDate?: string | Date
+  endDate?: string | Date
+  category?: ExpenseType[]
+  categories?: ExpenseType[]
+  status?: ApprovalStatus[]
+  billable?: boolean
+  search?: string
+  period?: string
+  includeProjected?: boolean
+  matterIds?: string[]
+  lawyerIds?: string[]
+}
+
 export interface FinancialKPI {
   id: string
-  title: string
+  name?: string
+  title?: string
   value: number
-  formattedValue: string
-  unit?: string
-  trend?: {
-    direction: TrendDirection
+  change?: number
+  trend?: 'up' | 'down' | 'neutral' | 'stable' | {
+    direction: 'up' | 'down' | 'stable' | 'neutral'
     percentage: number
     period: string
   }
-  icon: string
+  unit?: string
+  description?: string
+  formattedValue?: string
+  icon?: string
   color?: string
 }
 
-// Comprehensive financial metrics
-export interface FinancialMetrics {
-  // Core financial data
-  totalExpenses: number
-  totalRevenue: number
-  budgetTotal: number
-  budgetUtilized: number
-  profitMargin: number
-  
-  // Calculated KPIs
-  averageExpensePerMatter: number
-  budgetUtilizationPercentage: number
-  monthlyBurnRate: number
-  projectedYearEndExpenses: number
-  
-  // Breakdown data
-  expensesByCategory: Record<string, number>
-  expensesByMatter: Record<string, number>
-  expensesByLawyer: Record<string, number>
-  
-  // Time-based trends
-  monthlyTrends: Array<{
-    month: string
-    date: string
-    expenses: number
-    revenue: number
-    profit: number
-  }>
-  
-  // Revenue insights
-  billableHours: number
-  nonBillableHours: number
-  averageHourlyRate: number
-  totalBilledAmount: number
-  
-  // Budget tracking
-  budgetsByCategory: Record<string, {
-    allocated: number
-    spent: number
-    remaining: number
-  }>
-}
-
-// Chart data structure
-export interface ChartData {
-  labels: string[]
-  datasets: Array<{
-    label?: string
-    data: number[]
-    backgroundColor?: string | string[]
-    borderColor?: string | string[]
-    borderWidth?: number
-    fill?: boolean
-  }>
-}
-
-// Chart configuration options
-export interface ChartOptions {
-  responsive: boolean
-  maintainAspectRatio?: boolean
-  plugins?: {
-    legend?: {
-      display?: boolean
-      position?: 'top' | 'bottom' | 'left' | 'right'
-    }
-    title?: {
-      display?: boolean
-      text?: string
-    }
-    tooltip?: {
-      enabled?: boolean
-      callbacks?: Record<string, Function>
-    }
-  }
-  scales?: Record<string, {
-    display?: boolean
-    beginAtZero?: boolean
-    ticks?: {
-      callback?: (value: string | number) => string
-    }
-  }>
-  animation?: {
-    duration?: number
-    easing?: string
-  }
-}
-
-// Financial dashboard filters
-export interface FinancialFilters {
-  period: TimePeriod
-  startDate?: string
-  endDate?: string
-  matterIds?: string[]
-  lawyerIds?: string[]
-  categories?: string[]
-  includeProjected?: boolean
-}
-
-// Export format options
-export type ExportFormat = 'csv' | 'excel' | 'pdf'
-
-// Dashboard card configuration
-export interface DashboardCardConfig {
-  id: string
-  title: string
-  type: 'kpi' | 'chart' | 'table'
-  chartType?: ChartType
-  size: 'small' | 'medium' | 'large' | 'full'
-  position: {
-    x: number
-    y: number
-    w: number
-    h: number
-  }
-  visible: boolean
-  minimized?: boolean
-}
-
-// Financial categories
-export interface ExpenseCategory {
-  id: string
-  name: string
-  color: string
-  budget?: number
-  description?: string
-  isActive: boolean
-}
-
-// Revenue category
-export interface RevenueCategory {
-  id: string
-  name: string
-  color: string
-  target?: number
-  description?: string
-  isActive: boolean
-}
-
-// Budget allocation
-export interface BudgetAllocation {
-  categoryId: string
-  allocated: number
-  spent: number
-  remaining: number
-  utilizationPercentage: number
-  isOverBudget: boolean
-}
-
-// Financial report data
-export interface FinancialReport {
-  id: string
-  title: string
-  generatedAt: string
-  period: {
-    start: string
-    end: string
-    type: TimePeriod
-  }
-  metrics: FinancialMetrics
-  filters: FinancialFilters
-  format: ExportFormat
-}
-
-// Dashboard state
-export interface DashboardState {
-  cards: DashboardCardConfig[]
-  filters: FinancialFilters
-  lastUpdated: string
-  autoRefresh: boolean
-  refreshInterval: number
-}
-
-// API response types
-export interface FinancialSummaryResponse {
-  success: boolean
-  data: FinancialMetrics
-  lastUpdated: string
-  period: {
-    start: string
-    end: string
-  }
-}
-
-export interface FinancialTrendsResponse {
-  success: boolean
-  data: {
-    trends: FinancialMetrics['monthlyTrends']
-    projections: Array<{
-      month: string
-      projectedExpenses: number
-      projectedRevenue: number
-    }>
-  }
-}
-
-// Calculation utilities
-export interface FinancialCalculations {
-  calculateProfitMargin: (revenue: number, expenses: number) => number
-  calculateBudgetUtilization: (spent: number, allocated: number) => number
-  calculateGrowthRate: (current: number, previous: number) => number
-  formatCurrency: (amount: number, currency?: string) => string
-  formatPercentage: (value: number, decimals?: number) => string
-}
-
-// Validation schemas (for runtime validation)
-export interface FinancialValidation {
-  isValidPeriod: (period: string) => boolean
-  isValidAmount: (amount: number) => boolean
-  isValidDateRange: (start: string, end: string) => boolean
-}
+export type TimePeriod = 'day' | 'week' | 'month' | 'quarter' | 'year' | 'custom'

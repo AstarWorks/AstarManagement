@@ -40,8 +40,8 @@
           <Icon :name="tab.icon" class="w-4 h-4 mr-2" />
           {{ tab.label }}
           <Badge 
-            v-if="tab.count !== undefined" 
-            :variant="tab.variant" 
+            v-if="'count' in tab && typeof tab.count === 'number' && tab.count > 0" 
+            variant="secondary" 
             class="ml-2"
           >
             {{ tab.count }}
@@ -157,16 +157,16 @@ const userId = computed(() => user.value?.id || '')
 // Permissions
 const canCreateExpenses = computed(() => {
   const userRole = user.value?.role
-  return userRole === 'LAWYER' || userRole === 'CLERK'
+  return userRole === 'lawyer' || userRole === 'clerk'
 })
 
 const canViewAllExpenses = computed(() => {
-  return user.value?.role === 'LAWYER'
+  return user.value?.role === 'lawyer'
 })
 
 const canApproveExpenses = computed(() => {
   const userRole = user.value?.role
-  return userRole === 'LAWYER' || userRole === 'CLERK'
+  return userRole === 'lawyer' || userRole === 'clerk'
 })
 
 // Approval Workflow Data
@@ -174,7 +174,7 @@ const {
   notifications, 
   unreadCount,
   permissions 
-} = useApprovalWorkflow(userId)
+} = useApprovalWorkflow(userId.value)
 
 // Tab Configuration
 const tabs = computed(() => {
@@ -183,7 +183,6 @@ const tabs = computed(() => {
       id: 'my-expenses',
       label: 'My Expenses',
       icon: 'Receipt',
-      count: undefined,
       variant: 'secondary' as const
     }
   ]
@@ -193,7 +192,6 @@ const tabs = computed(() => {
       id: 'all-expenses',
       label: 'All Expenses',
       icon: 'List',
-      count: undefined,
       variant: 'secondary' as const
     })
   }
@@ -203,8 +201,8 @@ const tabs = computed(() => {
       id: 'approvals',
       label: 'Approvals',
       icon: 'CheckSquare',
-      count: unreadCount.value || undefined,
-      variant: unreadCount.value > 0 ? 'destructive' as const : 'secondary' as const
+      ...(unreadCount.value && unreadCount.value > 0 ? { count: unreadCount.value } : {}),
+      variant: 'secondary' as const
     })
   }
   
@@ -213,7 +211,6 @@ const tabs = computed(() => {
       id: 'statistics',
       label: 'Statistics',
       icon: 'BarChart3',
-      count: undefined,
       variant: 'secondary' as const
     })
   }

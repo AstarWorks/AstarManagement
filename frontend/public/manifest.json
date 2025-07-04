@@ -20,5 +20,61 @@
       "sizes": "512x512",
       "type": "image/png"
     }
-  ]
+  ],
+  "shortcuts": [
+    {
+      "name": "New Expense",
+      "short_name": "Expense",
+      "description": "Create a new expense entry",
+      "url": "/expenses/new",
+      "icons": [
+        {
+          "src": "/icons/expense-shortcut.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Scan Receipt",
+      "short_name": "Scan",
+      "description": "Scan a receipt with camera",
+      "url": "/receipts/scan",
+      "icons": [
+        {
+          "src": "/icons/scan-shortcut.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Financial Dashboard",
+      "short_name": "Dashboard",
+      "description": "View financial summary",
+      "url": "/financial/dashboard",
+      "icons": [
+        {
+          "src": "/icons/dashboard-shortcut.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Expense Reports",
+      "short_name": "Reports",
+      "description": "Generate and export expense reports",
+      "url": "/financial/reports",
+      "icons": [
+        {
+          "src": "/icons/reports-shortcut.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "categories": ["business", "finance", "productivity"],
+  "prefer_related_applications": false
 }

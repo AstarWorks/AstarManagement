@@ -87,8 +87,11 @@ const trendClasses = computed(() => {
   if (!props.kpi.trend) return ''
   
   const baseClasses = 'flex items-center text-xs'
+  const direction = typeof props.kpi.trend === 'object' 
+    ? props.kpi.trend.direction 
+    : props.kpi.trend
   
-  switch (props.kpi.trend.direction) {
+  switch (direction) {
     case 'up':
       return `${baseClasses} text-green-600 dark:text-green-400`
     case 'down':
@@ -101,7 +104,11 @@ const trendClasses = computed(() => {
 const trendIcon = computed(() => {
   if (!props.kpi.trend) return null
   
-  switch (props.kpi.trend.direction) {
+  const direction = typeof props.kpi.trend === 'object' 
+    ? props.kpi.trend.direction 
+    : props.kpi.trend
+  
+  switch (direction) {
     case 'up':
       return TrendingUp
     case 'down':
@@ -163,10 +170,10 @@ const formatAnimatedValue = (value: string) => {
               :is="trendIcon" 
               class="h-3 w-3 mr-1"
             />
-            <span class="font-medium">
+            <span v-if="typeof kpi.trend === 'object'" class="font-medium">
               {{ kpi.trend.percentage > 0 ? '+' : '' }}{{ kpi.trend.percentage }}%
             </span>
-            <span class="ml-1 opacity-75">
+            <span v-if="typeof kpi.trend === 'object'" class="ml-1 opacity-75">
               {{ kpi.trend.period }}
             </span>
           </div>

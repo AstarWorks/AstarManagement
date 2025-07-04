@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { CalendarDays, Filter, RotateCcw, Download, Users, Building, Tag, ChevronDown } from 'lucide-vue-next'
-import type { FinancialFilters, TimePeriod } from '~/types/financial'
+import type { FinancialFilters, TimePeriod, ExpenseType } from '~/types/financial'
 
 /**
  * Financial Dashboard Filters Component
@@ -144,11 +144,11 @@ const toggleLawyer = (lawyerId: string) => {
 
 const toggleCategory = (category: string) => {
   if (!localFilters.value.categories) localFilters.value.categories = []
-  const index = localFilters.value.categories.indexOf(category)
+  const index = localFilters.value.categories.indexOf(category as ExpenseType)
   if (index > -1) {
     localFilters.value.categories.splice(index, 1)
   } else {
-    localFilters.value.categories.push(category)
+    localFilters.value.categories.push(category as ExpenseType)
   }
   applyFilters()
 }
@@ -377,7 +377,7 @@ const parseDateFromInput = (dateString: string): string | undefined => {
               >
                 <Checkbox
                   :id="`category-${category}`"
-                  :checked="localFilters.categories?.includes(category)"
+                  :checked="localFilters.categories?.includes(category as ExpenseType)"
                   @update:checked="toggleCategory(category)"
                 />
                 <label

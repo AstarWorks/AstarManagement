@@ -73,14 +73,14 @@
           </div>
 
           <!-- Priority Actions -->
-          <div v-if="statistics?.queueStats.urgent > 0" class="priority-actions">
+          <div v-if="statistics?.queueStats?.urgent && statistics.queueStats.urgent > 0" class="priority-actions">
             <div class="flex items-center gap-2 mb-2">
               <Icon name="Zap" class="w-4 h-4 text-destructive" />
               <span class="text-sm font-medium text-destructive">Urgent Items</span>
             </div>
             <Button variant="destructive" size="sm" class="w-full" @click="viewUrgentItems">
               <Icon name="AlertTriangle" class="w-3 h-3 mr-1" />
-              Review {{ statistics.queueStats.urgent }} Urgent
+              Review {{ statistics?.queueStats?.urgent || 0 }} Urgent
             </Button>
           </div>
 
@@ -154,7 +154,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useAuthStore } from '~/stores/auth'
-import { useApprovalWorkflow } from '~/composables/useApprovals'
+import { useApprovalWorkflow, useApprovalStatisticsQuery } from '~/composables/useApprovals'
 import { useToast } from '~/composables/useToast'
 
 // Meta
@@ -177,9 +177,11 @@ const userId = computed(() => user.value?.id || '')
 const {
   permissions,
   notifications,
-  unreadCount,
-  statistics
-} = useApprovalWorkflow(userId)
+  unreadCount
+} = useApprovalWorkflow(userId.value)
+
+// Statistics data
+const { data: statistics } = useApprovalStatisticsQuery()
 
 // Local State
 const showDelegationSetup = ref(false)
@@ -214,7 +216,7 @@ const viewStatistics = () => {
 const exportApprovalReport = async () => {
   try {
     // Export approval report
-    const response = await $fetch('/api/approvals/export', {
+    const response = await $fetch<{ downloadUrl: string }>('/api/approvals/export', {
       method: 'POST',
       body: {
         format: 'csv',

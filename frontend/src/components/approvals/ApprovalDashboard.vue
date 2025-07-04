@@ -235,9 +235,9 @@
     </div>
 
     <!-- Pagination -->
-    <div v-if="pagination && pagination.pages > 1" class="pagination-section">
+    <div v-if="paginationData && paginationData.pages > 1" class="pagination-section">
       <ApprovalPagination
-        :pagination="pagination"
+        :pagination="paginationData"
         @page-change="handlePageChange"
       />
     </div>
@@ -306,7 +306,7 @@ const isBulkDelegation = ref(false)
 const selectedExpense = ref<ApprovalQueueItem | null>(null)
 
 // Filters and Pagination
-const filters = ref<ApprovalQueueParams['filters']>({
+const filters = ref<Record<string, any>>({
   status: ['PENDING']
 })
 
@@ -317,11 +317,11 @@ const pagination = ref({
 
 const sortOptions = ref({
   sortBy: 'daysPending' as const,
-  sortOrder: 'desc' as const
+  sortOrder: 'desc' as 'asc' | 'desc'
 })
 
 // Query Parameters
-const queryParams = computed<ApprovalQueueParams>(() => ({
+const queryParams = computed(() => ({
   ...filters.value,
   ...pagination.value,
   ...sortOptions.value
@@ -345,13 +345,13 @@ const {
   permissions,
   notifications,
   unreadCount
-} = useApprovalWorkflow(userId)
+} = useApprovalWorkflow(userId.value)
 
 // Computed Properties
 const hasActiveFilters = computed(() => {
   return Object.values(filters.value || {}).some(value => 
     value !== undefined && value !== null && value !== '' && 
-    !(Array.isArray(value) && value.length === 1 && value[0] === 'PENDING')
+    !(Array.isArray(value) && value.length === 1 && (value as string[])[0] === 'PENDING')
   )
 })
 
@@ -371,7 +371,7 @@ const overdueItems = computed(() =>
 )
 
 // Event Handlers
-const updateFilters = (newFilters: ApprovalQueueParams['filters']) => {
+const updateFilters = (newFilters: any) => {
   filters.value = newFilters
   pagination.value.page = 1 // Reset to first page
 }
@@ -529,7 +529,7 @@ const handleDelegationConfirm = async (data: { delegateeId: string; reason: stri
 // Filter Shortcuts
 const showUrgentOnly = () => {
   filters.value = {
-    ...filters.value,
+    status: ['PENDING'],
     priority: ['high'],
     isUrgent: true
   }
@@ -537,7 +537,7 @@ const showUrgentOnly = () => {
 
 const showOverdueOnly = () => {
   filters.value = {
-    ...filters.value,
+    status: ['PENDING'],
     daysPendingMin: 3
   }
 }

@@ -345,7 +345,7 @@ import { useToast } from '~/composables/useToast'
 import { useMatters } from '~/composables/useMatters'
 import { expenseCreateSchema, type ExpenseCreateForm } from '~/schemas/expense'
 import { EXPENSE_CATEGORIES, calculateApprovalPriority } from '~/types/expense'
-import type { Expense, ExpenseCreateInput } from '~/types/expense'
+import type { Expense, ExpenseCreateInput, ExpenseType } from '~/types/expense'
 import type { Matter } from '~/types/matter'
 
 // Component Props
@@ -376,7 +376,7 @@ const emit = defineEmits<{
 
 // Composables
 const { showToast } = useToast()
-const { matters, fetchUserMatters } = useMatters()
+const { matters } = useMatters(ref({ page: 1, limit: 100 }))
 
 // Form Setup
 const { handleSubmit, defineField, errors, meta, setValues } = useForm({
@@ -384,12 +384,15 @@ const { handleSubmit, defineField, errors, meta, setValues } = useForm({
   initialValues: {
     currency: 'JPY',
     billable: true,
-    expenseDate: new Date(),
     description: '',
     amount: 0,
     notes: '',
     matterId: props.matterId || '',
-    ...props.initialValues
+    ...props.initialValues,
+    // Ensure expenseDate is always a string
+    expenseDate: props.initialValues?.expenseDate instanceof Date
+      ? props.initialValues.expenseDate.toISOString().split('T')[0]
+      : props.initialValues?.expenseDate || new Date().toISOString().split('T')[0]
   }
 })
 
@@ -425,13 +428,13 @@ const todayString = computed(() => {
 })
 
 const selectedCategory = computed(() => {
-  return expenseType.value ? EXPENSE_CATEGORIES[expenseType.value] : null
+  return expenseType.value ? EXPENSE_CATEGORIES[expenseType.value as ExpenseType] : null
 })
 
 const receiptRequired = computed(() => {
   if (!expenseType.value) return false
   
-  const category = EXPENSE_CATEGORIES[expenseType.value]
+  const category = EXPENSE_CATEGORIES[expenseType.value as ExpenseType]
   const highValueThreshold = 20000
   
   return category.requiresReceipt || (amount.value && amount.value > highValueThreshold)
@@ -583,7 +586,7 @@ watch(() => meta.value.valid, (valid) => {
 // Lifecycle
 onMounted(async () => {
   // Load available matters for selection
-  await fetchUserMatters()
+  // await fetchUserMatters() // Matters are automatically loaded by useMatters
   
   // If editing, populate form with existing data
   if (props.expense && props.mode === 'edit') {
@@ -591,7 +594,9 @@ onMounted(async () => {
       description: props.expense.description,
       amount: props.expense.amount,
       currency: props.expense.currency,
-      expenseDate: props.expense.expenseDate,
+      expenseDate: (props.expense.expenseDate instanceof Date 
+        ? props.expense.expenseDate.toISOString().split('T')[0]
+        : props.expense.expenseDate) as string,
       expenseType: props.expense.expenseType,
       matterId: props.expense.matterId || '',
       billable: props.expense.billable,

@@ -242,13 +242,13 @@ export function useFinancialExport() {
     
     if (filters.matterIds && filters.matterIds.length > 0) {
       filteredData = filteredData.filter(item => 
-        filters.matterIds!.some(id => item.matter.includes(id))
+        filters.matterIds!.some((id: string) => item.matter.includes(id))
       )
     }
     
     if (filters.categories && filters.categories.length > 0) {
       filteredData = filteredData.filter(item => 
-        filters.categories!.includes(item.category)
+        filters.categories!.some(cat => cat.toLowerCase().includes(item.category.toLowerCase()))
       )
     }
     

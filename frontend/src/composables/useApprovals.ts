@@ -206,7 +206,7 @@ export function useApprovalMutations() {
               item.id === expenseId 
                 ? { 
                     ...item, 
-                    approvalStatus: decision.decision === 'APPROVED' ? 'APPROVED' : 'REJECTED',
+                    approvalStatus: decision.decision === 'APPROVED' ? 'APPROVED' as const : 'REJECTED' as const,
                     approvedAt: new Date(),
                     approvedBy: decision.approverId
                   }

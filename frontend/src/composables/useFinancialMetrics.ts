@@ -79,6 +79,9 @@ export function useFinancialMetrics(options: UseFinancialMetricsOptions = {}) {
     return {
       totalExpenses: baseExpenses * periodMultiplier,
       totalRevenue: baseRevenue * periodMultiplier,
+      netProfit: (baseRevenue - baseExpenses) * periodMultiplier,
+      expenseGrowth: 12.5,
+      revenueGrowth: 8.3,
       budgetTotal: 1500000 * periodMultiplier,
       budgetUtilized: 1250000 * periodMultiplier,
       profitMargin: 41.86,
@@ -104,7 +107,7 @@ export function useFinancialMetrics(options: UseFinancialMetricsOptions = {}) {
         'Sato, Yuki': 350000 * periodMultiplier,
         'Yamamoto, Kenji': 480000 * periodMultiplier
       },
-      monthlyTrends: generateMonthlyTrends(filterObj.period),
+      monthlyTrends: generateMonthlyTrends((filterObj.period || 'month') as TimePeriod),
       billableHours: 1850 * periodMultiplier,
       nonBillableHours: 420 * periodMultiplier,
       averageHourlyRate: 18500,
@@ -264,8 +267,8 @@ export function useFinancialMetrics(options: UseFinancialMetricsOptions = {}) {
       {
         id: 'budget-utilization',
         title: 'Budget Utilization',
-        value: metrics.value.budgetUtilizationPercentage,
-        formattedValue: `${metrics.value.budgetUtilizationPercentage.toFixed(1)}%`,
+        value: metrics.value.budgetUtilizationPercentage || 0,
+        formattedValue: `${(metrics.value.budgetUtilizationPercentage || 0).toFixed(1)}%`,
         trend: {
           direction: 'stable',
           percentage: 0.8,
@@ -296,8 +299,12 @@ export function useFinancialMetrics(options: UseFinancialMetricsOptions = {}) {
 
     const profitMargin = (metrics.value.totalRevenue - metrics.value.totalExpenses) / metrics.value.totalRevenue * 100
     const expenseRatio = metrics.value.totalExpenses / metrics.value.totalRevenue * 100
-    const budgetVariance = ((metrics.value.budgetUtilized - metrics.value.budgetTotal) / metrics.value.budgetTotal) * 100
-    const utilizationRate = (metrics.value.billableHours / (metrics.value.billableHours + metrics.value.nonBillableHours)) * 100
+    const budgetVariance = metrics.value.budgetUtilized && metrics.value.budgetTotal
+      ? ((metrics.value.budgetUtilized - metrics.value.budgetTotal) / metrics.value.budgetTotal) * 100
+      : 0
+    const utilizationRate = metrics.value.billableHours && metrics.value.nonBillableHours
+      ? (metrics.value.billableHours / (metrics.value.billableHours + metrics.value.nonBillableHours)) * 100
+      : 0
 
     return {
       profitMargin,
@@ -364,11 +371,14 @@ export function useFinancialMetrics(options: UseFinancialMetricsOptions = {}) {
       ['Total Expenses', metricsData.totalExpenses.toString()],
       ['Total Revenue', metricsData.totalRevenue.toString()],
       ['Profit Margin', metricsData.profitMargin.toString() + '%'],
-      ['Budget Utilization', metricsData.budgetUtilizationPercentage.toString() + '%'],
-      ['Billable Hours', metricsData.billableHours.toString()],
-      ['Non-Billable Hours', metricsData.nonBillableHours.toString()],
-      ...Object.entries(metricsData.expensesByCategory).map(([category, amount]) => 
-        [`Expenses - ${category}`, amount.toString()]
+      ['Budget Utilization', (metricsData.budgetUtilizationPercentage || 0).toString() + '%'],
+      ['Billable Hours', (metricsData.billableHours || 0).toString()],
+      ['Non-Billable Hours', (metricsData.nonBillableHours || 0).toString()],
+      ...(metricsData.expensesByCategory && typeof metricsData.expensesByCategory === 'object' && !Array.isArray(metricsData.expensesByCategory)
+        ? Object.entries(metricsData.expensesByCategory).map(([category, amount]) => 
+            [`Expenses - ${category}`, amount.toString()]
+          )
+        : []
       )
     ]
     

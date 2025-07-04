@@ -52,6 +52,9 @@ const filters = ref<FinancialFilters>({
 const metrics = ref<FinancialMetrics>({
   totalExpenses: 1250000,
   totalRevenue: 2150000,
+  netProfit: 900000,
+  expenseGrowth: 12.5,
+  revenueGrowth: 8.3,
   budgetTotal: 1500000,
   budgetUtilized: 1250000,
   profitMargin: 41.86,
@@ -142,8 +145,8 @@ const kpis = computed(() => [
   {
     id: 'budget-utilization',
     title: 'Budget Utilization',
-    value: metrics.value.budgetUtilizationPercentage,
-    formattedValue: `${metrics.value.budgetUtilizationPercentage.toFixed(1)}%`,
+    value: metrics.value.budgetUtilizationPercentage || 0,
+    formattedValue: `${(metrics.value.budgetUtilizationPercentage || 0).toFixed(1)}%`,
     trend: {
       direction: 'stable' as const,
       percentage: 0.8,
