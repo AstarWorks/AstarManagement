@@ -38,7 +38,7 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   click: [matter: MatterCard]
   edit: [matter: MatterCard]
-  update: [matter: MatterCard, field: string, value: any]
+  update: [matter: MatterCard, field: string, value: unknown]
   'update:selected': [selected: boolean]
   dblclick: [matter: MatterCard]
   keydown: [event: KeyboardEvent]
@@ -144,8 +144,8 @@ const exitEditMode = (save = false) => {
   }
 }
 
-const handleFieldChange = (field: string, value: any) => {
-  editValues.value[field as keyof typeof editValues.value] = value
+const handleFieldChange = (field: string, value: unknown) => {
+  editValues.value[field as keyof typeof editValues.value] = value as string
   
   // Reset auto-save timer
   if (autoSaveTimer) {

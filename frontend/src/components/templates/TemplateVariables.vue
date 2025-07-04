@@ -201,7 +201,7 @@ import type { TemplateVariable } from '~/types/template'
 interface Props {
   variables: TemplateVariable[]
   readonly?: boolean
-  initialValues?: Record<string, any>
+  initialValues?: Record<string, unknown>
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -210,12 +210,12 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-  'update:values': [values: Record<string, any>]
+  'update:values': [values: Record<string, unknown>]
   'validation-change': [isValid: boolean]
 }>()
 
 // State
-const values = ref<Record<string, any>>({})
+const values = ref<Record<string, unknown>>({})
 const errors = ref<Record<string, string>>({})
 
 // Computed
@@ -239,7 +239,7 @@ const isValid = computed(() => {
 
 // Initialize values
 const initializeValues = () => {
-  const initialValues: Record<string, any> = {}
+  const initialValues: Record<string, unknown> = {}
   
   props.variables.forEach(variable => {
     // Use provided initial values first

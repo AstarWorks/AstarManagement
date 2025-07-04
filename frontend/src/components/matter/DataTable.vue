@@ -4,11 +4,11 @@ import type { SortDirection } from '~/types/table'
 import { cn } from '~/lib/utils'
 import DataTablePagination from './DataTablePagination.vue'
 
-export interface DataTableColumn<T = any> {
+export interface DataTableColumn<T = Record<string, unknown>> {
   key: keyof T | string
   header: string
   sortable?: boolean
-  formatter?: (value: any, row: T) => string
+  formatter?: (value: unknown, row: T) => string
   width?: string
   align?: 'left' | 'center' | 'right'
   className?: string
@@ -74,8 +74,8 @@ const handleSort = (column: DataTableColumn<TData>) => {
 }
 
 // Get value from nested path (e.g., 'user.name')
-const getValue = (row: TData, path: string): any => {
-  return path.split('.').reduce((obj, key) => obj?.[key], row as any)
+const getValue = (row: TData, path: string): unknown => {
+  return path.split('.').reduce((obj, key) => obj?.[key], row as Record<string, unknown>)
 }
 
 // Format cell value

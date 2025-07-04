@@ -71,7 +71,7 @@ const fieldClasses = computed(() => [
 ])
 
 // Event handlers
-const handleUpdate = (value: any) => {
+const handleUpdate = (value: unknown) => {
   emit('update:modelValue', value)
   emit('change', value)
 }
@@ -84,7 +84,7 @@ const handleFocus = (event: FocusEvent) => {
   emit('focus', event)
 }
 
-const handleChange = (value: any) => {
+const handleChange = (value: unknown) => {
   emit('change', value)
 }
 </script>

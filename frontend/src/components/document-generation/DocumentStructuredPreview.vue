@@ -239,13 +239,13 @@ interface StructuredContent {
     content?: string
     variables?: string[]
   }>
-  variables?: Record<string, any>
+  variables?: Record<string, unknown>
   processed_at?: string | Date
 }
 
 interface TemplateVariable {
   name: string
-  value: any
+  value: unknown
   type: string
 }
 

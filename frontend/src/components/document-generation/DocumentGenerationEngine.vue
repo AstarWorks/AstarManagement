@@ -389,7 +389,7 @@ const showMatterSelector = ref(false)
 const showPreview = ref(false)
 
 // Template Selection
-const selectedTemplate = ref<any>(null)
+const selectedTemplate = ref<Template | null>(null)
 const selectedMatterId = ref<string>(props.matterId || '')
 const selectedMatterIds = ref<string[]>([])
 
@@ -435,7 +435,7 @@ const canGenerate = computed(() => {
 })
 
 // Methods
-const selectTemplate = (template: any) => {
+const selectTemplate = (template: Template) => {
   selectedTemplate.value = template
   showTemplateSelector.value = false
   
@@ -445,7 +445,7 @@ const selectTemplate = (template: any) => {
   })
 }
 
-const selectMatter = (matter: any) => {
+const selectMatter = (matter: Matter) => {
   if (mode.value === 'batch') {
     // For batch mode, we would handle multiple matters differently
     selectedMatterIds.value = [matter.id]
@@ -495,7 +495,7 @@ const generateDocuments = async () => {
     toast({
       title: 'Generation Failed',
       description: (error as Error).message || 'Failed to start document generation',
-      variant: 'destructive' as any
+      variant: 'destructive'
     })
   }
 }
@@ -504,7 +504,7 @@ const handlePreviewError = (error: string) => {
   toast({
     title: 'Preview Error',
     description: error,
-    variant: 'destructive' as any
+    variant: 'destructive'
   })
 }
 
@@ -519,7 +519,7 @@ const handleJobError = (jobId: string, error: string) => {
   toast({
     title: 'Generation Failed',
     description: error,
-    variant: 'destructive' as any
+    variant: 'destructive'
   })
 }
 

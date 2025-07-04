@@ -32,7 +32,7 @@ const emit = defineEmits<{
   headerClick: [column: KanbanColumn]
   matterClick: [matter: MatterCard]
   matterEdit: [matter: MatterCard]
-  matterUpdate: [matter: MatterCard, field: string, value: any]
+  matterUpdate: [matter: MatterCard, field: string, value: unknown]
   'update:matters': [matters: MatterCard[]]
   'matter-moved': [matter: MatterCard, fromStatus: MatterStatus, toStatus: MatterStatus]
   'keyboard-navigation': [direction: 'up' | 'down' | 'left' | 'right', matter: MatterCard]
@@ -206,14 +206,14 @@ const handleMatterEdit = (matter: MatterCard) => {
   emit('matterEdit', matter)
 }
 
-const handleMatterUpdate = (matter: MatterCard, field: string, value: any) => {
+const handleMatterUpdate = (matter: MatterCard, field: string, value: unknown) => {
   emit('matterUpdate', matter, field, value)
 }
 
 // Enhanced drag and drop event handlers with animations
-const handleDragStart = (event: any) => {
+const handleDragStart = (event: { item: HTMLElement & { _underlying_vm_?: MatterCard } }) => {
   const matter = event.item._underlying_vm_
-  draggedMatter.value = matter
+  draggedMatter.value = matter || null
   
   // Apply drag start animation
   if (animationsEnabled.value) {
@@ -223,7 +223,7 @@ const handleDragStart = (event: any) => {
   onDragStart(event)
 }
 
-const handleDragEnd = async (event: any) => {
+const handleDragEnd = async (event: { item?: HTMLElement }) => {
   draggedMatter.value = null
   dropIndicatorPosition.value = null
   
@@ -235,7 +235,7 @@ const handleDragEnd = async (event: any) => {
   await onDragEnd(event)
 }
 
-const handleDragChange = async (event: any) => {
+const handleDragChange = async (event: { added?: { element: MatterCard }; removed?: { element: MatterCard } }) => {
   const status = columnStatus.value
   if (!status) return
   
@@ -302,7 +302,7 @@ const handleDragOver = (event: DragEvent) => {
 }
 
 // Custom drop validation
-const handleCanAcceptDrop = (to: any, from: any, dragEl: any): boolean => {
+const handleCanAcceptDrop = (to: Element, from: Element, dragEl: Element): boolean => {
   return canAcceptDrop(to, from, dragEl)
 }
 

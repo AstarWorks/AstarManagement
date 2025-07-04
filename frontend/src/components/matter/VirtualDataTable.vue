@@ -56,9 +56,9 @@ const emit = defineEmits<{
   'selection:change': [selectedRows: TData[]]
   'selection:row': [row: TData, selected: boolean]
   'bulk:delete': [items: TData[]]
-  'bulk:status-update': [items: TData[], status: any]
+  'bulk:status-update': [items: TData[], status: string]
   'bulk:export': [items: TData[], format: 'csv' | 'excel']
-  'cell:edit': [row: TData, column: string, value: any]
+  'cell:edit': [row: TData, column: string, value: unknown]
   'column:resize': [column: string, width: number]
 }>()
 
@@ -177,8 +177,8 @@ const selectAll = () => {
 }
 
 // Get value from nested path
-const getValue = (row: TData, path: string): any => {
-  return path.split('.').reduce((obj, key) => obj?.[key], row as any)
+const getValue = (row: TData, path: string): unknown => {
+  return path.split('.').reduce((obj, key) => obj?.[key], row as Record<string, unknown>)
 }
 
 // Format cell value

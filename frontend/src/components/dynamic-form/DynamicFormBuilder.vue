@@ -164,7 +164,7 @@ const formState = computed(() => ({
 // Event handlers
 const handleSubmit = (event?: Event) => {
   if (event) event.preventDefault()
-  submitForm(event as any)
+  submitForm(event)
 }
 
 const handleReset = () => {

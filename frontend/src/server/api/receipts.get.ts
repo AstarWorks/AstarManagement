@@ -186,8 +186,8 @@ export default defineEventHandler(async (event) => {
 
   // Apply sorting
   filteredReceipts.sort((a, b) => {
-    let aValue: any
-    let bValue: any
+    let aValue: string | number | Date
+    let bValue: string | number | Date
 
     switch (sortBy) {
       case 'filename':

@@ -144,7 +144,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, type Component } from 'vue'
 import { 
   FileText, 
   FileEdit, 
@@ -247,7 +247,7 @@ const clearAllFilters = () => {
 }
 
 const getCategoryIcon = (iconName: string) => {
-  const iconMap: Record<string, any> = {
+  const iconMap: Record<string, Component> = {
     FileText,
     Form: FileEdit,
     Mail,
