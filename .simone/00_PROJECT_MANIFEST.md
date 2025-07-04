@@ -107,7 +107,7 @@ Implement JWT-based authentication with Discord-style RBAC system and secure ses
 - ✅ T01_S06: Spring Security Configuration - Medium complexity (COMPLETED)
 - ✅ T02_S06: Authentication Service Implementation - Medium complexity (COMPLETED)  
 - ✅ T03_S06: Authentication API Endpoints - Medium complexity (COMPLETED)
-- 🚧 T04A_S06: RBAC Models and Entities - Medium complexity (IN PROGRESS)
+- ✅ TX04A_S06: RBAC Models and Entities - Medium complexity (COMPLETED)
 - 🚧 T04B_S06: Permission Evaluation and Method Security - Medium complexity (IN PROGRESS)
 - ✅ T05_S06: Two-Factor Authentication - Medium complexity (COMPLETED)
 - 🚧 T06_S06: Session Management with Redis - Medium complexity (IN PROGRESS)
