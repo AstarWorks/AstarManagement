@@ -343,7 +343,7 @@ watch(activeTab, (newTab) => {
 
 .page-header {
   display: flex;
-  items-center;
+  align-items: center;
   justify-content: space-between;
   gap: 1rem;
   padding-bottom: 1rem;

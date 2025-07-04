@@ -588,7 +588,7 @@ onUnmounted(() => {
 
 .dashboard-header {
   display: flex;
-  items-center;
+  align-items: center;
   justify-content: space-between;
   gap: 1rem;
 }

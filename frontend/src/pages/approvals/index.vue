@@ -266,7 +266,7 @@ provide('approvals-context', {
 .page-header {
   grid-column: 1 / -1;
   display: flex;
-  items-center;
+  align-items: center;
   justify-content: space-between;
   gap: 1rem;
   padding-bottom: 1rem;

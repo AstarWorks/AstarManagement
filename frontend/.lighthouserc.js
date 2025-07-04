@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   ci: {
     // Collection configuration
     collect: {
@@ -112,4 +112,4 @@ module.exports = {
       // },
     },
   },
-};
+}

@@ -158,6 +158,12 @@
 
     <!-- Table View -->
     <div v-else class="expenses-table">
+      <!-- TODO: Implement ExpenseTable component -->
+      <div class="p-8 text-center text-muted-foreground">
+        <p>Table view is coming soon...</p>
+        <p class="text-sm">Switch to card view for full functionality</p>
+      </div>
+      <!--
       <ExpenseTable
         :expenses="expenses"
         :loading="isLoading"
@@ -175,6 +181,7 @@
         @delete="handleDelete"
         @sort="handleSort"
       />
+      -->
     </div>
 
     <!-- Pagination -->
@@ -242,7 +249,7 @@ import type {
   ExpenseListParams 
 } from '~/types/expense'
 import ExpenseCard from './ExpenseCard.vue'
-import ExpenseTable from './ExpenseTable.vue'
+// import ExpenseTable from './ExpenseTable.vue' // TODO: Create ExpenseTable component
 // Remove duplicate import
 // import ExpenseFilters from './ExpenseFilters.vue'
 // import BulkApprovalModal from './BulkApprovalModal.vue'
@@ -512,7 +519,7 @@ onMounted(() => {
 
 .list-header {
   display: flex;
-  items-center;
+  align-items: center;
   justify-content: space-between;
   gap: 1rem;
 }
@@ -536,7 +543,7 @@ onMounted(() => {
 
 .header-actions {
   display: flex;
-  items-center;
+  align-items: center;
   gap: 0.75rem;
 }
 
@@ -590,7 +597,7 @@ onMounted(() => {
   background: hsl(var(--primary));
   border-radius: 50%;
   display: flex;
-  items-center;
+  align-items: center;
   justify-content: center;
   z-index: 10;
 }
@@ -604,7 +611,7 @@ onMounted(() => {
 
 .pagination-section {
   display: flex;
-  items-center;
+  align-items: center;
   justify-content: between;
   gap: 1rem;
   padding: 1rem;
