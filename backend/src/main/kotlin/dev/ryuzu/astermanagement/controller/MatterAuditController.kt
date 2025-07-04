@@ -4,7 +4,7 @@ import dev.ryuzu.astermanagement.controller.base.BaseController
 import dev.ryuzu.astermanagement.domain.audit.MatterAuditLog
 import dev.ryuzu.astermanagement.dto.audit.MatterAuditLogDto
 import dev.ryuzu.astermanagement.dto.audit.toDto
-import dev.ryuzu.astermanagement.service.AuditLogService
+import dev.ryuzu.astermanagement.service.LegacyAuditLogService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -30,7 +30,7 @@ import java.util.*
 @Tag(name = "Matter Audit", description = "Matter-specific audit trail and field-level change tracking")
 @SecurityRequirement(name = "bearerAuth")
 class MatterAuditController(
-    private val auditLogService: AuditLogService
+    private val auditLogService: LegacyAuditLogService
 ) : BaseController() {
     
     /**

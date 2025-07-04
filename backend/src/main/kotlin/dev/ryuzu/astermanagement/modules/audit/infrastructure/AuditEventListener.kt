@@ -3,9 +3,10 @@ package dev.ryuzu.astermanagement.modules.audit.infrastructure
 import dev.ryuzu.astermanagement.config.AuditContext
 import dev.ryuzu.astermanagement.config.AuditContextProvider
 import dev.ryuzu.astermanagement.modules.audit.api.AuditEvent
+import dev.ryuzu.astermanagement.modules.audit.api.toAuditLogRequest
 import dev.ryuzu.astermanagement.modules.audit.domain.AuditLog
 import dev.ryuzu.astermanagement.modules.audit.domain.AuditLogRequest
-import dev.ryuzu.astermanagement.service.AuditLogService
+import dev.ryuzu.astermanagement.modules.audit.domain.AuditLogRepository
 import org.slf4j.LoggerFactory
 import org.springframework.context.event.EventListener
 import org.springframework.scheduling.annotation.Async

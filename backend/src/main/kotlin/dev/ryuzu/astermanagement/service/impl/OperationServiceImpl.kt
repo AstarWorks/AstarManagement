@@ -2,7 +2,7 @@ package dev.ryuzu.astermanagement.service.impl
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import dev.ryuzu.astermanagement.config.AuditLog
-import dev.ryuzu.astermanagement.domain.audit.AuditEventType
+import dev.ryuzu.astermanagement.modules.audit.api.AuditEventType
 import dev.ryuzu.astermanagement.domain.operation.*
 import dev.ryuzu.astermanagement.domain.user.UserRepository
 import dev.ryuzu.astermanagement.dto.operation.*

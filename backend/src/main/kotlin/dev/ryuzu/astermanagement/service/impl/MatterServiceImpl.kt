@@ -2,7 +2,7 @@ package dev.ryuzu.astermanagement.service.impl
 
 import dev.ryuzu.astermanagement.config.AuditLog
 import dev.ryuzu.astermanagement.config.AuditMatterOperation
-import dev.ryuzu.astermanagement.domain.audit.AuditEventType
+import dev.ryuzu.astermanagement.modules.audit.api.AuditEventType
 import dev.ryuzu.astermanagement.domain.matter.Matter
 import dev.ryuzu.astermanagement.domain.matter.MatterRepository
 import dev.ryuzu.astermanagement.domain.matter.MatterStatus

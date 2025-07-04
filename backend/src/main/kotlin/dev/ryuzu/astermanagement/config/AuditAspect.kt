@@ -1,7 +1,7 @@
 package dev.ryuzu.astermanagement.config
 
-import dev.ryuzu.astermanagement.domain.audit.AuditEventType
-import dev.ryuzu.astermanagement.domain.audit.DocumentAccessType
+import dev.ryuzu.astermanagement.modules.audit.api.AuditEventType
+import dev.ryuzu.astermanagement.modules.audit.api.DocumentAccessType
 import dev.ryuzu.astermanagement.service.AuditEventPublisher
 import dev.ryuzu.astermanagement.service.base.BaseService
 import org.aspectj.lang.JoinPoint

@@ -3,7 +3,7 @@ package dev.ryuzu.astermanagement.controller
 import dev.ryuzu.astermanagement.controller.base.BaseController
 import dev.ryuzu.astermanagement.domain.audit.*
 import dev.ryuzu.astermanagement.dto.audit.*
-import dev.ryuzu.astermanagement.service.AuditLogService
+import dev.ryuzu.astermanagement.service.LegacyAuditLogService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -32,7 +32,7 @@ import java.util.*
 @Tag(name = "Audit", description = "Audit trail and compliance reporting API")
 @SecurityRequirement(name = "bearerAuth")
 class AuditController(
-    private val auditLogService: AuditLogService
+    private val auditLogService: LegacyAuditLogService
 ) : BaseController() {
     
     /**

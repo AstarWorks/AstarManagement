@@ -21,7 +21,8 @@ import java.util.*
  */
 @Service
 @Transactional
-class AuditLogService(
+@Deprecated("Use audit module infrastructure instead")
+class LegacyAuditLogService(
     private val auditLogRepository: AuditLogRepository,
     private val matterAuditLogRepository: MatterAuditLogRepository,
     private val auditConfigurationRepository: AuditConfigurationRepository
