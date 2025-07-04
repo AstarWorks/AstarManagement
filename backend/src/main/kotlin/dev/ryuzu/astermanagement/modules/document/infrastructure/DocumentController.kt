@@ -1,4 +1,4 @@
-package dev.ryuzu.astermanagement.controller
+package dev.ryuzu.astermanagement.modules.document.infrastructure
 
 import dev.ryuzu.astermanagement.controller.base.BaseController
 import dev.ryuzu.astermanagement.dto.common.ErrorResponse

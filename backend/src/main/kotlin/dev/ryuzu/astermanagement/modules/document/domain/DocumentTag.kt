@@ -1,4 +1,4 @@
-package dev.ryuzu.astermanagement.domain.document
+package dev.ryuzu.astermanagement.modules.document.domain
 
 import dev.ryuzu.astermanagement.domain.common.BaseEntity
 import jakarta.persistence.*

@@ -1,4 +1,4 @@
-package dev.ryuzu.astermanagement.domain.matter
+package dev.ryuzu.astermanagement.modules.matter.domain
 
 import dev.ryuzu.astermanagement.domain.common.BaseEntity
 import dev.ryuzu.astermanagement.domain.user.User

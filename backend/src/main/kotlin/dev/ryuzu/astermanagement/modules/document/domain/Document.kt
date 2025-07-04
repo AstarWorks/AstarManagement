@@ -1,7 +1,7 @@
-package dev.ryuzu.astermanagement.domain.document
+package dev.ryuzu.astermanagement.modules.document.domain
 
 import dev.ryuzu.astermanagement.domain.common.BaseEntity
-import dev.ryuzu.astermanagement.domain.matter.Matter
+import dev.ryuzu.astermanagement.modules.matter.domain.Matter
 import dev.ryuzu.astermanagement.domain.user.User
 import jakarta.persistence.*
 import java.time.OffsetDateTime

@@ -1,14 +1,10 @@
-package dev.ryuzu.astermanagement.controller
+package dev.ryuzu.astermanagement.modules.matter.infrastructure
 
 import dev.ryuzu.astermanagement.controller.base.BaseController
-import dev.ryuzu.astermanagement.domain.matter.Matter
-import dev.ryuzu.astermanagement.domain.matter.MatterStatus
-import dev.ryuzu.astermanagement.domain.matter.MatterPriority
+import dev.ryuzu.astermanagement.modules.matter.api.MatterService
+import dev.ryuzu.astermanagement.modules.matter.api.dto.*
 import dev.ryuzu.astermanagement.domain.user.UserRepository
 import dev.ryuzu.astermanagement.dto.common.PagedResponse
-import dev.ryuzu.astermanagement.dto.matter.*
-import dev.ryuzu.astermanagement.service.MatterService
-import dev.ryuzu.astermanagement.service.MatterSearchService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
@@ -41,7 +37,6 @@ import java.util.*
 @SecurityRequirement(name = "bearerAuth")
 class MatterController(
     private val matterService: MatterService,
-    private val matterSearchService: MatterSearchService,
     private val userRepository: UserRepository
 ) : BaseController() {
     

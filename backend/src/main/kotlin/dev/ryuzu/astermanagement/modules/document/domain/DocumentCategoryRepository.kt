@@ -1,4 +1,4 @@
-package dev.ryuzu.astermanagement.domain.document
+package dev.ryuzu.astermanagement.modules.document.domain
 
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable

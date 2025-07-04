@@ -8,6 +8,9 @@ plugins {
     id("org.asciidoctor.jvm.convert") version "3.3.2"
     kotlin("plugin.jpa") version "1.9.25"
     jacoco
+    checkstyle
+    id("com.github.spotbugs") version "6.0.7"
+    id("org.owasp.dependencycheck") version "9.2.0"
 }
 
 group = "dev.ryuzu"
@@ -184,4 +187,59 @@ tasks.jacocoTestCoverageVerification {
 
 tasks.check {
     dependsOn(tasks.jacocoTestCoverageVerification)
+}
+
+// Checkstyle Configuration
+checkstyle {
+    toolVersion = "10.17.0"
+    configFile = file("${rootDir}/config/checkstyle/checkstyle.xml")
+    isIgnoreFailures = false
+    maxWarnings = 0
+}
+
+tasks.checkstyleMain {
+    source = fileTree("src/main/kotlin")
+}
+
+tasks.checkstyleTest {
+    source = fileTree("src/test/kotlin")
+}
+
+// SpotBugs Configuration
+spotbugs {
+    ignoreFailures = false
+    effort = com.github.spotbugs.snom.Effort.DEFAULT
+    reportLevel = com.github.spotbugs.snom.Confidence.MEDIUM
+    excludeFilter = file("${rootDir}/config/spotbugs/exclude.xml")
+}
+
+tasks.spotbugsMain {
+    reports.create("html") {
+        required = true
+        outputLocation = file("${buildDir}/reports/spotbugs/main.html")
+        setStylesheet("fancy-hist.xsl")
+    }
+}
+
+tasks.spotbugsTest {
+    reports.create("html") {
+        required = true
+        outputLocation = file("${buildDir}/reports/spotbugs/test.html")
+        setStylesheet("fancy-hist.xsl")
+    }
+}
+
+// OWASP Dependency Check Configuration
+dependencyCheck {
+    failBuildOnCVSS = 7.0f
+    suppressionFile = "${rootDir}/config/owasp/suppressions.xml"
+    analyzers {
+        assemblyEnabled = false
+        nugetconfEnabled = false
+        nodeEnabled = false
+        cocoapodsEnabled = false
+        swiftEnabled = false
+    }
+    format = org.owasp.dependencycheck.reporting.ReportGenerator.Format.ALL
+    outputDirectory = "${buildDir}/reports"
 }
