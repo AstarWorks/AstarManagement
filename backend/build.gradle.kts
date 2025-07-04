@@ -11,6 +11,7 @@ plugins {
     checkstyle
     id("com.github.spotbugs") version "6.0.7"
     id("org.owasp.dependencycheck") version "9.2.0"
+    pmd
 }
 
 group = "dev.ryuzu"
@@ -242,4 +243,26 @@ dependencyCheck {
     }
     format = org.owasp.dependencycheck.reporting.ReportGenerator.Format.ALL
     outputDirectory = "${buildDir}/reports"
+}
+
+// PMD Configuration for Security Analysis
+pmd {
+    isConsoleOutput = true
+    toolVersion = "6.55.0"
+    rulePriority = 2
+    ruleSetFiles = files("${rootDir}/config/pmd/security-ruleset.xml")
+}
+
+tasks.pmdMain {
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}
+
+tasks.pmdTest {
+    reports {
+        xml.required = true
+        html.required = true
+    }
 }

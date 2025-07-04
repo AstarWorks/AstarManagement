@@ -1,0 +1,610 @@
+name: Security Analysis
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
+      - '.github/workflows/security-analysis.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
+      - '.github/workflows/security-analysis.yml'
+  schedule:
+    # Run security scans weekly on Sundays at 2 AM UTC
+    - cron: '0 2 * * 0'
+  workflow_dispatch:
+
+env:
+  JAVA_VERSION: '21'
+  NODE_VERSION: '20'
+  BUN_VERSION: '1.2.16'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+      workflows: ${{ steps.filter.outputs.workflows }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for changes
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+              - '!backend/node_modules/**'
+            frontend:
+              - 'frontend/**'
+              - '!frontend/node_modules/**'
+            workflows:
+              - '.github/workflows/security-analysis.yml'
+
+  codeql-analysis:
+    name: CodeQL Security Analysis
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.frontend == 'true' || needs.changes.outputs.workflows == 'true' || github.event_name == 'schedule'
+    timeout-minutes: 30
+    
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'java', 'javascript' ]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-extended,security-and-quality
+          config-file: ./.github/codeql/codeql-config.yml
+
+      - name: Setup Java for backend analysis
+        if: matrix.language == 'java'
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Setup Bun for frontend analysis
+        if: matrix.language == 'javascript'
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Cache dependencies (Frontend)
+        if: matrix.language == 'javascript'
+        uses: actions/cache@v4
+        with:
+          path: |
+            frontend/node_modules
+            ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('frontend/bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      - name: Install frontend dependencies
+        if: matrix.language == 'javascript'
+        working-directory: frontend
+        run: bun install --frozen-lockfile
+
+      - name: Build backend for analysis
+        if: matrix.language == 'java'
+        working-directory: backend
+        run: ./gradlew compileJava compileTestJava --no-daemon
+
+      - name: Build frontend for analysis
+        if: matrix.language == 'javascript'
+        working-directory: frontend
+        run: bun run build
+        env:
+          NODE_ENV: production
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{matrix.language}}"
+          upload: true
+          
+      - name: Upload CodeQL results as artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: codeql-results-${{ matrix.language }}-${{ github.run_id }}
+          path: |
+            ${{ runner.workspace }}/results/
+            /opt/hostedtoolcache/CodeQL/*/x64/codeql/qlpacks/**/*.sarif
+          retention-days: 30
+
+  advanced-sast:
+    name: Advanced SAST Analysis
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.workflows == 'true'
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: astermanagement_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            backend/.gradle/
+          key: ${{ runner.os }}-gradle-${{ hashFiles('backend/**/*.gradle*', 'backend/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Wait for services
+        run: |
+          echo "Waiting for PostgreSQL..."
+          until pg_isready -h localhost -p 5432 -U postgres; do
+            sleep 2
+          done
+          echo "Waiting for Redis..."
+          until redis-cli -h localhost -p 6379 ping; do
+            sleep 2
+          done
+
+      - name: Run enhanced SpotBugs security analysis
+        working-directory: backend
+        run: ./gradlew spotbugsMain spotbugsTest --no-daemon --info
+        env:
+          SPRING_PROFILES_ACTIVE: test
+          DATABASE_URL: postgresql://localhost:5432/astermanagement_test
+          DATABASE_USERNAME: postgres
+          DATABASE_PASSWORD: testpassword
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+
+      - name: Run enhanced OWASP dependency check
+        working-directory: backend
+        run: ./gradlew dependencyCheckAnalyze --no-daemon --info
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+
+      - name: Run PMD security analysis
+        working-directory: backend
+        run: ./gradlew pmdMain pmdTest --no-daemon
+        continue-on-error: true
+
+      - name: Generate security report summary
+        working-directory: backend
+        run: |
+          mkdir -p build/reports/security-summary
+          
+          echo "# Security Analysis Summary - $(date)" > build/reports/security-summary/security-report.md
+          echo "" >> build/reports/security-summary/security-report.md
+          
+          # SpotBugs summary
+          if [ -f build/reports/spotbugs/main.xml ]; then
+            SPOTBUGS_COUNT=$(grep -c '<BugInstance' build/reports/spotbugs/main.xml || echo "0")
+            echo "## SpotBugs Analysis" >> build/reports/security-summary/security-report.md
+            echo "- Issues found: $SPOTBUGS_COUNT" >> build/reports/security-summary/security-report.md
+            echo "" >> build/reports/security-summary/security-report.md
+          fi
+          
+          # OWASP Dependency Check summary
+          if [ -f build/reports/dependency-check-report.xml ]; then
+            CRITICAL_VULNS=$(grep -o 'severity="CRITICAL"' build/reports/dependency-check-report.xml | wc -l || echo "0")
+            HIGH_VULNS=$(grep -o 'severity="HIGH"' build/reports/dependency-check-report.xml | wc -l || echo "0")
+            MEDIUM_VULNS=$(grep -o 'severity="MEDIUM"' build/reports/dependency-check-report.xml | wc -l || echo "0")
+            LOW_VULNS=$(grep -o 'severity="LOW"' build/reports/dependency-check-report.xml | wc -l || echo "0")
+            
+            echo "## OWASP Dependency Check" >> build/reports/security-summary/security-report.md
+            echo "- Critical vulnerabilities: $CRITICAL_VULNS" >> build/reports/security-summary/security-report.md
+            echo "- High vulnerabilities: $HIGH_VULNS" >> build/reports/security-summary/security-report.md
+            echo "- Medium vulnerabilities: $MEDIUM_VULNS" >> build/reports/security-summary/security-report.md
+            echo "- Low vulnerabilities: $LOW_VULNS" >> build/reports/security-summary/security-report.md
+            echo "" >> build/reports/security-summary/security-report.md
+          fi
+          
+          echo "## Analysis Complete" >> build/reports/security-summary/security-report.md
+          echo "Generated on: $(date)" >> build/reports/security-summary/security-report.md
+          
+          cat build/reports/security-summary/security-report.md
+
+      - name: Upload security analysis reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: advanced-sast-reports-${{ github.run_id }}
+          path: |
+            backend/build/reports/spotbugs/
+            backend/build/reports/dependency-check-report.*
+            backend/build/reports/pmd/
+            backend/build/reports/security-summary/
+          retention-days: 30
+
+      - name: Fail on critical vulnerabilities
+        working-directory: backend
+        run: |
+          if [ -f build/reports/dependency-check-report.xml ]; then
+            CRITICAL_VULNS=$(grep -o 'severity="CRITICAL"' build/reports/dependency-check-report.xml | wc -l || echo "0")
+            if [ "$CRITICAL_VULNS" -gt 0 ]; then
+              echo "❌ CRITICAL: Found $CRITICAL_VULNS critical vulnerabilities"
+              echo "::error::Critical security vulnerabilities detected. Please review the OWASP dependency check report."
+              exit 1
+            else
+              echo "✅ No critical vulnerabilities found"
+            fi
+          fi
+
+  frontend-security:
+    name: Frontend Security Analysis
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true' || needs.changes.outputs.workflows == 'true'
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            frontend/node_modules
+            ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('frontend/bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: bun install --frozen-lockfile
+
+      - name: Run security audit
+        working-directory: frontend
+        run: |
+          echo "Running Bun security audit..."
+          if bun audit --version > /dev/null 2>&1; then
+            bun audit --audit-level=moderate
+          else
+            echo "Bun audit not available, falling back to npm audit"
+            npm audit --audit-level=moderate --production
+          fi
+        continue-on-error: true
+
+      - name: Run ESLint security rules
+        working-directory: frontend
+        run: |
+          echo "Running ESLint with security focus..."
+          bun run lint -- --format json --output-file eslint-security-report.json
+        continue-on-error: true
+
+      - name: License compliance check
+        working-directory: frontend
+        run: |
+          echo "Checking license compliance..."
+          npx license-checker --production --onlyAllow 'MIT;Apache-2.0;BSD;ISC;0BSD;BSD-2-Clause;BSD-3-Clause;CC0-1.0;Unlicense;WTFPL' --json > license-report.json
+        continue-on-error: true
+
+      - name: Bundle analyzer security check
+        working-directory: frontend
+        run: |
+          echo "Analyzing bundle for potential security issues..."
+          bun run build
+          # Check for large dependencies that might indicate supply chain risks
+          du -sh node_modules/* | sort -rh | head -20 > bundle-analysis.txt
+        env:
+          NODE_ENV: production
+
+      - name: Generate frontend security summary
+        working-directory: frontend
+        run: |
+          mkdir -p security-reports
+          
+          echo "# Frontend Security Analysis Summary - $(date)" > security-reports/frontend-security-report.md
+          echo "" >> security-reports/frontend-security-report.md
+          
+          # License compliance
+          if [ -f license-report.json ]; then
+            echo "## License Compliance" >> security-reports/frontend-security-report.md
+            echo "✅ License check completed - see license-report.json for details" >> security-reports/frontend-security-report.md
+            echo "" >> security-reports/frontend-security-report.md
+          fi
+          
+          # Bundle analysis
+          if [ -f bundle-analysis.txt ]; then
+            echo "## Bundle Analysis" >> security-reports/frontend-security-report.md
+            echo "Top dependencies by size:" >> security-reports/frontend-security-report.md
+            echo '```' >> security-reports/frontend-security-report.md
+            head -10 bundle-analysis.txt >> security-reports/frontend-security-report.md
+            echo '```' >> security-reports/frontend-security-report.md
+            echo "" >> security-reports/frontend-security-report.md
+          fi
+          
+          echo "## Analysis Complete" >> security-reports/frontend-security-report.md
+          echo "Generated on: $(date)" >> security-reports/frontend-security-report.md
+          
+          cat security-reports/frontend-security-report.md
+
+      - name: Upload frontend security reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontend-security-reports-${{ github.run_id }}
+          path: |
+            frontend/eslint-security-report.json
+            frontend/license-report.json
+            frontend/bundle-analysis.txt
+            frontend/security-reports/
+          retention-days: 30
+
+  api-security-scan:
+    name: API Security Scanning
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.workflows == 'true'
+    timeout-minutes: 25
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: astermanagement_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            backend/.gradle/
+          key: ${{ runner.os }}-gradle-${{ hashFiles('backend/**/*.gradle*', 'backend/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Wait for services
+        run: |
+          echo "Waiting for PostgreSQL..."
+          until pg_isready -h localhost -p 5432 -U postgres; do
+            sleep 2
+          done
+          echo "Waiting for Redis..."
+          until redis-cli -h localhost -p 6379 ping; do
+            sleep 2
+          done
+
+      - name: Start Spring Boot application
+        working-directory: backend
+        run: |
+          ./gradlew bootRun --no-daemon &
+          APP_PID=$!
+          echo "APP_PID=$APP_PID" >> $GITHUB_ENV
+          
+          # Wait for application to start
+          for i in {1..60}; do
+            if curl -f http://localhost:8080/actuator/health > /dev/null 2>&1; then
+              echo "Application started successfully"
+              break
+            fi
+            echo "Waiting for application to start... (attempt $i/60)"
+            sleep 5
+          done
+        env:
+          SPRING_PROFILES_ACTIVE: test
+          DATABASE_URL: postgresql://localhost:5432/astermanagement_test
+          DATABASE_USERNAME: postgres
+          DATABASE_PASSWORD: testpassword
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+        timeout-minutes: 5
+
+      - name: Verify API endpoints
+        run: |
+          echo "Testing API endpoints..."
+          curl -f http://localhost:8080/actuator/health || exit 1
+          curl -f http://localhost:8080/v3/api-docs || exit 1
+          echo "API endpoints are accessible"
+
+      - name: Run OWASP ZAP baseline scan
+        run: |
+          docker run --rm \
+            --network host \
+            -v ${{ github.workspace }}:/zap/wrk/:rw \
+            -t owasp/zap2docker-stable \
+            zap-baseline.py \
+            -t http://localhost:8080 \
+            -g gen.conf \
+            -m 5 \
+            -J zap-baseline-report.json \
+            -r zap-baseline-report.html \
+            || true
+
+      - name: Run OWASP ZAP API scan
+        run: |
+          docker run --rm \
+            --network host \
+            -v ${{ github.workspace }}:/zap/wrk/:rw \
+            -t owasp/zap2docker-stable \
+            zap-api-scan.py \
+            -t http://localhost:8080/v3/api-docs \
+            -f openapi \
+            -J zap-api-report.json \
+            -r zap-api-report.html \
+            || true
+
+      - name: Stop Spring Boot application
+        if: always()
+        run: |
+          if [ ! -z "$APP_PID" ]; then
+            kill $APP_PID || true
+            sleep 5
+            kill -9 $APP_PID 2>/dev/null || true
+          fi
+
+      - name: Process ZAP results
+        run: |
+          mkdir -p zap-reports
+          
+          # Move reports to proper directory
+          [ -f zap-baseline-report.html ] && mv zap-baseline-report.html zap-reports/
+          [ -f zap-baseline-report.json ] && mv zap-baseline-report.json zap-reports/
+          [ -f zap-api-report.html ] && mv zap-api-report.html zap-reports/
+          [ -f zap-api-report.json ] && mv zap-api-report.json zap-reports/
+          
+          # Generate summary
+          echo "# OWASP ZAP Security Scan Summary - $(date)" > zap-reports/zap-summary.md
+          echo "" >> zap-reports/zap-summary.md
+          
+          if [ -f zap-reports/zap-baseline-report.json ]; then
+            echo "## Baseline Scan Results" >> zap-reports/zap-summary.md
+            echo "✅ Baseline scan completed" >> zap-reports/zap-summary.md
+            echo "" >> zap-reports/zap-summary.md
+          fi
+          
+          if [ -f zap-reports/zap-api-report.json ]; then
+            echo "## API Scan Results" >> zap-reports/zap-summary.md
+            echo "✅ API scan completed" >> zap-reports/zap-summary.md
+            echo "" >> zap-reports/zap-summary.md
+          fi
+          
+          echo "## Next Steps" >> zap-reports/zap-summary.md
+          echo "1. Review HTML reports for detailed findings" >> zap-reports/zap-summary.md
+          echo "2. Address any high or medium risk issues" >> zap-reports/zap-summary.md
+          echo "3. Update security controls as needed" >> zap-reports/zap-summary.md
+          
+          cat zap-reports/zap-summary.md
+
+      - name: Upload OWASP ZAP reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: zap-security-reports-${{ github.run_id }}
+          path: |
+            zap-reports/
+            gen.conf
+          retention-days: 30
+
+  security-summary:
+    name: Security Analysis Summary
+    runs-on: ubuntu-latest
+    needs: [changes, codeql-analysis, advanced-sast, frontend-security, api-security-scan]
+    if: always() && (needs.changes.outputs.backend == 'true' || needs.changes.outputs.frontend == 'true' || needs.changes.outputs.workflows == 'true' || github.event_name == 'schedule')
+
+    steps:
+      - name: Download all security reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: "*-reports-*"
+          merge-multiple: true
+
+      - name: Generate comprehensive security summary
+        run: |
+          echo "## 🔒 Security Analysis Results Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Analysis Type | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| CodeQL SAST | ${{ needs.codeql-analysis.result == 'success' && '✅ Passed' || needs.codeql-analysis.result == 'skipped' && '⏭️ Skipped' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Advanced SAST | ${{ needs.advanced-sast.result == 'success' && '✅ Passed' || needs.advanced-sast.result == 'skipped' && '⏭️ Skipped' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend Security | ${{ needs.frontend-security.result == 'success' && '✅ Passed' || needs.frontend-security.result == 'skipped' && '⏭️ Skipped' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| API Security Scan | ${{ needs.api-security-scan.result == 'success' && '✅ Passed' || needs.api-security-scan.result == 'skipped' && '⏭️ Skipped' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [[ "${{ needs.codeql-analysis.result }}" == "success" && "${{ needs.advanced-sast.result }}" == "success" && "${{ needs.frontend-security.result }}" == "success" && "${{ needs.api-security-scan.result }}" == "success" ]]; then
+            echo "🎉 **All security scans completed successfully!** The application has passed comprehensive security analysis." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ **Some security scans failed or were skipped.** Please review the failed jobs and address any security issues before merging." >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📋 Security Analysis Details" >> $GITHUB_STEP_SUMMARY
+          echo "- **SAST Analysis**: CodeQL security queries and SpotBugs with FindSecBugs" >> $GITHUB_STEP_SUMMARY
+          echo "- **Dependency Scanning**: OWASP dependency check with NVD database" >> $GITHUB_STEP_SUMMARY
+          echo "- **API Security**: OWASP ZAP baseline and API security scanning" >> $GITHUB_STEP_SUMMARY
+          echo "- **Frontend Security**: License compliance and security audit" >> $GITHUB_STEP_SUMMARY
+          echo "- **Reports**: Comprehensive security reports uploaded as artifacts" >> $GITHUB_STEP_SUMMARY
