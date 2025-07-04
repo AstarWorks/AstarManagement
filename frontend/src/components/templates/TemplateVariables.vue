@@ -35,7 +35,7 @@
           <Input
             v-if="variable.type === 'text'"
             :id="`var-${variable.key}`"
-            v-model="values[variable.key]"
+            v-model="getStringValue(variable.key)"
             type="text"
             :placeholder="variable.placeholder || `Enter ${variable.label.toLowerCase()}`"
             :required="variable.required"
@@ -47,7 +47,7 @@
           <Input
             v-else-if="variable.type === 'number'"
             :id="`var-${variable.key}`"
-            v-model.number="values[variable.key]"
+            v-model.number="getNumberValue(variable.key)"
             type="number"
             :placeholder="variable.placeholder || `Enter ${variable.label.toLowerCase()}`"
             :required="variable.required"
@@ -59,7 +59,7 @@
           <Input
             v-else-if="variable.type === 'date'"
             :id="`var-${variable.key}`"
-            v-model="values[variable.key]"
+            v-model="getStringValue(variable.key)"
             type="date"
             :required="variable.required"
             :readonly="readonly"
@@ -69,7 +69,7 @@
           <!-- Select Input -->
           <Select
             v-else-if="variable.type === 'select'"
-            v-model="values[variable.key]"
+            v-model="getStringValue(variable.key)"
             :disabled="readonly"
             @value-change="handleSelectChange(variable.key, $event)"
           >
@@ -93,9 +93,9 @@
           <div v-else-if="variable.type === 'boolean'" class="checkbox-wrapper">
             <Checkbox
               :id="`var-${variable.key}`"
-              :checked="values[variable.key]"
+              :checked="getBooleanValue(variable.key)"
               :disabled="readonly"
-              @update:checked="values[variable.key] = $event"
+              @update:checked="setBooleanValue(variable.key, $event)"
             />
             <label 
               :for="`var-${variable.key}`"
@@ -236,6 +236,28 @@ const isValid = computed(() => {
     return true
   })
 })
+
+// Type-safe value getters and setters
+const getStringValue = (key: string): string => {
+  return String(values.value[key] || '')
+}
+
+const getNumberValue = (key: string): number => {
+  const val = values.value[key]
+  return typeof val === 'number' ? val : 0
+}
+
+const getBooleanValue = (key: string): boolean => {
+  return Boolean(values.value[key])
+}
+
+const getSelectValue = (key: string): string => {
+  return String(values.value[key] || '')
+}
+
+const setBooleanValue = (key: string, value: boolean) => {
+  values.value[key] = value
+}
 
 // Initialize values
 const initializeValues = () => {

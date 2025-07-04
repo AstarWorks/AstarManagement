@@ -29,7 +29,7 @@ export interface Matter {
   tags?: readonly string[] | string[]
   statusDuration?: number
   isOverdue?: boolean
-  searchHighlights?: Record<string, any>
+  searchHighlights?: Record<string, readonly string[]>
   relevanceScore?: number
   // Additional properties for column access
   client?: { name: string; id?: string }

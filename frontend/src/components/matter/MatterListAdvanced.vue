@@ -94,7 +94,7 @@ const columns = ref<AdvancedDataTableColumn<Matter>[]>([
     editable: true,
     width: '140px',
     minWidth: 100,
-    formatter: (value: MatterStatus) => {
+    formatter: (value: unknown) => {
       const statusMap: Record<MatterStatus, string> = {
         'INTAKE': 'Intake',
         'INITIAL_REVIEW': 'Initial Review',
@@ -104,7 +104,7 @@ const columns = ref<AdvancedDataTableColumn<Matter>[]>([
         'READY_FILING': 'Ready Filing',
         'CLOSED': 'Closed'
       }
-      return statusMap[value] || value
+      return statusMap[value as MatterStatus] || String(value)
     }
   },
   {
@@ -115,14 +115,14 @@ const columns = ref<AdvancedDataTableColumn<Matter>[]>([
     editable: true,
     width: '120px',
     minWidth: 80,
-    formatter: (value: MatterPriority) => {
+    formatter: (value: unknown) => {
       const priorityMap: Record<MatterPriority, string> = {
         'LOW': 'Low',
         'MEDIUM': 'Medium',
         'HIGH': 'High',
         'URGENT': 'Urgent'
       }
-      return priorityMap[value] || value
+      return priorityMap[value as MatterPriority] || String(value)
     }
   },
   {
@@ -156,8 +156,8 @@ const columns = ref<AdvancedDataTableColumn<Matter>[]>([
     resizable: true,
     width: '130px',
     minWidth: 100,
-    formatter: (value: Date | string) => {
-      const date = value instanceof Date ? value : new Date(value)
+    formatter: (value: unknown) => {
+      const date = value instanceof Date ? value : new Date(value as string)
       return date.toLocaleDateString()
     }
   },
@@ -168,8 +168,8 @@ const columns = ref<AdvancedDataTableColumn<Matter>[]>([
     resizable: true,
     width: '130px',
     minWidth: 100,
-    formatter: (value: Date | string) => {
-      const date = value instanceof Date ? value : new Date(value)
+    formatter: (value: unknown) => {
+      const date = value instanceof Date ? value : new Date(value as string)
       return date.toLocaleDateString()
     }
   }

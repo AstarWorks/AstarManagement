@@ -1,4 +1,4 @@
-export interface DataTableColumn<T = any> {
+export interface DataTableColumn<T = Record<string, unknown>> {
   key: string
   title?: string
   header?: string
@@ -7,11 +7,11 @@ export interface DataTableColumn<T = any> {
   filterable?: boolean
   hidden?: boolean
   align?: 'left' | 'center' | 'right'
-  formatter?: (value: any, row: T) => string
-  render?: (value: any, row: T) => any
+  formatter?: (value: unknown, row: T) => string
+  render?: (value: unknown, row: T) => string | number | boolean
 }
 
-export interface AdvancedDataTableColumn<T = any> extends DataTableColumn<T> {
+export interface AdvancedDataTableColumn<T = Record<string, unknown>> extends DataTableColumn<T> {
   resizable?: boolean
   hideable?: boolean
   sticky?: boolean
@@ -19,7 +19,7 @@ export interface AdvancedDataTableColumn<T = any> extends DataTableColumn<T> {
   maxWidth?: number
   editable?: boolean
   required?: boolean
-  validator?: (value: any, row: T) => Promise<string | boolean> | string | boolean
+  validator?: (value: unknown, row: T) => Promise<string | boolean> | string | boolean
   type?: 'text' | 'number' | 'email' | 'url' | 'date'
 }
 
@@ -44,5 +44,5 @@ export interface TableQueryParams {
   sortBy?: string
   sortDirection?: SortDirection
   search?: string
-  filters?: Record<string, any>
+  filters?: Record<string, string | number | boolean | string[]>
 }

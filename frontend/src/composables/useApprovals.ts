@@ -29,6 +29,7 @@ import type {
   ApprovalNotification,
   ApprovalPermissions
 } from '~/types/approval'
+import type { Expense } from '~/types/expense'
 
 // Query Keys
 export const approvalQueryKeys = {
@@ -258,7 +259,7 @@ export function useApprovalMutations() {
       
       // Update individual expense caches
       result.successful.forEach(expenseId => {
-        queryClient.setQueryData(['expenses', 'detail', expenseId], (old: any) => ({
+        queryClient.setQueryData(['expenses', 'detail', expenseId], (old: Expense | undefined) => ({
           ...old,
           approvalStatus: variables.decision === 'APPROVED' ? 'APPROVED' : 'REJECTED',
           approvedAt: new Date()

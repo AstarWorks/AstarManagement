@@ -240,7 +240,7 @@ export function useActivityRealTime(matterId: string) {
   
   const connect = () => {
     if ($websocket) {
-      $websocket.subscribe(`matter.${matterId}.activity`, (data: any) => {
+      $websocket.subscribe(`matter.${matterId}.activity`, (data: Activity) => {
         // Handle real-time activity updates
         console.log('Real-time activity update:', data)
         // This would trigger cache invalidation in TanStack Query

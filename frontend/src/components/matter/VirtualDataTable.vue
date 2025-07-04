@@ -178,7 +178,9 @@ const selectAll = () => {
 
 // Get value from nested path
 const getValue = (row: TData, path: string): unknown => {
-  return path.split('.').reduce((obj, key) => obj?.[key], row as Record<string, unknown>)
+  return path.split('.').reduce((obj: unknown, key: string): unknown => {
+    return (obj as Record<string, unknown>)?.[key]
+  }, row as Record<string, unknown>)
 }
 
 // Format cell value

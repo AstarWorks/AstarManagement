@@ -57,9 +57,10 @@ const columns: DataTableColumn<Matter>[] = [
     key: 'title',
     header: 'Title',
     sortable: true,
-    formatter: (value: string) => {
+    formatter: (value: unknown) => {
+      const str = String(value || '')
       // Truncate long titles
-      return value.length > 50 ? `${value.substring(0, 50)}...` : value
+      return str.length > 50 ? `${str.substring(0, 50)}...` : str
     }
   },
   {
@@ -73,7 +74,7 @@ const columns: DataTableColumn<Matter>[] = [
     header: 'Status',
     sortable: true,
     width: '120px',
-    formatter: (value: MatterStatus) => {
+    formatter: (value: unknown) => {
       // Format status for display
       const statusMap: Record<MatterStatus, string> = {
         'INTAKE': 'Intake',
@@ -84,7 +85,7 @@ const columns: DataTableColumn<Matter>[] = [
         'READY_FILING': 'Ready Filing',
         'CLOSED': 'Closed'
       }
-      return statusMap[value] || value
+      return statusMap[value as MatterStatus] || String(value)
     }
   },
   {
@@ -92,14 +93,14 @@ const columns: DataTableColumn<Matter>[] = [
     header: 'Priority',
     sortable: true,
     width: '100px',
-    formatter: (value: MatterPriority) => {
+    formatter: (value: unknown) => {
       const priorityMap: Record<MatterPriority, string> = {
         'LOW': 'Low',
         'MEDIUM': 'Medium',
         'HIGH': 'High',
         'URGENT': 'Urgent'
       }
-      return priorityMap[value] || value
+      return priorityMap[value as MatterPriority] || String(value)
     }
   },
   {
@@ -107,16 +108,16 @@ const columns: DataTableColumn<Matter>[] = [
     header: 'Assigned To',
     sortable: true,
     width: '150px',
-    formatter: (value: string | undefined) => value || 'Unassigned'
+    formatter: (value: unknown) => String(value || 'Unassigned')
   },
   {
     key: 'dueDate',
     header: 'Due Date',
     sortable: true,
     width: '120px',
-    formatter: (value: string | undefined) => {
+    formatter: (value: unknown) => {
       if (!value) return '-'
-      const date = new Date(value)
+      const date = new Date(value as string)
       return date.toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
@@ -129,8 +130,8 @@ const columns: DataTableColumn<Matter>[] = [
     header: 'Created',
     sortable: true,
     width: '120px',
-    formatter: (value: string) => {
-      const date = new Date(value)
+    formatter: (value: unknown) => {
+      const date = new Date(value as string)
       return date.toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',

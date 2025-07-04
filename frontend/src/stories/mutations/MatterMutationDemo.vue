@@ -17,6 +17,7 @@ import {
   useMutationAnalytics
 } from '~/composables/useMatterMutations'
 import type { CreateMatterInput, UpdateMatterInput, Matter } from '~/types/query'
+import type { MatterStatus } from '~/types/matter'
 
 interface Props {
   simulateOffline?: boolean

@@ -10,8 +10,8 @@ interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
 
 // Request queue for handling concurrent requests during token refresh
 interface QueuedRequest {
-  resolve: (value?: unknown) => void
-  reject: (error?: unknown) => void
+  resolve: (value?: AxiosResponse) => void
+  reject: (error?: Error) => void
   config: ExtendedAxiosRequestConfig
 }
 
