@@ -1,0 +1,1398 @@
+openapi: 3.0.3
+info:
+  title: Aster Management API
+  version: 1.0.0
+  description: |
+    Legal case management system REST API for Aster Management platform.
+    
+    ## Features
+    - Matter management with comprehensive CRUD operations
+    - Status transition management with business rule validation
+    - Role-based access control (LAWYER, CLERK, CLIENT)
+    - Comprehensive audit logging for all operations
+    - Real-time matter progress tracking
+    - Document management and storage
+    - Financial expense tracking and reporting
+    
+    ## Authentication
+    All endpoints except `/auth/login` require JWT Bearer token authentication.
+    The API uses a comprehensive role-based access control system with three primary roles:
+    - **LAWYER**: Full access to all matters and administrative functions
+    - **CLERK**: Limited access focused on administrative tasks
+    - **CLIENT**: Read-only access to their own matters
+    
+    ## Rate Limiting
+    - Default: 100 requests per minute per user
+    - Search endpoints: 20 requests per minute
+    - Security endpoints: 10 requests per minute
+    
+    ## API Versioning
+    API version is included in the URL path (e.g., `/api/v1/`)
+    
+    ## Error Handling
+    API returns standardized error responses using RFC 7807 Problem Details format.
+    
+  contact:
+    name: Aster Management Development Team
+    email: support@astermanagement.dev
+    url: https://docs.astermanagement.dev
+  license:
+    name: Proprietary License
+    url: https://astermanagement.dev/license
+
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+  - url: https://dev-api.astermanagement.dev
+    description: Development server
+  - url: https://api.astermanagement.dev
+    description: Production server
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Authentication
+    description: User authentication and session management
+  - name: Matter Management
+    description: Legal matter CRUD operations and status management
+  - name: Audit
+    description: Audit trail and compliance reporting API
+  - name: Matter Audit
+    description: Matter-specific audit trail and field-level change tracking
+  - name: Documents
+    description: Document upload, storage, and management
+  - name: Operations
+    description: System operations and background job management
+
+paths:
+  # Authentication Endpoints
+  /api/auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User login
+      description: Authenticates user with email and password, returns JWT tokens
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthenticationRequest'
+            examples:
+              lawyer_login:
+                summary: Lawyer login example
+                value:
+                  email: "lawyer@firm.com"
+                  password: "securePassword123"
+              clerk_login:
+                summary: Clerk login example
+                value:
+                  email: "clerk@firm.com"
+                  password: "clerkPassword456"
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthenticationResponse'
+              examples:
+                successful_login:
+                  summary: Successful authentication
+                  value:
+                    accessToken: "eyJhbGciOiJIUzI1NiJ9..."
+                    refreshToken: "eyJhbGciOiJIUzI1NiJ9..."
+                    tokenType: "Bearer"
+                    expiresIn: 3600
+                    user:
+                      id: "550e8400-e29b-41d4-a716-446655440000"
+                      email: "lawyer@firm.com"
+                      firstName: "John"
+                      lastName: "Doe"
+                      role: "LAWYER"
+                      isActive: true
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '422':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/auth/refresh:
+    post:
+      tags:
+        - Authentication
+      summary: Refresh JWT token
+      description: Refreshes access token using refresh token
+      operationId: refreshToken
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthenticationResponse'
+        '401':
+          description: Invalid or expired refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  # Matter Management Endpoints
+  /api/v1/matters:
+    get:
+      tags:
+        - Matter Management
+      summary: Get all matters
+      description: Retrieves a paginated list of matters with optional filtering
+      operationId: getAllMatters
+      parameters:
+        - name: page
+          in: query
+          description: Page number (0-based)
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: size
+          in: query
+          description: Page size
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: sort
+          in: query
+          description: Sort criteria
+          schema:
+            type: string
+            default: "createdAt,desc"
+        - name: status
+          in: query
+          description: Filter by status
+          schema:
+            $ref: '#/components/schemas/MatterStatus'
+        - name: priority
+          in: query
+          description: Filter by priority
+          schema:
+            $ref: '#/components/schemas/MatterPriority'
+        - name: assignedLawyerId
+          in: query
+          description: Filter by assigned lawyer
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Matters retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedMatterResponse'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+    post:
+      tags:
+        - Matter Management
+      summary: Create new matter
+      description: Creates a new legal matter
+      operationId: createMatter
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMatterRequest'
+      responses:
+        '201':
+          description: Matter created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MatterResponse'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/v1/matters/{matterId}:
+    get:
+      tags:
+        - Matter Management
+      summary: Get matter by ID
+      description: Retrieves a specific matter by its ID
+      operationId: getMatterById
+      parameters:
+        - name: matterId
+          in: path
+          required: true
+          description: Matter ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Matter retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MatterResponse'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Matter not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+    put:
+      tags:
+        - Matter Management
+      summary: Update matter
+      description: Updates an existing matter
+      operationId: updateMatter
+      parameters:
+        - name: matterId
+          in: path
+          required: true
+          description: Matter ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMatterRequest'
+      responses:
+        '200':
+          description: Matter updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MatterResponse'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Matter not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+    delete:
+      tags:
+        - Matter Management
+      summary: Delete matter
+      description: Deletes a matter (soft delete)
+      operationId: deleteMatter
+      parameters:
+        - name: matterId
+          in: path
+          required: true
+          description: Matter ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Matter deleted successfully
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Matter not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/v1/matters/{matterId}/status:
+    put:
+      tags:
+        - Matter Management
+      summary: Update matter status
+      description: Updates the status of a matter with validation
+      operationId: updateMatterStatus
+      parameters:
+        - name: matterId
+          in: path
+          required: true
+          description: Matter ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatusUpdateRequest'
+      responses:
+        '200':
+          description: Status updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MatterResponse'
+        '400':
+          description: Invalid status transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Matter not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  # Audit Endpoints
+  /v1/audit/entity/{entityType}/{entityId}:
+    get:
+      tags:
+        - Audit
+      summary: Get entity audit trail
+      description: Retrieves complete audit trail for a specific entity with optional event type filtering
+      operationId: getEntityAuditTrail
+      parameters:
+        - name: entityType
+          in: path
+          required: true
+          description: Entity type (e.g., Matter, Document, User)
+          schema:
+            type: string
+          example: "Matter"
+        - name: entityId
+          in: path
+          required: true
+          description: Entity ID
+          schema:
+            type: string
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        - name: eventTypes
+          in: query
+          description: Optional event types to filter by
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/AuditEventType'
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+      responses:
+        '200':
+          description: Audit trail retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedAuditLogResponse'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Entity not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /v1/audit/user/{userId}:
+    get:
+      tags:
+        - Audit
+      summary: Get user activity log
+      description: Retrieves audit log of all activities performed by a specific user within a time range
+      operationId: getUserActivityLog
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: User ID
+          schema:
+            type: string
+        - name: startTime
+          in: query
+          required: true
+          description: Start time (ISO 8601)
+          schema:
+            type: string
+            format: date-time
+        - name: endTime
+          in: query
+          required: true
+          description: End time (ISO 8601)
+          schema:
+            type: string
+            format: date-time
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 100
+      responses:
+        '200':
+          description: User activity log retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedAuditLogResponse'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /v1/audit/security:
+    get:
+      tags:
+        - Audit
+      summary: Get security events
+      description: Retrieves security-related audit events for monitoring and threat analysis
+      operationId: getSecurityEvents
+      parameters:
+        - name: startTime
+          in: query
+          required: true
+          description: Start time (ISO 8601)
+          schema:
+            type: string
+            format: date-time
+        - name: endTime
+          in: query
+          required: true
+          description: End time (ISO 8601)
+          schema:
+            type: string
+            format: date-time
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 100
+      responses:
+        '200':
+          description: Security events retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedAuditLogResponse'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /v1/audit/search:
+    post:
+      tags:
+        - Audit
+      summary: Search audit logs
+      description: Search audit logs using flexible criteria and JSON path queries
+      operationId: searchAuditLogs
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuditSearchRequest'
+      responses:
+        '200':
+          description: Search results retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AuditLogDto'
+        '400':
+          description: Invalid search criteria
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /v1/audit/legal-hold:
+    get:
+      tags:
+        - Audit
+      summary: Get audit logs on legal hold
+      description: Retrieves all audit logs that are currently on legal hold
+      operationId: getAuditLogsOnLegalHold
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 100
+      responses:
+        '200':
+          description: Legal hold audit logs retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedAuditLogResponse'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+    post:
+      tags:
+        - Audit
+      summary: Place audit logs on legal hold
+      description: Places specified audit logs on legal hold to prevent deletion
+      operationId: placeLegalHold
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LegalHoldRequest'
+      responses:
+        '200':
+          description: Legal hold applied successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LegalHoldResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  # Matter Audit Endpoints
+  /v1/matters/{matterId}/audit:
+    get:
+      tags:
+        - Matter Audit
+      summary: Get matter audit trail
+      description: Retrieves complete audit trail for a specific matter with field-level change tracking
+      operationId: getMatterAuditTrail
+      parameters:
+        - name: matterId
+          in: path
+          required: true
+          description: Matter ID
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+      responses:
+        '200':
+          description: Matter audit trail retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedMatterAuditResponse'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Matter not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /v1/matters/{matterId}/audit/field/{fieldName}:
+    get:
+      tags:
+        - Matter Audit
+      summary: Get field history
+      description: Retrieves complete change history for a specific field of a matter
+      operationId: getMatterFieldHistory
+      parameters:
+        - name: matterId
+          in: path
+          required: true
+          description: Matter ID
+          schema:
+            type: string
+            format: uuid
+        - name: fieldName
+          in: path
+          required: true
+          description: Field name (e.g., title, status, clientName)
+          schema:
+            type: string
+          example: "status"
+      responses:
+        '200':
+          description: Field history retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MatterAuditLogDto'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Matter or field not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /v1/matters/{matterId}/audit/export:
+    get:
+      tags:
+        - Matter Audit
+      summary: Export matter audit trail
+      description: Exports complete matter audit trail in a format suitable for legal compliance
+      operationId: exportMatterAuditTrail
+      parameters:
+        - name: matterId
+          in: path
+          required: true
+          description: Matter ID
+          schema:
+            type: string
+            format: uuid
+        - name: format
+          in: query
+          description: Export format (JSON, CSV, PDF)
+          schema:
+            type: string
+            enum: [JSON, CSV, PDF]
+            default: JSON
+      responses:
+        '200':
+          description: Audit trail exported successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MatterAuditExportDto'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Matter not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token authentication
+
+  schemas:
+    # Authentication Schemas
+    AuthenticationRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: User email address
+          example: "lawyer@firm.com"
+        password:
+          type: string
+          description: User password
+          example: "securePassword123"
+          minLength: 8
+
+    AuthenticationResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          description: JWT access token
+          example: "eyJhbGciOiJIUzI1NiJ9..."
+        refreshToken:
+          type: string
+          description: JWT refresh token
+          example: "eyJhbGciOiJIUzI1NiJ9..."
+        tokenType:
+          type: string
+          description: Token type
+          example: "Bearer"
+        expiresIn:
+          type: integer
+          description: Token expiration time in seconds
+          example: 3600
+        user:
+          $ref: '#/components/schemas/UserDto'
+
+    RefreshTokenRequest:
+      type: object
+      required:
+        - refreshToken
+      properties:
+        refreshToken:
+          type: string
+          description: JWT refresh token
+          example: "eyJhbGciOiJIUzI1NiJ9..."
+
+    UserDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: User unique identifier
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        email:
+          type: string
+          format: email
+          description: User email address
+          example: "lawyer@firm.com"
+        firstName:
+          type: string
+          description: User first name
+          example: "John"
+        lastName:
+          type: string
+          description: User last name
+          example: "Doe"
+        role:
+          $ref: '#/components/schemas/UserRole'
+        isActive:
+          type: boolean
+          description: Whether the user account is active
+          example: true
+        lastLoginAt:
+          type: string
+          format: date-time
+          description: Last login timestamp
+          example: "2025-01-15T10:30:00Z"
+
+    UserRole:
+      type: string
+      enum: [LAWYER, CLERK, CLIENT]
+      description: User role in the system
+
+    # Matter Management Schemas
+    MatterResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Matter unique identifier
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        title:
+          type: string
+          description: Matter title
+          example: "Smith vs. Jones Contract Dispute"
+        description:
+          type: string
+          description: Matter description
+          example: "Commercial contract dispute regarding delivery terms"
+        status:
+          $ref: '#/components/schemas/MatterStatus'
+        priority:
+          $ref: '#/components/schemas/MatterPriority'
+        clientName:
+          type: string
+          description: Client name
+          example: "ABC Corporation"
+        assignedLawyerId:
+          type: string
+          format: uuid
+          description: Assigned lawyer ID
+          example: "550e8400-e29b-41d4-a716-446655440001"
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp
+          example: "2025-01-15T10:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: "2025-01-15T14:45:00Z"
+
+    CreateMatterRequest:
+      type: object
+      required:
+        - title
+        - clientName
+      properties:
+        title:
+          type: string
+          description: Matter title
+          example: "Smith vs. Jones Contract Dispute"
+          minLength: 3
+          maxLength: 255
+        description:
+          type: string
+          description: Matter description
+          example: "Commercial contract dispute regarding delivery terms"
+          maxLength: 2000
+        priority:
+          $ref: '#/components/schemas/MatterPriority'
+        clientName:
+          type: string
+          description: Client name
+          example: "ABC Corporation"
+          minLength: 2
+          maxLength: 255
+        assignedLawyerId:
+          type: string
+          format: uuid
+          description: Assigned lawyer ID
+          example: "550e8400-e29b-41d4-a716-446655440001"
+
+    UpdateMatterRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Matter title
+          example: "Smith vs. Jones Contract Dispute"
+          minLength: 3
+          maxLength: 255
+        description:
+          type: string
+          description: Matter description
+          example: "Commercial contract dispute regarding delivery terms"
+          maxLength: 2000
+        priority:
+          $ref: '#/components/schemas/MatterPriority'
+        clientName:
+          type: string
+          description: Client name
+          example: "ABC Corporation"
+          minLength: 2
+          maxLength: 255
+        assignedLawyerId:
+          type: string
+          format: uuid
+          description: Assigned lawyer ID
+          example: "550e8400-e29b-41d4-a716-446655440001"
+
+    StatusUpdateRequest:
+      type: object
+      required:
+        - newStatus
+      properties:
+        newStatus:
+          $ref: '#/components/schemas/MatterStatus'
+        reason:
+          type: string
+          description: Reason for status change
+          example: "Client provided all necessary documents"
+          maxLength: 500
+        notes:
+          type: string
+          description: Additional notes
+          example: "Status changed after client meeting"
+          maxLength: 2000
+
+    MatterStatus:
+      type: string
+      enum: 
+        - INITIAL_CONSULTATION
+        - DOCUMENT_PREPARATION
+        - COURT_FILING
+        - DISCOVERY
+        - MEDIATION
+        - TRIAL_PREPARATION
+        - TRIAL
+        - SETTLEMENT
+        - CLOSED
+        - ON_HOLD
+      description: Current status of the matter
+
+    MatterPriority:
+      type: string
+      enum: [LOW, MEDIUM, HIGH, URGENT]
+      description: Priority level of the matter
+
+    PagedMatterResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/MatterResponse'
+        page:
+          $ref: '#/components/schemas/PageMetadata'
+
+    PageMetadata:
+      type: object
+      properties:
+        number:
+          type: integer
+          description: Current page number (0-based)
+          example: 0
+        size:
+          type: integer
+          description: Page size
+          example: 20
+        totalElements:
+          type: integer
+          format: int64
+          description: Total number of elements
+          example: 150
+        totalPages:
+          type: integer
+          description: Total number of pages
+          example: 8
+        first:
+          type: boolean
+          description: Whether this is the first page
+          example: true
+        last:
+          type: boolean
+          description: Whether this is the last page
+          example: false
+
+    # Audit Schemas
+    AuditLogDto:
+      type: object
+      description: Audit log entry representing a tracked change
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique audit entry ID
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        entityType:
+          type: string
+          description: Type of entity being audited
+          example: "MATTER"
+        entityId:
+          type: string
+          format: uuid
+          description: ID of the audited entity
+          example: "550e8400-e29b-41d4-a716-446655440001"
+        action:
+          $ref: '#/components/schemas/AuditAction'
+        userId:
+          type: string
+          format: uuid
+          description: User who performed the action
+          example: "550e8400-e29b-41d4-a716-446655440002"
+        eventTimestamp:
+          type: string
+          format: date-time
+          description: Timestamp of the action
+          example: "2025-01-15T10:30:00Z"
+        ipAddress:
+          type: string
+          description: IP address of the user
+          example: "192.168.1.100"
+        userAgent:
+          type: string
+          description: User agent string
+          example: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+        changes:
+          type: object
+          description: Changes made (before/after values)
+          additionalProperties:
+            $ref: '#/components/schemas/ChangeDetail'
+
+    AuditAction:
+      type: string
+      enum: [CREATE, UPDATE, DELETE, VIEW, LOGIN, LOGOUT, STATUS_CHANGE, ASSIGN, UNASSIGN, EXPORT, PRINT]
+      description: Type of action performed
+
+    AuditEventType:
+      type: string
+      enum: [SECURITY, COMPLIANCE, DATA_CHANGE, ACCESS, SYSTEM]
+      description: Category of audit event
+
+    ChangeDetail:
+      type: object
+      properties:
+        field:
+          type: string
+          description: Name of the changed field
+          example: "status"
+        oldValue:
+          type: string
+          description: Previous value
+          example: "INITIAL_CONSULTATION"
+        newValue:
+          type: string
+          description: New value
+          example: "DOCUMENT_PREPARATION"
+        changeType:
+          type: string
+          enum: [CREATE, UPDATE, DELETE]
+          description: Type of change
+
+    AuditSearchRequest:
+      type: object
+      description: Search criteria for audit logs
+      properties:
+        jsonQuery:
+          type: string
+          description: JSON path query for event details
+          example: "$.status"
+        since:
+          type: string
+          format: date-time
+          description: Start date for audit search
+          example: "2025-01-01T00:00:00Z"
+        entityTypes:
+          type: array
+          items:
+            type: string
+          description: Filter by entity types
+          example: ["MATTER", "DOCUMENT"]
+        userIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Filter by user IDs
+        actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuditAction'
+          description: Filter by action types
+
+    PagedAuditLogResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuditLogDto'
+        page:
+          $ref: '#/components/schemas/PageMetadata'
+
+    LegalHoldRequest:
+      type: object
+      required:
+        - auditLogIds
+        - reason
+      properties:
+        auditLogIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: List of audit log IDs to place on legal hold
+          example: ["550e8400-e29b-41d4-a716-446655440000"]
+        reason:
+          type: string
+          description: Reason for legal hold
+          example: "Pending litigation - Smith vs. Jones case"
+          minLength: 10
+          maxLength: 500
+
+    LegalHoldResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Whether the operation was successful
+          example: true
+        updatedCount:
+          type: integer
+          description: Number of audit logs updated
+          example: 5
+        message:
+          type: string
+          description: Operation result message
+          example: "Legal hold applied to 5 audit logs"
+
+    # Matter Audit Schemas
+    MatterAuditLogDto:
+      type: object
+      description: Matter-specific audit log entry
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique audit entry ID
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        matterId:
+          type: string
+          format: uuid
+          description: Matter ID
+          example: "550e8400-e29b-41d4-a716-446655440001"
+        operation:
+          type: string
+          description: Operation performed
+          example: "UPDATE"
+        fieldName:
+          type: string
+          description: Field that was changed
+          example: "status"
+        oldValue:
+          type: string
+          description: Previous value
+          example: "INITIAL_CONSULTATION"
+        newValue:
+          type: string
+          description: New value
+          example: "DOCUMENT_PREPARATION"
+        changedBy:
+          type: string
+          format: uuid
+          description: User who made the change
+          example: "550e8400-e29b-41d4-a716-446655440002"
+        changedAt:
+          type: string
+          format: date-time
+          description: Timestamp of the change
+          example: "2025-01-15T10:30:00Z"
+        ipAddress:
+          type: string
+          description: IP address of the user
+          example: "192.168.1.100"
+        userAgent:
+          type: string
+          description: User agent string
+          example: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+        sessionId:
+          type: string
+          description: Session ID
+          example: "sess_1234567890"
+        changeReason:
+          type: string
+          description: Reason for the change
+          example: "Client provided necessary documentation"
+
+    PagedMatterAuditResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/MatterAuditLogDto'
+        page:
+          $ref: '#/components/schemas/PageMetadata'
+
+    MatterAuditExportDto:
+      type: object
+      description: Matter audit export data
+      properties:
+        matterId:
+          type: string
+          format: uuid
+          description: Matter ID
+          example: "550e8400-e29b-41d4-a716-446655440001"
+        exportFormat:
+          type: string
+          description: Export format
+          example: "JSON"
+        exportedAt:
+          type: string
+          format: date-time
+          description: Export timestamp
+          example: "2025-01-15T10:30:00Z"
+        exportedBy:
+          type: string
+          description: User who exported the data
+          example: "550e8400-e29b-41d4-a716-446655440002"
+        generalEvents:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuditLogDto'
+          description: General audit events
+        fieldEvents:
+          type: array
+          items:
+            $ref: '#/components/schemas/MatterAuditLogDto'
+          description: Field-level audit events
+        totalEvents:
+          type: integer
+          format: int64
+          description: Total number of events
+          example: 150
+        metadata:
+          type: object
+          description: Export metadata
+          additionalProperties: true
+          example:
+            exportReason: "Compliance export"
+            exportVersion: "1.0"
+            includesFieldLevel: true
+            includesGeneralEvents: true
+
+    # Error Schema
+    ProblemDetail:
+      type: object
+      description: RFC 7807 Problem Details for HTTP APIs
+      properties:
+        type:
+          type: string
+          format: uri
+          description: A URI reference that identifies the problem type
+          example: "https://api.astermanagement.dev/problems/validation-error"
+        title:
+          type: string
+          description: A short, human-readable summary of the problem type
+          example: "Validation Failed"
+        status:
+          type: integer
+          description: The HTTP status code
+          example: 400
+        detail:
+          type: string
+          description: A human-readable explanation specific to this occurrence
+          example: "The request body contains invalid data"
+        instance:
+          type: string
+          format: uri
+          description: A URI reference that identifies the specific occurrence
+          example: "/api/v1/matters/550e8400-e29b-41d4-a716-446655440000"
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp when the error occurred
+          example: "2025-01-15T10:30:00Z"
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                description: Field name that caused the error
+                example: "title"
+              message:
+                type: string
+                description: Error message for the field
+                example: "Title must be between 3 and 255 characters"
+          description: List of field-specific validation errors
