@@ -609,7 +609,7 @@ const handleExpenseTypeChange = (type: string) => {
 }
 
 const handleCurrencyChange = (newCurrency: string) => {
-  currency.value = newCurrency
+  currency.value = newCurrency as "JPY" | "USD" | "EUR" | "GBP" | "KRW" | "CNY" | "SGD"
   
   // Show conversion information if rates are available
   if (amount.value && newCurrency !== 'JPY') {

@@ -137,8 +137,9 @@ class ApiClient {
       await authStore.refreshToken()
       
       // Retry all queued requests
-      this.refreshQueue.forEach(({ resolve, config }) => {
-        resolve(this.instance(config))
+      this.refreshQueue.forEach(async ({ resolve, config }) => {
+        const response = await this.instance(config)
+        resolve(response)
       })
       
       // Clear queue

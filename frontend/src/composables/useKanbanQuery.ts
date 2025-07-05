@@ -80,8 +80,8 @@ function transformToMatterCard(matter: Matter): MatterCard {
     assignedClerk: assignedClerkInfo,
     statusDuration: matter.statusDuration,
     isOverdue: matter.isOverdue,
-    relatedDocuments: matter.relatedDocuments,
-    searchHighlights: matter.searchHighlights,
+    relatedDocuments: Array.isArray(matter.relatedDocuments) ? matter.relatedDocuments.length : (matter.relatedDocuments || 0),
+    searchHighlights: matter.searchHighlights as Record<string, string[]> | undefined,
     relevanceScore: matter.relevanceScore
   }
 }

@@ -313,13 +313,13 @@ const validateField = (key: string) => {
         }
         break
       case 'date':
-        if (new Date(value).toString() === 'Invalid Date') {
+        if (new Date(value as string).toString() === 'Invalid Date') {
           errors.value[key] = `${variable.label} must be a valid date`
           return
         }
         break
       case 'select':
-        if (variable.options && !variable.options.includes(value)) {
+        if (variable.options && !variable.options.includes(value as string)) {
           errors.value[key] = `${variable.label} must be one of the available options`
           return
         }

@@ -143,9 +143,9 @@ const columns = ref<AdvancedDataTableColumn<Matter>[]>([
     resizable: true,
     width: '130px',
     minWidth: 100,
-    formatter: (value: Date | string) => {
+    formatter: (value: unknown, row: Matter) => {
       if (!value) return '-'
-      const date = value instanceof Date ? value : new Date(value)
+      const date = value instanceof Date ? value : new Date(value as string)
       return date.toLocaleDateString()
     }
   },

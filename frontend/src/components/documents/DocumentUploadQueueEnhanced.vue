@@ -115,17 +115,18 @@ const globalStatsDisplay = computed(() => {
 
 const sortedQueue = computed(() => {
   // Sort queue items by priority: uploading > pending > paused > failed > completed
-  const statusPriority = {
+  const statusPriority: Record<string, number> = {
     uploading: 1,
     pending: 2,
     paused: 3,
     failed: 4,
     completed: 5,
-    cancelled: 6
+    cancelled: 6,
+    error: 7
   }
   
   return [...uploadStore.queue].sort((a, b) => {
-    return statusPriority[a.status] - statusPriority[b.status]
+    return (statusPriority[a.status] || 99) - (statusPriority[b.status] || 99)
   })
 })
 

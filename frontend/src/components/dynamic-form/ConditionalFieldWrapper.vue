@@ -66,44 +66,58 @@ const props = withDefaults(defineProps<Props>(), {
   customClasses: ''
 })
 
+// Define types for injected context
+interface ConditionalLogic {
+  isFieldVisible: (fieldName: string) => boolean
+  isFieldEnabled: (fieldName: string) => boolean  
+  isFieldRequired: (fieldName: string) => boolean
+}
+
+interface FieldDependencies {
+  hasFieldDependencies: (fieldName: string) => boolean
+  isFieldDependedUpon: (fieldName: string) => boolean
+  getFieldDependencies: (fieldName: string) => string[]
+  getDependentFields: (fieldName: string) => string[]
+}
+
 // Inject conditional logic context
-const conditionalLogic = inject('conditionalLogic', null) as unknown
-const fieldDependencies = inject('fieldDependencies', null) as unknown
+const conditionalLogic = inject<ConditionalLogic>('conditionalLogic', {} as ConditionalLogic)
+const fieldDependencies = inject<FieldDependencies>('fieldDependencies', {} as FieldDependencies)
 
 // Field state
 const isVisible = computed(() => {
-  if (!conditionalLogic) return true
+  if (!conditionalLogic.isFieldVisible) return true
   return conditionalLogic.isFieldVisible(props.field.name)
 })
 
 const isEnabled = computed(() => {
-  if (!conditionalLogic) return !props.field.disabled
+  if (!conditionalLogic.isFieldEnabled) return !props.field.disabled
   return conditionalLogic.isFieldEnabled(props.field.name)
 })
 
 const isRequired = computed(() => {
-  if (!conditionalLogic) return props.field.required || false
+  if (!conditionalLogic.isFieldRequired) return props.field.required || false
   return conditionalLogic.isFieldRequired(props.field.name)
 })
 
 // Dependency information
 const hasDependencies = computed(() => {
-  if (!fieldDependencies) return false
+  if (!fieldDependencies.hasFieldDependencies) return false
   return fieldDependencies.hasFieldDependencies(props.field.name)
 })
 
 const isDependedUpon = computed(() => {
-  if (!fieldDependencies) return false
+  if (!fieldDependencies.isFieldDependedUpon) return false
   return fieldDependencies.isFieldDependedUpon(props.field.name)
 })
 
 const dependsOn = computed(() => {
-  if (!fieldDependencies) return []
+  if (!fieldDependencies.getFieldDependencies) return []
   return fieldDependencies.getFieldDependencies(props.field.name)
 })
 
 const affectedFields = computed(() => {
-  if (!fieldDependencies) return []
+  if (!fieldDependencies.getDependentFields) return []
   return fieldDependencies.getDependentFields(props.field.name)
 })
 

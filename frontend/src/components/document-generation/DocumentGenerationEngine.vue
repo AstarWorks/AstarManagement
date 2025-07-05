@@ -366,6 +366,10 @@ import GenerationHistory from './GenerationHistory.vue'
 import TemplateSelectorModal from './TemplateSelectorModal.vue'
 import MatterSelectorModal from './MatterSelectorModal.vue'
 
+// Types
+import type { Template } from '~/types/template'
+import type { Matter } from '~/types/matter'
+
 // Composables
 import { useDocumentGeneration } from '~/composables/document-generation/useDocumentGeneration'
 import { useToast } from '~/composables/useToast'
@@ -435,7 +439,7 @@ const canGenerate = computed(() => {
 })
 
 // Methods
-const selectTemplate = (template: Template) => {
+const selectTemplate = (template: Template): void => {
   selectedTemplate.value = template
   showTemplateSelector.value = false
   
@@ -445,7 +449,7 @@ const selectTemplate = (template: Template) => {
   })
 }
 
-const selectMatter = (matter: Matter) => {
+const selectMatter = (matter: Matter): void => {
   if (mode.value === 'batch') {
     // For batch mode, we would handle multiple matters differently
     selectedMatterIds.value = [matter.id]
@@ -456,7 +460,7 @@ const selectMatter = (matter: Matter) => {
 }
 
 const generateDocuments = async () => {
-  if (!canGenerate.value) return
+  if (!canGenerate.value || !selectedTemplate.value) return
 
   try {
     if (mode.value === 'single') {
@@ -477,7 +481,7 @@ const generateDocuments = async () => {
       // Batch generation logic
       for (const matterId of selectedMatterIds.value) {
         await generateDocument({
-          templateId: selectedTemplate.value.id,
+          templateId: selectedTemplate.value!.id,
           matterId,
           format: exportConfig.value.format,
           options: exportConfig.value
@@ -495,7 +499,7 @@ const generateDocuments = async () => {
     toast({
       title: 'Generation Failed',
       description: (error as Error).message || 'Failed to start document generation',
-      variant: 'destructive'
+      variant: 'error'
     })
   }
 }
@@ -504,7 +508,7 @@ const handlePreviewError = (error: string) => {
   toast({
     title: 'Preview Error',
     description: error,
-    variant: 'destructive'
+    variant: 'error'
   })
 }
 
@@ -519,7 +523,7 @@ const handleJobError = (jobId: string, error: string) => {
   toast({
     title: 'Generation Failed',
     description: error,
-    variant: 'destructive'
+    variant: 'error'
   })
 }
 

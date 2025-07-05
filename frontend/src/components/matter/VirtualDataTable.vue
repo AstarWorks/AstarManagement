@@ -4,7 +4,7 @@ import { RecycleScroller } from 'vue-virtual-scroller'
 import { Button } from '~/components/ui/button'
 import { Checkbox } from '~/components/ui/checkbox'
 import type { SortDirection } from '~/types/table'
-import type { Matter } from '~/types/matter'
+import type { Matter, MatterStatus } from '~/types/matter'
 import { cn } from '~/lib/utils'
 import DataTablePagination from './DataTablePagination.vue'
 import BulkActionToolbar from './BulkActionToolbar.vue'
@@ -56,7 +56,7 @@ const emit = defineEmits<{
   'selection:change': [selectedRows: TData[]]
   'selection:row': [row: TData, selected: boolean]
   'bulk:delete': [items: TData[]]
-  'bulk:status-update': [items: TData[], status: string]
+  'bulk:status-update': [items: TData[], status: MatterStatus]
   'bulk:export': [items: TData[], format: 'csv' | 'excel']
   'cell:edit': [row: TData, column: string, value: unknown]
   'column:resize': [column: string, width: number]
@@ -248,7 +248,7 @@ defineExpose({
       :total-items="data.length"
       :disabled="loading"
       @action:delete="(items: Matter[]) => $emit('bulk:delete', items as TData[])"
-      @action:status-update="(items: Matter[], status: any) => $emit('bulk:status-update', items as TData[], status)"
+      @action:status-update="(items: Matter[], status: MatterStatus) => $emit('bulk:status-update', items as TData[], status)"
       @action:export="(items: Matter[], format: 'csv' | 'excel') => $emit('bulk:export', items as TData[], format)"
       @selection:clear="clearSelection"
       @selection:all="selectAll"

@@ -75,7 +75,7 @@ const handleSort = (column: DataTableColumn<TData>) => {
 
 // Get value from nested path (e.g., 'user.name')
 const getValue = (row: TData, path: string): unknown => {
-  return path.split('.').reduce((obj, key) => obj?.[key], row as Record<string, unknown>)
+  return path.split('.').reduce((obj: any, key) => obj?.[key], row as Record<string, unknown>)
 }
 
 // Format cell value
