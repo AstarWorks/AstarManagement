@@ -1,0 +1,45 @@
+name: Emergency Rollback
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to rollback'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+      revision:
+        description: 'ArgoCD revision number'
+        required: true
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install ArgoCD CLI
+      run: |
+        curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+        chmod +x argocd
+        sudo mv argocd /usr/local/bin/
+    
+    - name: Perform rollback
+      env:
+        ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
+        ARGOCD_AUTH_TOKEN: ${{ secrets.ARGOCD_TOKEN }}
+      run: |
+        argocd app rollback aster-backend-${{ github.event.inputs.environment }} ${{ github.event.inputs.revision }} --grpc-web
+        argocd app rollback aster-frontend-${{ github.event.inputs.environment }} ${{ github.event.inputs.revision }} --grpc-web
+    
+    - name: Notify rollback
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        text: |
+          Emergency rollback initiated for ${{ github.event.inputs.environment }}
+          Revision: ${{ github.event.inputs.revision }}
+          Initiated by: ${{ github.actor }}
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
