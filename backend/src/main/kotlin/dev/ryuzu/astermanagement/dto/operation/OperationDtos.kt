@@ -3,8 +3,8 @@ package dev.ryuzu.astermanagement.dto.operation
 import dev.ryuzu.astermanagement.domain.operation.OperationType
 import dev.ryuzu.astermanagement.domain.operation.OperationStatus
 import dev.ryuzu.astermanagement.domain.operation.OperationPriority
-import dev.ryuzu.astermanagement.domain.matter.MatterStatus
-import dev.ryuzu.astermanagement.domain.matter.MatterPriority
+import dev.ryuzu.astermanagement.modules.matter.domain.MatterStatus
+import dev.ryuzu.astermanagement.modules.matter.domain.MatterPriority
 import jakarta.validation.constraints.*
 import java.time.LocalDateTime
 import java.util.*

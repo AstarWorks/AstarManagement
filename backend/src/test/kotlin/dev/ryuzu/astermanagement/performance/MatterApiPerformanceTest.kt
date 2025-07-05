@@ -1,7 +1,7 @@
 package dev.ryuzu.astermanagement.performance
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import dev.ryuzu.astermanagement.domain.matter.MatterStatus
+import dev.ryuzu.astermanagement.modules.matter.domain.MatterStatus
 import dev.ryuzu.astermanagement.dto.matter.CreateMatterRequest
 import dev.ryuzu.astermanagement.testutil.TestDataFactory
 import io.kotest.matchers.shouldBe

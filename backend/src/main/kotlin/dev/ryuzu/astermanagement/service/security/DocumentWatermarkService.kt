@@ -1,7 +1,7 @@
 package dev.ryuzu.astermanagement.service.security
 
-import dev.ryuzu.astermanagement.domain.document.Document
-import dev.ryuzu.astermanagement.domain.document.security.DocumentAccessLevel
+import dev.ryuzu.astermanagement.modules.document.domain.Document
+import dev.ryuzu.astermanagement.modules.document.domain.security.DocumentAccessLevel
 import dev.ryuzu.astermanagement.domain.user.User
 import dev.ryuzu.astermanagement.security.audit.impl.SecurityAuditLogger
 import dev.ryuzu.astermanagement.security.rbac.entity.Permission

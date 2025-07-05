@@ -4,8 +4,8 @@ import dev.ryuzu.astermanagement.dto.auth.LoginRequest
 import dev.ryuzu.astermanagement.dto.auth.AuthenticationResponse
 import dev.ryuzu.astermanagement.dto.auth.RefreshTokenRequest
 import dev.ryuzu.astermanagement.dto.matter.CreateMatterRequest
-import dev.ryuzu.astermanagement.domain.matter.MatterPriority
-import dev.ryuzu.astermanagement.domain.matter.MatterStatus
+import dev.ryuzu.astermanagement.modules.matter.domain.MatterPriority
+import dev.ryuzu.astermanagement.modules.matter.domain.MatterStatus
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.*
 import org.springframework.beans.factory.annotation.Autowired

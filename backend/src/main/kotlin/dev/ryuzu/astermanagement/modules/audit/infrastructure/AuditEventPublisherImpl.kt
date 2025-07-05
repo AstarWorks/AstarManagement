@@ -415,7 +415,7 @@ class AuditEventPublisherImpl(
             entityType = "matter",
             entityId = matterId.toString(),
             details = mapOf(
-                "oldAssignee" to oldAssignee?.toString(),
+                "oldAssignee" to (oldAssignee?.toString() ?: ""),
                 "newAssignee" to newAssignee.toString()
             ),
             userId = userId.toString()
@@ -529,7 +529,7 @@ class AuditEventPublisherImpl(
             eventType = AuditEventType.DOCUMENT_MODIFIED,
             entityType = "document",
             entityId = documentId.toString(),
-            details = mapOf("wordCount" to wordCount),
+            details = mapOf("wordCount" to (wordCount ?: 0)),
             userId = userId.toString()
         )
     }

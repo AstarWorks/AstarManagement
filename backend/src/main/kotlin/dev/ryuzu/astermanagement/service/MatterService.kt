@@ -1,7 +1,7 @@
 package dev.ryuzu.astermanagement.service
 
-import dev.ryuzu.astermanagement.domain.matter.Matter
-import dev.ryuzu.astermanagement.domain.matter.MatterStatus
+import dev.ryuzu.astermanagement.modules.matter.domain.Matter
+import dev.ryuzu.astermanagement.modules.matter.domain.MatterStatus
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import java.util.*
@@ -189,7 +189,7 @@ interface MatterService {
  */
 sealed class MatterUpdateValue {
     data class StatusUpdate(val status: MatterStatus) : MatterUpdateValue()
-    data class PriorityUpdate(val priority: dev.ryuzu.astermanagement.domain.matter.MatterPriority) : MatterUpdateValue()
+    data class PriorityUpdate(val priority: dev.ryuzu.astermanagement.modules.matter.domain.MatterPriority) : MatterUpdateValue()
     data class LawyerUpdate(val lawyerId: UUID?) : MatterUpdateValue()
     data class ClerkUpdate(val clerkId: UUID?) : MatterUpdateValue()
     data class NotesUpdate(val notes: String?) : MatterUpdateValue()

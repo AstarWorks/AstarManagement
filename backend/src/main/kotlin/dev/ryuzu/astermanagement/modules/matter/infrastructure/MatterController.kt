@@ -3,6 +3,9 @@ package dev.ryuzu.astermanagement.modules.matter.infrastructure
 import dev.ryuzu.astermanagement.controller.base.BaseController
 import dev.ryuzu.astermanagement.modules.matter.api.MatterService
 import dev.ryuzu.astermanagement.modules.matter.api.dto.*
+import dev.ryuzu.astermanagement.modules.matter.domain.Matter
+import dev.ryuzu.astermanagement.modules.matter.domain.MatterStatus  
+import dev.ryuzu.astermanagement.modules.matter.domain.MatterPriority
 import dev.ryuzu.astermanagement.domain.user.UserRepository
 import dev.ryuzu.astermanagement.dto.common.PagedResponse
 import io.swagger.v3.oas.annotations.Operation
@@ -40,57 +43,21 @@ class MatterController(
     private val userRepository: UserRepository
 ) : BaseController() {
     
-    /**
-     * Search matters with full-text search capabilities.
-     */
+    /* Search functionality temporarily disabled during Spring Modulith migration
     @GetMapping("/search")
     @PreAuthorize("hasPermission(null, 'MATTER_READ')")
-    @Operation(
-        summary = "Search matters",
-        description = "Search matters using full-text search with highlighting and relevance scoring. Supports basic and advanced search modes."
-    )
-    @ApiResponses(
-        ApiResponse(responseCode = "200", description = "Search completed successfully"),
-        ApiResponse(responseCode = "400", description = "Invalid search parameters"),
-        ApiResponse(responseCode = "401", description = "Unauthorized"),
-        ApiResponse(responseCode = "403", description = "Insufficient permissions")
-    )
-    fun searchMatters(
-        @RequestParam @Parameter(description = "Search query") query: String,
-        @RequestParam(defaultValue = "FULL_TEXT") @Parameter(description = "Search type") searchType: SearchType,
-        @RequestParam(defaultValue = "0") @Parameter(description = "Page number (0-based)") page: Int,
-        @RequestParam(defaultValue = "20") @Parameter(description = "Page size (1-100)") size: Int
-    ): ResponseEntity<PagedResponse<MatterSearchResultDto>> {
-        val (validatedPage, validatedSize) = validatePagination(page, size)
-        val pageable = PageRequest.of(validatedPage, validatedSize)
-        
-        val results = matterSearchService.searchMatters(query, searchType, pageable)
-        val response = PagedResponse.fromPage(results) { it }
-        
-        return ok(response)
+    fun searchMatters(...): ResponseEntity<PagedResponse<MatterSearchResultDto>> {
+        // TODO: Implement search service
+        return ResponseEntity.notImplemented().build()
     }
 
-    /**
-     * Get search suggestions for autocomplete.
-     */
-    @GetMapping("/search/suggestions")
+    @GetMapping("/search/suggestions")  
     @PreAuthorize("hasPermission(null, 'MATTER_READ')")
-    @Operation(
-        summary = "Get search suggestions",
-        description = "Get search suggestions for autocomplete functionality based on partial query."
-    )
-    @ApiResponses(
-        ApiResponse(responseCode = "200", description = "Suggestions retrieved successfully"),
-        ApiResponse(responseCode = "401", description = "Unauthorized"),
-        ApiResponse(responseCode = "403", description = "Insufficient permissions")
-    )
-    fun getSearchSuggestions(
-        @RequestParam @Parameter(description = "Partial search query") query: String,
-        @RequestParam(defaultValue = "10") @Parameter(description = "Maximum suggestions") limit: Int
-    ): ResponseEntity<List<SearchSuggestionDto>> {
-        val suggestions = matterSearchService.getSearchSuggestions(query, limit)
-        return ok(suggestions)
+    fun getSearchSuggestions(...): ResponseEntity<List<SearchSuggestionDto>> {
+        // TODO: Implement search suggestions
+        return ResponseEntity.notImplemented().build()
     }
+    */
 
     /**
      * Creates a new matter.
@@ -115,26 +82,8 @@ class MatterController(
         @Valid @RequestBody request: CreateMatterRequest,
         @AuthenticationPrincipal user: UserDetails
     ): ResponseEntity<MatterDto> {
-        val matter = Matter().apply {
-            caseNumber = request.caseNumber
-            title = request.title
-            description = request.description
-            status = request.status
-            priority = request.priority
-            clientName = request.clientName
-            clientContact = request.clientContact
-            opposingParty = request.opposingParty
-            courtName = request.courtName
-            filingDate = request.filingDate
-            estimatedCompletionDate = request.estimatedCompletionDate
-            assignedLawyer = userRepository.findById(request.assignedLawyerId).orElse(null)
-            assignedClerk = request.assignedClerkId?.let { userRepository.findById(it).orElse(null) }
-            notes = request.notes
-            tags = request.tags.toTypedArray()
-        }
-        
-        val createdMatter = matterService.createMatter(matter)
-        return created(createdMatter.toDto(), createdMatter.id.toString())
+        val createdMatter = matterService.createMatter(request)
+        return created(createdMatter.toMatterDto(), createdMatter.id.toString())
     }
     
     /**
@@ -156,7 +105,7 @@ class MatterController(
         @PathVariable @Parameter(description = "Matter ID") id: UUID
     ): ResponseEntity<MatterDto> {
         val matter = matterService.getMatterById(id)
-        return matter?.let { ok(it.toDto()) } ?: notFound()
+        return matter?.let { ok(it.toMatterDto()) } ?: notFound()
     }
     
     /**
@@ -177,8 +126,8 @@ class MatterController(
         @RequestParam(defaultValue = "0") @Parameter(description = "Page number (0-based)") page: Int,
         @RequestParam(defaultValue = "20") @Parameter(description = "Page size (1-100)") size: Int,
         @RequestParam(defaultValue = "createdAt,desc") @Parameter(description = "Sort criteria") sort: String,
-        @RequestParam(required = false) @Parameter(description = "Filter by status") status: MatterStatus?,
-        @RequestParam(required = false) @Parameter(description = "Filter by priority") priority: MatterPriority?,
+        @RequestParam(required = false) @Parameter(description = "Filter by status") status: String?,
+        @RequestParam(required = false) @Parameter(description = "Filter by priority") priority: String?,
         @RequestParam(required = false) @Parameter(description = "Filter by client name (partial match)") clientName: String?,
         @RequestParam(required = false) @Parameter(description = "Filter by assigned lawyer") assignedLawyer: UUID?
     ): ResponseEntity<PagedResponse<MatterDto>> {
@@ -186,8 +135,15 @@ class MatterController(
         val sortParams = parseSortParams(sort)
         val pageable = PageRequest.of(validatedPage, validatedSize, sortParams)
         
-        val matters = matterService.getAllMatters(pageable, status, clientName)
-        val response = PagedResponse.fromPage(matters) { it.toDto() }
+        val matters = matterService.searchMatters(
+            query = clientName,
+            status = status,
+            priority = priority,
+            assignedLawyerId = assignedLawyer,
+            clientId = null,
+            pageable = pageable
+        )
+        val response = PagedResponse.fromPage(matters) { it.toMatterDto() }
         
         return ok(response)
     }
@@ -213,26 +169,8 @@ class MatterController(
         @Valid @RequestBody request: UpdateMatterRequest,
         @AuthenticationPrincipal user: UserDetails
     ): ResponseEntity<MatterDto> {
-        val existingMatter = matterService.getMatterById(id) ?: return notFound()
-        
-        existingMatter.apply {
-            title = request.title
-            description = request.description
-            clientName = request.clientName
-            clientContact = request.clientContact
-            opposingParty = request.opposingParty
-            courtName = request.courtName
-            filingDate = request.filingDate
-            estimatedCompletionDate = request.estimatedCompletionDate
-            request.priority?.let { priority = it }
-            request.assignedLawyerId?.let { assignedLawyer = userRepository.findById(it).orElse(null) }
-            request.assignedClerkId?.let { assignedClerk = userRepository.findById(it).orElse(null) }
-            request.notes?.let { notes = it }
-            request.tags?.let { tags = it.toTypedArray() }
-        }
-        
-        val result = matterService.updateMatter(id, existingMatter)
-        return result?.let { ok(it.toDto()) } ?: notFound()
+        val result = matterService.updateMatter(id, request)
+        return ok(result.toMatterDto())
     }
     
     /**
@@ -258,8 +196,8 @@ class MatterController(
     ): ResponseEntity<MatterDto> {
         return try {
             val userId = getCurrentUserId()
-            val result = matterService.updateMatterStatus(id, request.status, request.comment, userId)
-            result?.let { ok(it.toDto()) } ?: notFound()
+            val result = matterService.updateMatterStatus(id, request.status, userId)
+            ok(result.toMatterDto())
         } catch (e: IllegalStateException) {
             // Invalid status transition
             ResponseEntity.badRequest().build()
@@ -284,85 +222,19 @@ class MatterController(
     fun deleteMatter(
         @PathVariable @Parameter(description = "Matter ID") id: UUID
     ): ResponseEntity<Void> {
-        return if (matterService.deleteMatter(id)) {
-            noContent()
-        } else {
-            ResponseEntity.notFound().build()
-        }
+        matterService.deleteMatter(id)
+        return noContent()
     }
     
     
-    /**
-     * Validate a status transition before execution.
-     */
+    /* Status transition validation temporarily disabled during Spring Modulith migration
     @PostMapping("/{id}/validate-transition")
     @PreAuthorize("hasPermission(#id, 'Matter', 'MATTER_READ')")
-    @Operation(
-        summary = "Validate status transition",
-        description = "Validate if a status transition is allowed for the current user and matter state"
-    )
-    @ApiResponses(
-        ApiResponse(responseCode = "200", description = "Transition is valid"),
-        ApiResponse(responseCode = "400", description = "Invalid transition"),
-        ApiResponse(responseCode = "401", description = "Unauthorized"),
-        ApiResponse(responseCode = "403", description = "Insufficient permissions"),
-        ApiResponse(responseCode = "404", description = "Matter not found")
-    )
-    fun validateStatusTransition(
-        @PathVariable @Parameter(description = "Matter ID") id: UUID,
-        @RequestBody @Valid request: ValidateTransitionRequest,
-        @AuthenticationPrincipal userDetails: UserDetails
-    ): ResponseEntity<ValidateTransitionResponse> {
-        val matter = matterService.getMatterById(id) ?: 
-            return notFound()
-
-        val currentUserDetails = getCurrentUser() ?: return ResponseEntity.status(401).build()
-        val currentUser = userRepository.findByUsername(currentUserDetails.username)
-            ?: return ResponseEntity.status(401).build()
-        val userRole = currentUser.role
-
-        // Import the status transition rules
-        val transitionValid = dev.ryuzu.astermanagement.domain.StatusTransitionRules.isTransitionAllowed(
-            matter.status, 
-            request.newStatus
-        )
-        
-        val roleCanPerform = dev.ryuzu.astermanagement.domain.StatusTransitionRules.canRolePerformTransition(
-            userRole, 
-            matter.status, 
-            request.newStatus
-        )
-        
-        val isCritical = dev.ryuzu.astermanagement.domain.StatusTransitionRules.isCriticalTransition(
-            matter.status, 
-            request.newStatus
-        )
-        
-        val requiresReason = dev.ryuzu.astermanagement.domain.StatusTransitionRules.requiresReason(
-            matter.status, 
-            request.newStatus
-        )
-
-        val isValid = transitionValid && roleCanPerform
-        val errorMessage = if (!isValid) {
-            dev.ryuzu.astermanagement.domain.StatusTransitionRules.getTransitionError(
-                matter.status, 
-                request.newStatus, 
-                userRole
-            )
-        } else null
-
-        val response = ValidateTransitionResponse(
-            isValid = isValid,
-            requiresReason = requiresReason,
-            isCritical = isCritical,
-            errorMessage = errorMessage,
-            currentStatus = matter.status,
-            targetStatus = request.newStatus
-        )
-
-        return if (isValid) ok(response) else badRequest(response)
+    fun validateStatusTransition(...): ResponseEntity<ValidateTransitionResponse> {
+        // TODO: Implement status transition validation
+        return ResponseEntity.notImplemented().build()
     }
+    */
 
     /**
      * Parses sort parameters from string format.
@@ -384,16 +256,16 @@ class MatterController(
     }
     
     /**
-     * Extension function to convert Matter entity to DTO.
+     * Extension function to convert MatterDTO to MatterDto for controller responses.
      */
-    private fun Matter.toDto(): MatterDto {
+    private fun MatterDTO.toMatterDto(): MatterDto {
         return MatterDto(
-            id = this.id!!,
+            id = this.id,
             caseNumber = this.caseNumber,
             title = this.title,
             description = this.description,
-            status = this.status,
-            priority = this.priority,
+            status = MatterStatusDTO.valueOf(this.status.name),
+            priority = MatterPriorityDTO.valueOf(this.priority.name),
             clientName = this.clientName,
             clientContact = this.clientContact,
             opposingParty = this.opposingParty,
@@ -401,20 +273,20 @@ class MatterController(
             filingDate = this.filingDate,
             estimatedCompletionDate = this.estimatedCompletionDate,
             actualCompletionDate = this.actualCompletionDate,
-            assignedLawyerId = this.assignedLawyer?.id,
-            assignedLawyerName = this.assignedLawyer?.let { "${it.firstName} ${it.lastName}" },
-            assignedClerkId = this.assignedClerk?.id,
-            assignedClerkName = this.assignedClerk?.let { "${it.firstName} ${it.lastName}" },
+            assignedLawyerId = this.assignedLawyerId,
+            assignedLawyerName = this.assignedLawyerName,
+            assignedClerkId = this.assignedClerkId,
+            assignedClerkName = this.assignedClerkName,
             notes = this.notes,
-            tags = this.tags.toList(),
+            tags = this.tags,
             isActive = this.isActive,
             isOverdue = this.isOverdue,
             isCompleted = this.isCompleted,
             ageInDays = this.ageInDays,
             createdAt = this.createdAt ?: throw IllegalStateException("Created at cannot be null"),
             updatedAt = this.updatedAt ?: throw IllegalStateException("Updated at cannot be null"),
-            createdBy = this.createdBy?.toString() ?: "System",
-            updatedBy = this.updatedBy?.toString() ?: "System"
+            createdBy = "System", // TODO: Extract from audit info
+            updatedBy = "System"  // TODO: Extract from audit info
         )
     }
 }

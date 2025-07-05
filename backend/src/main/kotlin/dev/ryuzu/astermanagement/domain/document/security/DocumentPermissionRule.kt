@@ -1,7 +1,7 @@
-package dev.ryuzu.astermanagement.domain.document.security
+package dev.ryuzu.astermanagement.modules.document.domain.security
 
 import dev.ryuzu.astermanagement.domain.common.BaseEntity
-import dev.ryuzu.astermanagement.domain.document.Document
+import dev.ryuzu.astermanagement.modules.document.domain.Document
 import dev.ryuzu.astermanagement.domain.user.User
 import dev.ryuzu.astermanagement.security.rbac.entity.Role
 import jakarta.persistence.*

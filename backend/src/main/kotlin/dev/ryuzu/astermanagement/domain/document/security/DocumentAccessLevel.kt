@@ -1,4 +1,4 @@
-package dev.ryuzu.astermanagement.domain.document.security
+package dev.ryuzu.astermanagement.modules.document.domain.security
 
 /**
  * Document access level classification following legal document security standards

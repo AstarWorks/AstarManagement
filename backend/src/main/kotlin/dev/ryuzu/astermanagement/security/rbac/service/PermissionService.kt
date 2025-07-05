@@ -1,6 +1,6 @@
 package dev.ryuzu.astermanagement.security.rbac.service
 
-import dev.ryuzu.astermanagement.domain.matter.MatterRepository
+import dev.ryuzu.astermanagement.modules.matter.domain.MatterRepository
 import dev.ryuzu.astermanagement.security.rbac.repository.UserRoleRepository
 import org.slf4j.LoggerFactory
 import org.springframework.cache.annotation.Cacheable

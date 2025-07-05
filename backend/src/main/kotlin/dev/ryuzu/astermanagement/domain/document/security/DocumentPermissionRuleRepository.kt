@@ -1,4 +1,4 @@
-package dev.ryuzu.astermanagement.domain.document.security
+package dev.ryuzu.astermanagement.modules.document.domain.security
 
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying

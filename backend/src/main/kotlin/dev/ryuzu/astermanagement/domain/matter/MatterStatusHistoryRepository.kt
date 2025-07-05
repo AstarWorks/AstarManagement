@@ -1,6 +1,8 @@
 package dev.ryuzu.astermanagement.domain.matter
 
 import dev.ryuzu.astermanagement.domain.user.User
+import dev.ryuzu.astermanagement.modules.matter.domain.Matter
+import dev.ryuzu.astermanagement.modules.matter.domain.MatterStatus
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository

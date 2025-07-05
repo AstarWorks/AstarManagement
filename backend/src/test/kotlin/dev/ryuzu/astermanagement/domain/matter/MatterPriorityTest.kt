@@ -1,5 +1,6 @@
 package dev.ryuzu.astermanagement.domain.matter
 
+import dev.ryuzu.astermanagement.modules.matter.domain.MatterPriority
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 

@@ -516,7 +516,7 @@ class OperationServiceImpl(
                     field = "matterId",
                     message = "Matter not found or access denied"
                 ))
-            } else if (!request.forceDelete && matter.status != dev.ryuzu.astermanagement.domain.matter.MatterStatus.CLOSED) {
+            } else if (!request.forceDelete && matter.status != dev.ryuzu.astermanagement.modules.matter.domain.MatterStatus.CLOSED) {
                 errors.add(ValidationError(
                     itemId = matterId,
                     field = "status",

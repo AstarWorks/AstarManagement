@@ -1,7 +1,7 @@
 package dev.ryuzu.astermanagement.dto.document
 
-import dev.ryuzu.astermanagement.domain.document.Document
-import dev.ryuzu.astermanagement.domain.document.DocumentStatus
+import dev.ryuzu.astermanagement.modules.document.domain.Document
+import dev.ryuzu.astermanagement.modules.document.domain.DocumentStatus
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.util.*

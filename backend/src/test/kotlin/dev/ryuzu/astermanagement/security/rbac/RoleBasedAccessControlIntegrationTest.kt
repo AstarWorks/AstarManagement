@@ -4,8 +4,8 @@ import dev.ryuzu.astermanagement.dto.auth.LoginRequest
 import dev.ryuzu.astermanagement.dto.auth.AuthenticationResponse
 import dev.ryuzu.astermanagement.dto.matter.CreateMatterRequest
 import dev.ryuzu.astermanagement.dto.document.DocumentUploadRequest
-import dev.ryuzu.astermanagement.domain.matter.MatterPriority
-import dev.ryuzu.astermanagement.domain.matter.MatterStatus
+import dev.ryuzu.astermanagement.modules.matter.domain.MatterPriority
+import dev.ryuzu.astermanagement.modules.matter.domain.MatterStatus
 import dev.ryuzu.astermanagement.domain.user.User
 import dev.ryuzu.astermanagement.domain.user.UserRepository
 import dev.ryuzu.astermanagement.security.rbac.entity.Permission

@@ -1,8 +1,8 @@
 package dev.ryuzu.astermanagement.service.security
 
-import dev.ryuzu.astermanagement.domain.document.Document
-import dev.ryuzu.astermanagement.domain.document.DocumentRepository
-import dev.ryuzu.astermanagement.domain.document.security.*
+import dev.ryuzu.astermanagement.modules.document.domain.Document
+import dev.ryuzu.astermanagement.modules.document.domain.DocumentRepository
+import dev.ryuzu.astermanagement.modules.document.domain.security.*
 import dev.ryuzu.astermanagement.domain.user.User
 import dev.ryuzu.astermanagement.security.audit.impl.SecurityAuditLogger
 import dev.ryuzu.astermanagement.security.rbac.entity.Permission
@@ -286,7 +286,7 @@ class DocumentPermissionService(
     // Private helper methods
     
     private fun isDocumentAccessible(document: Document): Boolean {
-        return document.status == dev.ryuzu.astermanagement.domain.document.DocumentStatus.AVAILABLE
+        return document.status == dev.ryuzu.astermanagement.modules.document.domain.DocumentStatus.AVAILABLE
     }
     
     private fun hasExplicitDeny(

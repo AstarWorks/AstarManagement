@@ -1,6 +1,6 @@
 package dev.ryuzu.astermanagement.security.annotation
 
-import dev.ryuzu.astermanagement.domain.document.security.DocumentPermissionType
+import dev.ryuzu.astermanagement.modules.document.domain.security.DocumentPermissionType
 import org.springframework.security.access.prepost.PreAuthorize
 
 /**

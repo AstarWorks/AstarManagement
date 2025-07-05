@@ -1,6 +1,6 @@
 package dev.ryuzu.astermanagement.service
 
-import dev.ryuzu.astermanagement.domain.matter.MatterStatus
+import dev.ryuzu.astermanagement.modules.matter.domain.MatterStatus
 import dev.ryuzu.astermanagement.domain.user.UserRole
 import dev.ryuzu.astermanagement.service.base.BaseService
 import org.slf4j.LoggerFactory

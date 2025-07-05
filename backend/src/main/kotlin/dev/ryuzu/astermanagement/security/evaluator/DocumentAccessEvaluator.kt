@@ -1,6 +1,6 @@
 package dev.ryuzu.astermanagement.security.evaluator
 
-import dev.ryuzu.astermanagement.domain.document.security.DocumentPermissionType
+import dev.ryuzu.astermanagement.modules.document.domain.security.DocumentPermissionType
 import dev.ryuzu.astermanagement.security.audit.impl.SecurityAuditLogger
 import dev.ryuzu.astermanagement.service.security.DocumentPermissionService
 import dev.ryuzu.astermanagement.domain.user.UserRepository

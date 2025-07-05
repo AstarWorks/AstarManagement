@@ -1,9 +1,9 @@
 package dev.ryuzu.astermanagement.domain
 
-import dev.ryuzu.astermanagement.domain.matter.Matter
-import dev.ryuzu.astermanagement.domain.matter.MatterPriority
-import dev.ryuzu.astermanagement.domain.matter.MatterRepository
-import dev.ryuzu.astermanagement.domain.matter.MatterStatus
+import dev.ryuzu.astermanagement.modules.matter.domain.Matter
+import dev.ryuzu.astermanagement.modules.matter.domain.MatterPriority
+import dev.ryuzu.astermanagement.modules.matter.domain.MatterRepository
+import dev.ryuzu.astermanagement.modules.matter.domain.MatterStatus
 import dev.ryuzu.astermanagement.domain.matter.MatterStatusHistoryRepository
 import dev.ryuzu.astermanagement.domain.user.User
 import dev.ryuzu.astermanagement.domain.user.UserRepository

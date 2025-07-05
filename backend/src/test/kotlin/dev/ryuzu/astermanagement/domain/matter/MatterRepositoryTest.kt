@@ -1,6 +1,10 @@
 package dev.ryuzu.astermanagement.domain.matter
 
 import dev.ryuzu.astermanagement.domain.user.User
+import dev.ryuzu.astermanagement.modules.matter.domain.Matter
+import dev.ryuzu.astermanagement.modules.matter.domain.MatterRepository
+import dev.ryuzu.astermanagement.modules.matter.domain.MatterStatus
+import dev.ryuzu.astermanagement.modules.matter.domain.MatterPriority
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired

@@ -1,8 +1,8 @@
 package dev.ryuzu.astermanagement.repository
 
-import dev.ryuzu.astermanagement.domain.matter.Matter
-import dev.ryuzu.astermanagement.domain.matter.MatterRepository
-import dev.ryuzu.astermanagement.domain.matter.MatterStatus
+import dev.ryuzu.astermanagement.modules.matter.domain.Matter
+import dev.ryuzu.astermanagement.modules.matter.domain.MatterRepository
+import dev.ryuzu.astermanagement.modules.matter.domain.MatterStatus
 import dev.ryuzu.astermanagement.domain.user.User
 import dev.ryuzu.astermanagement.domain.user.UserRepository
 import dev.ryuzu.astermanagement.testutil.TestDataFactory

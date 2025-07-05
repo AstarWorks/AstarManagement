@@ -214,7 +214,8 @@ class MatterServiceImpl(
             .filter { it.clientId == clientId }
             .let { matters ->
                 // Convert to Page manually (simplified for this implementation)
-                org.springframework.data.domain.PageImpl(matters.toList(), pageable, matters.size.toLong())
+                val mattersList = matters.toList()
+                org.springframework.data.domain.PageImpl(mattersList, pageable, mattersList.size.toLong())
             }
     }
 

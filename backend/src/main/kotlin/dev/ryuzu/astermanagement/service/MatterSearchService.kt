@@ -1,7 +1,7 @@
 package dev.ryuzu.astermanagement.service
 
-import dev.ryuzu.astermanagement.domain.matter.Matter
-import dev.ryuzu.astermanagement.domain.matter.MatterRepository
+import dev.ryuzu.astermanagement.modules.matter.domain.Matter
+import dev.ryuzu.astermanagement.modules.matter.domain.MatterRepository
 import dev.ryuzu.astermanagement.dto.matter.*
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
@@ -252,8 +252,8 @@ class MatterSearchService(
                 caseNumber = row[1] as String,
                 title = row[2] as String,
                 clientName = row[5] as String,
-                status = dev.ryuzu.astermanagement.domain.matter.MatterStatus.valueOf(row[6] as String),
-                priority = dev.ryuzu.astermanagement.domain.matter.MatterPriority.valueOf(row[7] as String),
+                status = dev.ryuzu.astermanagement.modules.matter.domain.MatterStatus.valueOf(row[6] as String),
+                priority = dev.ryuzu.astermanagement.modules.matter.domain.MatterPriority.valueOf(row[7] as String),
                 highlights = highlights,
                 relevanceScore = (row[row.size - 4] as Number).toDouble(),
                 assignedLawyerName = null, // Would need join to get this

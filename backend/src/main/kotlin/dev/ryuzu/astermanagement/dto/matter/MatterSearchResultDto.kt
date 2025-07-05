@@ -1,7 +1,7 @@
 package dev.ryuzu.astermanagement.dto.matter
 
-import dev.ryuzu.astermanagement.domain.matter.MatterStatus
-import dev.ryuzu.astermanagement.domain.matter.MatterPriority
+import dev.ryuzu.astermanagement.modules.matter.domain.MatterStatus
+import dev.ryuzu.astermanagement.modules.matter.domain.MatterPriority
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*

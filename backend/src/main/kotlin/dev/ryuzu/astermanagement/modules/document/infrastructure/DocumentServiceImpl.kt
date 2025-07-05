@@ -188,11 +188,21 @@ class DocumentServiceImpl(
 
     @Transactional(readOnly = true)
     override fun getDocumentsByMatter(matterId: UUID, pageable: Pageable): Page<DocumentDTO> {
-        val matter = matterRepository.findById(matterId)
-            .orElseThrow { IllegalArgumentException("Matter not found") }
+        // Verify matter exists through Matter API
+        val matter = matterService.getMatterById(matterId)
+            ?: throw IllegalArgumentException("Matter not found")
         
-        return documentRepository.findByMatter(matter, pageable)
-            .map { it.toDTO() }
+        return documentRepository.searchDocuments(
+            fileName = null,
+            contentType = null,
+            status = null,
+            matterId = matterId,
+            uploadedBy = null,
+            tag = null,
+            fromDate = null,
+            toDate = null,
+            pageable = pageable
+        ).map { it.toDTO() }
     }
 
     @Transactional(readOnly = true)
@@ -218,7 +228,8 @@ class DocumentServiceImpl(
                 (tags == null || tags.any { tag -> doc.tags.contains(tag) })
             }
             .let { filteredDocs ->
-                org.springframework.data.domain.PageImpl(filteredDocs.toList(), pageable, filteredDocs.size.toLong())
+                val docsList = filteredDocs.toList()
+                org.springframework.data.domain.PageImpl(docsList, pageable, docsList.size.toLong())
             }
     }
 
@@ -277,24 +288,8 @@ class DocumentServiceImpl(
     }
 
     override fun associateDocumentWithMatter(documentId: UUID, matterId: UUID, userId: UUID): DocumentDTO {
-        val document = documentRepository.findById(documentId)
-            .orElseThrow { IllegalArgumentException("Document not found") }
-        val matter = matterRepository.findById(matterId)
-            .orElseThrow { IllegalArgumentException("Matter not found") }
-        
-        document.matter = matter
-        val savedDocument = documentRepository.save(document)
-        
-        // Publish association event
-        val event = DocumentAssociatedWithMatterEvent(
-            documentId = documentId,
-            matterId = matterId,
-            associationType = "attachment",
-            userId = userId
-        )
-        applicationEventPublisher.publishEvent(event)
-
-        return savedDocument.toDTO()
+        // TODO: Implement association after resolving Document-Matter entity relationship
+        throw NotImplementedError("Document-Matter association temporarily disabled during Spring Modulith migration")
     }
 
     override fun removeDocumentFromMatter(documentId: UUID, matterId: UUID, userId: UUID): DocumentDTO {

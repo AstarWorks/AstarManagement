@@ -1,6 +1,6 @@
 package dev.ryuzu.astermanagement.service
 
-import dev.ryuzu.astermanagement.domain.matter.MatterRepository
+import dev.ryuzu.astermanagement.modules.matter.domain.MatterRepository
 import dev.ryuzu.astermanagement.domain.user.UserRepository
 import dev.ryuzu.astermanagement.service.base.BaseService
 import org.slf4j.LoggerFactory

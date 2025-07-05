@@ -1,6 +1,6 @@
 package dev.ryuzu.astermanagement.dto.matter
 
-import dev.ryuzu.astermanagement.domain.matter.MatterStatus
+import dev.ryuzu.astermanagement.modules.matter.domain.MatterStatus
 import io.swagger.v3.oas.annotations.media.Schema
 
 /**

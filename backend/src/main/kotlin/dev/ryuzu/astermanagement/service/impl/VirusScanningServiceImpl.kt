@@ -1,6 +1,6 @@
 package dev.ryuzu.astermanagement.service.impl
 
-import dev.ryuzu.astermanagement.domain.document.DocumentRepository
+import dev.ryuzu.astermanagement.modules.document.domain.DocumentRepository
 import dev.ryuzu.astermanagement.service.VirusScanningService
 import dev.ryuzu.astermanagement.service.VirusScanResult
 import org.slf4j.LoggerFactory

@@ -1,6 +1,6 @@
 package dev.ryuzu.astermanagement.service.security
 
-import dev.ryuzu.astermanagement.domain.document.Document
+import dev.ryuzu.astermanagement.modules.document.domain.Document
 import dev.ryuzu.astermanagement.domain.user.User
 import dev.ryuzu.astermanagement.security.audit.impl.SecurityAuditLogger
 import org.slf4j.LoggerFactory

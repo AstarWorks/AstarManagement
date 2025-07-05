@@ -1,6 +1,8 @@
 package dev.ryuzu.astermanagement.domain.matter
 
 import dev.ryuzu.astermanagement.domain.user.User
+import dev.ryuzu.astermanagement.modules.matter.domain.Matter
+import dev.ryuzu.astermanagement.modules.matter.domain.MatterStatus
 import jakarta.persistence.*
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size

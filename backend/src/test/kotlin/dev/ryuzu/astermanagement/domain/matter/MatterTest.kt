@@ -1,6 +1,9 @@
 package dev.ryuzu.astermanagement.domain.matter
 
 import dev.ryuzu.astermanagement.domain.user.User
+import dev.ryuzu.astermanagement.modules.matter.domain.Matter
+import dev.ryuzu.astermanagement.modules.matter.domain.MatterStatus
+import dev.ryuzu.astermanagement.modules.matter.domain.MatterPriority
 import jakarta.validation.ConstraintViolation
 import jakarta.validation.Validation
 import jakarta.validation.Validator

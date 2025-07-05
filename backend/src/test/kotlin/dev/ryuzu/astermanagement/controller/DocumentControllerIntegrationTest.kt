@@ -1,10 +1,11 @@
 package dev.ryuzu.astermanagement.controller
 
-import dev.ryuzu.astermanagement.domain.document.DocumentRepository
-import dev.ryuzu.astermanagement.domain.document.DocumentStatus
-import dev.ryuzu.astermanagement.domain.matter.MatterRepository
+import dev.ryuzu.astermanagement.modules.document.domain.DocumentRepository
+import dev.ryuzu.astermanagement.modules.document.domain.DocumentStatus
+import dev.ryuzu.astermanagement.modules.matter.domain.MatterRepository
 import dev.ryuzu.astermanagement.domain.user.UserRepository
-import dev.ryuzu.astermanagement.service.DocumentService
+import dev.ryuzu.astermanagement.modules.document.api.DocumentService
+import dev.ryuzu.astermanagement.modules.document.api.dto.*
 // import dev.ryuzu.astermanagement.test.SecurityTestConfiguration
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

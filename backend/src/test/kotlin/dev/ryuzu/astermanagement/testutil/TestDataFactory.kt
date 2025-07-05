@@ -1,7 +1,7 @@
 package dev.ryuzu.astermanagement.testutil
 
-import dev.ryuzu.astermanagement.domain.matter.Matter
-import dev.ryuzu.astermanagement.domain.matter.MatterStatus
+import dev.ryuzu.astermanagement.modules.matter.domain.Matter
+import dev.ryuzu.astermanagement.modules.matter.domain.MatterStatus
 import dev.ryuzu.astermanagement.domain.user.User
 import dev.ryuzu.astermanagement.domain.user.UserRole
 import dev.ryuzu.astermanagement.dto.matter.CreateMatterRequest

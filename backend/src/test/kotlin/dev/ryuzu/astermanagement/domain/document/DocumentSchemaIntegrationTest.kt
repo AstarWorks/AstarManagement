@@ -1,9 +1,9 @@
 package dev.ryuzu.astermanagement.domain.document
 
-import dev.ryuzu.astermanagement.domain.matter.Matter
-import dev.ryuzu.astermanagement.domain.matter.MatterPriority
-import dev.ryuzu.astermanagement.domain.matter.MatterRepository
-import dev.ryuzu.astermanagement.domain.matter.MatterStatus
+import dev.ryuzu.astermanagement.modules.matter.domain.Matter
+import dev.ryuzu.astermanagement.modules.matter.domain.MatterPriority
+import dev.ryuzu.astermanagement.modules.matter.domain.MatterRepository
+import dev.ryuzu.astermanagement.modules.matter.domain.MatterStatus
 import dev.ryuzu.astermanagement.domain.user.User
 import dev.ryuzu.astermanagement.domain.user.UserRepository
 import dev.ryuzu.astermanagement.domain.user.UserRole
@@ -17,6 +17,12 @@ import org.testcontainers.junit.jupiter.Testcontainers
 import java.time.LocalDate
 import java.util.*
 import kotlin.test.*
+import dev.ryuzu.astermanagement.modules.document.domain.Document
+import dev.ryuzu.astermanagement.modules.document.domain.DocumentCategory
+import dev.ryuzu.astermanagement.modules.document.domain.DocumentCategoryType
+import dev.ryuzu.astermanagement.modules.document.domain.DocumentStatus
+import dev.ryuzu.astermanagement.modules.document.domain.DocumentTag
+import dev.ryuzu.astermanagement.modules.document.domain.TagCategory
 
 /**
  * Integration test for document schema and entity relationships
@@ -36,13 +42,13 @@ class DocumentSchemaIntegrationTest {
     private lateinit var matterRepository: MatterRepository
 
     @Autowired
-    private lateinit var documentRepository: DocumentRepository
+    private lateinit var documentRepository: dev.ryuzu.astermanagement.modules.document.domain.DocumentRepository
 
     @Autowired
-    private lateinit var documentCategoryRepository: DocumentCategoryRepository
+    private lateinit var documentCategoryRepository: dev.ryuzu.astermanagement.modules.document.domain.DocumentCategoryRepository
 
     @Autowired
-    private lateinit var documentTagRepository: DocumentTagRepository
+    private lateinit var documentTagRepository: dev.ryuzu.astermanagement.modules.document.domain.DocumentTagRepository
 
     @Test
     fun `should create and persist document category with hierarchical structure`() {
