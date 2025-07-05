@@ -1,10 +1,11 @@
 package dev.ryuzu.astermanagement.auth.service
 
-import dev.ryuzu.astermanagement.domain.user.User
-import dev.ryuzu.astermanagement.domain.user.UserRole
+import dev.ryuzu.astermanagement.auth.dto.UserDto
+import dev.ryuzu.astermanagement.auth.dto.UserRoleDto
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
+import java.time.LocalDateTime
 import java.util.*
 
 /**
@@ -16,7 +17,7 @@ import java.util.*
  * account status checks.
  */
 class UserPrincipal(
-    private val user: User
+    private val user: UserDto
 ) : UserDetails {
 
     override fun getAuthorities(): Collection<GrantedAuthority> {
@@ -37,7 +38,7 @@ class UserPrincipal(
      */
     private fun getPermissionAuthorities(): List<GrantedAuthority> {
         return when (user.role) {
-            UserRole.LAWYER -> listOf(
+            UserRoleDto.LAWYER -> listOf(
                 // Matter permissions - full access
                 "matter:read", "matter:write", "matter:delete",
                 // Document permissions - full access
@@ -49,7 +50,7 @@ class UserPrincipal(
                 // Administrative permissions
                 "admin:users", "admin:roles", "export:data"
             )
-            UserRole.CLERK -> listOf(
+            UserRoleDto.CLERK -> listOf(
                 // Matter permissions - read and write but no delete
                 "matter:read", "matter:write",
                 // Document permissions - read and write but no delete
@@ -59,7 +60,7 @@ class UserPrincipal(
                 // Financial permissions - read and write but no approval
                 "expense:read", "expense:write"
             )
-            UserRole.CLIENT -> listOf(
+            UserRoleDto.CLIENT -> listOf(
                 // Matter permissions - read only their own
                 "matter:read",
                 // Document permissions - read only
@@ -82,7 +83,7 @@ class UserPrincipal(
     override fun getUsername(): String = user.email
 
     /**
-     * Account status checks - all delegated to User entity
+     * Account status checks - all delegated to UserDto
      */
     override fun isAccountNonExpired(): Boolean = true
     override fun isAccountNonLocked(): Boolean = user.isActive
@@ -95,7 +96,7 @@ class UserPrincipal(
     val id: UUID? = user.id
     val email: String = user.email
     val fullName: String = user.fullName
-    val role: UserRole = user.role
+    val role: UserRoleDto = user.role
     val firstName: String = user.firstName
     val lastName: String = user.lastName
     val lastLoginAt = user.lastLoginAt
@@ -103,12 +104,12 @@ class UserPrincipal(
     /**
      * Convenience method to check if user has a specific role
      */
-    fun hasRole(role: UserRole): Boolean = this.role == role
+    fun hasRole(role: UserRoleDto): Boolean = this.role == role
 
     /**
      * Convenience method to check if user has any of the specified roles
      */
-    fun hasAnyRole(vararg roles: UserRole): Boolean = roles.contains(this.role)
+    fun hasAnyRole(vararg roles: UserRoleDto): Boolean = roles.contains(this.role)
 
     /**
      * Check if user has a specific permission
@@ -130,7 +131,7 @@ class UserPrincipal(
      * Factory method to create UserPrincipal from User entity
      */
     companion object {
-        fun create(user: User): UserPrincipal {
+        fun create(user: UserDto): UserPrincipal {
             return UserPrincipal(user)
         }
     }

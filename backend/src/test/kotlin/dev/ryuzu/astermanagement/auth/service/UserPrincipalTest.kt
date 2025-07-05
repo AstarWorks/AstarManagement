@@ -2,6 +2,8 @@ package dev.ryuzu.astermanagement.auth.service
 
 import dev.ryuzu.astermanagement.domain.user.User
 import dev.ryuzu.astermanagement.domain.user.UserRole
+import dev.ryuzu.astermanagement.auth.dto.UserRoleDto
+import dev.ryuzu.astermanagement.testutil.AuthTestHelper
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -15,13 +17,13 @@ class UserPrincipalTest {
         val user = createTestUser(UserRole.LAWYER)
         
         // When
-        val userPrincipal = UserPrincipal.create(user)
+        val userPrincipal = AuthTestHelper.createUserPrincipal(user)
         
         // Then
         assertEquals(user.id, userPrincipal.id)
         assertEquals(user.email, userPrincipal.email)
         assertEquals(user.fullName, userPrincipal.fullName)
-        assertEquals(user.role, userPrincipal.role)
+        assertEquals(AuthTestHelper.mapToDto(user.role), userPrincipal.role)
         assertEquals(user.email, userPrincipal.username)
         assertEquals(user.passwordHash, userPrincipal.password)
         assertTrue(userPrincipal.isEnabled)
@@ -32,7 +34,7 @@ class UserPrincipalTest {
     fun `should map lawyer role to correct authorities`() {
         // Given
         val user = createTestUser(UserRole.LAWYER)
-        val userPrincipal = UserPrincipal.create(user)
+        val userPrincipal = AuthTestHelper.createUserPrincipal(user)
         
         // When
         val authorities = userPrincipal.authorities.map { it.authority }.toSet()
@@ -60,7 +62,7 @@ class UserPrincipalTest {
     fun `should map clerk role to correct authorities`() {
         // Given
         val user = createTestUser(UserRole.CLERK)
-        val userPrincipal = UserPrincipal.create(user)
+        val userPrincipal = AuthTestHelper.createUserPrincipal(user)
         
         // When
         val authorities = userPrincipal.authorities.map { it.authority }.toSet()
@@ -86,7 +88,7 @@ class UserPrincipalTest {
     fun `should map client role to correct authorities`() {
         // Given
         val user = createTestUser(UserRole.CLIENT)
-        val userPrincipal = UserPrincipal.create(user)
+        val userPrincipal = AuthTestHelper.createUserPrincipal(user)
         
         // When
         val authorities = userPrincipal.authorities.map { it.authority }.toSet()
@@ -107,31 +109,31 @@ class UserPrincipalTest {
     fun `should check role correctly`() {
         // Given
         val lawyerUser = createTestUser(UserRole.LAWYER)
-        val lawyerPrincipal = UserPrincipal.create(lawyerUser)
+        val lawyerPrincipal = AuthTestHelper.createUserPrincipal(lawyerUser)
         
         // Then
-        assertTrue(lawyerPrincipal.hasRole(UserRole.LAWYER))
-        assertFalse(lawyerPrincipal.hasRole(UserRole.CLERK))
-        assertFalse(lawyerPrincipal.hasRole(UserRole.CLIENT))
+        assertTrue(lawyerPrincipal.hasRole(UserRoleDto.LAWYER))
+        assertFalse(lawyerPrincipal.hasRole(UserRoleDto.CLERK))
+        assertFalse(lawyerPrincipal.hasRole(UserRoleDto.CLIENT))
     }
 
     @Test
     fun `should check any role correctly`() {
         // Given
         val clerkUser = createTestUser(UserRole.CLERK)
-        val clerkPrincipal = UserPrincipal.create(clerkUser)
+        val clerkPrincipal = AuthTestHelper.createUserPrincipal(clerkUser)
         
         // Then
-        assertTrue(clerkPrincipal.hasAnyRole(UserRole.LAWYER, UserRole.CLERK))
-        assertTrue(clerkPrincipal.hasAnyRole(UserRole.CLERK, UserRole.CLIENT))
-        assertFalse(clerkPrincipal.hasAnyRole(UserRole.LAWYER, UserRole.CLIENT))
+        assertTrue(clerkPrincipal.hasAnyRole(UserRoleDto.LAWYER, UserRoleDto.CLERK))
+        assertTrue(clerkPrincipal.hasAnyRole(UserRoleDto.CLERK, UserRoleDto.CLIENT))
+        assertFalse(clerkPrincipal.hasAnyRole(UserRoleDto.LAWYER, UserRoleDto.CLIENT))
     }
 
     @Test
     fun `should check permissions correctly`() {
         // Given
         val lawyerUser = createTestUser(UserRole.LAWYER)
-        val lawyerPrincipal = UserPrincipal.create(lawyerUser)
+        val lawyerPrincipal = AuthTestHelper.createUserPrincipal(lawyerUser)
         
         // Then
         assertTrue(lawyerPrincipal.hasPermission("matter:read"))
@@ -144,7 +146,7 @@ class UserPrincipalTest {
     fun `should get permissions list correctly`() {
         // Given
         val clientUser = createTestUser(UserRole.CLIENT)
-        val clientPrincipal = UserPrincipal.create(clientUser)
+        val clientPrincipal = AuthTestHelper.createUserPrincipal(clientUser)
         
         // When
         val permissions = clientPrincipal.getPermissions()
@@ -163,7 +165,7 @@ class UserPrincipalTest {
         val user = createTestUser(UserRole.LAWYER).apply {
             isActive = false
         }
-        val userPrincipal = UserPrincipal.create(user)
+        val userPrincipal = AuthTestHelper.createUserPrincipal(user)
         
         // Then
         assertFalse(userPrincipal.isEnabled)
@@ -174,7 +176,7 @@ class UserPrincipalTest {
     fun `should return correct string representation`() {
         // Given
         val user = createTestUser(UserRole.LAWYER)
-        val userPrincipal = UserPrincipal.create(user)
+        val userPrincipal = AuthTestHelper.createUserPrincipal(user)
         
         // When
         val stringRepresentation = userPrincipal.toString()
@@ -192,7 +194,7 @@ class UserPrincipalTest {
     fun `should handle account status methods correctly`() {
         // Given
         val user = createTestUser(UserRole.CLERK)
-        val userPrincipal = UserPrincipal.create(user)
+        val userPrincipal = AuthTestHelper.createUserPrincipal(user)
         
         // Then
         assertTrue(userPrincipal.isAccountNonExpired) // Always true in our implementation

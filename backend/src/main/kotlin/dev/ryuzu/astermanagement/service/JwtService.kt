@@ -232,9 +232,9 @@ class JwtService(
                 return null
             }
             
-            // Create a minimal User object from token claims
-            val user = createUserFromTokenClaims(jwt)
-            UserPrincipal.create(user)
+            // Create a minimal UserDto object from token claims
+            val userDto = createUserDtoFromTokenClaims(jwt)
+            UserPrincipal.create(userDto)
         } catch (e: Exception) {
             null
         }
@@ -404,17 +404,19 @@ class JwtService(
      * Creates a minimal User object from JWT token claims
      * Used for token-based user principal creation
      */
-    private fun createUserFromTokenClaims(jwt: Jwt): User {
-        val user = User()
-        user.id = UUID.fromString(jwt.subject)
-        user.email = jwt.getClaimAsString("email") ?: ""
-        user.firstName = jwt.getClaimAsString("name")?.split(" ")?.firstOrNull() ?: ""
-        user.lastName = jwt.getClaimAsString("name")?.split(" ")?.drop(1)?.joinToString(" ") ?: ""
-        user.role = dev.ryuzu.astermanagement.domain.user.UserRole.valueOf(
-            jwt.getClaimAsString("role") ?: "CLIENT"
+    private fun createUserDtoFromTokenClaims(jwt: Jwt): dev.ryuzu.astermanagement.auth.dto.UserDto {
+        return dev.ryuzu.astermanagement.auth.dto.UserDto(
+            id = UUID.fromString(jwt.subject),
+            email = jwt.getClaimAsString("email") ?: "",
+            firstName = jwt.getClaimAsString("name")?.split(" ")?.firstOrNull() ?: "",
+            lastName = jwt.getClaimAsString("name")?.split(" ")?.drop(1)?.joinToString(" ") ?: "",
+            passwordHash = null, // Not stored in token
+            role = dev.ryuzu.astermanagement.auth.dto.UserRoleDto.valueOf(
+                jwt.getClaimAsString("role") ?: "CLIENT"
+            ),
+            isActive = true, // Token exists, so user was active when issued
+            lastLoginAt = null // Not stored in token
         )
-        user.isActive = true // Token exists, so user was active when issued
-        return user
     }
 
     /**

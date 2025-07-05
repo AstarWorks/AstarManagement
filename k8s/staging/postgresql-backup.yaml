@@ -1,0 +1,264 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgresql-backup
+  namespace: aster-staging
+  labels:
+    app: postgresql-backup
+    environment: staging
+    purpose: backup
+spec:
+  schedule: "0 3 * * *"  # Daily at 3 AM UTC
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        metadata:
+          labels:
+            app: postgresql-backup
+            environment: staging
+        spec:
+          serviceAccountName: aster-backend
+          restartPolicy: OnFailure
+          containers:
+          - name: backup
+            image: google/cloud-sdk:alpine
+            imagePullPolicy: IfNotPresent
+            env:
+            - name: PROJECT_ID
+              value: "PROJECT_ID"  # Replace with actual project ID
+            - name: INSTANCE_NAME
+              value: "aster-staging-postgres"
+            - name: DATABASE_NAME
+              value: "aster_management"
+            - name: BACKUP_BUCKET
+              value: "aster-staging-backups"
+            - name: BACKUP_PREFIX
+              value: "postgresql"
+            command:
+            - /bin/bash
+            - -c
+            - |
+              set -euo pipefail
+              
+              # Install PostgreSQL client
+              apk add --no-cache postgresql-client
+              
+              # Set backup filename with timestamp
+              TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+              BACKUP_FILE="${BACKUP_PREFIX}_${TIMESTAMP}.sql.gz"
+              
+              echo "Starting backup at $(date)"
+              echo "Backup file: ${BACKUP_FILE}"
+              
+              # Create backup using pg_dump via Cloud SQL Proxy
+              gcloud sql export sql ${INSTANCE_NAME} \
+                gs://${BACKUP_BUCKET}/${BACKUP_FILE} \
+                --database=${DATABASE_NAME} \
+                --project=${PROJECT_ID}
+              
+              if [ $? -eq 0 ]; then
+                echo "Backup completed successfully at $(date)"
+                
+                # Optional: Clean up old backups (keep last 30 days)
+                gsutil ls gs://${BACKUP_BUCKET}/${BACKUP_PREFIX}_* | \
+                head -n -30 | \
+                xargs -r gsutil rm
+                
+                echo "Old backups cleaned up"
+              else
+                echo "Backup failed at $(date)"
+                exit 1
+              fi
+            resources:
+              requests:
+                memory: "256Mi"
+                cpu: "100m"
+              limits:
+                memory: "512Mi"
+                cpu: "500m"
+            securityContext:
+              runAsNonRoot: true
+              runAsUser: 1000
+              readOnlyRootFilesystem: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                - ALL
+            volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          volumes:
+          - name: tmp
+            emptyDir: {}
+          securityContext:
+            fsGroup: 1000
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backup-restore-scripts
+  namespace: aster-staging
+  labels:
+    app: postgresql-backup
+    environment: staging
+data:
+  restore.sh: |
+    #!/bin/bash
+    set -euo pipefail
+    
+    # Usage: ./restore.sh <backup_file>
+    # Example: ./restore.sh postgresql_20231201_030000.sql.gz
+    
+    if [ $# -ne 1 ]; then
+      echo "Usage: $0 <backup_file>"
+      echo "Available backups:"
+      gsutil ls gs://${BACKUP_BUCKET}/${BACKUP_PREFIX}_*
+      exit 1
+    fi
+    
+    BACKUP_FILE=$1
+    PROJECT_ID=${PROJECT_ID:-"your-project-id"}
+    INSTANCE_NAME=${INSTANCE_NAME:-"aster-staging-postgres"}
+    DATABASE_NAME=${DATABASE_NAME:-"aster_management"}
+    BACKUP_BUCKET=${BACKUP_BUCKET:-"aster-staging-backups"}
+    
+    echo "Starting restore from ${BACKUP_FILE} at $(date)"
+    
+    # Download backup file
+    gsutil cp gs://${BACKUP_BUCKET}/${BACKUP_FILE} /tmp/${BACKUP_FILE}
+    
+    # Import backup to Cloud SQL
+    gcloud sql import sql ${INSTANCE_NAME} \
+      gs://${BACKUP_BUCKET}/${BACKUP_FILE} \
+      --database=${DATABASE_NAME} \
+      --project=${PROJECT_ID}
+    
+    if [ $? -eq 0 ]; then
+      echo "Restore completed successfully at $(date)"
+    else
+      echo "Restore failed at $(date)"
+      exit 1
+    fi
+  
+  manual-backup.sh: |
+    #!/bin/bash
+    set -euo pipefail
+    
+    # Manual backup script for one-off backups
+    PROJECT_ID=${PROJECT_ID:-"your-project-id"}
+    INSTANCE_NAME=${INSTANCE_NAME:-"aster-staging-postgres"}
+    DATABASE_NAME=${DATABASE_NAME:-"aster_management"}
+    BACKUP_BUCKET=${BACKUP_BUCKET:-"aster-staging-backups"}
+    BACKUP_PREFIX=${BACKUP_PREFIX:-"postgresql-manual"}
+    
+    TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+    BACKUP_FILE="${BACKUP_PREFIX}_${TIMESTAMP}.sql.gz"
+    
+    echo "Creating manual backup: ${BACKUP_FILE}"
+    
+    gcloud sql export sql ${INSTANCE_NAME} \
+      gs://${BACKUP_BUCKET}/${BACKUP_FILE} \
+      --database=${DATABASE_NAME} \
+      --project=${PROJECT_ID}
+    
+    echo "Manual backup completed: gs://${BACKUP_BUCKET}/${BACKUP_FILE}"
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: create-backup-bucket
+  namespace: aster-staging
+  labels:
+    app: postgresql-backup
+    environment: staging
+    purpose: setup
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: postgresql-backup
+        environment: staging
+    spec:
+      serviceAccountName: aster-backend
+      restartPolicy: OnFailure
+      containers:
+      - name: setup
+        image: google/cloud-sdk:alpine
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: PROJECT_ID
+          value: "PROJECT_ID"  # Replace with actual project ID
+        - name: BACKUP_BUCKET
+          value: "aster-staging-backups"
+        - name: REGION
+          value: "us-central1"
+        command:
+        - /bin/bash
+        - -c
+        - |
+          set -euo pipefail
+          
+          echo "Creating backup bucket: ${BACKUP_BUCKET}"
+          
+          # Create bucket if it doesn't exist
+          if ! gsutil ls gs://${BACKUP_BUCKET} >/dev/null 2>&1; then
+            gsutil mb -p ${PROJECT_ID} -c STANDARD -l ${REGION} gs://${BACKUP_BUCKET}
+            echo "Backup bucket created"
+          else
+            echo "Backup bucket already exists"
+          fi
+          
+          # Set lifecycle policy to delete objects after 90 days
+          cat > /tmp/lifecycle.json << EOF
+          {
+            "lifecycle": {
+              "rule": [
+                {
+                  "action": {"type": "Delete"},
+                  "condition": {"age": 90}
+                }
+              ]
+            }
+          }
+          EOF
+          
+          gsutil lifecycle set /tmp/lifecycle.json gs://${BACKUP_BUCKET}
+          echo "Lifecycle policy applied"
+          
+          # Set appropriate permissions
+          gsutil iam ch serviceAccount:aster-staging-backend@${PROJECT_ID}.iam.gserviceaccount.com:objectAdmin gs://${BACKUP_BUCKET}
+          echo "Permissions set"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      securityContext:
+        fsGroup: 1000
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault

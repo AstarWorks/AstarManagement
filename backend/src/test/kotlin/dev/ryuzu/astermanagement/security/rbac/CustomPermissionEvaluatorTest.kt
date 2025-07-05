@@ -1,11 +1,13 @@
 package dev.ryuzu.astermanagement.security.rbac
 
 import dev.ryuzu.astermanagement.domain.user.UserRole
+import dev.ryuzu.astermanagement.auth.dto.UserRoleDto
 import dev.ryuzu.astermanagement.security.rbac.entity.Permission
 import dev.ryuzu.astermanagement.security.rbac.service.CustomPermissionEvaluator
 import dev.ryuzu.astermanagement.security.rbac.service.PermissionService
 import dev.ryuzu.astermanagement.security.rbac.repository.UserRoleRepository
 import dev.ryuzu.astermanagement.auth.service.UserPrincipal
+import dev.ryuzu.astermanagement.testutil.AuthTestHelper
 import io.mockk.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -48,13 +50,13 @@ class CustomPermissionEvaluatorTest {
         
         every { authentication.principal } returns userPrincipal
         every { userPrincipal.id } returns userId
-        every { userPrincipal.role } returns UserRole.LAWYER
+        every { userPrincipal.role } returns UserRoleDto.LAWYER
     }
 
     @Test
     fun `should grant MATTER_CREATE permission to LAWYER`() {
         // Arrange
-        every { userPrincipal.role } returns UserRole.LAWYER
+        every { userPrincipal.role } returns UserRoleDto.LAWYER
         
         // Act
         val hasPermission = permissionEvaluator.hasPermission(
@@ -70,7 +72,7 @@ class CustomPermissionEvaluatorTest {
     @Test
     fun `should grant MATTER_CREATE permission to CLERK`() {
         // Arrange
-        every { userPrincipal.role } returns UserRole.CLERK
+        every { userPrincipal.role } returns UserRoleDto.CLERK
         
         // Act
         val hasPermission = permissionEvaluator.hasPermission(
@@ -86,7 +88,7 @@ class CustomPermissionEvaluatorTest {
     @Test
     fun `should deny MATTER_CREATE permission to CLIENT`() {
         // Arrange
-        every { userPrincipal.role } returns UserRole.CLIENT
+        every { userPrincipal.role } returns UserRoleDto.CLIENT
         
         // Act
         val hasPermission = permissionEvaluator.hasPermission(
@@ -102,7 +104,7 @@ class CustomPermissionEvaluatorTest {
     @Test
     fun `should deny MATTER_DELETE permission to CLERK`() {
         // Arrange
-        every { userPrincipal.role } returns UserRole.CLERK
+        every { userPrincipal.role } returns UserRoleDto.CLERK
         
         // Act
         val hasPermission = permissionEvaluator.hasPermission(
@@ -118,7 +120,7 @@ class CustomPermissionEvaluatorTest {
     @Test
     fun `should grant MATTER_DELETE permission to LAWYER`() {
         // Arrange
-        every { userPrincipal.role } returns UserRole.LAWYER
+        every { userPrincipal.role } returns UserRoleDto.LAWYER
         
         // Act
         val hasPermission = permissionEvaluator.hasPermission(
@@ -134,7 +136,7 @@ class CustomPermissionEvaluatorTest {
     @Test
     fun `should deny DOCUMENT_CREATE permission to CLIENT`() {
         // Arrange
-        every { userPrincipal.role } returns UserRole.CLIENT
+        every { userPrincipal.role } returns UserRoleDto.CLIENT
         
         // Act
         val hasPermission = permissionEvaluator.hasPermission(
@@ -151,7 +153,7 @@ class CustomPermissionEvaluatorTest {
     fun `should handle resource-specific MATTER permissions for CLIENT when they own the matter`() {
         // Arrange
         val matterId = UUID.randomUUID()
-        every { userPrincipal.role } returns UserRole.CLIENT
+        every { userPrincipal.role } returns UserRoleDto.CLIENT
         every { permissionService.isClientMatterOwnerById(any(), any()) } returns true
         
         // Act
@@ -171,7 +173,7 @@ class CustomPermissionEvaluatorTest {
     fun `should deny resource-specific MATTER permissions for CLIENT when they don't own the matter`() {
         // Arrange
         val matterId = UUID.randomUUID()
-        every { userPrincipal.role } returns UserRole.CLIENT
+        every { userPrincipal.role } returns UserRoleDto.CLIENT
         every { permissionService.isClientMatterOwnerById(any(), any()) } returns false
         
         // Act
@@ -191,7 +193,7 @@ class CustomPermissionEvaluatorTest {
     fun `should handle resource-specific DOCUMENT permissions for CLIENT when they own the document`() {
         // Arrange
         val documentId = UUID.randomUUID()
-        every { userPrincipal.role } returns UserRole.CLIENT
+        every { userPrincipal.role } returns UserRoleDto.CLIENT
         every { permissionService.isClientDocumentOwnerById(any(), any()) } returns true
         
         // Act
@@ -210,7 +212,7 @@ class CustomPermissionEvaluatorTest {
     @Test
     fun `should handle invalid permission gracefully`() {
         // Arrange
-        every { userPrincipal.role } returns UserRole.LAWYER
+        every { userPrincipal.role } returns UserRoleDto.LAWYER
         
         // Act
         val hasPermission = permissionEvaluator.hasPermission(
@@ -242,7 +244,7 @@ class CustomPermissionEvaluatorTest {
     @Test
     fun `should handle null permission gracefully`() {
         // Arrange
-        every { userPrincipal.role } returns UserRole.LAWYER
+        every { userPrincipal.role } returns UserRoleDto.LAWYER
         
         // Act
         val hasPermission = permissionEvaluator.hasPermission(
@@ -259,7 +261,7 @@ class CustomPermissionEvaluatorTest {
     fun `should allow LAWYER access to all documents regardless of ownership`() {
         // Arrange
         val documentId = UUID.randomUUID()
-        every { userPrincipal.role } returns UserRole.LAWYER
+        every { userPrincipal.role } returns UserRoleDto.LAWYER
         
         // Act
         val hasPermission = permissionEvaluator.hasPermission(
@@ -279,7 +281,7 @@ class CustomPermissionEvaluatorTest {
     fun `should allow CLERK access to all documents regardless of ownership`() {
         // Arrange
         val documentId = UUID.randomUUID()
-        every { userPrincipal.role } returns UserRole.CLERK
+        every { userPrincipal.role } returns UserRoleDto.CLERK
         
         // Act
         val hasPermission = permissionEvaluator.hasPermission(
@@ -299,7 +301,7 @@ class CustomPermissionEvaluatorTest {
     fun `should allow LAWYER access to all matters regardless of ownership`() {
         // Arrange
         val matterId = UUID.randomUUID()
-        every { userPrincipal.role } returns UserRole.LAWYER
+        every { userPrincipal.role } returns UserRoleDto.LAWYER
         
         // Act
         val hasPermission = permissionEvaluator.hasPermission(
@@ -319,7 +321,7 @@ class CustomPermissionEvaluatorTest {
     fun `should allow CLERK access to all matters regardless of ownership`() {
         // Arrange
         val matterId = UUID.randomUUID()
-        every { userPrincipal.role } returns UserRole.CLERK
+        every { userPrincipal.role } returns UserRoleDto.CLERK
         
         // Act
         val hasPermission = permissionEvaluator.hasPermission(
@@ -339,7 +341,7 @@ class CustomPermissionEvaluatorTest {
     fun `should handle communication permissions correctly for LAWYER`() {
         // Arrange
         val communicationId = UUID.randomUUID()
-        every { userPrincipal.role } returns UserRole.LAWYER
+        every { userPrincipal.role } returns UserRoleDto.LAWYER
         
         // Act
         val hasPermission = permissionEvaluator.hasPermission(
@@ -359,7 +361,7 @@ class CustomPermissionEvaluatorTest {
     fun `should handle communication permissions correctly for CLIENT`() {
         // Arrange
         val communicationId = UUID.randomUUID()
-        every { userPrincipal.role } returns UserRole.CLIENT
+        every { userPrincipal.role } returns UserRoleDto.CLIENT
         every { permissionService.isClientCommunicationOwnerById(any(), any()) } returns true
         
         // Act
@@ -379,7 +381,7 @@ class CustomPermissionEvaluatorTest {
     fun `should handle unknown resource type gracefully`() {
         // Arrange
         val resourceId = UUID.randomUUID()
-        every { userPrincipal.role } returns UserRole.LAWYER
+        every { userPrincipal.role } returns UserRoleDto.LAWYER
         
         // Act
         val hasPermission = permissionEvaluator.hasPermission(
@@ -396,7 +398,7 @@ class CustomPermissionEvaluatorTest {
     @Test
     fun `should handle null resource ID and type gracefully`() {
         // Arrange
-        every { userPrincipal.role } returns UserRole.LAWYER
+        every { userPrincipal.role } returns UserRoleDto.LAWYER
         
         // Act
         val hasPermission = permissionEvaluator.hasPermission(
@@ -413,7 +415,7 @@ class CustomPermissionEvaluatorTest {
     @Test
     fun `should properly evaluate CLERK permissions for DOCUMENT_UPDATE`() {
         // Arrange
-        every { userPrincipal.role } returns UserRole.CLERK
+        every { userPrincipal.role } returns UserRoleDto.CLERK
         
         // Act
         val hasPermission = permissionEvaluator.hasPermission(
@@ -429,7 +431,7 @@ class CustomPermissionEvaluatorTest {
     @Test
     fun `should properly deny CLIENT permissions for COMM_CREATE`() {
         // Arrange
-        every { userPrincipal.role } returns UserRole.CLIENT
+        every { userPrincipal.role } returns UserRoleDto.CLIENT
         
         // Act
         val hasPermission = permissionEvaluator.hasPermission(

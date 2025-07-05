@@ -1,7 +1,7 @@
 package dev.ryuzu.astermanagement.auth.util
 
+import dev.ryuzu.astermanagement.auth.dto.UserRoleDto
 import dev.ryuzu.astermanagement.auth.service.UserPrincipal
-import dev.ryuzu.astermanagement.domain.user.UserRole
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UserDetails
@@ -52,7 +52,7 @@ object AuthenticationUtils {
      * 
      * @return User role if authenticated, null otherwise
      */
-    fun getCurrentUserRole(): UserRole? {
+    fun getCurrentUserRoleDto(): UserRoleDto? {
         return getCurrentUser()?.role
     }
     
@@ -82,7 +82,7 @@ object AuthenticationUtils {
      * @param role The role to check
      * @return true if user has the role, false otherwise
      */
-    fun hasRole(role: UserRole): Boolean {
+    fun hasRole(role: UserRoleDto): Boolean {
         return getCurrentUser()?.hasRole(role) ?: false
     }
     
@@ -92,7 +92,7 @@ object AuthenticationUtils {
      * @param roles The roles to check
      * @return true if user has any of the roles, false otherwise
      */
-    fun hasAnyRole(vararg roles: UserRole): Boolean {
+    fun hasAnyRole(vararg roles: UserRoleDto): Boolean {
         return getCurrentUser()?.hasAnyRole(*roles) ?: false
     }
     
@@ -134,7 +134,7 @@ object AuthenticationUtils {
      * @return true if user is a lawyer, false otherwise
      */
     fun isLawyer(): Boolean {
-        return hasRole(UserRole.LAWYER)
+        return hasRole(UserRoleDto.LAWYER)
     }
     
     /**
@@ -143,7 +143,7 @@ object AuthenticationUtils {
      * @return true if user is a clerk, false otherwise
      */
     fun isClerk(): Boolean {
-        return hasRole(UserRole.CLERK)
+        return hasRole(UserRoleDto.CLERK)
     }
     
     /**
@@ -152,7 +152,7 @@ object AuthenticationUtils {
      * @return true if user is a client, false otherwise
      */
     fun isClient(): Boolean {
-        return hasRole(UserRole.CLIENT)
+        return hasRole(UserRoleDto.CLIENT)
     }
     
     /**
@@ -161,7 +161,7 @@ object AuthenticationUtils {
      * @return true if user is staff, false otherwise
      */
     fun isStaff(): Boolean {
-        return hasAnyRole(UserRole.LAWYER, UserRole.CLERK)
+        return hasAnyRole(UserRoleDto.LAWYER, UserRoleDto.CLERK)
     }
     
     /**

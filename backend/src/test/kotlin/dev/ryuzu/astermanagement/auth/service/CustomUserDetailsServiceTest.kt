@@ -3,6 +3,8 @@ package dev.ryuzu.astermanagement.auth.service
 import dev.ryuzu.astermanagement.domain.user.User
 import dev.ryuzu.astermanagement.domain.user.UserRepository
 import dev.ryuzu.astermanagement.domain.user.UserRole
+import dev.ryuzu.astermanagement.auth.dto.UserRoleDto
+import dev.ryuzu.astermanagement.testutil.AuthTestHelper
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -11,6 +13,7 @@ import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.whenever
 import org.springframework.security.core.userdetails.UsernameNotFoundException
+import java.time.LocalDateTime
 import java.util.*
 
 class CustomUserDetailsServiceTest {
@@ -75,9 +78,7 @@ class CustomUserDetailsServiceTest {
     fun `should load user by ID successfully`() {
         // Given
         val userId = UUID.randomUUID()
-        val user = createTestUser("test@example.com", UserRole.CLIENT, true).apply {
-            id = userId
-        }
+        val user = createTestUser("test@example.com", UserRole.CLIENT, true, userId)
         whenever(userRepository.findById(userId)).thenReturn(Optional.of(user))
 
         // When
@@ -117,7 +118,7 @@ class CustomUserDetailsServiceTest {
         // Then
         assertNotNull(userPrincipal)
         assertEquals(email, userPrincipal.email)
-        assertEquals(UserRole.LAWYER, userPrincipal.role)
+        assertEquals(UserRoleDto.LAWYER, userPrincipal.role)
         assertTrue(userPrincipal.isEnabled)
     }
 
@@ -175,8 +176,8 @@ class CustomUserDetailsServiceTest {
         val inactiveUserId = UUID.randomUUID()
         val nonexistentUserId = UUID.randomUUID()
         
-        val activeUser = createTestUser("active@example.com", UserRole.LAWYER, true)
-        val inactiveUser = createTestUser("inactive@example.com", UserRole.CLERK, false)
+        val activeUser = createTestUser("active@example.com", UserRole.LAWYER, true, activeUserId)
+        val inactiveUser = createTestUser("inactive@example.com", UserRole.CLERK, false, inactiveUserId)
         
         whenever(userRepository.findById(activeUserId)).thenReturn(Optional.of(activeUser))
         whenever(userRepository.findById(inactiveUserId)).thenReturn(Optional.of(inactiveUser))
@@ -192,9 +193,7 @@ class CustomUserDetailsServiceTest {
     fun `should handle null password hash`() {
         // Given
         val email = "nullpassword@example.com"
-        val user = createTestUser(email, UserRole.CLIENT, true).apply {
-            passwordHash = null
-        }
+        val user = createTestUser(email, UserRole.CLIENT, true, passwordHash = null)
         whenever(userRepository.findByEmail(email)).thenReturn(user)
 
         // When
@@ -204,15 +203,25 @@ class CustomUserDetailsServiceTest {
         assertEquals("", userDetails.password)
     }
 
-    private fun createTestUser(email: String, role: UserRole, isActive: Boolean): User {
+    private fun createTestUser(
+        email: String, 
+        role: UserRole, 
+        isActive: Boolean, 
+        id: UUID = UUID.randomUUID(),
+        passwordHash: String? = "hashedPassword123"
+    ): User {
         return User().apply {
-            id = UUID.randomUUID()
+            this.id = id
             this.email = email
-            firstName = "Test"
-            lastName = "User"
+            this.username = email
+            this.firstName = "Test"
+            this.lastName = "User"
+            this.passwordHash = passwordHash
             this.role = role
-            passwordHash = "hashedPassword123"
             this.isActive = isActive
+            this.lastLoginAt = null
+            this.createdAt = LocalDateTime.now()
+            this.updatedAt = LocalDateTime.now()
         }
     }
 }

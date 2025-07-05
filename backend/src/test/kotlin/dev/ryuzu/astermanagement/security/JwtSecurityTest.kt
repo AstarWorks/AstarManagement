@@ -7,6 +7,7 @@ import dev.ryuzu.astermanagement.domain.user.User
 import dev.ryuzu.astermanagement.domain.user.UserRepository
 import dev.ryuzu.astermanagement.domain.user.UserRole
 import dev.ryuzu.astermanagement.service.JwtService
+import dev.ryuzu.astermanagement.testutil.AuthTestHelper
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Test
@@ -378,7 +379,7 @@ class JwtSecurityTest {
         assertNotNull(userPrincipal)
         assertEquals(testLawyer.id, userPrincipal?.id)
         assertEquals(testLawyer.email, userPrincipal?.email)
-        assertEquals(testLawyer.role, userPrincipal?.role)
+        assertEquals(AuthTestHelper.mapToDto(testLawyer.role), userPrincipal?.role)
         assertEquals("${testLawyer.firstName} ${testLawyer.lastName}", userPrincipal?.fullName)
         
         // Verify permissions are correctly set
@@ -393,7 +394,7 @@ class JwtSecurityTest {
     fun `should validate token against user details`() {
         // Given
         val token = jwtService.generateAccessToken(testUser)
-        val userDetails = UserPrincipal.create(testUser)
+        val userDetails = AuthTestHelper.createUserPrincipal(testUser)
         
         // When/Then
         assertTrue(jwtService.validateToken(token, userDetails))
@@ -403,7 +404,7 @@ class JwtSecurityTest {
             id = UUID.randomUUID()
             username = "wrong.user"
         }
-        val wrongUserDetails = UserPrincipal.create(wrongUser)
+        val wrongUserDetails = AuthTestHelper.createUserPrincipal(wrongUser)
         
         assertFalse(jwtService.validateToken(token, wrongUserDetails))
     }

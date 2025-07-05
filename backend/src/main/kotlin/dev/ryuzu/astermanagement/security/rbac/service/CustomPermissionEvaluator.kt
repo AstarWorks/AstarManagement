@@ -174,11 +174,19 @@ class CustomPermissionEvaluator(
     }
 
     /**
+     * Helper function to get domain role from UserPrincipal
+     */
+    private fun getDomainRole(userPrincipal: UserPrincipal): UserRole {
+        return dev.ryuzu.astermanagement.domain.user.mapper.UserDtoMapper.mapRoleFromDto(userPrincipal.role)
+    }
+
+    /**
      * Check if user has permission based on their role.
      * Maps current UserRole enum to Permission flags.
      */
     private fun hasRoleBasedPermission(userPrincipal: UserPrincipal, permission: Permission): Boolean {
-        val rolePermissions = when (userPrincipal.role) {
+        val domainRole = getDomainRole(userPrincipal)
+        val rolePermissions = when (domainRole) {
             UserRole.LAWYER -> Permission.Companion.Defaults.LAWYER_PERMISSIONS
             UserRole.CLERK -> Permission.Companion.Defaults.CLERK_PERMISSIONS
             UserRole.CLIENT -> Permission.Companion.Defaults.CLIENT_PERMISSIONS
@@ -197,12 +205,12 @@ class CustomPermissionEvaluator(
         resource: Any
     ): Boolean {
         // For Lawyers and Clerks, allow access to all matters
-        if (userPrincipal.role == UserRole.LAWYER || userPrincipal.role == UserRole.CLERK) {
+        if (getDomainRole(userPrincipal) == UserRole.LAWYER || getDomainRole(userPrincipal) == UserRole.CLERK) {
             return true
         }
         
         // For Clients, check if they own the matter
-        if (userPrincipal.role == UserRole.CLIENT) {
+        if (getDomainRole(userPrincipal) == UserRole.CLIENT) {
             return permissionService.isClientMatterOwner(userPrincipal.id!!, resource)
         }
         
@@ -219,12 +227,12 @@ class CustomPermissionEvaluator(
         resource: Any
     ): Boolean {
         // For Lawyers and Clerks, allow access to all documents
-        if (userPrincipal.role == UserRole.LAWYER || userPrincipal.role == UserRole.CLERK) {
+        if (getDomainRole(userPrincipal) == UserRole.LAWYER || getDomainRole(userPrincipal) == UserRole.CLERK) {
             return true
         }
         
         // For Clients, check if they own the matter containing the document
-        if (userPrincipal.role == UserRole.CLIENT) {
+        if (getDomainRole(userPrincipal) == UserRole.CLIENT) {
             return permissionService.isClientDocumentOwner(userPrincipal.id!!, resource)
         }
         
@@ -241,12 +249,12 @@ class CustomPermissionEvaluator(
         resource: Any
     ): Boolean {
         // For Lawyers and Clerks, allow access to all communications
-        if (userPrincipal.role == UserRole.LAWYER || userPrincipal.role == UserRole.CLERK) {
+        if (getDomainRole(userPrincipal) == UserRole.LAWYER || getDomainRole(userPrincipal) == UserRole.CLERK) {
             return true
         }
         
         // For Clients, check if they own the matter containing the communication
-        if (userPrincipal.role == UserRole.CLIENT) {
+        if (getDomainRole(userPrincipal) == UserRole.CLIENT) {
             return permissionService.isClientCommunicationOwner(userPrincipal.id!!, resource)
         }
         
@@ -262,12 +270,12 @@ class CustomPermissionEvaluator(
         matterId: Serializable
     ): Boolean {
         // For Lawyers and Clerks, allow access to all matters
-        if (userPrincipal.role == UserRole.LAWYER || userPrincipal.role == UserRole.CLERK) {
+        if (getDomainRole(userPrincipal) == UserRole.LAWYER || getDomainRole(userPrincipal) == UserRole.CLERK) {
             return true
         }
         
         // For Clients, check if they own the matter
-        if (userPrincipal.role == UserRole.CLIENT) {
+        if (getDomainRole(userPrincipal) == UserRole.CLIENT) {
             return permissionService.isClientMatterOwnerById(userPrincipal.id!!, matterId)
         }
         
@@ -283,12 +291,12 @@ class CustomPermissionEvaluator(
         documentId: Serializable
     ): Boolean {
         // For Lawyers and Clerks, allow access to all documents
-        if (userPrincipal.role == UserRole.LAWYER || userPrincipal.role == UserRole.CLERK) {
+        if (getDomainRole(userPrincipal) == UserRole.LAWYER || getDomainRole(userPrincipal) == UserRole.CLERK) {
             return true
         }
         
         // For Clients, check if they own the matter containing the document
-        if (userPrincipal.role == UserRole.CLIENT) {
+        if (getDomainRole(userPrincipal) == UserRole.CLIENT) {
             return permissionService.isClientDocumentOwnerById(userPrincipal.id!!, documentId)
         }
         
@@ -304,12 +312,12 @@ class CustomPermissionEvaluator(
         communicationId: Serializable
     ): Boolean {
         // For Lawyers and Clerks, allow access to all communications
-        if (userPrincipal.role == UserRole.LAWYER || userPrincipal.role == UserRole.CLERK) {
+        if (getDomainRole(userPrincipal) == UserRole.LAWYER || getDomainRole(userPrincipal) == UserRole.CLERK) {
             return true
         }
         
         // For Clients, check if they own the matter containing the communication
-        if (userPrincipal.role == UserRole.CLIENT) {
+        if (getDomainRole(userPrincipal) == UserRole.CLIENT) {
             return permissionService.isClientCommunicationOwnerById(userPrincipal.id!!, communicationId)
         }
         

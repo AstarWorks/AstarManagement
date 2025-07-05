@@ -1,5 +1,6 @@
 package dev.ryuzu.astermanagement.auth.service
 
+import dev.ryuzu.astermanagement.domain.user.mapper.UserDtoMapper
 import dev.ryuzu.astermanagement.domain.user.UserRepository
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
@@ -48,7 +49,7 @@ class CustomUserDetailsService(
         }
         
         // Create and return UserPrincipal with user data and authorities
-        return UserPrincipal.create(user)
+        return UserPrincipal.create(UserDtoMapper.toDto(user))
     }
 
     /**
@@ -69,7 +70,7 @@ class CustomUserDetailsService(
         // Note: We don't check isActive here as this is for existing authenticated users
         // The JWT token validation should handle session validity
         
-        return UserPrincipal.create(user)
+        return UserPrincipal.create(UserDtoMapper.toDto(user))
     }
 
     /**
@@ -91,7 +92,7 @@ class CustomUserDetailsService(
             throw UsernameNotFoundException("User account is disabled or suspended: $email")
         }
         
-        return UserPrincipal.create(user)
+        return UserPrincipal.create(UserDtoMapper.toDto(user))
     }
 
     /**
