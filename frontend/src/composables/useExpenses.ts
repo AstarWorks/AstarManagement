@@ -278,8 +278,8 @@ export function useExpenseMutations() {
   }
 }
 
-// Approval Mutations
-export function useApprovalMutations() {
+// Expense Approval Mutations
+export function useExpenseApprovalMutations() {
   const queryClient = useQueryClient()
   
   const approveExpense = useMutation({
@@ -387,7 +387,7 @@ export function useApprovalMutations() {
 export function useExpense(id: MaybeRef<string>) {
   const query = useExpenseQuery(id)
   const mutations = useExpenseMutations()
-  const approvalMutations = useApprovalMutations()
+  const approvalMutations = useExpenseApprovalMutations()
   
   return {
     // Query data

@@ -22,12 +22,7 @@ export interface AnimationOptions {
   fill?: 'none' | 'forwards' | 'backwards' | 'both'
 }
 
-export interface PerformanceMetrics {
-  fps: number
-  frameTime: number
-  jankCount: number
-  isPerformant: boolean
-}
+import type { AnimationPerformanceMetrics } from '~/types/performance'
 
 /**
  * Main animation composable
@@ -39,11 +34,14 @@ export function useAnimations() {
   const prefersHighContrast = useMediaQuery(MOTION_QUERIES.prefersContrast)
   
   // Performance monitoring
-  const performanceMetrics = ref<PerformanceMetrics>({
+  const performanceMetrics = ref<AnimationPerformanceMetrics>({
     fps: 60,
     frameTime: 16,
     jankCount: 0,
-    isPerformant: true
+    isPerformant: true,
+    animationFrameTime: 16,
+    animationJankCount: 0,
+    lastAnimationDuration: 0
   })
   
   // Animation state

@@ -19,17 +19,17 @@ export interface NetworkQuality {
   saveData: boolean
 }
 
-export interface PerformanceMetrics {
+import type { PdfPerformanceMetrics } from '~/types/performance'
+
+export interface PdfStreamingMetrics extends PdfPerformanceMetrics {
   initialLoadTime: number
   pageLoadTimes: Record<number, number>
-  memoryUsage: number
-  networkLatency: number
   chunkLoadTimes: number[]
   errorCount: number
 }
 
 export interface StreamingOptions {
-  progressCallback?: (loaded: number, total: number, metrics?: PerformanceMetrics) => void
+  progressCallback?: (loaded: number, total: number, metrics?: PdfStreamingMetrics) => void
   qualityCallback?: (quality: NetworkQuality) => void
   errorCallback?: (error: Error) => void
 }
@@ -60,11 +60,20 @@ export function useAdvancedPdfStreaming() {
   })
 
   // Performance tracking state
-  const performanceMetrics = ref<PerformanceMetrics>({
+  const performanceMetrics = ref<PdfStreamingMetrics>({
+    // PdfPerformanceMetrics base properties
+    fps: 60,
+    frameTime: 16.67,
+    jankCount: 0,
+    isPerformant: true,
+    renderTime: 0,
+    loadTime: 0,
+    memoryUsage: 0,
+    pageCount: 0,
+    networkLatency: 0,
+    // PdfStreamingMetrics extended properties
     initialLoadTime: 0,
     pageLoadTimes: {},
-    memoryUsage: 0,
-    networkLatency: 0,
     chunkLoadTimes: [],
     errorCount: 0
   })
@@ -196,11 +205,11 @@ export function useAdvancedPdfStreaming() {
   /**
    * Calculate performance metrics from progress data
    */
-  const calculatePerformanceMetrics = (progress: { loaded: number; total: number }): PerformanceMetrics => {
+  const calculatePerformanceMetrics = (progress: { loaded: number; total: number }): PdfStreamingMetrics => {
     const currentTime = performance.now()
     const memoryInfo = (performance as any).memory
     
-    const metrics: PerformanceMetrics = {
+    const metrics: PdfStreamingMetrics = {
       ...performanceMetrics.value,
       memoryUsage: memoryInfo ? memoryInfo.usedJSHeapSize : 0,
       networkLatency: networkQuality.value.rtt
@@ -348,7 +357,7 @@ export function useAdvancedPdfStreaming() {
   /**
    * Get current performance metrics
    */
-  const getCurrentMetrics = (): PerformanceMetrics => {
+  const getCurrentMetrics = (): PdfStreamingMetrics => {
     return { ...performanceMetrics.value }
   }
 
@@ -357,10 +366,19 @@ export function useAdvancedPdfStreaming() {
    */
   const resetMetrics = () => {
     performanceMetrics.value = {
+      // PdfPerformanceMetrics base properties
+      fps: 60,
+      frameTime: 16.67,
+      jankCount: 0,
+      isPerformant: true,
+      renderTime: 0,
+      loadTime: 0,
+      memoryUsage: 0,
+      pageCount: 0,
+      networkLatency: 0,
+      // PdfStreamingMetrics extended properties
       initialLoadTime: 0,
       pageLoadTimes: {},
-      memoryUsage: 0,
-      networkLatency: 0,
       chunkLoadTimes: [],
       errorCount: 0
     }

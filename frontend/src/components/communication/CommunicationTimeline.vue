@@ -96,13 +96,13 @@ import { Button } from '~/components/ui/button'
 import { useCommunicationTimeline } from '~/composables/useCommunicationTimeline'
 import { useCommunicationFilters } from '~/composables/useCommunicationFilters'
 import {
-  TimelineFilters,
-  TimelineItem,
-  TimelineItemGroup,
-  TimelineSkeleton,
-  TimelineEmptyState,
-  TimelineLoadMore
-} from './timeline'
+  CommunicationTimelineFilters as TimelineFilters,
+  CommunicationTimelineItem as TimelineItem,
+  CommunicationTimelineItemGroup as TimelineItemGroup,
+  CommunicationTimelineSkeleton as TimelineSkeleton,
+  CommunicationTimelineEmptyState as TimelineEmptyState,
+  CommunicationTimelineLoadMore as TimelineLoadMore
+} from './communication-timeline'
 
 interface Props {
   matterId?: string

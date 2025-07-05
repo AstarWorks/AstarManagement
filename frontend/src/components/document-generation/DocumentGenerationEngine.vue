@@ -439,7 +439,7 @@ const canGenerate = computed(() => {
 })
 
 // Methods
-const selectTemplate = (template: Template): void => {
+const selectTemplate = (template: any): void => {
   selectedTemplate.value = template
   showTemplateSelector.value = false
   
@@ -449,7 +449,7 @@ const selectTemplate = (template: Template): void => {
   })
 }
 
-const selectMatter = (matter: Matter): void => {
+const selectMatter = (matter: any): void => {
   if (mode.value === 'batch') {
     // For batch mode, we would handle multiple matters differently
     selectedMatterIds.value = [matter.id]

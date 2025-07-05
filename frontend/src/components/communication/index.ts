@@ -4,5 +4,5 @@ export { default as CommunicationTabs } from './CommunicationTabs.vue'
 export { default as CommunicationHeader } from './CommunicationHeader.vue'
 export { default as CommunicationTimeline } from './CommunicationTimeline.vue'
 
-// Timeline components
-export * from './timeline'
+// Communication Timeline components
+export * from './communication-timeline'

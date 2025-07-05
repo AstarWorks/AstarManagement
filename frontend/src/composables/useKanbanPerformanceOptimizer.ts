@@ -15,19 +15,10 @@ import { debounce, throttle } from 'lodash-es'
 import type { MatterCard } from '~/types/kanban'
 import { needsNormalization, optimizePositions } from '~/utils/positionManager'
 
+import type { KanbanPerformanceMetrics, PerformanceConfig } from '~/types/performance'
+
 /**
- * Performance optimization configuration
- */
-export interface PerformanceConfig {
-  // Debouncing
-  dragDebounceMs: number
-  mutationDebounceMs: number
-  
-  // Throttling
-  renderThrottleMs: number
-  networkThrottleMs: number
-  
-  // Batching
+ * Performance optimization configuration extended for Kanban
   enableBatching: boolean
   batchSize: number
   batchDelayMs: number
@@ -115,6 +106,7 @@ const DEFAULT_CONFIG: PerformanceConfig = {
   networkThrottleMs: 200,
   enableBatching: true,
   batchSize: 10,
+  batchTimeoutMs: 500,
   batchDelayMs: 500,
   enableVirtualScrolling: true,
   virtualScrollThreshold: 100,
@@ -124,7 +116,13 @@ const DEFAULT_CONFIG: PerformanceConfig = {
   enableMonitoring: true,
   monitoringIntervalMs: 5000, // 5 seconds
   enableAutoOptimization: true,
+  performanceThreshold: 60, // 60 FPS
+  memoryThreshold: 100 * 1024 * 1024, // 100MB
+  jankThreshold: 16.67, // 16.67ms per frame
   optimizationThresholds: {
+    cpu: 70, // 70% CPU usage
+    memory: 80, // 80% memory usage
+    fps: 30, // 30 FPS minimum
     latency: 200,
     memoryUsage: 50 * 1024 * 1024, // 50MB
     operationCount: 100

@@ -5,9 +5,9 @@
  */
 
 export { default as MatterActivityTimeline } from './MatterActivityTimeline.vue'
-export { default as ActivityTimelineItem } from './ActivityTimelineItem.vue'
-export { default as ActivityFiltersComponent } from './ActivityFilters.vue'
-export { default as ActivityExportDialog } from './ActivityExportDialog.vue'
+export { default as MatterActivityTimelineItem } from './ActivityTimelineItem.vue'
+export { default as MatterActivityFiltersComponent } from './ActivityFilters.vue'
+export { default as MatterActivityExportDialog } from './ActivityExportDialog.vue'
 
 // Re-export types for convenience
 export type { 

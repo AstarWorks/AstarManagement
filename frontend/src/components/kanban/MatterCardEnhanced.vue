@@ -146,9 +146,11 @@ const exitEditMode = (save = false) => {
 
 const handleFieldChange = (field: string, value: unknown) => {
   if (field === 'priority') {
-    editValues.value[field] = value as "LOW" | "MEDIUM" | "HIGH" | "URGENT"
-  } else {
-    editValues.value[field as keyof typeof editValues.value] = value as string
+    editValues.value.priority = value as "LOW" | "MEDIUM" | "HIGH" | "URGENT"
+  } else if (field === 'title') {
+    editValues.value.title = value as string
+  } else if (field === 'description') {
+    editValues.value.description = value as string
   }
   
   // Reset auto-save timer
