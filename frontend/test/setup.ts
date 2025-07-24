@@ -1,310 +1,297 @@
-import { config } from '@vue/test-utils'
-import { vi, beforeEach, afterEach } from 'vitest'
-import { createApp } from 'vue'
+/**
+ * Vitest Test Setup
+ * テスト環境のセットアップファイル
+ */
 
-// Global test setup
+import { vi } from 'vitest'
+import { config } from '@vue/test-utils'
+
+// Vue Test Utils のグローバル設定
 config.global.stubs = {
-  // Stub Nuxt auto-imports - use component-like stubs instead of boolean
+  // Nuxt コンポーネントのスタブ
   NuxtLink: {
-    template: '<a><slot /></a>',
-    props: ['to', 'href']
+    template: '<a href="#"><slot /></a>',
+    props: ['to']
   },
-  NuxtPage: {
-    template: '<div><slot /></div>'
+  Icon: {
+    template: '<span data-testid="icon"><slot /></span>',
+    props: ['name']
   },
   ClientOnly: {
     template: '<div><slot /></div>'
-  },
-  // Stub common UI components that might cause issues
-  Teleport: {
-    template: '<div><slot /></div>',
-    props: ['to']
-  },
-  Transition: {
-    template: '<div><slot /></div>',
-    props: ['name', 'mode']
-  },
-  TransitionGroup: {
-    template: '<div><slot /></div>',
-    props: ['name', 'tag']
   }
 }
 
-// Create a test app instance for lifecycle management
-let testApp: any = null
-
-beforeEach(() => {
-  // Create a new app instance for each test to provide Vue context
-  testApp = createApp({})
-  vi.clearAllMocks()
-  vi.clearAllTimers()
+// グローバルモック
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: vi.fn().mockImplementation(query => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(), // deprecated
+    removeListener: vi.fn(), // deprecated
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })),
 })
 
-afterEach(() => {
-  // Clean up app instance
-  if (testApp) {
-    testApp.unmount?.()
-    testApp = null
-  }
-  vi.clearAllMocks()
-  vi.clearAllTimers()
-  vi.resetAllMocks()
-})
-
-// Mock window APIs that might not be available in test environment
-Object.defineProperty(window, 'navigator', {
+// localStorage のモック
+Object.defineProperty(window, 'localStorage', {
   value: {
-    onLine: true,
-    userAgent: 'test'
+    getItem: vi.fn(),
+    setItem: vi.fn(),
+    removeItem: vi.fn(),
+    clear: vi.fn(),
+    length: 0,
+    key: vi.fn(),
   },
-  writable: true
+  writable: true,
 })
 
-Object.defineProperty(window, 'location', {
+// sessionStorage のモック
+Object.defineProperty(window, 'sessionStorage', {
   value: {
-    href: 'http://localhost:3000',
-    origin: 'http://localhost:3000',
-    pathname: '/',
-    search: '',
-    hash: ''
+    getItem: vi.fn(),
+    setItem: vi.fn(),
+    removeItem: vi.fn(),
+    clear: vi.fn(),
+    length: 0,
+    key: vi.fn(),
   },
-  writable: true
+  writable: true,
 })
 
-// Mock Web APIs
-global.ResizeObserver = vi.fn().mockImplementation(() => ({
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-  disconnect: vi.fn()
-}))
-
+// IntersectionObserver のモック
 global.IntersectionObserver = vi.fn().mockImplementation(() => ({
   observe: vi.fn(),
   unobserve: vi.fn(),
-  disconnect: vi.fn()
+  disconnect: vi.fn(),
 }))
 
-// Mock WebSocket for real-time tests
-global.WebSocket = vi.fn().mockImplementation(() => ({
-  readyState: 1, // OPEN
-  send: vi.fn(),
-  close: vi.fn(),
-  addEventListener: vi.fn(),
-  removeEventListener: vi.fn(),
-  onopen: null,
-  onclose: null,
-  onmessage: null,
-  onerror: null
+// ResizeObserver のモック
+global.ResizeObserver = vi.fn().mockImplementation(() => ({
+  observe: vi.fn(),
+  unobserve: vi.fn(),
+  disconnect: vi.fn(),
 }))
 
-// Mock Nuxt composables to avoid conflicts
+// Nuxt 関数のモック
 vi.mock('#app', () => ({
-  definePageMeta: () => {},
-  defineNuxtConfig: (config: any) => config,
-  defineNuxtPlugin: (plugin: any) => plugin,
   navigateTo: vi.fn(),
-  useRoute: vi.fn(() => ({
-    path: '/',
-    params: {},
+  useRoute: () => ({
+    path: '/test',
     query: {},
-    meta: {}
-  })),
-  useRouter: vi.fn(() => ({
+    params: {},
+  }),
+  useRouter: () => ({
     push: vi.fn(),
     replace: vi.fn(),
     back: vi.fn(),
-    forward: vi.fn(),
-    go: vi.fn()
-  })),
-  useRuntimeConfig: vi.fn(() => ({
-    public: {
-      apiUrl: 'http://localhost:8080'
-    }
-  })),
-  useHead: vi.fn(),
-  useSeoMeta: vi.fn(),
-  useNuxtApp: vi.fn(() => ({
-    $fetch: vi.fn(() => Promise.resolve([])),
-    ssrContext: undefined,
-    isHydrating: false
-  }))
-}))
-
-// Mock $fetch and other server composables
-vi.mock('#imports', () => ({
-  $fetch: vi.fn(() => Promise.resolve([])),
-  useFetch: vi.fn(() => ({
-    data: { value: null },
-    pending: { value: false },
-    error: { value: null },
-    refresh: vi.fn(),
-    execute: vi.fn()
-  })),
-  useAsyncData: vi.fn(() => ({
-    data: { value: null },
-    pending: { value: false },
-    error: { value: null },
-    refresh: vi.fn(),
-    execute: vi.fn()
-  })),
-  useState: vi.fn((key: string, init?: any) => {
-    return { value: typeof init === 'function' ? init() : init }
   }),
-  useNuxtData: vi.fn(() => ({})),
-  useLazyFetch: vi.fn(() => ({
-    data: { value: null },
-    pending: { value: false },
-    error: { value: null },
-    refresh: vi.fn()
+  useHead: vi.fn(),
+  useCookie: vi.fn(() => ({
+    value: null,
   })),
-  useLazyAsyncData: vi.fn(() => ({
-    data: { value: null },
-    pending: { value: false },
-    error: { value: null },
-    refresh: vi.fn()
-  }))
+  useRuntimeConfig: () => ({
+    public: {
+      apiBase: 'http://localhost:8080/api',
+      showDebugInfo: false,
+    },
+  }),
+  defineNuxtRouteMiddleware: vi.fn((middleware) => middleware),
 }))
 
-// Mock TanStack Query
-vi.mock('@tanstack/vue-query', () => ({
-  useQuery: vi.fn(() => ({
-    data: { value: null },
-    isLoading: { value: false },
-    isError: { value: false },
-    error: { value: null },
-    refetch: vi.fn()
-  })),
-  useInfiniteQuery: vi.fn(() => ({
-    data: { value: null },
-    isLoading: { value: false },
-    isError: { value: false },
-    error: { value: null },
-    fetchNextPage: vi.fn(),
-    hasNextPage: { value: false }
-  })),
-  useMutation: vi.fn(() => ({
-    mutate: vi.fn(),
-    mutateAsync: vi.fn(),
-    isLoading: { value: false },
-    isError: { value: false },
-    error: { value: null }
-  })),
-  useQueryClient: vi.fn(() => ({
-    invalidateQueries: vi.fn(),
-    setQueryData: vi.fn(),
-    getQueryData: vi.fn(),
-    prefetchQuery: vi.fn()
-  })),
-  VueQueryPlugin: {},
-  QueryClient: vi.fn().mockImplementation(() => ({
-    invalidateQueries: vi.fn(),
-    setQueryData: vi.fn(),
-    getQueryData: vi.fn(),
-    prefetchQuery: vi.fn()
-  }))
+// Global Nuxt functions
+global.defineNuxtRouteMiddleware = vi.fn((middleware) => middleware)
+global.navigateTo = vi.fn()
+global.useAuthStore = vi.fn(() => ({
+  user: null,
+  isAuthenticated: false,
+  roles: [],
+  permissions: [],
+  status: 'idle',
+  login: vi.fn(),
+  logout: vi.fn(),
+  hasPermission: vi.fn(() => false),
+  hasRole: vi.fn(() => false),
+  hasAnyRole: vi.fn(() => false),
+  initialize: vi.fn(),
+  refreshToken: vi.fn(),
+  fetchUser: vi.fn(),
 }))
 
-// Enhanced fetch mock with better error handling
-const createMockFetch = () => {
-  return vi.fn().mockImplementation((url: string, options?: any) => {
-    // Simulate network delay
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
-          ok: true,
-          status: 200,
-          json: () => Promise.resolve([]),
-          text: () => Promise.resolve(''),
-          blob: () => Promise.resolve(new Blob()),
-          headers: new Headers(),
-          url,
-          statusText: 'OK'
-        })
-      }, 10) // Very short delay for tests
-    })
-  })
-}
-
-global.fetch = createMockFetch()
-global.$fetch = createMockFetch()
-
-// Mock Pinia for store tests
+// Pinia のモック
 vi.mock('pinia', () => ({
-  defineStore: vi.fn(() => vi.fn()),
-  createPinia: vi.fn(() => ({})),
+  defineStore: vi.fn(),
+  createPinia: vi.fn(),
   setActivePinia: vi.fn(),
-  getActivePinia: vi.fn(() => ({})),
-  storeToRefs: vi.fn((store) => store)
 }))
 
-// Mock VueUse composables - use partial mock approach to avoid missing exports
-vi.mock('@vueuse/core', async (importOriginal) => {
-  const actual = await importOriginal()
-  return {
-    ...actual,
-    // Override only the ones that need mocking
-    useEventListener: vi.fn(),
-    useWebSocket: vi.fn(() => ({
-      status: { value: 'CLOSED' },
-      data: { value: null },
-      send: vi.fn(),
-      close: vi.fn(),
-      open: vi.fn()
-    })),
-    useNetwork: vi.fn(() => ({
-      isOnline: { value: true },
-      effectiveType: { value: '4g' }
-    })),
-    useTimestamp: vi.fn(() => ({ timestamp: { value: Date.now() } })),
-    useLocalStorage: vi.fn((key, defaultValue) => ({
-      value: defaultValue
-    })),
-    useSessionStorage: vi.fn((key, defaultValue) => ({
-      value: defaultValue
-    })),
-    useDebounceFn: vi.fn((fn) => fn),
-    useThrottleFn: vi.fn((fn) => fn),
-    useBreakpoints: vi.fn(() => ({
-      smaller: vi.fn(() => ({ value: false })),
-      between: vi.fn(() => ({ value: false })),
-      greaterOrEqual: vi.fn(() => ({ value: true })),
-      active: vi.fn(() => ({ value: 'lg' })),
-      md: { value: false },
-      lg: { value: true },
-      xl: { value: false }
-    })),
-    useWindowSize: vi.fn(() => ({
-      width: { value: 1024 },
-      height: { value: 768 }
-    })),
-    useElementSize: vi.fn(() => ({
-      width: { value: 0 },
-      height: { value: 0 }
-    })),
-    useClickOutside: vi.fn(),
-    useFocus: vi.fn(() => ({ focused: { value: false } })),
-    useSwipe: vi.fn(() => ({
-      direction: { value: null },
-      lengthX: { value: 0 },
-      lengthY: { value: 0 },
-      isSwiping: { value: false }
-    })),
-    whenever: vi.fn(),
-    until: vi.fn(() => ({
-      toBe: vi.fn(() => Promise.resolve())
-    }))
+// Auth Store のモック
+vi.mock('~/stores/auth', () => ({
+  useAuthStore: () => ({
+    user: null,
+    isAuthenticated: false,
+    roles: [],
+    permissions: [],
+    login: vi.fn(),
+    logout: vi.fn(),
+    hasPermission: vi.fn(() => false),
+    hasRole: vi.fn(() => false),
+    hasAnyRole: vi.fn(() => false),
+  }),
+}))
+
+// Navigation Store のモック
+vi.mock('~/stores/navigation', () => ({
+  useNavigationStore: () => ({
+    isSidebarOpen: true,
+    isMobileMenuOpen: false,
+    breadcrumbs: [],
+    toggleSidebar: vi.fn(),
+    toggleMobileMenu: vi.fn(),
+    closeMobileMenu: vi.fn(),
+    setBreadcrumbs: vi.fn(),
+    generateBreadcrumbs: vi.fn(),
+    restoreSettings: vi.fn(),
+    setCurrentPath: vi.fn(),
+    addRecentlyVisited: vi.fn(),
+    mainNavigationItems: [],
+    adminNavigationItems: [],
+    userMenuItems: [],
+    filteredMainNavigation: [],
+    filteredAdminNavigation: [],
+    recentPages: [],
+  }),
+}))
+
+// UI Store のモック
+vi.mock('~/stores/ui', () => ({
+  useUIStore: () => ({
+    theme: 'light',
+    initializeTheme: vi.fn(),
+    setTheme: vi.fn(),
+  }),
+}))
+
+// MSW のモック
+vi.mock('../app/utils/msw', () => ({
+  setupMSW: vi.fn(),
+}))
+
+// shadcn-vue コンポーネントのモック
+vi.mock('@/components/ui/button', () => ({
+  Button: {
+    template: '<button><slot /></button>',
+    props: ['variant', 'size', 'disabled', 'class'],
+  },
+}))
+
+vi.mock('@/components/ui/card', () => ({
+  Card: {
+    template: '<div class="card"><slot /></div>',
+    props: ['class'],
+  },
+  CardHeader: {
+    template: '<div class="card-header"><slot /></div>',
+    props: ['class'],
+  },
+  CardTitle: {
+    template: '<h3 class="card-title"><slot /></h3>',
+    props: ['class'],
+  },
+  CardContent: {
+    template: '<div class="card-content"><slot /></div>',
+    props: ['class'],
+  },
+}))
+
+vi.mock('@/components/ui/input', () => ({
+  Input: {
+    template: '<input />',
+    props: ['type', 'placeholder', 'disabled', 'class', 'modelValue'],
+    emits: ['update:modelValue'],
+  },
+}))
+
+vi.mock('@/components/ui/label', () => ({
+  Label: {
+    template: '<label><slot /></label>',
+    props: ['for', 'class'],
+  },
+}))
+
+vi.mock('@/components/ui/badge', () => ({
+  Badge: {
+    template: '<span class="badge"><slot /></span>',
+    props: ['variant', 'class'],
+  },
+}))
+
+vi.mock('@/components/ui/avatar', () => ({
+  Avatar: {
+    template: '<div class="avatar"><slot /></div>',
+    props: ['class'],
+  },
+  AvatarImage: {
+    template: '<img />',
+    props: ['src', 'alt', 'class'],
+  },
+  AvatarFallback: {
+    template: '<div class="avatar-fallback"><slot /></div>',
+    props: ['class'],
+  },
+}))
+
+vi.mock('@/components/ui/tooltip', () => ({
+  Tooltip: {
+    template: '<div class="tooltip"><slot /></div>',
+    props: ['content'],
+  },
+}))
+
+vi.mock('@/components/ui/popover', () => ({
+  Popover: {
+    template: '<div class="popover"><slot /></div>',
+  },
+  PopoverTrigger: {
+    template: '<div class="popover-trigger"><slot /></div>',
+    props: ['asChild'],
+  },
+  PopoverContent: {
+    template: '<div class="popover-content"><slot /></div>',
+    props: ['side', 'class'],
+  },
+}))
+
+vi.mock('@/components/ui/collapsible', () => ({
+  Collapsible: {
+    template: '<div class="collapsible"><slot /></div>',
+    props: ['open'],
+    emits: ['update:open'],
+  },
+  CollapsibleContent: {
+    template: '<div class="collapsible-content"><slot /></div>',
+    props: ['class'],
+  },
+}))
+
+// Console をクリーンに保つため、テスト中の console.warn を抑制
+const originalWarn = console.warn
+beforeAll(() => {
+  console.warn = (...args: any[]) => {
+    if (
+      typeof args[0] === 'string' &&
+      args[0].includes('[Vue warn]')
+    ) {
+      return
+    }
+    originalWarn(...args)
   }
 })
 
-// Mock performance APIs
-if (typeof performance === 'undefined') {
-  global.performance = {
-    now: vi.fn(() => Date.now()),
-    mark: vi.fn(),
-    measure: vi.fn(),
-    getEntriesByType: vi.fn(() => []),
-    getEntriesByName: vi.fn(() => []),
-    clearMarks: vi.fn(),
-    clearMeasures: vi.fn()
-  } as any
-}
+afterAll(() => {
+  console.warn = originalWarn
+})

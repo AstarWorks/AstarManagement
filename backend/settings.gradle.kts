@@ -1,1 +1,1 @@
-rootProject.name = "AsterManagement"
+rootProject.name = "AstarManagement"

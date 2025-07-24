@@ -1,6 +1,0 @@
-export { default as CommunicationTimelineFilters } from './TimelineFilters.vue'
-export { default as CommunicationTimelineItem } from './TimelineItem.vue'
-export { default as CommunicationTimelineItemGroup } from './TimelineItemGroup.vue'
-export { default as CommunicationTimelineSkeleton } from './TimelineSkeleton.vue'
-export { default as CommunicationTimelineEmptyState } from './TimelineEmptyState.vue'
-export { default as CommunicationTimelineLoadMore } from './TimelineLoadMore.vue'

@@ -1,53 +1,34 @@
-import { defineConfig } from 'vitest/config'
+import {defineConfig} from 'vitest/config'
 import vue from '@vitejs/plugin-vue'
-import { resolve } from 'path'
+import {resolve} from 'path'
+import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
-  plugins: [vue()],
-  test: {
-    globals: true,
-    environment: 'happy-dom',
-    setupFiles: ['./test/setup.ts', './tests/integration/setup.ts'],
-    includeSource: ['src/**/*.{js,ts}'],
-    testTimeout: 10000, // Increase timeout to 10 seconds
-    hookTimeout: 10000, // Increase hook timeout
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html'],
-      exclude: [
-        'node_modules/',
-        'test/',
-        'coverage/',
-        '**/*.d.ts',
-        '**/*.config.{js,ts}',
-        '**/types/**',
-        '**/*.stories.{js,ts}',
-        'src/test/**'
-      ],
-      thresholds: {
-        global: {
-          branches: 70,
-          functions: 70,
-          lines: 70,
-          statements: 70
-        }
-      }
+    plugins: [
+        vue(),
+        tailwindcss()
+    ],
+    test: {
+        globals: true,
+        environment: 'happy-dom',
+        setupFiles: ['./test/setup.ts'],
+        include: [
+            '**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
+            '**/__tests__/**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'
+        ],
+        exclude: [
+            '**/node_modules/**',
+            '**/dist/**',
+            '**/cypress/**',
+            '**/.{idea,git,cache,output,temp}/**',
+            '**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build}.config.*',
+            '**/e2e/**'
+        ],
     },
-    pool: 'threads',
-    poolOptions: {
-      threads: {
-        singleThread: true // Help with async test issues
-      }
-    }
-  },
-  define: {
-    'import.meta.vitest': 'undefined'
-  },
-  resolve: {
-    alias: {
-      '~': resolve(__dirname, './src'),
-      '@': resolve(__dirname, './src'),
-      '@/test': resolve(__dirname, './tests')
-    }
-  }
+    resolve: {
+        alias: {
+            '~': resolve(__dirname, '.'),
+            '@': resolve(__dirname, '.'),
+        },
+    },
 })

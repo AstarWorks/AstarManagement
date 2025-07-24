@@ -1,17 +1,18 @@
 plugins {
-    kotlin("jvm") version "1.9.25"
-    kotlin("plugin.spring") version "1.9.25"
+    kotlin("jvm") version "2.1.0"
+    kotlin("plugin.spring") version "2.1.0"
+    kotlin("plugin.jpa") version "2.1.0"
     id("org.springframework.boot") version "3.5.0"
     id("io.spring.dependency-management") version "1.1.7"
     id("org.hibernate.orm") version "6.6.15.Final"
     id("org.graalvm.buildtools.native") version "0.10.6"
     id("org.asciidoctor.jvm.convert") version "3.3.2"
-    kotlin("plugin.jpa") version "1.9.25"
     jacoco
-    checkstyle
-    id("com.github.spotbugs") version "6.0.7"
-    id("org.owasp.dependencycheck") version "9.2.0"
-    pmd
+    id("org.jetbrains.kotlinx.kover") version "0.8.3"
+    id("io.gitlab.arturbosch.detekt") version "1.23.7"
+    id("com.github.spotbugs") version "6.0.24"
+    id("org.owasp.dependencycheck") version "11.1.0"
+    id("org.sonarqube") version "5.1.0.4882"
 }
 
 group = "dev.ryuzu"
@@ -28,8 +29,10 @@ repositories {
 }
 
 extra["snippetsDir"] = file("build/generated-snippets")
-extra["springAiVersion"] = "1.0.0"
+extra["springAiVersion"] = "1.0.0-M5"
 extra["springModulithVersion"] = "1.4.0"
+extra["postgresqlVersion"] = "42.7.4"
+extra["testcontainersVersion"] = "1.20.4"
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
@@ -77,7 +80,7 @@ dependencies {
     // Development
 //    developmentOnly("org.springframework.boot:spring-boot-devtools")
     developmentOnly("org.springframework.boot:spring-boot-docker-compose")
-    runtimeOnly("org.postgresql:postgresql")
+    runtimeOnly("org.postgresql:postgresql:${property("postgresqlVersion")}")
     runtimeOnly("com.h2database:h2") // For testing
     // developmentOnly("org.springframework.ai:spring-ai-spring-boot-docker-compose")
     runtimeOnly("org.springframework.modulith:spring-modulith-actuator")
@@ -95,7 +98,7 @@ dependencies {
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.testcontainers:postgresql")
-    testImplementation("org.testcontainers:minio:1.19.3")
+    testImplementation("org.testcontainers:minio")
     testImplementation("org.junit.jupiter:junit-jupiter-api")
     testImplementation("org.junit.jupiter:junit-jupiter-engine")
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.1.0")
@@ -113,6 +116,7 @@ dependencies {
 dependencyManagement {
     imports {
         mavenBom("org.springframework.modulith:spring-modulith-bom:${property("springModulithVersion")}")
+        mavenBom("org.testcontainers:testcontainers-bom:${property("testcontainersVersion")}")
         // mavenBom("org.springframework.ai:spring-ai-bom:${property("springAiVersion")}")
     }
 }
@@ -190,71 +194,89 @@ tasks.check {
     dependsOn(tasks.jacocoTestCoverageVerification)
 }
 
-// Checkstyle Configuration
-checkstyle {
-    toolVersion = "10.17.0"
-    configFile = file("${rootDir}/config/checkstyle/checkstyle.xml")
-    isIgnoreFailures = false
-    maxWarnings = 0
+// Detekt Configuration (Kotlin code analysis)
+detekt {
+    toolVersion = "1.23.7"
+    config.setFrom("$projectDir/config/detekt/detekt.yml")
+    buildUponDefaultConfig = true
+    autoCorrect = true
 }
 
-tasks.checkstyleMain {
-    source = fileTree("src/main/kotlin")
-}
-
-tasks.checkstyleTest {
-    source = fileTree("src/test/kotlin")
-}
-
-// SpotBugs Configuration
-spotbugs {
-    ignoreFailures = false
-    effort = com.github.spotbugs.snom.Effort.DEFAULT
-    reportLevel = com.github.spotbugs.snom.Confidence.MEDIUM
-    excludeFilter = file("${rootDir}/config/spotbugs/exclude.xml")
-}
-
-tasks.spotbugsMain {
-    reports.create("html") {
-        required = true
-        outputLocation = file("${layout.buildDirectory.get()}/reports/spotbugs/main.html")
-        setStylesheet("fancy-hist.xsl")
+tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
+    reports {
+        html.required.set(true)
+        xml.required.set(false)
+        txt.required.set(false)
+        sarif.required.set(false)
+        md.required.set(false)
     }
 }
 
-tasks.spotbugsTest {
-    reports.create("html") {
-        required = true
-        outputLocation = file("${layout.buildDirectory.get()}/reports/spotbugs/test.html")
-        setStylesheet("fancy-hist.xsl")
+// Kover Configuration (Kotlin code coverage)
+kover {
+    reports {
+        total {
+            html {
+                onCheck = true
+            }
+            xml {
+                onCheck = true
+            }
+        }
+    }
+}
+
+koverReport {
+    filters {
+        excludes {
+            classes(
+                "*Application*",
+                "*Config*",
+                "*Configuration*",
+                "*.dto.*",
+                "*.entity.*"
+            )
+            packages(
+                "dev.ryuzu.astarmanagement.config",
+                "dev.ryuzu.astarmanagement.dto"
+            )
+        }
+    }
+    verify {
+        rule {
+            minBound(85)
+        }
     }
 }
 
 // OWASP Dependency Check Configuration
 dependencyCheck {
     failBuildOnCVSS = 7.0f
-    suppressionFile = "${rootDir}/config/owasp/suppressions.xml"
     format = "ALL"
     outputDirectory = "${layout.buildDirectory.get()}/reports"
+    suppressionFile = "config/owasp/suppressions.xml"
 }
 
-// PMD Configuration for Security Analysis
-pmd {
-    isConsoleOutput = true
-    toolVersion = "6.55.0"
-    ruleSetFiles = files("${rootDir}/config/pmd/security-ruleset.xml")
-}
-
-tasks.pmdMain {
-    reports {
-        xml.required = true
-        html.required = true
+// SonarQube Configuration
+sonar {
+    properties {
+        property("sonar.projectKey", "astar-management-backend")
+        property("sonar.organization", "ryuzu-dev")
+        property("sonar.host.url", "https://sonarcloud.io")
+        property("sonar.coverage.jacoco.xmlReportPaths", "${layout.buildDirectory.get()}/reports/jacoco/test/jacocoTestReport.xml")
+        property("sonar.kotlin.detekt.reportPaths", "${layout.buildDirectory.get()}/reports/detekt/detekt.xml")
     }
 }
 
-tasks.pmdTest {
-    reports {
-        xml.required = true
-        html.required = true
-    }
+// Custom tasks for development workflow
+tasks.register("qualityCheck") {
+    group = "verification"
+    description = "Run all quality checks"
+    dependsOn("detekt", "koverVerify", "jacocoTestCoverageVerification")
+}
+
+tasks.register("securityCheck") {
+    group = "verification" 
+    description = "Run security-related checks"
+    dependsOn("dependencyCheckAnalyze")
 }

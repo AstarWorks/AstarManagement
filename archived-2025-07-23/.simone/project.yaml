@@ -1,0 +1,90 @@
+name: "Aster Management"
+description: "Comprehensive legal case management system for small to medium-sized law firms (1-10 people) featuring AI-powered document processing, Kanban-style case tracking, and automated financial management"
+type: "monorepo"
+riskLevel: 6
+created: "2025-07-23"
+version: "2.0.0"
+
+contexts:
+  backend:
+    name: "Backend API"
+    description: "Spring Boot Kotlin backend with Clean Architecture + Spring Modulith"
+    path: "./backend"
+    stack:
+      language: "kotlin"
+      framework: "spring-boot"
+      database: "postgresql"
+      version: "3.5.0"
+    tooling:
+      build: "./gradlew"
+      test: "./gradlew test"
+      run: "./gradlew bootRun"
+      quality: "./gradlew qualityCheck"
+      security: "./gradlew securityCheck"
+      migration: "./gradlew flywayMigrate"
+    methodology: "clean-architecture"
+    
+  frontend:
+    name: "Frontend Web Application"
+    description: "Nuxt.js 4 with Vue 3, TypeScript, and shadcn-vue components"
+    path: "./frontend"
+    stack:
+      language: "typescript"
+      framework: "nuxt"
+      ui: "shadcn-vue"
+      version: "4.0.1"
+    tooling:
+      package_manager: "bun"
+      dev: "bun dev"
+      build: "bun build"
+      test: "bun test"
+      typecheck: "bun run typecheck"
+      lint: "bun run lint" 
+      storybook: "bun run storybook"
+      e2e: "bun run test:e2e"
+    methodology: "component-driven-development"
+
+shared:
+  testing:
+    strategy: "tdd"
+    coverage_target: 90
+    e2e: "playwright"
+  
+  security:
+    authentication: "jwt"
+    authorization: "rbac"
+    audit_logging: true
+    multi_tenant: true
+    
+  deployment:
+    containerization: "docker"
+    orchestration: "kubernetes"
+    cloud: "gcp"
+    on_prem: "k3s"
+    
+  ci_cd:
+    platform: "github-actions"
+    deployment: "argocd"
+
+github:
+  tool: "cli"
+  repository: "https://github.com/Y-RyuZU/AsterManagement.git"
+  
+legal_domain:
+  data_classification: "confidential"
+  compliance: ["japanese_legal", "gdpr"]
+  tenant_isolation: "rls"
+  audit_requirements: "comprehensive"
+
+architecture_principles:
+  - "agent_native_design"
+  - "cli_gui_parity" 
+  - "clean_architecture"
+  - "modular_monolith"
+  - "domain_driven_design"
+
+performance_targets:
+  api_response_p95: "200ms"
+  pdf_first_paint: "1s"
+  search_results: "500ms"
+  availability: "99.9%"

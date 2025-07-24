@@ -2,48 +2,47 @@ import type { StorybookConfig } from '@storybook/vue3-vite'
 
 const config: StorybookConfig = {
   stories: [
-    '../src/**/*.stories.@(js|jsx|ts|tsx|mdx)',
-    '../src/**/*.story.@(js|jsx|ts|tsx|mdx)'
+    '../app/components/**/*.stories.@(js|jsx|ts|tsx|vue)',
+    '../stories/**/*.stories.@(js|jsx|ts|tsx|vue)',
   ],
+  staticDirs: ['./static'],
   addons: [
+    '@storybook/addon-links',
     '@storybook/addon-essentials',
     '@storybook/addon-interactions',
-    '@storybook/addon-links',
-    '@storybook/addon-a11y',
-    'storybook-dark-mode',
-    '@storybook/addon-viewport'
+    '@storybook/addon-docs',
+    '@storybook/addon-controls',
+    '@storybook/addon-viewport',
+    '@storybook/addon-backgrounds',
+    'msw-storybook-addon',
   ],
   framework: {
     name: '@storybook/vue3-vite',
     options: {}
   },
-  docs: {
-    autodocs: 'tag'
-  },
-  core: {
-    builder: '@storybook/builder-vite'
-  },
-  typescript: {
-    check: false,
-    reactDocgen: false
-  },
-  viteFinal: async (config) => {
-    // Add Nuxt aliases
+  async viteFinal(config) {
+    // Nuxtのalias設定を追加
     config.resolve = config.resolve || {}
     config.resolve.alias = {
       ...config.resolve.alias,
-      '~': new URL('../src', import.meta.url).pathname,
-      '@': new URL('../src', import.meta.url).pathname
+      '~': require('path').resolve(__dirname, '../app'),
+      '@': require('path').resolve(__dirname, '../app'),
+      '#app': require('path').resolve(__dirname, '../app'),
     }
-    
-    // Ensure CSS is handled properly
-    config.css = config.css || {}
-    config.css.modules = {
-      localsConvention: 'camelCase'
-    }
-    
     return config
-  }
+  },
+  features: {
+    buildStoriesJson: true,
+    interactionsDebugger: true,
+  },
+  typescript: {
+    check: true,
+    reactDocgen: 'react-docgen-typescript',
+    reactDocgenTypescriptOptions: {
+      shouldExtractLiteralValuesFromEnum: true,
+      propFilter: (prop) => (prop.parent ? !/node_modules/.test(prop.parent.fileName) : true),
+    },
+  },
 }
 
 export default config

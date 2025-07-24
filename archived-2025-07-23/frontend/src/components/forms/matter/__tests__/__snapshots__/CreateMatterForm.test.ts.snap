@@ -1,0 +1,66 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`CreateMatterForm > matches snapshot 1`] = `
+"<div data-v-a6dfcf32="" class="create-matter-form" data-loading="false" data-success="false">
+  <!-- Loading Overlay -->
+  <!--v-if-->
+  <!-- Success Overlay -->
+  <!--v-if-->
+  <!-- Error Alert -->
+  <!--v-if-->
+  <div data-v-a6dfcf32="" class="matter-form">
+    <div data-v-a6dfcf32="" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Left Column -->
+      <div data-v-a6dfcf32="" class="space-y-6">
+        <!-- Basic Information -->
+        <div data-v-a6dfcf32="" class="space-y-4">
+          <h3 data-v-a6dfcf32="" class="text-lg font-medium border-b pb-2">Basic Information</h3>
+          <div data-v-a6dfcf32="" class="form-field-wrapper" name="matter-title"><label>Matter Title</label><input data-v-a6dfcf32="" class="form-input"></div>
+          <div data-v-a6dfcf32="" class="form-field-wrapper" name="description"><label>Description</label><textarea data-v-a6dfcf32="" class="form-textarea"></textarea></div>
+          <div data-v-a6dfcf32="" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div data-v-a6dfcf32="" class="matter-type-field"></div>
+            <div data-v-a6dfcf32="" class="matter-status-field"></div>
+          </div>
+          <div data-v-a6dfcf32="" class="form-field-wrapper" name="priority"><label>Priority</label><select data-v-a6dfcf32="" class="form-select"></select></div>
+        </div><!-- Financial Information -->
+        <div data-v-a6dfcf32="" class="space-y-4">
+          <h3 data-v-a6dfcf32="" class="text-lg font-medium border-b pb-2">Financial Information</h3>
+          <div data-v-a6dfcf32="" class="form-field-wrapper" name="estimated-value"><label>Estimated Value</label><input data-v-a6dfcf32="" class="form-input"></div>
+          <div data-v-a6dfcf32="" class="form-field-wrapper" name="billable-hours"><label>Estimated Billable Hours</label><input data-v-a6dfcf32="" class="form-input"></div>
+        </div>
+      </div><!-- Right Column -->
+      <div data-v-a6dfcf32="" class="space-y-6">
+        <!-- Client Information -->
+        <div data-v-a6dfcf32="" class="space-y-4">
+          <h3 data-v-a6dfcf32="" class="text-lg font-medium border-b pb-2">Client &amp; Assignment</h3>
+          <div data-v-a6dfcf32="" class="client-selection-field"></div>
+          <div data-v-a6dfcf32="" class="lawyer-assignment-field"></div>
+        </div><!-- Dates -->
+        <div data-v-a6dfcf32="" class="space-y-4">
+          <h3 data-v-a6dfcf32="" class="text-lg font-medium border-b pb-2">Important Dates</h3>
+          <div data-v-a6dfcf32="" class="matter-date-fields"></div>
+        </div><!-- Additional Information -->
+        <div data-v-a6dfcf32="" class="space-y-4">
+          <h3 data-v-a6dfcf32="" class="text-lg font-medium border-b pb-2">Additional Information</h3>
+          <div data-v-a6dfcf32="" class="form-field-wrapper" name="tags"><label>Tags</label><input data-v-a6dfcf32="" class="form-input"></div>
+        </div>
+      </div>
+    </div><!-- Form Summary Card -->
+    <div data-v-a6dfcf32="" class="mt-6">
+      <card data-v-a6dfcf32="">
+        <cardheader data-v-a6dfcf32="">
+          <cardtitle data-v-a6dfcf32="" class="text-sm">Form Summary</cardtitle>
+        </cardheader>
+        <cardcontent data-v-a6dfcf32="">
+          <div data-v-a6dfcf32="" class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div data-v-a6dfcf32=""><span data-v-a6dfcf32="" class="text-muted-foreground">Status:</span><span data-v-a6dfcf32="" class="ml-2 font-medium">INVESTIGATION</span></div>
+            <div data-v-a6dfcf32=""><span data-v-a6dfcf32="" class="text-muted-foreground">Type:</span><span data-v-a6dfcf32="" class="ml-2 font-medium">CIVIL</span></div>
+            <div data-v-a6dfcf32=""><span data-v-a6dfcf32="" class="text-muted-foreground">Priority:</span><span data-v-a6dfcf32="" class="ml-2 font-medium">Not set</span></div>
+            <div data-v-a6dfcf32=""><span data-v-a6dfcf32="" class="text-muted-foreground">Valid:</span><span data-v-a6dfcf32="" class="ml-2 text-green-600">Yes</span></div>
+          </div>
+        </cardcontent>
+      </card>
+    </div>
+  </div>
+</div>"
+`;
