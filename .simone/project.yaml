@@ -1,0 +1,80 @@
+project:
+  name: "Astar Management"
+  description: "Legal practice management system for small-to-medium Japanese law firms (1-10 employees)"
+  type: "monorepo"
+  riskLevel: 5  # Balanced approach - confirm major changes but allow reasonable automation
+
+github:
+  tool: "cli"
+  repository: "auto-detect"
+  mainBranch: "main"
+  prTemplate: "Legal domain impact assessment required for data access, tenant isolation, and security changes"
+  
+contexts:
+  frontend:
+    name: "Frontend (Nuxt.js/Vue)"
+    stack:
+      language: "TypeScript"
+      framework: "Nuxt.js 4.0 + Vue 3"
+      ui: "shadcn-vue + Radix Vue"
+      state: "Pinia"
+      validation: "VeeValidate + Zod"
+      database: "N/A"
+      packageManager: "Bun"
+    tooling:
+      dev: "bun run dev"
+      build: "bun run build"
+      test: "bun run test"
+      typecheck: "bun run typecheck"
+      lint: "bun run lint"
+      storybook: "bun run storybook"
+      e2e: "bun run test:e2e"
+    methodology: "TDD + Storybook-First Development"
+    
+  backend:
+    name: "Backend (Spring Boot/Kotlin)"
+    stack:
+      language: "Kotlin"
+      framework: "Spring Boot 3.5 + Spring Modulith"
+      database: "PostgreSQL 17 + Redis"
+      orm: "Spring Data JPA + Hibernate"
+      packageManager: "Gradle"
+    tooling:
+      dev: "./gradlew bootRun"
+      build: "./gradlew build"
+      test: "./gradlew test"
+      integrationTest: "./gradlew integrationTest"
+      qualityCheck: "./gradlew detekt ktlintCheck"
+      securityCheck: "./gradlew dependencyCheckAnalyze"
+    methodology: "Clean Architecture + TDD"
+    
+  infrastructure:
+    name: "Infrastructure (Terraform/K8s)"
+    stack:
+      language: "HCL + YAML + Bash"
+      framework: "Terraform + Kubernetes + ArgoCD"
+      cloud: "Google Cloud Platform"
+      database: "Cloud SQL PostgreSQL"
+      packageManager: "Terraform"
+    tooling:
+      plan: "terraform plan"
+      apply: "terraform apply"
+      deploy: "./scripts/deploy-staging.sh"
+      rollback: "./scripts/rollback.sh"
+    methodology: "GitOps + Infrastructure as Code"
+
+# Shared settings across all contexts
+shared:
+  domain: "Legal Practice Management"
+  security:
+    - "Row Level Security (RLS) for multi-tenancy"
+    - "Attorney-client privilege protection"
+    - "Complete audit trail for legal compliance"
+    - "RBAC with Discord-style permissions"
+  commitConvention: "Conventional Commits with legal domain scopes"
+  qualityGates:
+    - "TypeScript compilation must pass"
+    - "All tests must pass"
+    - "90% code coverage minimum"
+    - "Security scanning required"
+    - "Storybook must build successfully"

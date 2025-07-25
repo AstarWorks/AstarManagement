@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "simone": {
+      "command": "npx",
+      "args": [
+        "simone-mcp"
+      ],
+      "env": {
+        "PROJECT_PATH": "/IdeaProjects/AsterManagement"
+      }
+    }
+  }
+}
