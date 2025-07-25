@@ -122,7 +122,6 @@ export default defineNuxtConfig({
   // TypeScript configuration
   typescript: {
     strict: true,
-    typeCheck: true,
   },
 
   // PostCSS configuration
@@ -144,10 +143,11 @@ export default defineNuxtConfig({
     },
   },
 
-  // i18n configuration
+  // i18n configuration  
   i18n: {
     defaultLocale: 'ja',
     locales: ['ja', 'en'],
+    strategy: 'no_prefix',
   },
 
   // Pinia
@@ -160,4 +160,5 @@ export default defineNuxtConfig({
     prefix: '',
     componentDir: './app/components/ui'
   },
+
 })

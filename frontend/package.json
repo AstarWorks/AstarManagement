@@ -3,7 +3,7 @@
   "dependencies": {
     "@nuxt/eslint": "1.7.0",
     "@nuxt/fonts": "0.11.4",
-    "@nuxt/icon": "1.15.0",
+    "@nuxt/icon": "^1.15.0",
     "@nuxt/image": "1.10.0",
     "@nuxt/test-utils": "3.19.2",
     "@nuxtjs/i18n": "^10.0.2",
@@ -22,7 +22,7 @@
     "nuxt": "^4.0.1",
     "pinia": "^3.0.3",
     "postcss": "^8.5.6",
-    "reka-ui": "^2.3.2",
+    "reka-ui": "^2.4.0",
     "shadcn-nuxt": "2.2.0",
     "tailwind-merge": "^3.3.1",
     "tailwindcss": "^4.1.11",
@@ -31,7 +31,7 @@
     "vue": "^3.5.17",
     "vue-router": "^4.5.1",
     "vuedraggable": "^4.1.0",
-    "zod": "^4.0.5"
+    "zod": "^4.0.10"
   },
   "private": true,
   "scripts": {
@@ -50,31 +50,39 @@
     "test:coverage": "vitest --coverage",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
+    "precommit": "bun run typecheck && bun run test && bun run lint",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build",
-    "storybook:test": "test-storybook",
-    "precommit": "bun run typecheck && bun run test && bun run lint && bun run build-storybook"
+    "build-storybook": "storybook build"
   },
   "type": "module",
   "devDependencies": {
-    "@nuxtjs/storybook": "^8.4.1",
+    "@chromatic-com/storybook": "^4.0.1",
     "@pinia-plugin-persistedstate/nuxt": "^1.2.1",
-    "@storybook/test": "^8.6.14",
-    "@storybook/vue3": "^9.0.18",
+    "@storybook-vue/nuxt": "0.2.6",
+    "@storybook/addon-a11y": "^9.0.18",
+    "@storybook/addon-docs": "^9.0.18",
+    "@storybook/addon-essentials": "8.0.8",
+    "@storybook/addon-interactions": "8.0.8",
+    "@storybook/addon-links": "8.0.8",
+    "@storybook/addon-vitest": "^9.0.18",
+    "@storybook/blocks": "8.0.8",
+    "@storybook/builder-vite": "8.0.8",
+    "@storybook/test": "8.0.8",
+    "@storybook/vue3": "8.0.8",
     "@storybook/vue3-vite": "^9.0.18",
     "@tailwindcss/postcss": "^4.1.11",
+    "@types/node": "^18.17.5",
     "@vitest/ui": "^3.2.4",
     "autoprefixer": "^10.4.21",
     "eslint-plugin-storybook": "^9.0.18",
     "happy-dom": "^18.0.1",
     "msw": "^2.10.4",
-    "msw-storybook-addon": "^2.0.5",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vue-tsc": "^3.0.4"
   },
   "msw": {
     "workerDirectory": [
-      "public",
-      ".storybook/static"
+      "public"
     ]
   }
 }

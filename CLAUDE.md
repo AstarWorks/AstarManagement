@@ -2,6 +2,51 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working across all projects.
 
+## 🆘 CRITICAL: Human Escalation Principle
+
+### 🚨 CRITICAL: When to Ask for Human Help
+
+**⚠️ Immediately seek human assistance when feeling confused or stuck ⚠️**
+
+**YOU MUST immediately ask for human assistance when:**
+
+1. **Technical confusion or uncertainty**
+   - Code behavior is unexpected or unclear
+   - Lack of confidence in architectural decisions
+   - Multiple implementation approaches causing indecision
+   - Root cause of errors remains unknown
+
+2. **Getting stuck in development quicksand**
+   - Unable to solve the same problem for 30+ minutes
+   - Indecision between multiple libraries/frameworks
+   - Extended debugging sessions without progress
+   - Technical debt accumulating
+
+3. **Legal domain understanding gaps**
+   - Unclear about lawyer workflow processes
+   - Uncertain about data confidentiality levels
+   - Legal compliance requirements unclear
+   - Multi-tenant isolation implementation concerns
+
+4. **Business requirement interpretation confusion**
+   - Unclear requirement priorities
+   - User experience design decisions causing hesitation
+   - Performance requirement validity concerns
+
+### 💡 Escalation Information Sharing Format
+
+```
+🆘 **Human Assistance Needed**
+
+**Problem**: [Specific issue or confusion]
+**Context**: [Current work content and implementation status]
+**Attempts**: [Solutions already tried]
+**Impact**: [Impact this problem has on the project]
+**Question**: [Specific information needed or decisions requiring input]
+```
+
+**Remember**: Collaborating with humans early leads to better solutions and learning opportunities rather than struggling alone.
+
 ## 📋 Project Overview
 
 **Aster Management - 法律事務所向け業務管理システム**
@@ -127,7 +172,31 @@ cd ../backend
 
 ### Aster Management Specific Rules
 
-#### 🎨 Frontend Development (Nuxt.js + Vue 3)
+#### 🎨 Frontend Development (Nuxt 4 + Vue 3)
+- **Framework**: Nuxt 4.0.1 with new app/ directory structure
+- **Directory Structure**: All source code under `app/` directory following Nuxt 4 standards
+  ```
+  frontend/
+  ├── app/                    # Main source directory (srcDir)
+  │   ├── components/         # Vue components
+  │   ├── composables/        # Reusable composition functions
+  │   ├── layouts/           # Layout components
+  │   ├── middleware/        # Route middleware
+  │   ├── pages/             # File-based routing
+  │   ├── plugins/           # Nuxt plugins
+  │   ├── stores/            # Pinia stores
+  │   ├── utils/             # Utility functions
+  │   ├── types/             # TypeScript type definitions
+  │   ├── app.vue            # Root Vue component
+  │   └── i18n.config.ts     # i18n configuration
+  ├── public/                # Static files
+  ├── server/                # Server-side code (API routes)
+  └── nuxt.config.ts         # Nuxt configuration
+  ```
+- **Path Aliases**: 
+  - `~` points to `app/` directory (Nuxt 4 standard)
+  - `@` points to project root (backward compatibility)
+  - Use `~/components` instead of `@/components` for new code
 - **Component Structure**: shadcn-vue + Radix Vue for UI components
 - **State Management**: Pinia with persistence for offline capability
 - **Form Validation**: VeeValidate + Zod for runtime type safety
