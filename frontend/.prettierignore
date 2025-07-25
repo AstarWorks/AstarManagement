@@ -1,0 +1,44 @@
+# Build outputs
+dist/
+.nuxt/
+.output/
+coverage/
+storybook-static/
+
+# Dependencies
+node_modules/
+
+# Test outputs
+playwright-report/
+test-results/
+
+# Generated files
+**/*.d.ts
+components.json
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+*.tmp
+*.temp
