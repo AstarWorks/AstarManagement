@@ -1,6 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import type { User } from '~/types/auth'
 
+// ミドルウェアのインポート（モック設定後に行う）
+import authMiddleware from '../auth'
+
 // AuthStore のモック
 const mockAuthStore = {
   status: 'idle' as const,
@@ -41,9 +44,6 @@ Object.defineProperty(globalThis, 'import', {
   },
   configurable: true
 })
-
-// ミドルウェアのインポート（モック設定後に行う）
-import authMiddleware from '../auth'
 
 describe('Auth Middleware', () => {
   beforeEach(() => {
