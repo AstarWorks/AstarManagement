@@ -1,8 +1,8 @@
 // See https://containers.dev/implementors/json_reference/ for configuration reference
 {
-  "name": "Aster Management Dev Container",
+  "name": "Astar Management Dev Container",
   "dockerComposeFile": "docker-compose.yaml",
-  "service": "aster-management",
+  "service": "astar-management",
   "features": {
     "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
     "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {
@@ -19,6 +19,7 @@
       "installMaven": "false"
     },
     "ghcr.io/devcontainers-extra/features/kotlin-sdkman:2": {},
+    "ghcr.io/va-h/devcontainers-features/uv:1": {},
 
     "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {},
     "ghcr.io/devcontainers-extra/features/tmux-apt-get:1": {},

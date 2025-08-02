@@ -3,4 +3,4 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: aster-management
+    container_name: astar-management
