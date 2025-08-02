@@ -50,8 +50,8 @@ describe('Case Management Types', () => {
       const statuses: CaseStatus[] = ['new', 'accepted', 'investigation', 'preparation', 'negotiation', 'trial', 'completed']
       
       for (let i = 0; i < statuses.length - 1; i++) {
-        const currentOrder = getCaseStatusOrder(statuses[i])
-        const nextOrder = getCaseStatusOrder(statuses[i + 1])
+        const currentOrder = getCaseStatusOrder(statuses[i]!)
+        const nextOrder = getCaseStatusOrder(statuses[i + 1]!)
         expect(nextOrder).toBeGreaterThan(currentOrder)
       }
     })

@@ -1,19 +1,33 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import type { User } from '~/types/auth'
+import type { IUser, AuthState } from '~/types/auth'
 
 // ミドルウェアのインポート（モック設定後に行う）
 import guestMiddleware from '../guest'
 
-// AuthStore のモック
-const mockAuthStore = {
-  status: 'idle' as const,
+/**
+ * モック用の型安全なAuthStore定義（テスト用にmutable）
+ */
+interface MockAuthStore {
+  status: AuthState['status']
+  isAuthenticated: boolean
+  tokens: { accessToken: string; refreshToken: string; expiresIn: number } | null
+  isTokenExpired: boolean
+  requiresTwoFactor: boolean
+  user: IUser | null
+  fetchUser: ReturnType<typeof vi.fn>
+  initialize: ReturnType<typeof vi.fn>
+}
+
+// AuthStore のモック（型安全）
+const mockAuthStore: MockAuthStore = {
+  status: 'idle',
   isAuthenticated: false,
-  tokens: null as any,
+  tokens: null,
   isTokenExpired: false,
   requiresTwoFactor: false,
-  user: null as User | null,
-  initialize: vi.fn(),
-  fetchUser: vi.fn()
+  user: null,
+  fetchUser: vi.fn(),
+  initialize: vi.fn()
 }
 
 // モックの設定
@@ -30,10 +44,19 @@ vi.mock('~/stores/auth', () => ({
   useAuthStore: mockUseAuthStore
 }))
 
-// Global composables として利用可能にする
-globalThis.useAuthStore = mockUseAuthStore
-globalThis.navigateTo = mockNavigateTo
-globalThis.defineNuxtRouteMiddleware = (fn: any) => fn
+/**
+ * グローバル変数の型定義（テスト環境用）
+ */
+declare global {
+  var __guestAuthStore: typeof mockUseAuthStore
+  var __guestNavigateTo: typeof mockNavigateTo
+  var __guestDefineNuxtRouteMiddleware: <T extends Function>(fn: T) => T
+}
+
+// Global composables として利用可能にする（型安全）
+globalThis.__guestAuthStore = mockUseAuthStore
+globalThis.__guestNavigateTo = mockNavigateTo
+globalThis.__guestDefineNuxtRouteMiddleware = <T extends Function>(fn: T): T => fn
 
 // import.meta のモック
 Object.defineProperty(globalThis, 'import', {
@@ -159,7 +182,7 @@ describe('Guest Middleware', () => {
   it('should fetch user info when valid token exists', async () => {
     mockAuthStore.status = 'authenticated'
     mockAuthStore.isAuthenticated = false
-    mockAuthStore.tokens = { accessToken: 'valid-token' }
+    mockAuthStore.tokens = { accessToken: 'valid-token', refreshToken: 'refresh-token', expiresIn: 3600 }
     mockAuthStore.isTokenExpired = false
     mockAuthStore.fetchUser.mockResolvedValue(undefined)
 
@@ -188,7 +211,7 @@ describe('Guest Middleware', () => {
   it('should continue when fetchUser fails', async () => {
     mockAuthStore.status = 'authenticated'
     mockAuthStore.isAuthenticated = false
-    mockAuthStore.tokens = { accessToken: 'invalid-token' }
+    mockAuthStore.tokens = { accessToken: 'invalid-token', refreshToken: 'refresh-token', expiresIn: 3600 }
     mockAuthStore.isTokenExpired = false
     mockAuthStore.fetchUser.mockRejectedValue(new Error('Invalid token'))
 

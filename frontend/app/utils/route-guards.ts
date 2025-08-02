@@ -3,7 +3,7 @@
  */
 
 import type { RouteLocationNormalized } from 'vue-router'
-import type { IUser } from '~/types/auth'
+import type { IUser, AuthState } from '~/types/auth'
 
 /**
  * ページアクセス権限の設定
@@ -256,7 +256,7 @@ function matchDynamicRoute(pattern: string, path: string): boolean {
  */
 export function canNavigateToRoute(
   path: string,
-  authStore: unknown
+  authStore: { user: IUser | null; permissions: string[]; roles: string[] }
 ): boolean {
   const { hasAccess } = checkRouteAccess(
     path,
@@ -272,7 +272,7 @@ export function canNavigateToRoute(
  */
 export function filterMenuItems(
   menuItems: Array<{ path: string; [key: string]: unknown }>,
-  authStore: unknown
+  authStore: { user: IUser | null; permissions: string[]; roles: string[] }
 ): Array<{ path: string; [key: string]: unknown }> {
   return menuItems.filter(item => canNavigateToRoute(item.path, authStore))
 }

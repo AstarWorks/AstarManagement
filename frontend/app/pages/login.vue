@@ -32,14 +32,23 @@ const redirectTo = computed(() => {
 
 // メソッド
 const handleLogin = async (credentials: LoginCredentials) => {
+  console.log('🔐 Login attempt started', { email: credentials.email, hasPassword: !!credentials.password })
   isLoading.value = true
   authError.value = ''
 
   try {
-    await authStore.login(credentials)
+    console.log('🔐 Calling authStore.login...')
+    const result = await authStore.login(credentials)
+    console.log('🔐 Login result:', result)
+    console.log('🔐 Auth store state after login:', {
+      isAuthenticated: authStore.isAuthenticated,
+      requiresTwoFactor: authStore.requiresTwoFactor,
+      user: authStore.user
+    })
 
     if (authStore.requiresTwoFactor) {
       // 2要素認証が必要な場合
+      console.log('🔐 Redirecting to 2FA')
       await router.push({
         path: '/auth/two-factor',
         query: {
@@ -48,9 +57,13 @@ const handleLogin = async (credentials: LoginCredentials) => {
       })
     } else if (authStore.isAuthenticated) {
       // ログイン成功
+      console.log('🔐 Login successful, redirecting to:', redirectTo.value)
       await router.push(redirectTo.value)
+    } else {
+      console.log('🔐 Login completed but user not authenticated')
     }
   } catch (error: any) {
+    console.error('🔐 Login error:', error)
     authError.value = error.message || 'ログインに失敗しました'
   } finally {
     isLoading.value = false

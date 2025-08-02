@@ -1,5 +1,6 @@
 /**
  * 認証関連の型定義
+ * Case.tsのパターンを参考にした型安全設計
  */
 
 /**
@@ -9,11 +10,40 @@ export interface IUser {
   id: string
   email: string
   name: string
+  nameKana: string
   roles: IRole[]
-  permissions: IPermission[]
+  permissions: string[]
+  avatar: string | null
+  firmId: string
+  firmName: string
+  isActive: boolean
   twoFactorEnabled: boolean
-  createdAt: string
-  updatedAt: string
+  lastLoginAt: Date
+  profile: {
+    barNumber?: string
+    department?: string
+    specialization?: string[]
+    phone: string
+    extension?: string
+    hireDate?: string
+    clientType?: 'individual' | 'corporate'
+    company?: string | null
+    emergencyContact?: {
+      name: string
+      relationship: string
+      phone: string
+    }
+  }
+  preferences: {
+    language: string
+    timezone: string
+    theme: string
+    notifications: {
+      email: boolean
+      browser: boolean
+      mobile: boolean
+    }
+  }
 }
 
 /**
@@ -24,7 +54,8 @@ export interface IRole {
   name: string
   displayName: string
   description?: string
-  permissions: IPermission[]
+  isSystemRole: boolean
+  permissions: string[]
 }
 
 /**
@@ -37,6 +68,7 @@ export interface IPermission {
   description?: string
   resource: string
   action: string
+  scope: string
 }
 
 /**
@@ -47,6 +79,113 @@ export interface IAuthTokens {
   refreshToken: string
   expiresIn: number
   tokenType: 'Bearer'
+}
+
+/**
+ * ストア用認証トークン（作成時刻付き）
+ */
+export interface IAuthTokensWithTimestamp extends IAuthTokens {
+  createdAt: number
+}
+
+/**
+ * 認証エラー型（型安全なエラーハンドリング）
+ */
+export interface AuthError {
+  code: 'INVALID_CREDENTIALS' | 'TOKEN_EXPIRED' | 'NETWORK_ERROR' | 'UNKNOWN_ERROR'
+  message: string
+  details?: Record<string, unknown>
+}
+
+/**
+ * 認証状態の有限状態機械（Discriminated Union）
+ * case.tsのパターンを参考にした型安全な状態管理
+ */
+export type AuthState = 
+  | { status: 'idle'; user: null; tokens: null; error: null; lastActivity: number }
+  | { status: 'loading'; user: null; tokens: null; error: null; lastActivity: number }
+  | { status: 'authenticated'; user: IUser; tokens: IAuthTokensWithTimestamp; error: null; lastActivity: number }
+  | { status: 'unauthenticated'; user: null; tokens: null; error: null; lastActivity: number }
+  | { status: 'error'; user: null; tokens: null; error: AuthError; lastActivity: number }
+
+/**
+ * Result型パターン（関数型プログラミング由来）
+ */
+export type Result<T, E = AuthError> = 
+  | { success: true; data: T }
+  | { success: false; error: E }
+
+/**
+ * API レスポンス型（型安全な非同期処理）
+ */
+export type AuthApiResponse<T> = Promise<Result<T, AuthError>>
+
+/**
+ * 認証状態遷移ルール（case.tsパターン）
+ */
+export const VALID_AUTH_STATE_TRANSITIONS: Record<AuthState['status'], AuthState['status'][]> = {
+  idle: ['loading'],
+  loading: ['authenticated', 'unauthenticated', 'error'],
+  authenticated: ['loading', 'unauthenticated', 'error'],
+  unauthenticated: ['loading'],
+  error: ['loading', 'idle']
+} as const
+
+/**
+ * 型ガード関数群（case.tsパターン）
+ */
+export function isAuthenticatedState(state: AuthState): state is Extract<AuthState, { status: 'authenticated' }> {
+  return state.status === 'authenticated'
+}
+
+export function isLoadingState(state: AuthState): state is Extract<AuthState, { status: 'loading' }> {
+  return state.status === 'loading'
+}
+
+export function isErrorState(state: AuthState): state is Extract<AuthState, { status: 'error' }> {
+  return state.status === 'error'
+}
+
+export function isUnauthenticatedState(state: AuthState): state is Extract<AuthState, { status: 'unauthenticated' }> {
+  return state.status === 'unauthenticated'
+}
+
+export function isIdleState(state: AuthState): state is Extract<AuthState, { status: 'idle' }> {
+  return state.status === 'idle'
+}
+
+/**
+ * ヘルパー関数群（case.tsパターン）
+ */
+export function isValidAuthStateTransition(from: AuthState['status'], to: AuthState['status']): boolean {
+  return VALID_AUTH_STATE_TRANSITIONS[from]?.includes(to) ?? false
+}
+
+export function getNextAvailableAuthStates(currentStatus: AuthState['status']): AuthState['status'][] {
+  return VALID_AUTH_STATE_TRANSITIONS[currentStatus] ?? []
+}
+
+export function createAuthError(code: AuthError['code'], message: string, details?: Record<string, unknown>): AuthError {
+  return { code, message, details }
+}
+
+/**
+ * Result型のヘルパー関数
+ */
+export function createSuccess<T>(data: T): Result<T, never> {
+  return { success: true, data }
+}
+
+export function createFailure<E>(error: E): Result<never, E> {
+  return { success: false, error }
+}
+
+export function isSuccess<T, E>(result: Result<T, E>): result is Extract<Result<T, E>, { success: true }> {
+  return result.success === true
+}
+
+export function isFailure<T, E>(result: Result<T, E>): result is Extract<Result<T, E>, { success: false }> {
+  return result.success === false
 }
 
 /**
@@ -106,7 +245,7 @@ export type TwoFactorStatus = 'disabled' | 'pending' | 'enabled' | 'required'
  * 認証コンテキスト
  */
 export interface IAuthContext {
-  user: User | null
+  user: IUser | null
   status: AuthStatus
   twoFactorStatus: TwoFactorStatus
   permissions: string[]
@@ -192,3 +331,19 @@ export interface IApiErrorResponse {
     details?: Record<string, any>
   }
 }
+
+// Type aliases for backwards compatibility and clarity
+export type User = IUser
+export type Role = IRole
+export type Permission = IPermission
+export type AuthTokens = IAuthTokens
+export type LoginResponse = ILoginResponse
+export type RefreshTokenResponse = IRefreshTokenResponse
+export type PasswordResetRequestResponse = IPasswordResetRequestResponse
+export type TwoFactorSetupResponse = ITwoFactorSetupResponse
+export type AuthContext = IAuthContext
+export type LoginCredentials = ILoginCredentials
+export type UserSettings = IUserSettings
+export type SessionInfo = ISessionInfo
+export type AuditLogEntry = IAuditLogEntry
+export type ApiErrorResponse = IApiErrorResponse

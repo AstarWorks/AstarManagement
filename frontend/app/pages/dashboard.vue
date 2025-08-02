@@ -3,58 +3,31 @@
     <!-- Page Header -->
     <div class="flex items-center justify-between">
       <div>
-        <h1 class="text-3xl font-bold text-foreground">ダッシュボード</h1>
-        <p class="text-muted-foreground mt-1">法律事務所業務管理システム</p>
+        <h1 class="text-3xl font-bold text-foreground">{{ $t('dashboard.title') }}</h1>
+        <p class="text-muted-foreground mt-1">{{ $t('dashboard.subtitle') }}</p>
       </div>
-      <Button>
+      <Button @click="createNewCase">
         <Icon name="lucide:plus" class="w-4 h-4 mr-2" />
-        新規案件
+        {{ $t('dashboard.actions.newCase') }}
       </Button>
     </div>
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <Card>
+      <Card
+        v-for="stat in dashboardStats"
+        :key="stat.key"
+        class="transition-all duration-200 hover:shadow-md"
+      >
         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle class="text-sm font-medium">総案件数</CardTitle>
-          <Icon name="lucide:file-text" class="w-4 h-4 text-muted-foreground" />
+          <CardTitle class="text-sm font-medium">{{ $t(stat.labelKey) }}</CardTitle>
+          <Icon :name="stat.icon" class="w-4 h-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div class="text-2xl font-bold">245</div>
-          <p class="text-xs text-muted-foreground">前月比 +12%</p>
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle class="text-sm font-medium">アクティブ案件</CardTitle>
-          <Icon name="lucide:activity" class="w-4 h-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div class="text-2xl font-bold">89</div>
-          <p class="text-xs text-muted-foreground">前月比 +5%</p>
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle class="text-sm font-medium">今月の売上</CardTitle>
-          <Icon name="lucide:trending-up" class="w-4 h-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div class="text-2xl font-bold">¥12,400,000</div>
-          <p class="text-xs text-muted-foreground">前月比 +18%</p>
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle class="text-sm font-medium">依頼者数</CardTitle>
-          <Icon name="lucide:users" class="w-4 h-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div class="text-2xl font-bold">156</div>
-          <p class="text-xs text-muted-foreground">前月比 +8%</p>
+          <div class="text-2xl font-bold">{{ formatStatValue(stat) }}</div>
+          <p class="text-xs text-muted-foreground">
+            {{ $t('dashboard.stats.change', { change: stat.change }) }}
+          </p>
         </CardContent>
       </Card>
     </div>
@@ -63,55 +36,55 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <Card>
         <CardHeader>
-          <CardTitle>クイックアクション</CardTitle>
-          <CardDescription>よく使用される機能へのショートカット</CardDescription>
+          <CardTitle>{{ $t('dashboard.quickActions.title') }}</CardTitle>
+          <CardDescription>{{ $t('dashboard.quickActions.description') }}</CardDescription>
         </CardHeader>
         <CardContent class="grid grid-cols-2 gap-4">
-          <Button variant="outline" class="h-20 flex-col">
-            <Icon name="lucide:plus" class="w-6 h-6 mb-2" />
-            新規案件
-          </Button>
-          <Button variant="outline" class="h-20 flex-col">
-            <Icon name="lucide:user-plus" class="w-6 h-6 mb-2" />
-            新規依頼者
-          </Button>
-          <Button variant="outline" class="h-20 flex-col">
-            <Icon name="lucide:upload" class="w-6 h-6 mb-2" />
-            書類アップロード
-          </Button>
-          <Button variant="outline" class="h-20 flex-col">
-            <Icon name="lucide:calendar" class="w-6 h-6 mb-2" />
-            期日管理
+          <Button
+            v-for="action in quickActions"
+            :key="action.key"
+            variant="outline"
+            class="h-20 flex-col transition-all duration-200 hover:bg-muted/50"
+            @click="handleQuickAction(action.action)"
+          >
+            <Icon :name="action.icon" class="w-6 h-6 mb-2" />
+            {{ $t(action.labelKey) }}
           </Button>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>最近の活動</CardTitle>
-          <CardDescription>システム内の最新活動</CardDescription>
+          <CardTitle>{{ $t('dashboard.recentActivity.title') }}</CardTitle>
+          <CardDescription>{{ $t('dashboard.recentActivity.description') }}</CardDescription>
         </CardHeader>
         <CardContent>
-          <div class="space-y-4">
-            <div class="flex items-start gap-3">
-              <div class="w-2 h-2 rounded-full bg-blue-500 mt-2"/>
-              <div class="flex-1">
-                <p class="text-sm font-medium">新規案件が作成されました</p>
-                <p class="text-xs text-muted-foreground">田中 vs 山田商事 - 2時間前</p>
-              </div>
-            </div>
-            <div class="flex items-start gap-3">
-              <div class="w-2 h-2 rounded-full bg-green-500 mt-2"/>
-              <div class="flex-1">
-                <p class="text-sm font-medium">書類がアップロードされました</p>
-                <p class="text-xs text-muted-foreground">契約書_v2.pdf - 4時間前</p>
-              </div>
-            </div>
-            <div class="flex items-start gap-3">
-              <div class="w-2 h-2 rounded-full bg-orange-500 mt-2"/>
-              <div class="flex-1">
-                <p class="text-sm font-medium">期日が近づいています</p>
-                <p class="text-xs text-muted-foreground">佐藤商事訴訟 - 明日</p>
+          <div v-if="isLoadingActivity" class="space-y-4">
+            <Skeleton
+              v-for="i in 3"
+              :key="i"
+              class="h-12 w-full"
+            />
+          </div>
+          <div v-else-if="recentActivities.length === 0" class="text-center py-8">
+            <Icon name="lucide:inbox" class="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+            <p class="text-sm text-muted-foreground">{{ $t('dashboard.recentActivity.empty') }}</p>
+          </div>
+          <div v-else class="space-y-4">
+            <div
+              v-for="activity in recentActivities"
+              :key="activity.id"
+              class="flex items-start gap-3"
+            >
+              <div 
+                class="w-2 h-2 rounded-full mt-2"
+                :class="getActivityColor(activity.type)"
+              />
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium truncate">{{ activity.title }}</p>
+                <p class="text-xs text-muted-foreground">
+                  {{ activity.subtitle }} - {{ formatRelativeTime(activity.timestamp) }}
+                </p>
               </div>
             </div>
           </div>
@@ -122,8 +95,127 @@
 </template>
 
 <script setup lang="ts">
-// Dashboard page
+import { formatRelative } from 'date-fns'
+import { ja } from 'date-fns/locale'
+import { Skeleton } from '~/components/ui/skeleton'
+
+// Page metadata
 definePageMeta({
-  middleware: 'auth'
+  middleware: 'auth',
+  title: 'dashboard.title'
+})
+
+// Types
+interface DashboardStat {
+  key: string
+  labelKey: string
+  icon: string
+  value: number
+  change: string
+  format?: 'number' | 'currency'
+}
+
+interface QuickAction {
+  key: string
+  labelKey: string
+  icon: string
+  action: string
+}
+
+interface Activity {
+  id: string
+  type: 'case' | 'document' | 'deadline' | 'client'
+  title: string
+  subtitle: string
+  timestamp: Date
+}
+
+// Composables
+const { t } = useI18n()
+const router = useRouter()
+
+// Dashboard data composable
+const { 
+  dashboardStats, 
+  recentActivities, 
+  isLoadingActivity,
+  refreshDashboard 
+} = useDashboardData()
+
+// Configuration for quick actions
+const quickActions: QuickAction[] = [
+  {
+    key: 'newCase',
+    labelKey: 'dashboard.quickActions.newCase',
+    icon: 'lucide:plus',
+    action: 'newCase'
+  },
+  {
+    key: 'newClient',
+    labelKey: 'dashboard.quickActions.newClient',
+    icon: 'lucide:user-plus',
+    action: 'newClient'
+  },
+  {
+    key: 'uploadDocument',
+    labelKey: 'dashboard.quickActions.uploadDocument',
+    icon: 'lucide:upload',
+    action: 'uploadDocument'
+  },
+  {
+    key: 'manageDueDates',
+    labelKey: 'dashboard.quickActions.manageDueDates',
+    icon: 'lucide:calendar',
+    action: 'manageDueDates'
+  }
+]
+
+// Utility functions
+const formatStatValue = (stat: DashboardStat): string => {
+  if (stat.format === 'currency') {
+    return new Intl.NumberFormat('ja-JP', {
+      style: 'currency',
+      currency: 'JPY'
+    }).format(stat.value)
+  }
+  return new Intl.NumberFormat('ja-JP').format(stat.value)
+}
+
+const formatRelativeTime = (timestamp: Date): string => {
+  return formatRelative(timestamp, new Date(), { locale: ja })
+}
+
+const getActivityColor = (type: Activity['type']): string => {
+  const colors = {
+    case: 'bg-blue-500',
+    document: 'bg-green-500',
+    deadline: 'bg-orange-500',
+    client: 'bg-purple-500'
+  }
+  return colors[type] || 'bg-gray-500'
+}
+
+// Event handlers
+const createNewCase = () => {
+  router.push('/cases/new')
+}
+
+const handleQuickAction = (action: string) => {
+  const actions: Record<string, () => void> = {
+    newCase: () => router.push('/cases/new'),
+    newClient: () => router.push('/clients/new'),
+    uploadDocument: () => router.push('/documents/upload'),
+    manageDueDates: () => router.push('/calendar')
+  }
+  
+  const handler = actions[action]
+  if (handler) {
+    handler()
+  }
+}
+
+// Initialize dashboard data
+onMounted(() => {
+  refreshDashboard()
 })
 </script>

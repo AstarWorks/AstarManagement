@@ -1,19 +1,33 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import type { User } from '~/types/auth'
+import type { IUser, AuthState } from '~/types/auth'
 
 // ミドルウェアのインポート（モック設定後に行う）
 import authMiddleware from '../auth'
 
-// AuthStore のモック
-const mockAuthStore = {
-  status: 'idle' as const,
+/**
+ * モック用の型安全なAuthStore定義（テスト用にmutable）
+ */
+interface MockAuthStore {
+  status: AuthState['status']
+  isAuthenticated: boolean
+  tokens: { accessToken: string; refreshToken: string; expiresIn: number } | null
+  isTokenExpired: boolean
+  requiresTwoFactor: boolean
+  user: IUser | null
+  refreshTokens: ReturnType<typeof vi.fn>
+  initialize: ReturnType<typeof vi.fn>
+}
+
+// AuthStore のモック（型安全）
+const mockAuthStore: MockAuthStore = {
+  status: 'idle',
   isAuthenticated: false,
-  tokens: null as any,
+  tokens: null,
   isTokenExpired: false,
   requiresTwoFactor: false,
-  user: null as User | null,
-  initialize: vi.fn(),
-  refreshTokens: vi.fn()
+  user: null,
+  refreshTokens: vi.fn(),
+  initialize: vi.fn()
 }
 
 // モックの設定
@@ -30,10 +44,19 @@ vi.mock('~/stores/auth', () => ({
   useAuthStore: mockUseAuthStore
 }))
 
-// Global composables として利用可能にする
-globalThis.useAuthStore = mockUseAuthStore
-globalThis.navigateTo = mockNavigateTo
-globalThis.defineNuxtRouteMiddleware = (fn: any) => fn
+/**
+ * グローバル変数の型定義（テスト環境用）
+ */
+declare global {
+  var __authStore: typeof mockUseAuthStore
+  var __navigateTo: typeof mockNavigateTo
+  var __defineNuxtRouteMiddleware: <T extends Function>(fn: T) => T
+}
+
+// Global composables として利用可能にする（型安全）
+globalThis.__authStore = mockUseAuthStore
+globalThis.__navigateTo = mockNavigateTo
+globalThis.__defineNuxtRouteMiddleware = <T extends Function>(fn: T): T => fn
 
 // import.meta のモック
 Object.defineProperty(globalThis, 'import', {
@@ -91,7 +114,7 @@ describe('Auth Middleware', () => {
   })
 
   it('should redirect to login when not authenticated', () => {
-    mockAuthStore.status = 'authenticated' // Status doesn't matter if isAuthenticated is false
+    mockAuthStore.status = 'unauthenticated' // Status should match isAuthenticated state
     mockAuthStore.isAuthenticated = false
     mockAuthStore.tokens = null // No tokens to refresh
     mockAuthStore.isTokenExpired = false
@@ -145,7 +168,7 @@ describe('Auth Middleware', () => {
   it('should attempt token refresh when token is expired', async () => {
     mockAuthStore.status = 'authenticated'
     mockAuthStore.isAuthenticated = false
-    mockAuthStore.tokens = { accessToken: 'token', refreshToken: 'refresh' }
+    mockAuthStore.tokens = { accessToken: 'token', refreshToken: 'refresh', expiresIn: 3600 }
     mockAuthStore.isTokenExpired = true
     mockAuthStore.refreshTokens.mockResolvedValue(false)
 
@@ -173,7 +196,7 @@ describe('Auth Middleware', () => {
   it('should allow access after successful token refresh', async () => {
     mockAuthStore.status = 'authenticated'
     mockAuthStore.isAuthenticated = false
-    mockAuthStore.tokens = { accessToken: 'token', refreshToken: 'refresh' }
+    mockAuthStore.tokens = { accessToken: 'token', refreshToken: 'refresh', expiresIn: 3600 }
     mockAuthStore.isTokenExpired = true
     mockAuthStore.refreshTokens.mockResolvedValue(true)
 

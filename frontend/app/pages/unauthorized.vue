@@ -1,84 +1,95 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="min-h-screen flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-md w-full space-y-8 text-center">
+      <!-- Error Icon & Title -->
       <div>
-        <Icon name="lucide:shield-x" class="mx-auto h-16 w-16 text-red-600" />
-        <h2 class="mt-6 text-3xl font-extrabold text-gray-900">
-          アクセス拒否
+        <Icon name="lucide:shield-x" class="mx-auto h-16 w-16 text-destructive" />
+        <h2 class="mt-6 text-3xl font-extrabold text-foreground">
+          {{ $t('error.unauthorized.title') }}
         </h2>
-        <p class="mt-2 text-sm text-gray-600">
-          {{ errorMessage }}
+        <p class="mt-2 text-sm text-muted-foreground">
+          {{ $t(`error.unauthorized.reasons.${errorDetails.reason}`) }}
         </p>
       </div>
 
-      <Card class="p-6 text-left">
-        <div class="space-y-4">
-          <h3 class="text-lg font-medium text-gray-900">詳細情報</h3>
-          
-          <div v-if="reason" class="text-sm">
-            <span class="font-medium text-gray-700">理由:</span>
-            <span class="ml-2 text-gray-600">{{ reasonText }}</span>
+      <!-- Error Details Card -->
+      <Alert variant="destructive" class="text-left">
+        <Icon name="lucide:info" class="h-4 w-4" />
+        <AlertTitle>{{ $t('error.unauthorized.details.title') }}</AlertTitle>
+        <AlertDescription class="mt-2 space-y-2">
+          <div v-if="errorDetails.reason">
+            <span class="font-medium">{{ $t('error.unauthorized.details.reason') }}:</span>
+            <span class="ml-2">{{ $t(`error.unauthorized.reasons.${errorDetails.reason}`) }}</span>
           </div>
-
-          <div v-if="requiredInfo" class="text-sm">
-            <span class="font-medium text-gray-700">必要な権限:</span>
-            <div class="ml-2 mt-1">
-              <div v-if="requiredInfo.permissions?.length" class="text-gray-600">
-                <strong>権限:</strong> {{ requiredInfo.permissions.join(', ') }}
+          
+          <div v-if="errorDetails.originalPath">
+            <span class="font-medium">{{ $t('error.unauthorized.details.path') }}:</span>
+            <span class="ml-2 font-mono text-xs">{{ errorDetails.originalPath }}</span>
+          </div>
+          
+          <div v-if="errorDetails.required">
+            <span class="font-medium">{{ $t('error.unauthorized.details.required') }}:</span>
+            <div class="ml-2 mt-1 text-xs">
+              <div v-if="errorDetails.required.permissions?.length">
+                {{ $t('error.unauthorized.details.permissions') }}: {{ errorDetails.required.permissions.join(', ') }}
               </div>
-              <div v-if="requiredInfo.roles?.length" class="text-gray-600">
-                <strong>ロール:</strong> {{ requiredInfo.roles.join(', ') }}
+              <div v-if="errorDetails.required.roles?.length">
+                {{ $t('error.unauthorized.details.roles') }}: {{ errorDetails.required.roles.join(', ') }}
               </div>
             </div>
           </div>
+        </AlertDescription>
+      </Alert>
 
-          <div v-if="originalPath" class="text-sm">
-            <span class="font-medium text-gray-700">アクセス先:</span>
-            <span class="ml-2 text-gray-600 font-mono">{{ originalPath }}</span>
-          </div>
-
-          <div v-if="user" class="text-sm">
-            <span class="font-medium text-gray-700">現在のユーザー:</span>
-            <div class="ml-2 mt-1 space-y-1">
-              <div class="text-gray-600">{{ user.name }} ({{ user.email }})</div>
-              <div class="text-gray-600">
-                <strong>ロール:</strong> {{ userRoles.join(', ') || 'なし' }}
-              </div>
-              <div class="text-gray-600">
-                <strong>権限:</strong> {{ userPermissions.join(', ') || 'なし' }}
-              </div>
+      <!-- User Info (if authenticated) -->
+      <Card v-if="authUser" class="p-4 text-left">
+        <div class="text-sm space-y-2">
+          <h4 class="font-medium">{{ $t('error.unauthorized.currentUser.title') }}</h4>
+          <div class="text-muted-foreground">
+            <div>{{ authUser.name }} ({{ authUser.email }})</div>
+            <div>
+              {{ $t('error.unauthorized.currentUser.roles') }}: 
+              {{ userRoles.join(', ') || $t('common.none') }}
+            </div>
+            <div>
+              {{ $t('error.unauthorized.currentUser.permissions') }}: 
+              {{ userPermissions.join(', ') || $t('common.none') }}
             </div>
           </div>
         </div>
       </Card>
 
+      <!-- Action Buttons -->
       <div class="space-y-3">
         <Button class="w-full" @click="goBack">
-          前のページに戻る
+          {{ $t('error.unauthorized.actions.goBack') }}
         </Button>
         
         <Button variant="outline" class="w-full" @click="goToDashboard">
-          ダッシュボードに戻る
+          {{ $t('error.unauthorized.actions.dashboard') }}
         </Button>
 
         <Button 
-          v-if="!user" 
+          v-if="!authUser" 
           variant="outline" 
           class="w-full" 
           @click="goToLogin"
         >
-          ログインページに移動
+          {{ $t('error.unauthorized.actions.login') }}
         </Button>
       </div>
 
-      <!-- 管理者への連絡リンク -->
-      <div class="text-xs text-gray-500">
+      <!-- Contact Support -->
+      <div class="text-xs text-muted-foreground">
         <p>
-          この画面が間違って表示されている場合は、
-          <a href="mailto:admin@example.com" class="text-blue-600 hover:text-blue-500">
-            システム管理者
+          {{ $t('error.unauthorized.support.text') }}
+          <a 
+            :href="`mailto:${supportEmail}`" 
+            class="text-primary hover:text-primary/80 underline"
+          >
+            {{ $t('error.unauthorized.support.contact') }}
           </a>
-          にお問い合わせください。
+          {{ $t('error.unauthorized.support.suffix') }}
         </p>
       </div>
     </div>
@@ -86,60 +97,47 @@
 </template>
 
 <script setup lang="ts">
-import { getAccessDeniedMessage } from '~/utils/route-guards'
+import { Alert, AlertTitle, AlertDescription } from '~/components/ui/alert'
 
-// レイアウトを使用しない
+// Page metadata
 definePageMeta({
-  layout: false
+  layout: false,
+  title: 'error.unauthorized.title'
 })
 
-// 状態管理
-const authStore = useAuthStore()
-const route = useRoute()
+// Types
+interface ErrorDetails {
+  reason: string
+  originalPath?: string
+  required?: {
+    permissions?: string[]
+    roles?: string[]
+  }
+}
+
+// Composables
+const { t } = useI18n()
 const router = useRouter()
+const route = useRoute()
+const authStore = useAuthStore()
+const config = useRuntimeConfig()
 
-// URLパラメータから情報を取得
-const reason = route.query.reason as string
-const originalPath = route.query.path as string
-const requiredString = route.query.required as string
+// Parse URL parameters using composable
+const { errorDetails } = useUnauthorizedError({
+  reason: route.query.reason as string,
+  originalPath: route.query.path as string,
+  requiredString: route.query.required as string
+})
 
-// 計算プロパティ
-const user = computed(() => authStore.user)
+// Auth state
+const authUser = computed(() => authStore.user)
 const userRoles = computed(() => authStore.roles)
 const userPermissions = computed(() => authStore.permissions)
 
-const errorMessage = computed(() => getAccessDeniedMessage(reason))
+// Support contact
+const supportEmail = computed(() => config.public.supportEmail || 'admin@astellaw.co.jp')
 
-const reasonText = computed(() => {
-  const reasonMap: Record<string, string> = {
-    'insufficient_permissions': '必要な権限がありません',
-    'insufficient_role': '必要なロールがありません',
-    'insufficient_roles_all': 'すべての必要なロールがありません',
-    'already_authenticated': '既にログイン済みです',
-    'unauthenticated': '認証が必要です',
-    'session_expired': 'セッションが期限切れです',
-    'two_factor_required': '2要素認証が必要です',
-    'account_disabled': 'アカウントが無効です',
-    'maintenance_mode': 'メンテナンス中です'
-  }
-  return reasonMap[reason] || '不明なエラー'
-})
-
-const requiredInfo = computed(() => {
-  if (!requiredString) return null
-  
-  try {
-    return JSON.parse(requiredString)
-  } catch {
-    // JSONパースに失敗した場合は文字列として扱う
-    if (reason === 'insufficient_role' || reason === 'insufficient_roles_all') {
-      return { roles: requiredString.split(',') }
-    }
-    return null
-  }
-})
-
-// メソッド
+// Navigation handlers
 const goBack = () => {
   if (window.history.length > 1) {
     router.back()
@@ -155,26 +153,26 @@ const goToDashboard = () => {
 const goToLogin = () => {
   router.push({
     path: '/login',
-    query: originalPath ? { redirect: originalPath } : {}
+    query: errorDetails.value.originalPath ? { redirect: errorDetails.value.originalPath } : {}
   })
 }
 
-// ページタイトル設定
+// SEO and security
 useHead({
-  title: 'アクセス拒否 - Astar Management',
+  title: computed(() => `${t('error.unauthorized.title')} - ${t('app.name')}`),
   meta: [
-    { name: 'description', content: 'このページにアクセスする権限がありません' }
+    { name: 'description', content: computed(() => t('error.unauthorized.meta.description')) }
   ]
 })
 
-// アクセスログの記録（セキュリティ監査用）
+// Security audit logging
+const { logUnauthorizedAccess } = useSecurityAudit()
 onMounted(() => {
-  console.warn('Unauthorized access attempt:', {
-    user: user.value?.email || 'anonymous',
-    reason,
-    originalPath,
-    required: requiredInfo.value,
-    timestamp: new Date().toISOString(),
+  logUnauthorizedAccess({
+    user: authUser.value?.email || 'anonymous',
+    reason: errorDetails.value.reason,
+    originalPath: errorDetails.value.originalPath,
+    required: errorDetails.value.required,
     userAgent: navigator.userAgent
   })
 })

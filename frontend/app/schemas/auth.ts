@@ -1,68 +1,84 @@
 import { z } from 'zod'
+import { createI18nValidation } from '~/utils/validationHelpers'
 
 /**
  * ログインフォームのバリデーションスキーマ
+ * Login form validation schema with i18n support
  */
-export const loginSchema = z.object({
-  email: z
-    .string()
-    .min(1, 'メールアドレスを入力してください')
-    .email('有効なメールアドレスを入力してください'),
-  password: z
-    .string()
-    .min(1, 'パスワードを入力してください')
-    .min(8, 'パスワードは8文字以上で入力してください'),
-  rememberMe: z.boolean().optional(),
-})
+export const createLoginSchema = () => {
+  const validation = createI18nValidation()
+  
+  return z.object({
+    email: validation.email,
+    password: validation.password(8),
+    rememberMe: validation.rememberMe,
+  })
+}
+
+// Backward compatibility export
+export const loginSchema = createLoginSchema()
 
 /**
  * パスワードリセット要求フォームのバリデーションスキーマ
+ * Password reset request form validation schema with i18n support
  */
-export const passwordResetRequestSchema = z.object({
-  email: z
-    .string()
-    .min(1, 'メールアドレスを入力してください')
-    .email('有効なメールアドレスを入力してください'),
-})
+export const createPasswordResetRequestSchema = () => {
+  const validation = createI18nValidation()
+  
+  return z.object({
+    email: validation.email,
+  })
+}
+
+export const passwordResetRequestSchema = createPasswordResetRequestSchema()
 
 /**
  * パスワードリセットフォームのバリデーションスキーマ
+ * Password reset form validation schema with i18n support
  */
-export const passwordResetSchema = z.object({
-  token: z.string().min(1, 'リセットトークンが必要です'),
-  newPassword: z
-    .string()
-    .min(8, 'パスワードは8文字以上で入力してください')
-    .regex(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-      'パスワードは英小文字、英大文字、数字を含む必要があります'
-    ),
-  confirmPassword: z.string().min(1, 'パスワード確認を入力してください'),
-}).refine((data) => data.newPassword === data.confirmPassword, {
-  message: 'パスワードが一致しません',
-  path: ['confirmPassword'],
-})
+export const createPasswordResetSchema = () => {
+  const validation = createI18nValidation()
+  
+  return z.object({
+    token: validation.resetToken,
+    newPassword: validation.passwordWithPattern(8),
+    confirmPassword: validation.confirmPassword,
+  }).refine((data) => data.newPassword === data.confirmPassword, {
+    message: 'パスワードが一致しません', // Fallback message
+    path: ['confirmPassword'],
+  })
+}
+
+export const passwordResetSchema = createPasswordResetSchema()
 
 /**
  * 2要素認証設定スキーマ
+ * Two-factor authentication setup schema with i18n support
  */
-export const twoFactorSetupSchema = z.object({
-  secret: z.string().min(1, '2要素認証シークレットが必要です'),
-  token: z
-    .string()
-    .length(6, '認証コードは6桁で入力してください')
-    .regex(/^\d+$/, '認証コードは数字のみで入力してください'),
-})
+export const createTwoFactorSetupSchema = () => {
+  const validation = createI18nValidation()
+  
+  return z.object({
+    secret: validation.twoFactorSecret,
+    token: validation.twoFactorCode,
+  })
+}
+
+export const twoFactorSetupSchema = createTwoFactorSetupSchema()
 
 /**
  * 2要素認証確認スキーマ
+ * Two-factor authentication verification schema with i18n support
  */
-export const twoFactorVerifySchema = z.object({
-  token: z
-    .string()
-    .length(6, '認証コードは6桁で入力してください')
-    .regex(/^\d+$/, '認証コードは数字のみで入力してください'),
-})
+export const createTwoFactorVerifySchema = () => {
+  const validation = createI18nValidation()
+  
+  return z.object({
+    token: validation.twoFactorCode,
+  })
+}
+
+export const twoFactorVerifySchema = createTwoFactorVerifySchema()
 
 // TypeScript型定義のエクスポート
 export type LoginForm = z.infer<typeof loginSchema>

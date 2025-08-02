@@ -6,7 +6,7 @@
           {{ $t('navigation.dashboard') }} - i18n Demo
         </h1>
         <p class="text-gray-600">
-          現在の言語: {{ currentLocale.name }} ({{ currentLocale.code }})
+          現在の言語: {{ currentLocale?.name || 'Unknown' }} ({{ currentLocale?.code || 'N/A' }})
         </p>
         <div class="mt-4">
           <LanguageSwitcher />
@@ -83,7 +83,7 @@
       </div>
 
       <div class="mt-8 text-center">
-        <Button variant="outline" @click="$router.push('/dashboard')">
+        <Button variant="outline" @click="navigateToDashboard">
           {{ $t('dashboard.title') }}に戻る
         </Button>
       </div>
@@ -102,11 +102,17 @@ const { locale, locales } = useI18n()
 const { formatCurrency } = useCurrencyFormat()
 const { formatShortDate, formatLongDate } = useDateFormat()
 const { formatRelativeTime } = useRelativeTime()
+const router = useRouter()
 
 // 計算プロパティ
 const currentLocale = computed(() => {
   return locales.value.find(l => l.code === locale.value) || locales.value[0]
 })
+
+// ナビゲーション関数
+const navigateToDashboard = () => {
+  router.push('/dashboard')
+}
 
 // 時間の例
 const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)

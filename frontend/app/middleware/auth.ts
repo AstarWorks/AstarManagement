@@ -11,16 +11,13 @@ export default defineNuxtRouteMiddleware((to, from) => {
     return
   }
 
-  // 認証状態を初期化（必要に応じて）
-  if (authStore.status === 'idle') {
-    authStore.initialize()
-  }
+  // @pinia-plugin-persistedstate が自動で状態を復元
 
   // 認証済みでない場合の処理
   if (!authStore.isAuthenticated) {
     // トークンが存在するが期限切れの場合、リフレッシュを試行
     if (authStore.tokens && authStore.isTokenExpired) {
-      return authStore.refreshTokens().then((success) => {
+      return authStore.refreshTokens().then(async (success) => {
         if (!success) {
           // リフレッシュ失敗の場合、ログインページへリダイレクト
           return navigateTo({
@@ -29,7 +26,7 @@ export default defineNuxtRouteMiddleware((to, from) => {
               redirect: to.fullPath,
               reason: 'session_expired'
             }
-          })
+          });
         }
         // リフレッシュ成功の場合、続行
       })

@@ -37,7 +37,7 @@ export default defineNuxtConfig({
   // App configuration
   app: {
     head: {
-      title: 'Aster Management',
+      title: 'Astar Management',
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
@@ -143,11 +143,12 @@ export default defineNuxtConfig({
     },
   },
 
-  // i18n configuration  
+  // i18n configuration
   i18n: {
     defaultLocale: 'ja',
-    locales: ['ja', 'en'],
+    locales: ['ja'],
     strategy: 'no_prefix',
+    vueI18n: '~/i18n.config.ts'
   },
 
   // Pinia
@@ -158,7 +159,7 @@ export default defineNuxtConfig({
   // shadcn configuration
   shadcn: {
     prefix: '',
-    componentDir: './app/components/ui'
+    componentDir: '~/components/ui'
   },
 
 })

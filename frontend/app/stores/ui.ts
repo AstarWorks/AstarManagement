@@ -1,119 +1,156 @@
+/**
+ * UI状態管理ストア
+ * Simple over Easy: UI状態のみに責任を限定
+ */
+
 import { defineStore } from 'pinia'
 
-export const useUIStore = defineStore('ui', () => {
-  // State
-  const sidebarOpen = ref(true)
-  const theme = ref<'light' | 'dark'>('light')
-  const loading = ref(false)
-  const notifications = ref<Array<{
-    id: string
-    type: 'success' | 'error' | 'warning' | 'info'
-    title: string
-    message?: string
-    duration?: number
-  }>>([])
+export interface UIState {
+  // Sidebar state
+  isSidebarOpen: boolean
+  isMobileMenuOpen: boolean
+  
+  // Breadcrumbs
+  breadcrumbs: Array<{ label: string; path?: string }>
+  
+  // Recently visited pages
+  recentlyVisited: Array<{ 
+    label: string
+    path: string
+    timestamp: number 
+  }>
+  
+  // Current page info
+  currentPath: string
+  pageTitle: string
+}
 
-  // Getters
-  const isDark = computed(() => theme.value === 'dark')
-  const hasNotifications = computed(() => notifications.value.length > 0)
+export const useUIStore = defineStore('ui', {
+  state: (): UIState => ({
+    isSidebarOpen: true,
+    isMobileMenuOpen: false,
+    breadcrumbs: [],
+    recentlyVisited: [],
+    currentPath: '',
+    pageTitle: ''
+  }),
 
-  // Actions
-  const toggleSidebar = () => {
-    sidebarOpen.value = !sidebarOpen.value
-  }
-
-  const setSidebarOpen = (open: boolean) => {
-    sidebarOpen.value = open
-  }
-
-  const toggleTheme = () => {
-    theme.value = theme.value === 'light' ? 'dark' : 'light'
-    
-    // Apply theme to document
-    if (import.meta.client) {
-      document.documentElement.classList.toggle('dark', theme.value === 'dark')
-      localStorage.setItem('theme', theme.value)
+  getters: {
+    /**
+     * 最近訪問したページ（最大5件）
+     */
+    recentPages: (state) => {
+      return state.recentlyVisited
+        .sort((a, b) => b.timestamp - a.timestamp)
+        .slice(0, 5)
     }
-  }
+  },
 
-  const setTheme = (newTheme: 'light' | 'dark') => {
-    theme.value = newTheme
-    
-    if (import.meta.client) {
-      document.documentElement.classList.toggle('dark', newTheme === 'dark')
-      localStorage.setItem('theme', newTheme)
-    }
-  }
+  actions: {
+    /**
+     * サイドバーの開閉
+     */
+    toggleSidebar() {
+      this.isSidebarOpen = !this.isSidebarOpen
+      this.persistSidebarState()
+    },
 
-  const setLoading = (isLoading: boolean) => {
-    loading.value = isLoading
-  }
+    /**
+     * サイドバーの開閉状態を設定
+     */
+    setSidebarOpen(open: boolean) {
+      this.isSidebarOpen = open
+      this.persistSidebarState()
+    },
 
-  const addNotification = (notification: Omit<typeof notifications.value[0], 'id'>) => {
-    const id = Math.random().toString(36).substr(2, 9)
-    const newNotification = {
-      id,
-      duration: 5000,
-      ...notification,
-    }
-    
-    notifications.value.push(newNotification)
+    /**
+     * モバイルメニューの開閉
+     */
+    toggleMobileMenu() {
+      this.isMobileMenuOpen = !this.isMobileMenuOpen
+    },
 
-    // Auto remove after duration
-    if (newNotification.duration && newNotification.duration > 0) {
-      setTimeout(() => {
-        removeNotification(id)
-      }, newNotification.duration)
-    }
+    /**
+     * モバイルメニューを閉じる
+     */
+    closeMobileMenu() {
+      this.isMobileMenuOpen = false
+    },
 
-    return id
-  }
+    /**
+     * 現在のパスを更新
+     */
+    setCurrentPath(path: string) {
+      this.currentPath = path
+    },
 
-  const removeNotification = (id: string) => {
-    const index = notifications.value.findIndex(n => n.id === id)
-    if (index > -1) {
-      notifications.value.splice(index, 1)
-    }
-  }
+    /**
+     * ページタイトルを設定
+     */
+    setPageTitle(title: string) {
+      this.pageTitle = title
+    },
 
-  const clearNotifications = () => {
-    notifications.value = []
-  }
+    /**
+     * パンくずリストを設定
+     */
+    setBreadcrumbs(breadcrumbs: Array<{ label: string; path?: string }>) {
+      this.breadcrumbs = breadcrumbs
+    },
 
-  // Initialize theme from localStorage
-  const initializeTheme = () => {
-    if (import.meta.client) {
-      const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null
-      if (savedTheme) {
-        setTheme(savedTheme)
+    /**
+     * 最近訪問したページを追加
+     */
+    addRecentlyVisited(item: { label: string; path: string }) {
+      const existingIndex = this.recentlyVisited.findIndex(
+        visited => visited.path === item.path
+      )
+      
+      if (existingIndex >= 0) {
+        // 既存項目のタイムスタンプを更新
+        const existingItem = this.recentlyVisited[existingIndex]
+        if (existingItem) {
+          existingItem.timestamp = Date.now()
+        }
       } else {
-        // Detect system preference
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-        setTheme(prefersDark ? 'dark' : 'light')
+        // 新しい項目を追加
+        this.recentlyVisited.unshift({
+          ...item,
+          timestamp: Date.now()
+        })
+        
+        // 最大10件まで保持
+        if (this.recentlyVisited.length > 10) {
+          this.recentlyVisited = this.recentlyVisited.slice(0, 10)
+        }
+      }
+    },
+
+    /**
+     * サイドバー状態の永続化
+     */
+    persistSidebarState() {
+      if (import.meta.client) {
+        localStorage.setItem('sidebar-open', this.isSidebarOpen.toString())
+      }
+    },
+
+    /**
+     * 設定を復元
+     */
+    restoreSettings() {
+      if (import.meta.client) {
+        const sidebarOpen = localStorage.getItem('sidebar-open')
+        if (sidebarOpen !== null) {
+          this.isSidebarOpen = sidebarOpen === 'true'
+        }
       }
     }
-  }
+  },
 
-  return {
-    // State
-    sidebarOpen: readonly(sidebarOpen),
-    theme: readonly(theme),
-    loading: readonly(loading),
-    notifications: readonly(notifications),
-    
-    // Getters
-    isDark,
-    hasNotifications,
-    
-    // Actions
-    toggleSidebar,
-    setSidebarOpen,
-    toggleTheme,
-    setTheme,
-    setLoading,
-    addNotification,
-    removeNotification,
-    clearNotifications,
-    initializeTheme,
+  // 永続化設定
+  persist: {
+    key: 'ui-store',
+    pick: ['recentlyVisited', 'isSidebarOpen']
   }
 })

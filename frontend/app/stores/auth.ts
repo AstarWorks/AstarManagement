@@ -1,447 +1,357 @@
+/**
+ * Simple Auth Store - Setup Store Pattern
+ * Simple over Easy: @pinia-plugin-persistedstateを活用した最適化された認証管理
+ * Setup Store パターンでDiscriminated Union互換性問題を解決
+ */
+
 import { defineStore } from 'pinia'
-import { mockAuthService } from '~/services/mockAuth'
+import { ref, computed } from 'vue'
+import { z } from 'zod'
 import type { 
-  User, 
-  AuthTokens, 
-  LoginCredentials, 
-  AuthStatus, 
-  TwoFactorStatus,
-  LoginResponse,
-  RefreshTokenResponse,
-  ApiErrorResponse 
+  IUser, 
+  IAuthTokens, 
+  IAuthTokensWithTimestamp, 
+  ILoginCredentials,
+  AuthState,
+  AuthError
 } from '~/types/auth'
+import {
+  isAuthenticatedState,
+  isLoadingState,
+  isErrorState,
+  createAuthError,
+  createSuccess,
+  createFailure
+} from '~/types/auth'
+import { mockAuthService } from '~/services/mockAuth'
+import { AUTH_CONFIG } from '~/config/authConfig'
 
-export interface AuthState {
-  user: User | null
-  tokens: AuthTokens | null
-  status: AuthStatus
-  twoFactorStatus: TwoFactorStatus
-  error: string | null
-  isLoading: boolean
-  lastActivity: number
-}
+/**
+ * 永続化される認証データのスキーマ（型安全）
+ */
+const PersistedAuthStateSchema = z.object({
+  status: z.enum(['idle', 'loading', 'authenticated', 'unauthenticated', 'error']),
+  user: z.object({
+    id: z.string(),
+    email: z.string().email(),
+    name: z.string(),
+    nameKana: z.string(),
+    firmId: z.string(),
+    firmName: z.string(),
+    isActive: z.boolean(),
+    twoFactorEnabled: z.boolean()
+  }).nullable(),
+  tokens: z.object({
+    accessToken: z.string(),
+    refreshToken: z.string(),
+    expiresIn: z.number(),
+    tokenType: z.literal('Bearer'),
+    createdAt: z.number()
+  }).nullable(),
+  error: z.object({
+    code: z.enum(['INVALID_CREDENTIALS', 'TOKEN_EXPIRED', 'NETWORK_ERROR', 'UNKNOWN_ERROR']),
+    message: z.string(),
+    details: z.record(z.string(), z.unknown()).optional()
+  }).nullable(),
+  lastActivity: z.number()
+})
 
-export const useAuthStore = defineStore('auth', {
-  state: (): AuthState => ({
+export const useAuthStore = defineStore('auth', () => {
+  // ===========================
+  // State (ref で管理)
+  // ===========================
+  const authState = ref<AuthState>({
+    status: 'idle',
     user: null,
     tokens: null,
-    status: 'idle',
-    twoFactorStatus: 'disabled',
     error: null,
-    isLoading: false,
     lastActivity: Date.now(),
-  }),
+  })
 
-  getters: {
-    /**
-     * 認証済みユーザーかどうか
-     */
-    isAuthenticated: (state): boolean => {
-      return Boolean(state.user && state.tokens && state.status === 'authenticated')
-    },
+  // ===========================
+  // Getters (computed で管理)
+  // ===========================
+  
+  // 型ガード関数を使用した型安全なアクセス
+  const isAuthenticated = computed((): boolean => {
+    return isAuthenticatedState(authState.value)
+  })
 
-    /**
-     * ローディング中かどうか
-     */
-    isLoadingState: (state): boolean => {
-      return state.isLoading || state.status === 'loading'
-    },
+  const isLoading = computed((): boolean => {
+    return isLoadingState(authState.value)
+  })
 
-    /**
-     * エラー状態かどうか
-     */
-    hasError: (state): boolean => {
-      return state.status === 'error' && Boolean(state.error)
-    },
+  const isError = computed((): boolean => {
+    return isErrorState(authState.value)
+  })
 
-    /**
-     * ユーザーの権限リスト
-     */
-    permissions: (state): string[] => {
-      if (!state.user) return []
-      return state.user.permissions.map(p => p.name)
-    },
+  // 型安全なデータアクセス
+  const permissions = computed((): string[] => {
+    return isAuthenticatedState(authState.value) ? authState.value.user.permissions : []
+  })
 
-    /**
-     * ユーザーのロールリスト
-     */
-    roles: (state): string[] => {
-      if (!state.user) return []
-      return state.user.roles.map(r => r.name)
-    },
+  const roles = computed((): string[] => {
+    return isAuthenticatedState(authState.value) ? authState.value.user.roles.map(r => r.name) : []
+  })
 
-    /**
-     * トークンの有効期限チェック
-     */
-    isTokenExpired: (state): boolean => {
-      if (!state.tokens) return true
+  const currentUser = computed((): IUser | null => {
+    return isAuthenticatedState(authState.value) ? authState.value.user : null
+  })
+
+  const currentTokens = computed((): IAuthTokensWithTimestamp | null => {
+    return isAuthenticatedState(authState.value) ? authState.value.tokens : null
+  })
+
+  const currentError = computed((): AuthError | null => {
+    return isErrorState(authState.value) ? authState.value.error : null
+  })
+
+  const isTokenExpired = computed((): boolean => {
+    if (!isAuthenticatedState(authState.value)) return true
+    const tokenAge = Date.now() - authState.value.lastActivity
+    return tokenAge > (authState.value.tokens.expiresIn * 1000)
+  })
+
+  const isSessionInactive = computed((): boolean => {
+    const timeSinceLastActivity = Date.now() - authState.value.lastActivity
+    return timeSinceLastActivity > AUTH_CONFIG.session.maxInactivityMs
+  })
+
+  const requiresTwoFactor = computed((): boolean => {
+    return isAuthenticatedState(authState.value) ? authState.value.user.twoFactorEnabled : false
+  })
+
+  // ===========================
+  // Helper Functions (状態更新)
+  // ===========================
+  
+  /**
+   * 型安全な状態更新ヘルパー（$patchの代替）
+   */
+  const setState = (newState: AuthState): void => {
+    authState.value = newState
+  }
+
+  // ===========================
+  // Actions (直接状態操作)
+  // ===========================
+
+  const login = async (credentials: ILoginCredentials) => {
+    console.log('🏪 AuthStore: Login called with credentials', { email: credentials.email })
+    console.log('🏪 AuthStore: Current state before login:', authState.value.status)
+    
+    // 状態遷移チェック
+    if (authState.value.status !== 'idle' && authState.value.status !== 'unauthenticated' && authState.value.status !== 'error') {
+      console.log('🏪 AuthStore: Invalid state for login:', authState.value.status)
+      const error = createAuthError('UNKNOWN_ERROR', 'Invalid state for login')
+      setState({ status: 'error', user: null, tokens: null, error, lastActivity: Date.now() })
+      return createFailure(error)
+    }
+
+    // ローディング状態に遷移
+    console.log('🏪 AuthStore: Setting loading state')
+    setState({ status: 'loading', user: null, tokens: null, error: null, lastActivity: Date.now() })
+
+    try {
+      console.log('🏪 AuthStore: Calling mockAuthService.login')
+      const response = await mockAuthService.login(credentials)
+      console.log('🏪 AuthStore: Received response from mockAuthService', { user: !!response.user, tokens: !!response.tokens })
       
-      const now = Math.floor(Date.now() / 1000)
-      // トークンの作成時刻 + 有効期限 < 現在時刻ならば期限切れ
-      const tokenCreatedAt = Math.floor(state.lastActivity / 1000)
-      return (tokenCreatedAt + state.tokens.expiresIn) < now
-    },
-
-    /**
-     * 2要素認証が必要かどうか
-     */
-    requiresTwoFactor: (state): boolean => {
-      return state.twoFactorStatus === 'required'
-    },
-  },
-
-  actions: {
-    /**
-     * ログイン処理
-     */
-    async login(credentials: LoginCredentials): Promise<void> {
-      this.setLoading(true)
-      this.clearError()
-
-      try {
-        const response = await mockAuthService.login(credentials)
-
-        if (response.requiresTwoFactor) {
-          // 2要素認証が必要な場合
-          this.twoFactorStatus = 'required'
-          this.status = 'unauthenticated'
-          // チャレンジ情報を一時保存（実際はセキュアな方法で）
-          sessionStorage.setItem('2fa-challenge', response.twoFactorChallenge || '')
-        } else {
-          // 通常のログイン成功
-          this.setAuthData(response.user!, response.tokens!)
-          this.status = 'authenticated'
-          this.twoFactorStatus = response.user!.twoFactorEnabled ? 'enabled' : 'disabled'
-        }
-      } catch (error: any) {
-        this.handleAuthError(error)
-      } finally {
-        this.setLoading(false)
+      // 認証成功状態に遷移
+      const newState = {
+        status: 'authenticated' as const,
+        user: response.user,
+        tokens: { ...response.tokens, createdAt: Date.now() },
+        error: null,
+        lastActivity: Date.now()
       }
-    },
-
-    /**
-     * 2要素認証確認
-     */
-    async verifyTwoFactor(token: string): Promise<void> {
-      this.setLoading(true)
-      this.clearError()
-
-      try {
-        const challenge = sessionStorage.getItem('2fa-challenge')
-        if (!challenge) {
-          throw new Error('2要素認証チャレンジが見つかりません')
-        }
-
-        const response = await mockAuthService.verify2FA(challenge, token)
-
-        this.setAuthData(response.user!, response.tokens!)
-        this.status = 'authenticated'
-        this.twoFactorStatus = 'enabled'
-        
-        // チャレンジ情報をクリア
-        sessionStorage.removeItem('2fa-challenge')
-      } catch (error: any) {
-        this.handleAuthError(error)
-      } finally {
-        this.setLoading(false)
-      }
-    },
-
-    /**
-     * ログアウト処理
-     */
-    async logout(): Promise<void> {
-      this.setLoading(true)
-
-      try {
-        // サーバーサイドでのセッション無効化
-        if (this.tokens?.accessToken) {
-          await mockAuthService.logout()
-        }
-      } catch (error) {
-        // ログアウトAPIの失敗は無視（クライアント側はクリアする）
-        console.warn('Logout API failed:', error)
-      } finally {
-        this.clearAuthData()
-        this.setLoading(false)
-      }
-    },
-
-    /**
-     * トークンリフレッシュ
-     */
-    async refreshTokens(): Promise<boolean> {
-      if (!this.tokens?.refreshToken) {
-        this.clearAuthData()
-        return false
-      }
-
-      try {
-        const response = await mockAuthService.refreshToken(this.tokens.refreshToken)
-
-        this.tokens = response.tokens
-        this.updateLastActivity()
-        return true
-      } catch (error) {
-        console.error('Token refresh failed:', error)
-        this.clearAuthData()
-        return false
-      }
-    },
-
-    /**
-     * ユーザー情報取得
-     */
-    async fetchUser(): Promise<void> {
-      if (!this.tokens?.accessToken) {
-        this.status = 'unauthenticated'
-        return
-      }
-
-      this.setLoading(true)
-
-      try {
-        // Mock implementation - decode user from token
-        const payload = JSON.parse(atob(this.tokens.accessToken))
-        const mockUsers = await import('~/services/mockAuth').then(m => m.MOCK_USERS)
-        const user = Object.values(mockUsers).find(u => u.id === payload.userId)
-        
-        if (!user) {
-          throw new Error('User not found')
-        }
-
-        this.user = {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          nameKana: user.nameKana,
-          roles: user.roles,
-          permissions: user.permissions,
-          avatar: user.avatar,
-          firmId: user.firmId,
-          firmName: user.firmName,
-          isActive: user.isActive,
-          twoFactorEnabled: user.twoFactorEnabled,
-          lastLoginAt: user.lastLoginAt,
-          profile: user.profile,
-          preferences: user.preferences
-        }
-        this.status = 'authenticated'
-        this.updateLastActivity()
-      } catch (error: any) {
-        if (error.message.includes('token') || error.message.includes('expired')) {
-          // トークンが無効な場合、リフレッシュを試行
-          const refreshSuccess = await this.refreshTokens()
-          if (refreshSuccess) {
-            // リフレッシュ成功後、再度ユーザー情報を取得
-            await this.fetchUser()
-          }
-        } else {
-          this.handleAuthError(error)
-        }
-      } finally {
-        this.setLoading(false)
-      }
-    },
-
-    /**
-     * 権限チェック
-     */
-    hasPermission(permission: string): boolean {
-      return this.permissions.includes(permission)
-    },
-
-    /**
-     * ロールチェック
-     */
-    hasRole(role: string): boolean {
-      return this.roles.includes(role)
-    },
-
-    /**
-     * 複数権限のいずれかを持っているかチェック
-     */
-    hasAnyPermission(permissions: string[]): boolean {
-      return permissions.some(permission => this.hasPermission(permission))
-    },
-
-    /**
-     * 複数ロールのいずれかを持っているかチェック
-     */
-    hasAnyRole(roles: string[]): boolean {
-      return roles.some(role => this.hasRole(role))
-    },
-
-    /**
-     * 認証データ設定
-     */
-    setAuthData(user: User, tokens: AuthTokens): void {
-      this.user = user
-      this.tokens = tokens
-      this.updateLastActivity()
+      console.log('🏪 AuthStore: Setting authenticated state')
+      setState(newState)
       
-      // 永続化
-      this.persistAuthData()
-    },
-
-    /**
-     * 認証データクリア
-     */
-    clearAuthData(): void {
-      this.user = null
-      this.tokens = null
-      this.status = 'unauthenticated'
-      this.twoFactorStatus = 'disabled'
-      this.error = null
-      this.lastActivity = Date.now()
+      return createSuccess(response)
+    } catch (error: unknown) {
+      console.error('🏪 AuthStore: Login failed:', error)
+      const authError = createAuthError(
+        'INVALID_CREDENTIALS',
+        (error as Error)?.message || 'Login failed',
+        { originalError: error }
+      )
       
-      // 永続化データもクリア
-      this.clearPersistedAuthData()
-    },
-
-    /**
-     * ローディング状態設定
-     */
-    setLoading(loading: boolean): void {
-      this.isLoading = loading
-      this.status = loading ? 'loading' : this.status
-    },
-
-    /**
-     * エラー設定
-     */
-    setError(error: string): void {
-      this.error = error
-      this.status = 'error'
-    },
-
-    /**
-     * エラークリア
-     */
-    clearError(): void {
-      this.error = null
-      if (this.status === 'error') {
-        this.status = 'idle'
-      }
-    },
-
-    /**
-     * 最終アクティビティ時刻更新
-     */
-    updateLastActivity(): void {
-      this.lastActivity = Date.now()
-    },
-
-    /**
-     * 認証エラーハンドリング
-     */
-    handleAuthError(error: any): void {
-      let errorMessage = 'ログインに失敗しました'
+      // エラー状態に遷移
+      setState({ 
+        status: 'error', 
+        user: null, 
+        tokens: null, 
+        error: authError, 
+        lastActivity: Date.now() 
+      })
       
-      if (error.data?.error) {
-        const apiError = error.data.error as ApiErrorResponse['error']
-        errorMessage = apiError.message || errorMessage
-      } else if (error.message) {
-        errorMessage = error.message
-      }
+      return createFailure(authError)
+    }
+  }
 
-      this.setError(errorMessage)
-    },
+  const logout = async () => {
+    // 認証解除状態に遷移
+    setState({
+      status: 'unauthenticated',
+      user: null,
+      tokens: null,
+      error: null,
+      lastActivity: Date.now()
+    })
+    
+    return createSuccess(undefined)
+  }
 
-    /**
-     * 認証データの永続化
-     */
-    persistAuthData(): void {
-      if (import.meta.client && this.user && this.tokens) {
-        const authData = {
-          user: this.user,
-          tokens: this.tokens,
-          lastActivity: this.lastActivity,
-        }
-        localStorage.setItem('auth-data', JSON.stringify(authData))
-      }
-    },
+  const refreshToken = async () => {
+    if (!isAuthenticatedState(authState.value)) {
+      const error = createAuthError('TOKEN_EXPIRED', 'No valid authentication state for token refresh')
+      setState({ status: 'error', user: null, tokens: null, error, lastActivity: Date.now() })
+      return createFailure(error)
+    }
 
-    /**
-     * 永続化データの復元
-     */
-    restoreAuthData(): void {
-      // サーバーサイドでは実行しない
-      if (import.meta.server) return
+    // ローディング状態に遷移（トークンを保持）
+    const currentUser = authState.value.user
+    const currentRefreshToken = authState.value.tokens.refreshToken
+    setState({ status: 'loading', user: null, tokens: null, error: null, lastActivity: Date.now() })
+
+    try {
+      const response = await mockAuthService.refreshToken(currentRefreshToken)
       
-      try {
-        const authDataString = localStorage.getItem('auth-data')
-        if (authDataString) {
-          const authData = JSON.parse(authDataString)
-          
-          // データの有効性チェック
-          if (authData.user && authData.tokens && authData.lastActivity) {
-            this.user = authData.user
-            this.tokens = authData.tokens
-            this.lastActivity = authData.lastActivity
-            
-            // トークンの有効期限チェック
-            if (!this.isTokenExpired) {
-              this.status = 'authenticated'
-              this.twoFactorStatus = authData.user.twoFactorEnabled ? 'enabled' : 'disabled'
-            } else {
-              // トークンが期限切れの場合はクリア
-              this.clearAuthData()
-            }
-          } else {
-            // 不正なデータの場合はクリア
-            this.clearAuthData()
-          }
-        } else {
-          // データが存在しない場合は未認証状態に
-          this.status = 'unauthenticated'
-        }
-      } catch (error) {
-        console.error('Failed to restore auth data:', error)
-        this.clearPersistedAuthData()
-        this.status = 'unauthenticated'
-      }
-    },
-
-    /**
-     * 永続化データのクリア
-     */
-    clearPersistedAuthData(): void {
-      if (import.meta.client) {
-        localStorage.removeItem('auth-data')
-      }
-    },
-
-    /**
-     * 初期化処理
-     */
-    initialize(): void {
-      // クライアントサイドでのみ実行
-      if (import.meta.server) return
+      // 認証状態を復元
+      setState({
+        status: 'authenticated',
+        user: currentUser,
+        tokens: { ...response.tokens, createdAt: Date.now() },
+        error: null,
+        lastActivity: Date.now()
+      })
       
-      this.restoreAuthData()
+      return createSuccess(response)
+    } catch (error: unknown) {
+      const authError = createAuthError(
+        'TOKEN_EXPIRED',
+        (error as Error)?.message || 'Token refresh failed',
+        { originalError: error }
+      )
       
-      // 定期的なトークンリフレッシュのセットアップ
-      this.setupTokenRefresh()
-    },
+      setState({ 
+        status: 'unauthenticated', 
+        user: null, 
+        tokens: null, 
+        error: null, 
+        lastActivity: Date.now() 
+      })
+      
+      return createFailure(authError)
+    }
+  }
 
-    /**
-     * 自動トークンリフレッシュのセットアップ
-     */
-    setupTokenRefresh(): void {
-      // 5分ごとにトークンの有効期限をチェック
-      setInterval(() => {
-        if (this.isAuthenticated && this.isTokenExpired) {
-          this.refreshTokens()
-        }
-      }, 5 * 60 * 1000) // 5分
-    },
-  },
+  const refreshTokens = async (): Promise<boolean> => {
+    const result = await refreshToken()
+    return result.success
+  }
 
-  // Pinia永続化プラグインの設定
+  const fetchUser = async () => {
+    if (!isAuthenticatedState(authState.value)) {
+      const error = createAuthError('TOKEN_EXPIRED', 'No valid authentication state for user fetch')
+      setState({ status: 'error', user: null, tokens: null, error, lastActivity: Date.now() })
+      return createFailure(error)
+    }
+    
+    // 簡易実装: トークンがあればユーザーは有効とみなす
+    // 実際のアプリでは、ここでユーザー情報を取得する
+    updateActivity()
+    return createSuccess(authState.value.user)
+  }
+
+  const hasRole = (role: string): boolean => {
+    return isAuthenticatedState(authState.value) ? authState.value.user.roles.some(r => r.name === role) : false
+  }
+
+  const updateActivity = (): void => {
+    // 最終アクティビティ時刻を更新（状態は変更しない）
+    authState.value.lastActivity = Date.now()
+  }
+
+  const shouldRefreshToken = (): boolean => {
+    if (!isAuthenticatedState(authState.value)) return false
+    const tokenAge = Date.now() - authState.value.lastActivity
+    const refreshThreshold = 5 * 60 * 1000 // 5分
+    return (authState.value.tokens.expiresIn * 1000 - tokenAge) <= refreshThreshold
+  }
+
+  const clearError = (): void => {
+    if (isErrorState(authState.value)) {
+      setState({ status: 'idle', user: null, tokens: null, error: null, lastActivity: Date.now() })
+    }
+  }
+
+  // ===========================
+  // Return Object (Setup Store Pattern)
+  // ===========================
+  return {
+    // State - for direct access (compatible with old API)
+    status: computed(() => authState.value.status),
+    user: computed(() => authState.value.user),
+    tokens: computed(() => authState.value.tokens),
+    error: computed(() => authState.value.error),
+    lastActivity: computed(() => authState.value.lastActivity),
+    
+    // Getters
+    isAuthenticated,
+    isLoading,
+    isError,
+    permissions,
+    roles,
+    currentUser,
+    currentTokens,
+    currentError,
+    isTokenExpired,
+    isSessionInactive,
+    requiresTwoFactor,
+    
+    // Actions
+    login,
+    logout,
+    refreshToken,
+    refreshTokens,
+    fetchUser,
+    hasRole,
+    updateActivity,
+    shouldRefreshToken,
+    clearError
+  }
+}, {
   persist: {
-    key: 'auth-store',
-    paths: ['user', 'tokens', 'lastActivity'],
-  },
+    key: AUTH_CONFIG.storage.key,
+    
+    // Setup Store用の永続化設定
+    serializer: {
+      serialize: (state) => {
+        try {
+          return JSON.stringify(state)
+        } catch (error) {
+          console.warn('Failed to serialize auth state:', error)
+          return JSON.stringify({ status: 'idle', user: null, tokens: null, error: null, lastActivity: Date.now() })
+        }
+      },
+      deserialize: (value) => {
+        try {
+          const parsed = JSON.parse(value)
+          const result = PersistedAuthStateSchema.safeParse(parsed)
+          
+          if (!result.success) {
+            console.warn('Invalid persisted auth state, resetting to idle:', result.error)
+            return { status: 'idle', user: null, tokens: null, error: null, lastActivity: Date.now() }
+          }
+          
+          return result.data
+        } catch (error) {
+          console.warn('Failed to deserialize auth state, resetting to idle:', error)
+          return { status: 'idle', user: null, tokens: null, error: null, lastActivity: Date.now() }
+        }
+      }
+    }
+  }
 })

@@ -1,81 +1,53 @@
 /**
  * Vue I18n Configuration
- * TypeScript-based internationalization configuration
+ * TypeScript-based internationalization configuration - Japanese Only
  */
 
+import ja from './locales/ja'
+
 export default defineI18nConfig(() => ({
-  legacy: false,
-  locale: 'ja',
-  fallbackLocale: 'ja',
-  globalInjection: true,
-  silentTranslationWarn: true,
-  silentFallbackWarn: true,
-  warnHtmlMessage: false,
-  escapeParameter: true,
-  pluralizationRules: {
-    ja: () => 0, // Japanese doesn't have plural forms
-    en: (choice: number) => {
-      if (choice === 0) return 0
-      if (choice === 1) return 1
-      return 2
-    }
-  },
-  numberFormats: {
-    ja: {
-      currency: {
-        style: 'currency',
-        currency: 'JPY',
-        notation: 'standard'
-      },
-      decimal: {
-        style: 'decimal',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 2
-      }
+    locale: 'ja',
+    fallbackLocale: 'ja',
+    globalInjection: true,
+    silentTranslationWarn: false, // Enable warnings for missing keys
+    silentFallbackWarn: false,
+    warnHtmlMessage: false,
+    escapeParameter: true,
+    messages: {
+        ja
     },
-    en: {
-      currency: {
-        style: 'currency',
-        currency: 'USD',
-        notation: 'standard'
-      },
-      decimal: {
-        style: 'decimal',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 2
-      }
-    }
-  },
-  datetimeFormats: {
-    ja: {
-      short: {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      },
-      long: {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        weekday: 'long',
-        hour: 'numeric',
-        minute: 'numeric'
-      }
+    pluralizationRules: {
+        ja: () => 0 // Japanese doesn't have plural forms
     },
-    en: {
-      short: {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      },
-      long: {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        weekday: 'long',
-        hour: 'numeric',
-        minute: 'numeric'
-      }
+    numberFormats: {
+        ja: {
+            currency: {
+                style: 'currency',
+                currency: 'JPY',
+                notation: 'standard'
+            },
+            decimal: {
+                style: 'decimal',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2
+            }
+        }
+    },
+    datetimeFormats: {
+        ja: {
+            short: {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            },
+            long: {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                weekday: 'long',
+                hour: 'numeric',
+                minute: 'numeric'
+            }
+        }
     }
-  }
 }))

@@ -1,15 +1,15 @@
 <template>
   <footer class="bg-muted/20 border-t border-border py-4 px-4 lg:px-6">
-    <div class="flex flex-col md:flex-row justify-between items-center text-sm text-muted-foreground footer-content">
+    <div class="flex flex-col md:flex-row justify-between items-center text-sm text-muted-foreground gap-4">
       <!-- Copyright -->
-      <div class="flex items-center copyright-section">
+      <div class="flex items-center gap-4">
         <p>&copy; 2025 Astar Management. All rights reserved.</p>
         <div class="hidden md:block w-px h-4 bg-border" />
         <p class="hidden md:block">法律事務所業務管理システム</p>
       </div>
       
       <!-- Legal Links -->
-      <div class="flex items-center links-section">
+      <div class="flex items-center gap-4">
         <NuxtLink 
           to="/privacy" 
           class="hover:text-foreground transition-colors"
@@ -39,16 +39,3 @@
 // Footer component - no additional logic needed
 </script>
 
-<style scoped>
-.footer-content {
-  gap: 1rem;
-}
-
-.copyright-section {
-  gap: 1rem;
-}
-
-.links-section {
-  gap: 1rem;
-}
-</style>

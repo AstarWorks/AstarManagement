@@ -11,10 +11,7 @@ export default defineNuxtRouteMiddleware((to, from) => {
     return
   }
 
-  // 認証ストアが初期化されていない場合は初期化
-  if (authStore.status === 'idle') {
-    authStore.initialize()
-  }
+  // @pinia-plugin-persistedstate が自動で状態を復元
 
   // ルートページへのアクセス処理
   if (to.path === '/') {

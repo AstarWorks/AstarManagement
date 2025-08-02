@@ -1,263 +1,164 @@
-import type { UseFetchOptions } from 'nuxt/app'
-import type { ApiErrorResponse } from '~/types/auth'
+/**
+ * Simplified API Composable
+ * Simple over Easy: 直接$fetchを使用、不要な抽象化を除去
+ */
 
-export interface ApiOptions extends UseFetchOptions<any> {
+import { useApiAuth } from './useApiAuth'
+import type { Result } from '~/types/auth'
+import { createSuccess, createFailure } from '~/types/auth'
+import type { $Fetch } from 'nitropack'
+
+/**
+ * API オプション（簡素化）
+ */
+export interface ApiOptions {
   requiresAuth?: boolean
   skipErrorHandler?: boolean
+  headers?: Record<string, string>
+  timeout?: number
+  retry?: number
+  signal?: AbortSignal
 }
 
 /**
- * API リクエストのためのカスタム composable
+ * 一般的なAPIエラー型（型安全）
+ */
+export interface ApiError {
+  readonly code: 'NETWORK_ERROR' | 'SERVER_ERROR' | 'CLIENT_ERROR' | 'TIMEOUT_ERROR' | 'UNKNOWN_ERROR'
+  readonly message: string
+  readonly status: number
+  readonly details?: Record<string, unknown>
+}
+
+/**
+ * APIエラー作成ヘルパー
+ */
+export function createApiError(
+  code: ApiError['code'], 
+  message: string, 
+  status: number, 
+  details?: Record<string, unknown>
+): ApiError {
+  return { code, message, status, details }
+}
+
+/**
+ * $fetchエラーからAPIエラーを作成
+ */
+export function fromFetchError(error: unknown): ApiError {
+  const status = (error as { status?: number; statusCode?: number })?.status || 
+                 (error as { status?: number; statusCode?: number })?.statusCode || 500
+  const message = (error as Error)?.message || 'API request failed'
+  const data = (error as { data?: unknown })?.data
+  
+  let code: ApiError['code']
+  if (status >= 500) {
+    code = 'SERVER_ERROR'
+  } else if (status >= 400) {
+    code = 'CLIENT_ERROR'
+  } else if (status === 0) {
+    code = 'NETWORK_ERROR'
+  } else {
+    code = 'UNKNOWN_ERROR'
+  }
+  
+  return createApiError(code, message, status, { originalError: error, data })
+}
+
+/**
+ * メインAPIクライアントのコンポーザブル
+ * 直接$fetchを使用してシンプル化
  */
 export const useApi = () => {
-  const authStore = useAuthStore()
-  const config = useRuntimeConfig()
+  const authApi = useApiAuth()
 
   /**
-   * API リクエストを実行
+   * 認証が必要なHTTPリクエスト（Result型パターン）
    */
-  const api = async <T = any>(
+  const authenticatedRequest = async <T>(
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE',
     url: string,
+    body?: unknown,
     options: ApiOptions = {}
-  ): Promise<T> => {
-    const {
-      requiresAuth = true,
-      skipErrorHandler = false,
-      ...fetchOptions
-    } = options
-
-    // Base URL の設定
-    const baseURL = config.public.apiBaseUrl
-
-    // 認証ヘッダーの追加
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      ...((fetchOptions.headers as Record<string, string>) || {}),
+  ): Promise<Result<T, ApiError>> => {
+    const authStore = useAuthStore()
+    
+    if (!authStore.isAuthenticated) {
+      const error = createApiError('CLIENT_ERROR', 'Authentication required', 401)
+      return createFailure(error)
     }
 
-    if (requiresAuth && authStore.tokens?.accessToken) {
-      headers.Authorization = `Bearer ${authStore.tokens.accessToken}`
+    const headers = {
+      'Authorization': `Bearer ${authStore.currentTokens?.accessToken}`,
+      ...options.headers
     }
 
     try {
+      // ApiOptionsから$fetch固有でないプロパティを除外
+      const { requiresAuth, skipErrorHandler, headers: optionHeaders, ...fetchOptions } = options
+      
       const response = await $fetch<T>(url, {
-        ...fetchOptions,
-        baseURL,
+        method,
+        body: (method !== 'GET' && method !== 'DELETE') ? body as BodyInit : undefined,
         headers,
-        // リクエストインターセプター
-        onRequest({ request, options }) {
-          // アクティビティの更新
-          if (requiresAuth) {
-            authStore.updateLastActivity()
-          }
-        },
-        // レスポンスインターセプター
-        onResponse({ response }) {
-          // 成功時の処理
-          if (requiresAuth) {
-            authStore.updateLastActivity()
-          }
-        },
-        // エラーインターセプター
-        onResponseError({ response }) {
-          if (skipErrorHandler) return
-
-          // 401エラーの場合、自動的にトークンリフレッシュを試行
-          if (response.status === 401 && requiresAuth) {
-            authStore.refreshTokens().then((success) => {
-              if (!success) {
-                // リフレッシュも失敗した場合、ログアウト
-                authStore.logout()
-                navigateTo('/login')
-              }
-            })
-          }
-        },
+        ...fetchOptions
       })
-
-      return response
-    } catch (error: any) {
-      if (!skipErrorHandler) {
-        handleApiError(error)
-      }
-      throw error
+      
+      return createSuccess(response)
+    } catch (error: unknown) {
+      const apiError = fromFetchError(error)
+      return createFailure(apiError)
     }
   }
 
   /**
-   * GET リクエスト
+   * 便利メソッド（Result型パターン）
    */
-  const get = <T = any>(url: string, options: ApiOptions = {}): Promise<T> => {
-    return api<T>(url, { ...options, method: 'GET' })
-  }
+  const get = <T>(url: string, options?: ApiOptions): Promise<Result<T, ApiError>> =>
+    authenticatedRequest<T>('GET', url, undefined, options)
 
-  /**
-   * POST リクエスト
-   */
-  const post = <T = any>(
-    url: string,
-    body?: any,
-    options: ApiOptions = {}
-  ): Promise<T> => {
-    return api<T>(url, { ...options, method: 'POST', body })
-  }
+  const post = <T>(url: string, body?: unknown, options?: ApiOptions): Promise<Result<T, ApiError>> =>
+    authenticatedRequest<T>('POST', url, body, options)
 
-  /**
-   * PUT リクエスト
-   */
-  const put = <T = any>(
-    url: string,
-    body?: any,
-    options: ApiOptions = {}
-  ): Promise<T> => {
-    return api<T>(url, { ...options, method: 'PUT', body })
-  }
+  const put = <T>(url: string, body?: unknown, options?: ApiOptions): Promise<Result<T, ApiError>> =>
+    authenticatedRequest<T>('PUT', url, body, options)
 
-  /**
-   * PATCH リクエスト
-   */
-  const patch = <T = any>(
-    url: string,
-    body?: any,
-    options: ApiOptions = {}
-  ): Promise<T> => {
-    return api<T>(url, { ...options, method: 'PATCH', body })
-  }
-
-  /**
-   * DELETE リクエスト
-   */
-  const del = <T = any>(url: string, options: ApiOptions = {}): Promise<T> => {
-    return api<T>(url, { ...options, method: 'DELETE' })
-  }
-
-  /**
-   * API エラーハンドリング
-   */
-  const handleApiError = (error: any) => {
-    let errorMessage = 'APIエラーが発生しました'
-
-    if (error.data?.error) {
-      const apiError = error.data.error as ApiErrorResponse['error']
-      errorMessage = apiError.message || errorMessage
-    } else if (error.message) {
-      errorMessage = error.message
-    }
-
-    // エラー通知（今後実装予定のtoast等）
-    console.error('API Error:', errorMessage)
-
-    // 認証エラーの場合はauthStoreに設定
-    if (error.status === 401 || error.status === 403) {
-      authStore.setError(errorMessage)
-    }
-  }
-
-  /**
-   * ファイルアップロード用のAPI
-   */
-  const uploadFile = async <T = any>(
-    url: string,
-    file: File,
-    options: ApiOptions & {
-      fieldName?: string
-      additionalData?: Record<string, any>
-      onProgress?: (progress: number) => void
-    } = {}
-  ): Promise<T> => {
-    const {
-      fieldName = 'file',
-      additionalData = {},
-      onProgress,
-      requiresAuth = true,
-      ...fetchOptions
-    } = options
-
-    const formData = new FormData()
-    formData.append(fieldName, file)
-
-    // 追加データを FormData に含める
-    Object.keys(additionalData).forEach(key => {
-      formData.append(key, additionalData[key])
-    })
-
-    const headers: Record<string, string> = {
-      ...((fetchOptions.headers as Record<string, string>) || {}),
-    }
-
-    // Content-Type は自動設定されるので削除
-    delete headers['Content-Type']
-
-    if (requiresAuth && authStore.tokens?.accessToken) {
-      headers.Authorization = `Bearer ${authStore.tokens.accessToken}`
-    }
-
-    return api<T>(url, {
-      ...fetchOptions,
-      method: 'POST',
-      body: formData,
-      headers,
-    })
-  }
+  const del = <T>(url: string, options?: ApiOptions): Promise<Result<T, ApiError>> =>
+    authenticatedRequest<T>('DELETE', url, undefined, options)
 
   return {
-    api,
+    // メインAPI
     get,
     post,
     put,
-    patch,
-    del,
-    uploadFile,
-    handleApiError,
+    delete: del,
+    
+    // 認証API
+    auth: authApi,
+    
+    // 低レベルアクセス（$fetch直接）
+    $fetch,
   }
 }
 
 /**
- * 認証API用のcomposable
+ * 簡易ファイルアップロード（Result型パターン）
  */
-export const useAuthApi = () => {
+export const useApiUpload = () => {
   const { post } = useApi()
 
+  const uploadFile = async (url: string, file: File): Promise<Result<unknown, ApiError>> => {
+    const formData = new FormData()
+    formData.append('file', file)
+    
+    return post(url, formData, {
+      headers: {
+        // Content-Typeを設定しない（ブラウザが自動設定）
+      }
+    })
+  }
+
   return {
-    /**
-     * ログイン
-     */
-    login: (credentials: any) => post('/auth/login', credentials, { requiresAuth: false }),
-
-    /**
-     * 2要素認証確認
-     */
-    verifyTwoFactor: (data: any) => post('/auth/verify-2fa', data, { requiresAuth: false }),
-
-    /**
-     * ログアウト
-     */
-    logout: () => post('/auth/logout', {}, { requiresAuth: true }),
-
-    /**
-     * トークンリフレッシュ
-     */
-    refreshToken: (refreshToken: string) => 
-      post('/auth/refresh', {}, { 
-        requiresAuth: false,
-        headers: { Authorization: `Bearer ${refreshToken}` }
-      }),
-
-    /**
-     * ユーザー情報取得
-     */
-    getMe: () => post('/auth/me', {}, { requiresAuth: true }),
-
-    /**
-     * パスワードリセット要求
-     */
-    forgotPassword: (email: string) => 
-      post('/auth/forgot-password', { email }, { requiresAuth: false }),
-
-    /**
-     * パスワードリセット
-     */
-    resetPassword: (data: any) => 
-      post('/auth/reset-password', data, { requiresAuth: false }),
+    uploadFile
   }
 }

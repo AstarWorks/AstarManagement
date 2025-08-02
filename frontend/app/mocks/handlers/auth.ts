@@ -7,87 +7,89 @@ const mockUsers: User[] = [
     id: '1',
     email: 'lawyer@example.com',
     name: '田中 太郎',
+    nameKana: 'タナカ タロウ',
+    avatar: null,
+    firmId: 'firm-1',
+    firmName: '田中法律事務所',
+    isActive: true,
+    lastLoginAt: new Date('2024-01-01T00:00:00Z'),
     roles: [
       {
         id: '1',
         name: 'LAWYER',
         displayName: '弁護士',
         description: '法律事務所の弁護士',
+        isSystemRole: true,
         permissions: [
-          {
-            id: '1',
-            name: 'MATTER_READ',
-            displayName: '案件閲覧',
-            description: '案件情報を閲覧できる',
-            resource: 'matter',
-            action: 'read',
-          },
-          {
-            id: '2',
-            name: 'MATTER_WRITE',
-            displayName: '案件編集',
-            description: '案件情報を編集できる',
-            resource: 'matter',
-            action: 'write',
-          },
-          {
-            id: '3',
-            name: 'CLIENT_READ',
-            displayName: '依頼者閲覧',
-            description: '依頼者情報を閲覧できる',
-            resource: 'client',
-            action: 'read',
-          },
-          {
-            id: '4',
-            name: 'CLIENT_WRITE',
-            displayName: '依頼者編集',
-            description: '依頼者情報を編集できる',
-            resource: 'client',
-            action: 'write',
-          },
+          'MATTER_READ',
+          'MATTER_WRITE', 
+          'CLIENT_READ',
+          'CLIENT_WRITE'
         ],
       },
     ],
     permissions: [],
     twoFactorEnabled: false,
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z',
+    profile: {
+      barNumber: '12345',
+      department: '民事部',
+      specialization: ['民事訴訟', '契約法'],
+      phone: '03-1234-5678',
+      extension: '101',
+      hireDate: '2020-04-01',
+    },
+    preferences: {
+      language: 'ja',
+      timezone: 'Asia/Tokyo',
+      theme: 'light',
+      notifications: {
+        email: true,
+        browser: true,
+        mobile: false,
+      },
+    },
   },
   {
     id: '2',
     email: 'clerk@example.com',
     name: '佐藤 花子',
+    nameKana: 'サトウ ハナコ',
+    avatar: null,
+    firmId: 'firm-1',
+    firmName: '田中法律事務所',
+    isActive: true,
+    lastLoginAt: new Date('2024-01-01T00:00:00Z'),
     roles: [
       {
         id: '2',
         name: 'CLERK',
         displayName: '事務員',
         description: '法律事務所の事務員',
+        isSystemRole: true,
         permissions: [
-          {
-            id: '1',
-            name: 'MATTER_READ',
-            displayName: '案件閲覧',
-            description: '案件情報を閲覧できる',
-            resource: 'matter',
-            action: 'read',
-          },
-          {
-            id: '3',
-            name: 'CLIENT_READ',
-            displayName: '依頼者閲覧',
-            description: '依頼者情報を閲覧できる',
-            resource: 'client',
-            action: 'read',
-          },
+          'MATTER_READ',
+          'CLIENT_READ'
         ],
       },
     ],
     permissions: [],
     twoFactorEnabled: true,
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z',
+    profile: {
+      department: '事務部',
+      phone: '03-1234-5678',
+      extension: '102',
+      hireDate: '2021-06-01',
+    },
+    preferences: {
+      language: 'ja',
+      timezone: 'Asia/Tokyo',
+      theme: 'light',
+      notifications: {
+        email: true,
+        browser: false,
+        mobile: true,
+      },
+    },
   },
 ]
 
@@ -236,6 +238,20 @@ export const authHandlers = [
 
     // デフォルトで弁護士ユーザーを返す
     const user = mockUsers[0]
+    if (!user) {
+      return HttpResponse.json(
+        {
+          error: {
+            code: 'USER_NOT_FOUND',
+            message: 'ユーザーが見つかりません',
+            timestamp: new Date().toISOString(),
+            path: '/api/auth/me',
+          },
+        },
+        { status: 404 }
+      )
+    }
+
     return HttpResponse.json({
       ...user,
       permissions: user.roles.flatMap(role => role.permissions),

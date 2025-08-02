@@ -11,6 +11,13 @@ export type CaseStatus =
 
 export type CasePriority = 'high' | 'medium' | 'low'
 
+export type DateRangeOption = 
+  | 'all'        // 全期間
+  | 'today'      // 今日
+  | 'this-week'  // 今週  
+  | 'this-month' // 今月
+  | 'overdue'    // 期限切れ
+
 export type ClientType = 'individual' | 'corporate'
 
 export interface Client {

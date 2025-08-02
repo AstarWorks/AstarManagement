@@ -1,91 +1,82 @@
 <!--
-  言語切り替えコンポーネント
-  Language Switcher Component
+  言語切り替えコンポーネント - Simple over Easy
+  Language Switcher Component - Configuration-based
+  
+  現在: 日本語のみ → 非表示
+  将来: 多言語対応時 → 自動表示
 -->
 <template>
-  <div class="relative">
-    <Button 
-      variant="ghost" 
-      size="sm" 
-      class="w-9 px-0"
-      @click="toggleMenu"
-    >
-      <Icon name="lucide:globe" class="h-4 w-4" />
-      <span class="sr-only">{{ currentLocale.name }}</span>
-    </Button>
-    
-    <!-- ドロップダウンメニュー -->
-    <div
-      v-if="isMenuOpen"
-      class="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50"
-    >
-      <div class="py-1">
-        <div class="px-4 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider">
-          言語 / Language
-        </div>
-        <button
-          v-for="locale in availableLocales"
-          :key="locale.code"
-          class="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-:class="[
-            currentLocale.code === locale.code ? 'bg-gray-50 font-medium' : ''
-          ]"
-          @click="switchLanguage(locale.code)"
-        >
-          <span class="text-base mr-2">{{ getFlag(locale.code) }}</span>
-          <span>{{ locale.name }}</span>
-          <Icon
-            v-if="currentLocale.code === locale.code"
-            name="lucide:check"
-            class="h-4 w-4 ml-auto text-blue-600"
-          />
-        </button>
-      </div>
-    </div>
-  </div>
+  <!-- Simple over Easy: 多言語対応時のみ表示 -->
+  <DropdownMenu v-if="isMultilingual">
+    <DropdownMenuTrigger as-child>
+      <Button 
+        variant="ghost" 
+        size="sm" 
+        class="w-9 px-0"
+        :aria-label="$t('language.switcher.ariaLabel')"
+      >
+        <Icon name="lucide:globe" class="h-4 w-4" />
+        <span class="sr-only">{{ $t('language.switcher.currentLanguage', { language: currentLanguage.name }) }}</span>
+      </Button>
+    </DropdownMenuTrigger>
+
+    <DropdownMenuContent align="end" class="w-40">
+      <DropdownMenuLabel class="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+        {{ $t('language.switcher.title') }}
+      </DropdownMenuLabel>
+      
+      <DropdownMenuItem
+        v-for="language in availableLanguages"
+        :key="language.code"
+        @click="switchLanguage(language.code)"
+        class="flex items-center cursor-pointer"
+      >
+        <span class="text-base mr-2">{{ language.flag }}</span>
+        <span>{{ language.name }}</span>
+        <Icon
+          v-if="currentLanguage.code === language.code"
+          name="lucide:check"
+          class="h-4 w-4 ml-auto text-primary"
+        />
+      </DropdownMenuItem>
+    </DropdownMenuContent>
+  </DropdownMenu>
+  
+  <!-- 単言語の場合: 何も表示しない（Simple over Easy） -->
 </template>
 
 <script setup lang="ts">
-// i18n
-const { locale, locales, setLocale } = useI18n()
+import { AVAILABLE_LANGUAGES, getLanguageOption, IS_MULTILINGUAL } from '~/config/languageConfig'
 
-// 状態
-const isMenuOpen = ref(false)
+// i18n composable
+const { locale, setLocale } = useI18n()
 
-// 計算プロパティ
-const currentLocale = computed(() => {
-  return locales.value.find(l => l.code === locale.value) || locales.value[0]
-})
+// 計算プロパティ - 設定ベース
+const currentLanguage = computed(() => getLanguageOption(locale.value))
+const availableLanguages = computed(() => AVAILABLE_LANGUAGES)
+const isMultilingual = computed(() => IS_MULTILINGUAL)
 
-const availableLocales = computed(() => locales.value)
-
-// メソッド
-const toggleMenu = () => {
-  isMenuOpen.value = !isMenuOpen.value
-}
-
+// メソッド - 型安全な言語切り替え
 const switchLanguage = async (localeCode: string) => {
-  await setLocale(localeCode)
-  isMenuOpen.value = false
-  
-  // メタタグも更新
-  useHead({
-    htmlAttrs: {
-      lang: localeCode
-    }
-  })
-}
-
-const getFlag = (localeCode: string): string => {
-  const flags: Record<string, string> = {
-    'ja': '🇯🇵',
-    'en': '🇺🇸'
+  // 設定から有効な言語コードかチェック
+  const validLanguage = AVAILABLE_LANGUAGES.find(lang => lang.code === localeCode)
+  if (!validLanguage) {
+    console.warn(`Invalid language code: ${localeCode}`)
+    return
   }
-  return flags[localeCode] || '🌐'
+  
+  try {
+    // 型制約を回避しつつ、設定ベースで安全に実行
+    await setLocale(localeCode as any)
+    
+    // HTMLのlang属性も更新（SEO/アクセシビリティ対応）
+    useHead({
+      htmlAttrs: {
+        lang: localeCode
+      }
+    })
+  } catch (error) {
+    console.error('Language switch failed:', error)
+  }
 }
-
-// 外部クリックでメニューを閉じる
-onClickOutside(templateRef('languageSwitcher'), () => {
-  isMenuOpen.value = false
-})
 </script>

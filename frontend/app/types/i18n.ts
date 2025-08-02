@@ -64,6 +64,11 @@ export interface INavigationMessages {
   help: string
   logout: string
   home: string
+  calendar: string
+  feedback: string
+  language: {
+    switch: string
+  }
   breadcrumb: {
     separator: string
     home: string
@@ -77,6 +82,7 @@ export interface INavigationMessages {
     recentPages: string
   }
   menu: {
+    user: string
     matters: {
       list: string
       create: string
@@ -111,6 +117,8 @@ export interface IAuthMessages {
   login: {
     title: string
     subtitle: string
+    appTitle: string
+    appSubtitle: string
     email: {
       label: string
       placeholder: string
@@ -125,6 +133,11 @@ export interface IAuthMessages {
     forgotPassword: string
     submit: string
     loading: string
+    debug: {
+      title: string
+      demoLogin: string
+      twoFactorUser: string
+    }
   }
   logout: {
     title: string
@@ -151,6 +164,16 @@ export interface IAuthMessages {
     sessionExpired: string
     networkError: string
     genericError: string
+  }
+  lastLogin: {
+    never: string
+    minutesAgo: string
+    hoursAgo: string
+    daysAgo: string
+  }
+  status: {
+    online: string
+    offline: string
   }
 }
 
@@ -467,7 +490,29 @@ export interface IMessages {
   access: IAccessMessages
 }
 
-// 言語固有の拡張型
-export interface ILocaleMessages extends IMessages {
+// フッター
+export interface IFooterMessages {
+  copyright: string
+}
+
+// メインメッセージ型を更新
+export interface LocaleMessages {
+  common: ICommonMessages
+  navigation: INavigationMessages
+  auth: IAuthMessages
+  dashboard: IDashboardMessages
+  matter: IMatterMessages
+  client: IClientMessages
+  document: IDocumentMessages
+  finance: IFinanceMessages
+  admin: IAdminMessages
+  error: IErrorMessages
+  notification: INotificationMessages
+  access: IAccessMessages
+  footer: IFooterMessages
+}
+
+// 後方互換性のためのエイリアス
+export interface ILocaleMessages extends LocaleMessages {
   // 各言語で固有の項目があれば追加
 }
