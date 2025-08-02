@@ -1,5 +1,5 @@
 services:
-  devcontainer:
+  astar-management:
     build:
       context: .
       dockerfile: Dockerfile
