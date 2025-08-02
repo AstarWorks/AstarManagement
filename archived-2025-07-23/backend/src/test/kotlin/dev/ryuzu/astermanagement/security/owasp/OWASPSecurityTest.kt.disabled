@@ -1,7 +1,0 @@
-// This file is temporarily disabled due to missing OWASP ZAP dependencies
-// To enable, add the following to build.gradle.kts:
-// testImplementation("org.zaproxy:zap-clientapi:1.14.0")
-
-package dev.ryuzu.astermanagement.security.owasp
-
-// Original content preserved but disabled
