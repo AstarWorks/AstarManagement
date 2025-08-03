@@ -1,1 +1,0 @@
-export { default as ActiveFilterBadge } from './ActiveFilterBadge.vue'
