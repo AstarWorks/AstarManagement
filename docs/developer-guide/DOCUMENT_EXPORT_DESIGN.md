@@ -720,7 +720,7 @@ export default defineEventHandler(async (event) => {
   // メタデータ追加
   if (metadata) {
     wordDoc.coreProperties = {
-      creator: 'Aster Management',
+      creator: 'Astar Management',
       created: new Date(),
       modified: new Date(),
       title: fileName

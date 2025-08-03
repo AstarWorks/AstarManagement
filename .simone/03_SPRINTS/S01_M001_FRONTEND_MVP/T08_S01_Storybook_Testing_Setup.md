@@ -3363,7 +3363,7 @@ export class AutoDocumentationGenerator<T extends Component> {
             step: '案件データ入力',
             actor: '事務員',
             action: 'システム入力',
-            system: 'Aster Management',
+            system: 'Astar Management',
             duration: '15分'
           }
         ],
@@ -4977,11 +4977,11 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: frontend/storybook-static
           destination_dir: storybook
-          cname: storybook.astermanagement.example.com
+          cname: storybook.Astarmanagement.example.com
 
       - name: Notify deployment
         run: |
-          echo "Storybook deployed to: https://storybook.astermanagement.example.com"
+          echo "Storybook deployed to: https://storybook.Astarmanagement.example.com"
           # Slack通知やその他の通知システムとの統合
 ```
 

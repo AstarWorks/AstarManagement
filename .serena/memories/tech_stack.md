@@ -1,4 +1,4 @@
-# Aster Management Technology Stack
+# Astar Management Technology Stack
 
 ## Frontend
 - **Framework**: Nuxt.js 4.0.1 with Vue 3 and TypeScript 5

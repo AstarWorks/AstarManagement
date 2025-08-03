@@ -2,7 +2,7 @@
 
 ## 概要
 
-Aster Management の開発環境は、Docker Compose + Dev Containers を使用してチーム全体で統一された環境を提供します。段階的にサービスを起動し、スタートアップの仮説検証段階に適した軽量構成から始めます。
+Astar Management の開発環境は、Docker Compose + Dev Containers を使用してチーム全体で統一された環境を提供します。段階的にサービスを起動し、スタートアップの仮説検証段階に適した軽量構成から始めます。
 
 ## 前提条件
 
@@ -65,8 +65,8 @@ curl -fsSL https://bun.sh/install | bash
 
 ```bash
 # リポジトリクローン
-git clone https://github.com/your-org/aster-management.git
-cd aster-management
+git clone https://github.com/your-org/Astar-management.git
+cd Astar-management
 
 # 環境設定ファイル作成
 cp .env.example .env.local
@@ -127,7 +127,7 @@ services:
   postgres:
     image: postgres:15-alpine
     environment:
-      POSTGRES_DB: aster_management
+      POSTGRES_DB: Astar_management
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
@@ -212,7 +212,7 @@ curl http://localhost:8080/api/docs  # Swagger UI
 #### バックエンドアーキテクチャ構成
 
 ```
-backend/src/main/kotlin/dev/ryuzu/astermanagement/
+backend/src/main/kotlin/dev/ryuzu/Astarmanagement/
 ├── domain/              # ドメイン層
 │   ├── model/          # エンティティ・値オブジェクト
 │   ├── repository/     # リポジトリインターface
@@ -358,7 +358,7 @@ NUXT_PUBLIC_APP_ENV=development
 
 ```bash
 # データベース
-SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/aster_management
+SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/Astar_management
 SPRING_DATASOURCE_USERNAME=postgres
 SPRING_DATASOURCE_PASSWORD=postgres
 
@@ -436,7 +436,7 @@ docker-compose logs postgres
 docker-compose ps postgres
 
 # 接続テスト
-psql -h localhost -U postgres -d aster_management
+psql -h localhost -U postgres -d Astar_management
 
 # マイグレーション状態確認
 ./gradlew flywayInfo

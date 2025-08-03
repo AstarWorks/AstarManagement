@@ -15,7 +15,7 @@ Establish a complete frontend foundation for the legal practice management syste
 - **Immediate User Feedback**: Legal practitioners can interact with the system and provide feedback
 - **Parallel Development**: Frontend and backend teams can work independently
 - **Risk Reduction**: UI/UX validation before backend integration
-- **Faster Time to Market**: Users see working system immediately
+- **FAstar Time to Market**: Users see working system immediately
 
 ## Core Deliverables
 

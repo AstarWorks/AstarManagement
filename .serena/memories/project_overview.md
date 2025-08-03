@@ -1,7 +1,7 @@
-# Aster Management Project Overview
+# Astar Management Project Overview
 
 ## Project Purpose
-**Aster Management** is a comprehensive legal case management system designed for small to medium-sized law firms (1-10 members) to achieve digital transformation (DX).
+**Astar Management** is a comprehensive legal case management system designed for small to medium-sized law firms (1-10 members) to achieve digital transformation (DX).
 
 ## Target Audience
 - Small to medium-sized law firms in Japan

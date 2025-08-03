@@ -8060,14 +8060,14 @@ class EnhancedDocumentPreviewManagerImpl implements EnhancedDocumentPreviewManag
 // utils/error-boundary.ts
 export class ErrorBoundary {
   private errorCount = 0
-  private lastError: Date | null = null
+  private lAstarror: Date | null = null
   private readonly maxErrors = 5
   private readonly resetInterval = 60000 // 1 minute
   
   execute<T>(fn: () => Result<T, PreviewError>): Result<T, PreviewError> {
     try {
       // Reset error count if enough time has passed
-      if (this.lastError && Date.now() - this.lastError.getTime() > this.resetInterval) {
+      if (this.lAstarror && Date.now() - this.lAstarror.getTime() > this.resetInterval) {
         this.reset()
       }
       
@@ -8087,13 +8087,13 @@ export class ErrorBoundary {
       
       if (!result.success) {
         this.errorCount++
-        this.lastError = new Date()
+        this.lAstarror = new Date()
       }
       
       return result
     } catch (error) {
       this.errorCount++
-      this.lastError = new Date()
+      this.lAstarror = new Date()
       
       return {
         success: false,
@@ -8109,7 +8109,7 @@ export class ErrorBoundary {
   
   reset(): void {
     this.errorCount = 0
-    this.lastError = null
+    this.lAstarror = null
   }
 }
 

@@ -2,7 +2,7 @@
 
 ## 概要
 
-Aster Managementの権限システムは、GitHub/Cloudflareのような柔軟で厳密な権限管理を実現します。Permission（権限）、Scope（スコープ）、Condition（条件）の3層構造により、きめ細かなアクセス制御を可能にします。
+Astar Managementの権限システムは、GitHub/Cloudflareのような柔軟で厳密な権限管理を実現します。Permission（権限）、Scope（スコープ）、Condition（条件）の3層構造により、きめ細かなアクセス制御を可能にします。
 
 ## 権限モデル
 

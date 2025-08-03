@@ -352,17 +352,17 @@ export const useRetry = (options: RetryOptions = {}) => {
   } = options
   
   const executeWithRetry = async <T>(fn: () => Promise<T>): Promise<T> => {
-    let lastError: Error
+    let lAstarror: Error
     
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
         return await fn()
       } catch (error) {
-        lastError = error as Error
+        lAstarror = error as Error
         
         // Check if error should be retried
-        if (!retryCondition(lastError) || attempt === maxAttempts) {
-          throw lastError
+        if (!retryCondition(lAstarror) || attempt === maxAttempts) {
+          throw lAstarror
         }
         
         // Calculate delay with exponential backoff
@@ -371,14 +371,14 @@ export const useRetry = (options: RetryOptions = {}) => {
           maxDelay
         )
         
-        onRetry?.(lastError, attempt)
+        onRetry?.(lAstarror, attempt)
         
         // Wait before retry
         await new Promise(resolve => setTimeout(resolve, delay))
       }
     }
     
-    throw lastError!
+    throw lAstarror!
   }
   
   return { executeWithRetry }

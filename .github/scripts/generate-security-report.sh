@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Comprehensive Security Report Generator for Aster Management
+# Comprehensive Security Report Generator for Astar Management
 # This script consolidates all security analysis results into a unified report
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

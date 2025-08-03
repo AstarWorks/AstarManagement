@@ -7682,7 +7682,7 @@ export const useDocumentUpload = () => {
     chunk: FileChunk,
     options: UploadOptions
   ): Promise<void> => {
-    let lastError: Error | null = null
+    let lAstarror: Error | null = null
 
     for (let attempt = 0; attempt <= options.maxRetries; attempt++) {
       try {
@@ -7691,7 +7691,7 @@ export const useDocumentUpload = () => {
         updateFileProgress(uploadFile.id, chunk.size)
         return
       } catch (error) {
-        lastError = error as Error
+        lAstarror = error as Error
         updateChunkStatus(uploadFile.id, chunk.index, 'failed')
         
         if (attempt < options.maxRetries) {
@@ -7701,7 +7701,7 @@ export const useDocumentUpload = () => {
       }
     }
 
-    throw lastError
+    throw lAstarror
   }
 
   // 単一チャンクアップロード
@@ -13490,22 +13490,22 @@ export const useLegalEntityExtraction = () => {
     for (const group of entityGroups) {
       if (group.length > 1) {
         // 最も信頼度の高いエンティティをマスターとする
-        const master = group.reduce((prev, current) => 
+        const mAstar = group.reduce((prev, current) => 
           prev.confidence > current.confidence ? prev : current
         )
 
         // 他のエンティティにリンク情報を追加
         group.forEach(entity => {
-          if (entity.id !== master.id) {
+          if (entity.id !== mAstar.id) {
             const entityIndex = linkedEntities.findIndex(e => e.id === entity.id)
             if (entityIndex > -1) {
               linkedEntities[entityIndex] = {
                 ...linkedEntities[entityIndex],
-                linkedTo: master.id,
+                linkedTo: mAstar.id,
                 metadata: {
                   ...linkedEntities[entityIndex].metadata,
                   isLinked: true,
-                  masterEntity: master.id
+                  mAstarEntity: mAstar.id
                 }
               }
             }
@@ -13624,7 +13624,7 @@ export interface EntityMetadata {
   readonly extractionMethod: 'regex' | 'ai' | 'custom'
   readonly pattern?: string
   readonly isLinked?: boolean
-  readonly masterEntity?: string
+  readonly mAstarEntity?: string
   readonly [key: string]: unknown
 }
 

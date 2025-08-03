@@ -29,8 +29,8 @@ graph TD
     <div class="auth-card">
       <!-- ロゴ・タイトル -->
       <div class="auth-header">
-        <img src="/logo.svg" alt="Aster Management" class="auth-logo" />
-        <h1 class="auth-title">Aster Management</h1>
+        <img src="/logo.svg" alt="Astar Management" class="auth-logo" />
+        <h1 class="auth-title">Astar Management</h1>
         <p class="auth-subtitle">法律事務所管理システム</p>
       </div>
       
@@ -825,7 +825,7 @@ onUnmounted(() => {
       <div class="setup-header">
         <h1 class="text-2xl font-bold">初回セットアップ</h1>
         <p class="text-muted-foreground">
-          Aster Managementの初回セットアップを行います
+          Astar Managementの初回セットアップを行います
         </p>
       </div>
       

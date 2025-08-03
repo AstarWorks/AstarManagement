@@ -1,4 +1,4 @@
-name: "Aster Management CodeQL Configuration"
+name: "Astar Management CodeQL Configuration"
 
 # Disable the default suite to run only security-focused queries
 disable-default-queries: false

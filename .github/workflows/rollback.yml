@@ -31,8 +31,8 @@ jobs:
         ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
         ARGOCD_AUTH_TOKEN: ${{ secrets.ARGOCD_TOKEN }}
       run: |
-        argocd app rollback aster-backend-${{ github.event.inputs.environment }} ${{ github.event.inputs.revision }} --grpc-web
-        argocd app rollback aster-frontend-${{ github.event.inputs.environment }} ${{ github.event.inputs.revision }} --grpc-web
+        argocd app rollback Astar-backend-${{ github.event.inputs.environment }} ${{ github.event.inputs.revision }} --grpc-web
+        argocd app rollback Astar-frontend-${{ github.event.inputs.environment }} ${{ github.event.inputs.revision }} --grpc-web
     
     - name: Notify rollback
       uses: 8398a7/action-slack@v3

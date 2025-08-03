@@ -5202,7 +5202,7 @@ type ExpenseState =
 5. **Type-Driven Development**: Runtime validation matches compile-time types
 6. **Legal Domain Focus**: Japanese legal practice terminology integrated
 
-### Compliance with Aster Management Principles
+### Compliance with Astar Management Principles
 
 ✅ **Agent-Native Design**: All operations expose programmatic interfaces  
 ✅ **CLI/GUI Parity**: Manager classes support both manual and automated use  
@@ -7335,7 +7335,7 @@ class ReportErrorBoundary {
 5. **Type-Safe Exports**: Multi-format export system with runtime validation
 6. **Composable Architecture**: Clean separation between state management and UI
 
-### Compliance with Aster Management Principles
+### Compliance with Astar Management Principles
 
 ✅ **Agent-Native Design**: All report generation exposed as programmatic APIs  
 ✅ **CLI/GUI Parity**: ExpenseReportingManager supports both UI and headless usage  

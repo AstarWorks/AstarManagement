@@ -1,4 +1,4 @@
-# Aster Management
+# Astar Management
 
 A comprehensive legal case management system designed to digitize and streamline law firm operations.
 
@@ -33,8 +33,8 @@ A comprehensive legal case management system designed to digitize and streamline
 
 1. Clone the repository
 ```bash
-git clone https://github.com/your-org/aster-management.git
-cd aster-management
+git clone https://github.com/your-org/Astar-management.git
+cd Astar-management
 ```
 
 2. Start the backend
@@ -53,7 +53,7 @@ bun dev
 ## Project Structure
 
 ```
-aster-management/
+Astar-management/
 ├── backend/               # Spring Boot Kotlin backend
 ├── frontend/              # Nuxt.js Vue 3 frontend
 ├── docs/                  # Documentation

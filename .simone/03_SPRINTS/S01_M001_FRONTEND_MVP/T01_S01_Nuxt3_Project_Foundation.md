@@ -985,7 +985,7 @@ Strict TypeScript setup:
 ## Integration Points
 
 ### Development Environment
-- **Bun Package Manager**: Faster installations and builds
+- **Bun Package Manager**: FAstar installations and builds
 - **Hot Module Replacement**: Instant development feedback
 - **TypeScript Integration**: Full type checking and IntelliSense
 - **Auto-imports**: Automatic Vue 3 and Nuxt 3 imports

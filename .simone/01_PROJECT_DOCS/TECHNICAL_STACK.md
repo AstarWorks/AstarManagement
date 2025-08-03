@@ -30,7 +30,7 @@
 - **Playwright** - E2E testing framework
 
 ### Package Management
-- **Bun** - Ultra-fast JavaScript runtime and package manager (30x faster installs)
+- **Bun** - Ultra-fast JavaScript runtime and package manager (30x fAstar installs)
 
 ## Backend Technology Stack
 

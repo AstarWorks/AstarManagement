@@ -66,7 +66,7 @@ Astar Management is a **monorepo-based legal practice management system** design
 - **Form Validation**: VeeValidate + Zod for runtime type safety
 - **Testing**: Vitest + Storybook for component development
 - **Icons**: Lucide Vue Next exclusively
-- **Package Manager**: Bun for faster development cycles
+- **Package Manager**: Bun for fAstar development cycles
 
 ### Backend (Spring Boot + Kotlin)
 - **Architecture**: Clean Architecture (Domain → Application → Infrastructure → Presentation)

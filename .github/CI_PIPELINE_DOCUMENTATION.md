@@ -1,10 +1,10 @@
 # CI/CD Pipeline Documentation
 
-This document provides comprehensive documentation for the Aster Management CI/CD pipelines, troubleshooting guides, and maintenance procedures.
+This document provides comprehensive documentation for the Astar Management CI/CD pipelines, troubleshooting guides, and maintenance procedures.
 
 ## Overview
 
-The Aster Management project uses GitHub Actions for Continuous Integration (CI) and Continuous Deployment (CD) with separate pipelines for backend (Spring Boot/Kotlin) and frontend (Nuxt.js/Vue 3) components.
+The Astar Management project uses GitHub Actions for Continuous Integration (CI) and Continuous Deployment (CD) with separate pipelines for backend (Spring Boot/Kotlin) and frontend (Nuxt.js/Vue 3) components.
 
 ## Pipeline Architecture
 
@@ -103,7 +103,7 @@ The Aster Management project uses GitHub Actions for Continuous Integration (CI)
 ### Required Secrets
 ```yaml
 # Backend
-DATABASE_URL: "postgresql://localhost:5432/astermanagement_test"
+DATABASE_URL: "postgresql://localhost:5432/Astarmanagement_test"
 DATABASE_USERNAME: "postgres"
 DATABASE_PASSWORD: "testpassword"
 REDIS_HOST: "localhost"

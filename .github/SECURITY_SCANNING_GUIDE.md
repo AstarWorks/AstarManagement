@@ -1,6 +1,6 @@
-# Security Scanning Guide - Aster Management
+# Security Scanning Guide - Astar Management
 
-This document provides comprehensive guidance on the security scanning infrastructure implemented for the Aster Management application.
+This document provides comprehensive guidance on the security scanning infrastructure implemented for the Astar Management application.
 
 ## Overview
 
@@ -98,7 +98,7 @@ dependencyCheck {
 ```
 
 **Features:**
-- NVD API integration for faster scans
+- NVD API integration for fAstar scans
 - Comprehensive suppression file for false positives
 - Multiple output formats (HTML, XML, JSON)
 - Critical vulnerability threshold enforcement
@@ -365,8 +365,8 @@ open build/reports/dependency-check-report.html
 
 ### Contact Information
 
-- **Security Team**: security@astermanagement.dev
-- **On-call**: security-oncall@astermanagement.dev
+- **Security Team**: security@Astarmanagement.dev
+- **On-call**: security-oncall@Astarmanagement.dev
 - **Documentation**: This guide and GitHub Security tab
 
 ---

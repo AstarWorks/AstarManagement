@@ -3,7 +3,7 @@
 ## 1. セキュリティ概要
 
 ### 1.1 基本方針
-Aster Managementは法律事務所向けシステムとして、極めて高い機密性が要求される情報を扱います。以下の原則に基づいてセキュリティを設計・実装します。
+Astar Managementは法律事務所向けシステムとして、極めて高い機密性が要求される情報を扱います。以下の原則に基づいてセキュリティを設計・実装します。
 
 1. **Defense in Depth（多層防御）**
    - 単一の対策に依存せず、複数層のセキュリティ対策を実装
@@ -546,10 +546,10 @@ jobs:
     - uses: actions/checkout@v3
     
     - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@master
+      uses: aquasecurity/trivy-action@mAstar
       
     - name: SonarQube Scan
-      uses: sonarsource/sonarqube-scan-action@master
+      uses: sonarsource/sonarqube-scan-action@mAstar
       
     - name: OWASP Dependency Check
       uses: dependency-check/Dependency-Check_Action@main

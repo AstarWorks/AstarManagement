@@ -2,7 +2,7 @@
 
 ## 概要
 
-Aster Management システムのグローバル状態管理設計。Piniaを使用し、TypeScript完全対応、永続化、リアクティブな状態管理を実装します。
+Astar Management システムのグローバル状態管理設計。Piniaを使用し、TypeScript完全対応、永続化、リアクティブな状態管理を実装します。
 
 ## 設計原則
 

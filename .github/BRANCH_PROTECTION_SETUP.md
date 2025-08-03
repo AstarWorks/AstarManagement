@@ -1,6 +1,6 @@
 # Branch Protection Rules Setup
 
-This document provides instructions for setting up GitHub branch protection rules for the Aster Management repository to enforce CI/CD quality gates.
+This document provides instructions for setting up GitHub branch protection rules for the Astar Management repository to enforce CI/CD quality gates.
 
 ## Required Branch Protection Rules
 

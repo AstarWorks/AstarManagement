@@ -1,8 +1,8 @@
-# CLAUDE.md - Aster Management Configuration
+# CLAUDE.md - Astar Management Configuration
 
 ## Project Overview
 
-**Aster Management - 法律事務所向け業務管理システム**
+**Astar Management - 法律事務所向け業務管理システム**
 - 対象: 小中規模法律事務所（1-10名）のDX実現
 - フェーズ: MVP開発段階
 
@@ -48,3 +48,7 @@
 - Add audit logging for sensitive operations
 - Protect attorney-client privilege data
 - Use Row Level Security (RLS) for multi-tenancy
+
+## Backend Status
+- **Build**: `./gradlew build -x test`
+- **Run**: `SPRING_PROFILES_ACTIVE=default ./gradlew bootRun`

@@ -3951,7 +3951,7 @@ describe('DocumentUpload', () => {
 // tests/setup/test-config.ts - テスト設定の一元管理
 export const TEST_CONFIG = {
   // テストデータベース
-  DATABASE_URL: 'postgresql://test:test@localhost:5433/aster_test',
+  DATABASE_URL: 'postgresql://test:test@localhost:5433/Astar_test',
   
   // テスト実行設定
   UNIT_TEST_TIMEOUT: 5000,
@@ -4689,7 +4689,7 @@ describe('Case Detail E2E Tests', () => {
     
     // ダッシュボードの確認
     await page.waitForURL('/dashboard')
-    expect(await page.title()).toBe('Aster Management - ダッシュボード')
+    expect(await page.title()).toBe('Astar Management - ダッシュボード')
     
     // 案件一覧に移動
     await page.click('[data-testid="nav-cases"]')
@@ -5534,7 +5534,7 @@ export const FUTURE_ENHANCEMENTS = {
   'Server Components': {
     priority: 'medium',
     timeline: 'Q2 2024',
-    impact: 'SEO improvement, faster initial load',
+    impact: 'SEO improvement, fAstar initial load',
     implementation: 'Nuxt 3.8+ Server Components for static content'
   },
   'Streaming SSR': {
@@ -5569,9 +5569,9 @@ export const createWebComponent = <T extends Record<string, any>>(
 
 // Legal UI Components as Web Components
 export const registerLegalComponents = () => {
-  createWebComponent(CaseCard, 'aster-case-card')
-  createWebComponent(DocumentUpload, 'aster-document-upload')
-  createWebComponent(CommunicationTimeline, 'aster-communication-timeline')
+  createWebComponent(CaseCard, 'Astar-case-card')
+  createWebComponent(DocumentUpload, 'Astar-document-upload')
+  createWebComponent(CommunicationTimeline, 'Astar-communication-timeline')
 }
 ```
 

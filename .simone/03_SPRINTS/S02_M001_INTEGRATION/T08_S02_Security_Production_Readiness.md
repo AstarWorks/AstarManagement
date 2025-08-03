@@ -129,7 +129,7 @@ export default defineNuxtConfig({
             "style-src 'self' 'unsafe-inline'", // For component styling
             "img-src 'self' data: https:",
             "font-src 'self' https:",
-            "connect-src 'self' https://api.astermanagement.com",
+            "connect-src 'self' https://api.Astarmanagement.com",
             "frame-ancestors 'none'"
           ].join('; '),
           

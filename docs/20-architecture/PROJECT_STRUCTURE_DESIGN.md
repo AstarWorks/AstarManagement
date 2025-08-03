@@ -11,7 +11,7 @@
 ## 2. ディレクトリ構造
 
 ```
-aster-management/
+Astar-management/
 ├── backend/                           # バックエンドモノリス (Spring Boot)
 │   ├── api/                          # APIエンドポイント層
 │   │   ├── rest/                     # REST API

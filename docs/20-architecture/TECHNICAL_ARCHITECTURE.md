@@ -178,8 +178,8 @@ export const useCaseStore = defineStore('case', () => {
 ### 3.2 パッケージ構造
 ```
 backend/
-├── src/main/kotlin/com/aster/
-│   ├── AsterApplication.kt      # メインクラス
+├── src/main/kotlin/com/Astar/
+│   ├── AstarApplication.kt      # メインクラス
 │   ├── config/                  # 設定クラス
 │   │   ├── SecurityConfig.kt
 │   │   ├── JpaConfig.kt
@@ -369,8 +369,8 @@ services:
   postgres:
     image: postgres:15-alpine
     environment:
-      - POSTGRES_DB=aster
-      - POSTGRES_USER=aster
+      - POSTGRES_DB=Astar
+      - POSTGRES_USER=Astar
       - POSTGRES_PASSWORD=password
     volumes:
       - postgres_data:/var/lib/postgresql/data

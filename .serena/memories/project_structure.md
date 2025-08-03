@@ -1,4 +1,4 @@
-# Aster Management Project Structure
+# Astar Management Project Structure
 
 ## Root Directory Structure
 ```
