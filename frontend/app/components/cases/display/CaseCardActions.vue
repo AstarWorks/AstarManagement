@@ -42,9 +42,7 @@
 
 <script setup lang="ts">
 interface Emits {
-  (e: 'edit'): void
-  (e: 'duplicate'): void
-  (e: 'delete'): void
+  (e: 'edit' | 'duplicate' | 'delete'): void
 }
 
 defineEmits<Emits>()

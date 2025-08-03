@@ -28,25 +28,28 @@ const props = withDefaults(defineProps<Props>(), {
   showPercentage: true
 })
 
+// i18n
+const { t } = useI18n()
+
 // Status progression mapping
 const statusConfig = computed(() => {
   const configs: Record<CaseStatus, { order: number; label: string; color: string }> = {
-    new: { order: 1, label: '新規', color: 'bg-blue-500' },
-    accepted: { order: 2, label: '受任', color: 'bg-green-500' },
-    investigation: { order: 3, label: '調査', color: 'bg-yellow-500' },
-    preparation: { order: 4, label: '準備', color: 'bg-purple-500' },
-    negotiation: { order: 5, label: '交渉', color: 'bg-orange-500' },
-    trial: { order: 6, label: '裁判', color: 'bg-red-500' },
-    completed: { order: 7, label: '完了', color: 'bg-gray-500' }
+    new: { order: 1, label: t('cases.status.new'), color: 'bg-blue-500' },
+    accepted: { order: 2, label: t('cases.status.accepted'), color: 'bg-green-500' },
+    investigation: { order: 3, label: t('cases.status.investigation'), color: 'bg-yellow-500' },
+    preparation: { order: 4, label: t('cases.status.preparation'), color: 'bg-purple-500' },
+    negotiation: { order: 5, label: t('cases.status.negotiation'), color: 'bg-orange-500' },
+    trial: { order: 6, label: t('cases.status.trial'), color: 'bg-red-500' },
+    completed: { order: 7, label: t('cases.status.completed'), color: 'bg-gray-500' }
   }
   
-  return configs[props.status] || configs.new
+  return configs[props.status as keyof typeof configs] || configs.new
 })
 
 const totalSteps = 7 // Total number of status steps
 
 const progressPercentage = computed(() => {
-  const currentStep = statusConfig.value.order
+  const currentStep = statusConfig.value?.order || 1
   return Math.round((currentStep / totalSteps) * 100)
 })
 
@@ -54,11 +57,11 @@ const progressText = computed(() => {
   if (props.showPercentage) {
     return `${progressPercentage.value}%`
   }
-  return statusConfig.value.label
+  return statusConfig.value?.label || ''
 })
 
 const progressFillClass = computed(() => {
-  return statusConfig.value.color
+  return statusConfig.value?.color || 'bg-gray-500'
 })
 
 const progressBarSizeClass = computed(() => {

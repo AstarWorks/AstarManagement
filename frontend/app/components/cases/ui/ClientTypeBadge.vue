@@ -24,16 +24,19 @@ const props = withDefaults(defineProps<Props>(), {
   showLabel: true
 })
 
+// i18n
+const { t } = useI18n()
+
 // Computed properties
 const typeConfig = computed(() => {
   const configs = {
     individual: {
-      label: '個人',
+      label: t('matter.filters.clientType.options.individual'),
       icon: 'lucide:user',
       classes: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800'
     },
     corporate: {
-      label: '法人',
+      label: t('matter.filters.clientType.options.corporate'),
       icon: 'lucide:building',
       classes: 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-800'
     }

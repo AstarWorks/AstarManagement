@@ -28,8 +28,8 @@
       <DropdownMenuItem
         v-for="language in availableLanguages"
         :key="language.code"
-        @click="switchLanguage(language.code)"
         class="flex items-center cursor-pointer"
+        @click="switchLanguage(language.code)"
       >
         <span class="text-base mr-2">{{ language.flag }}</span>
         <span>{{ language.name }}</span>
@@ -67,7 +67,7 @@ const switchLanguage = async (localeCode: string) => {
   
   try {
     // 型制約を回避しつつ、設定ベースで安全に実行
-    await setLocale(localeCode as any)
+    await setLocale(localeCode as 'ja')
     
     // HTMLのlang属性も更新（SEO/アクセシビリティ対応）
     useHead({
