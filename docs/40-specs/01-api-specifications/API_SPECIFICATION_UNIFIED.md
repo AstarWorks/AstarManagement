@@ -2,13 +2,13 @@
 
 ## 概要
 
-Aster Management システムの統一されたREST API仕様。すべてのエンドポイントはRESTfulな設計原則に従い、一貫性のある命名規則とレスポンス形式を採用します。
+Astar Management システムの統一されたREST API仕様。すべてのエンドポイントはRESTfulな設計原則に従い、一貫性のある命名規則とレスポンス形式を採用します。
 
 ## 基本仕様
 
 ### ベースURL
 ```
-https://api.{tenant}.astermanagement.com/api/v1
+https://api.{tenant}.Astarmanagement.com/api/v1
 ```
 
 ### 認証
@@ -408,7 +408,7 @@ APIバージョンはURLに含まれます：
 
 リアルタイム通信用：
 ```
-wss://api.{tenant}.astermanagement.com/api/v1/ws
+wss://api.{tenant}.Astarmanagement.com/api/v1/ws
 ```
 
 ### イベント

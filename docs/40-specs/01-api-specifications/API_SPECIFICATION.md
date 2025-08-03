@@ -3,7 +3,7 @@
 ## 1. API概要
 
 ### 1.1 基本情報
-- **ベースURL**: `https://api.aster-management.com/api/v1`
+- **ベースURL**: `https://api.Astar-management.com/api/v1`
 - **プロトコル**: HTTPS
 - **データ形式**: JSON
 - **文字エンコーディング**: UTF-8
@@ -786,11 +786,11 @@ Response:
 }
 ```
 
-### 4.7 マスターデータ (Master Data)
+### 4.7 マスターデータ (MAstar Data)
 
 #### 案件種別一覧
 ```
-GET /master/case-types
+GET /mAstar/case-types
 
 Response:
 {
@@ -808,7 +808,7 @@ Response:
 
 #### ステータス定義一覧
 ```
-GET /master/status-definitions
+GET /mAstar/status-definitions
 
 Response:
 {
@@ -829,7 +829,7 @@ Response:
 
 ### 5.1 接続
 ```
-ws://api.aster-management.com/ws?token=<access_token>
+ws://api.Astar-management.com/ws?token=<access_token>
 ```
 
 ### 5.2 イベント
@@ -897,16 +897,16 @@ X-RateLimit-Reset: 1706236800
 ## 7. 開発者向けツール
 
 ### 7.1 Sandbox環境
-- **URL**: https://sandbox-api.aster-management.com/api/v1
+- **URL**: https://sandbox-api.Astar-management.com/api/v1
 - **特徴**: テストデータで自由に操作可能
 - **制限**: データは毎日リセット
 
 ### 7.2 APIドキュメント
-- **Swagger UI**: https://api.aster-management.com/swagger
-- **OpenAPI仕様**: https://api.aster-management.com/openapi.json
+- **Swagger UI**: https://api.Astar-management.com/swagger
+- **OpenAPI仕様**: https://api.Astar-management.com/openapi.json
 
 ### 7.3 Postmanコレクション
-- https://api.aster-management.com/postman-collection.json
+- https://api.Astar-management.com/postman-collection.json
 
 ## 8. 変更履歴
 

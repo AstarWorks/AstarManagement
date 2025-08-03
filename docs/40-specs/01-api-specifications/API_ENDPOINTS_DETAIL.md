@@ -2,13 +2,13 @@
 
 ## 概要
 
-このドキュメントでは、Aster ManagementシステムのREST APIエンドポイントの詳細設計を定義します。すべてのAPIはJWT認証を必要とし、Discord風のRBACによる権限制御が適用されます。
+このドキュメントでは、Astar ManagementシステムのREST APIエンドポイントの詳細設計を定義します。すべてのAPIはJWT認証を必要とし、Discord風のRBACによる権限制御が適用されます。
 
 ## 共通仕様
 
 ### ベースURL
 ```
-https://api.{tenant}.astermanagement.com/v1
+https://api.{tenant}.Astarmanagement.com/v1
 ```
 
 ### 認証
@@ -903,7 +903,7 @@ GET /api/exports/{exportId}
 
 ### 9.1 リアルタイム更新
 ```
-ws://api.{tenant}.astermanagement.com/v1/ws
+ws://api.{tenant}.Astarmanagement.com/v1/ws
 ```
 
 #### 接続時認証
