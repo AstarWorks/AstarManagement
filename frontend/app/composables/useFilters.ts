@@ -5,24 +5,24 @@
 
 import { ref, computed, watch } from 'vue'
 import { useDebounceFn, useRefHistory } from '@vueuse/core'
-import type { CaseFilters } from '~/types/case'
+import type {  ICaseFilters  } from '~/types/case'
 import { DEFAULT_CASE_FILTERS, LEGAL_PRACTICE_TAGS } from '~/config/filterConfig'
 
 /**
  * フィルター管理の統一インターフェース（VueUse活用版）
  */
 export function useFilters(
-  initialFilters: CaseFilters = DEFAULT_CASE_FILTERS,
+  initialFilters: ICaseFilters = DEFAULT_CASE_FILTERS,
   options: {
     enableHistory?: boolean
     debounceMs?: number
-    onFiltersChange?: (filters: CaseFilters) => void
+    onFiltersChange?: (filters: ICaseFilters) => void
   } = {}
 ) {
   const { enableHistory = false, debounceMs = 300, onFiltersChange } = options
   
   // リアクティブな状態
-  const filters = ref<CaseFilters>({ ...initialFilters })
+  const filters = ref<ICaseFilters>({ ...initialFilters })
   
   // VueUseの履歴管理（オプション）
   const {
@@ -58,7 +58,7 @@ export function useFilters(
   const availableTags = computed(() => LEGAL_PRACTICE_TAGS)
   
   // 統一されたフィルタークリア関数
-  const clearFilter = (filterKey: keyof CaseFilters) => {
+  const clearFilter = (filterKey: keyof ICaseFilters) => {
     switch (filterKey) {
       case 'search':
         filters.value.search = ''
@@ -79,6 +79,9 @@ export function useFilters(
         break
       case 'sortOrder':
         filters.value.sortOrder = 'asc'
+        break
+      default:
+        console.warn(`Unknown filter key: ${filterKey}`)
         break
     }
   }
@@ -107,19 +110,19 @@ export function useFilters(
   watch(filters, debouncedFiltersChange, { deep: true })
   
   // フィルター設定（外部からの同期用）
-  const setFilters = (newFilters: Partial<CaseFilters>) => {
+  const setFilters = (newFilters: Partial<ICaseFilters>) => {
     filters.value = { ...filters.value, ...newFilters }
   }
   
   // フィルターリセット（特定キーのみ）
-  const resetFilter = (filterKey: keyof CaseFilters) => {
+  const resetFilter = (filterKey: keyof ICaseFilters) => {
     const defaultValue = DEFAULT_CASE_FILTERS[filterKey]
-    // @ts-ignore - 型の互換性はランタイムで保証
+    // @ts-expect-error - 型の互換性はランタイムで保証
     filters.value[filterKey] = defaultValue
   }
   
   // フィルター値の取得（読み取り専用）
-  const getFilters = (): CaseFilters => {
+  const getFilters = (): ICaseFilters => {
     return { ...filters.value }
   }
   

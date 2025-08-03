@@ -6,12 +6,11 @@
 import { useApiAuth } from './useApiAuth'
 import type { Result } from '~/types/auth'
 import { createSuccess, createFailure } from '~/types/auth'
-import type { $Fetch } from 'nitropack'
 
 /**
  * API オプション（簡素化）
  */
-export interface ApiOptions {
+export interface IApiOptions {
   requiresAuth?: boolean
   skipErrorHandler?: boolean
   headers?: Record<string, string>
@@ -23,7 +22,7 @@ export interface ApiOptions {
 /**
  * 一般的なAPIエラー型（型安全）
  */
-export interface ApiError {
+export interface IApiError {
   readonly code: 'NETWORK_ERROR' | 'SERVER_ERROR' | 'CLIENT_ERROR' | 'TIMEOUT_ERROR' | 'UNKNOWN_ERROR'
   readonly message: string
   readonly status: number
@@ -34,24 +33,24 @@ export interface ApiError {
  * APIエラー作成ヘルパー
  */
 export function createApiError(
-  code: ApiError['code'], 
+  code: IApiError['code'], 
   message: string, 
   status: number, 
   details?: Record<string, unknown>
-): ApiError {
+): IApiError {
   return { code, message, status, details }
 }
 
 /**
  * $fetchエラーからAPIエラーを作成
  */
-export function fromFetchError(error: unknown): ApiError {
+export function fromFetchError(error: unknown): IApiError {
   const status = (error as { status?: number; statusCode?: number })?.status || 
                  (error as { status?: number; statusCode?: number })?.statusCode || 500
   const message = (error as Error)?.message || 'API request failed'
   const data = (error as { data?: unknown })?.data
   
-  let code: ApiError['code']
+  let code: IApiError['code']
   if (status >= 500) {
     code = 'SERVER_ERROR'
   } else if (status >= 400) {
@@ -79,8 +78,8 @@ export const useApi = () => {
     method: 'GET' | 'POST' | 'PUT' | 'DELETE',
     url: string,
     body?: unknown,
-    options: ApiOptions = {}
-  ): Promise<Result<T, ApiError>> => {
+    options: IApiOptions = {}
+  ): Promise<Result<T, IApiError>> => {
     const authStore = useAuthStore()
     
     if (!authStore.isAuthenticated) {
@@ -95,7 +94,7 @@ export const useApi = () => {
 
     try {
       // ApiOptionsから$fetch固有でないプロパティを除外
-      const { requiresAuth, skipErrorHandler, headers: optionHeaders, ...fetchOptions } = options
+      const { requiresAuth: _requiresAuth, skipErrorHandler: _skipErrorHandler, headers: _optionHeaders, ...fetchOptions } = options
       
       const response = await $fetch<T>(url, {
         method,
@@ -114,16 +113,16 @@ export const useApi = () => {
   /**
    * 便利メソッド（Result型パターン）
    */
-  const get = <T>(url: string, options?: ApiOptions): Promise<Result<T, ApiError>> =>
+  const get = <T>(url: string, options?: IApiOptions): Promise<Result<T, IApiError>> =>
     authenticatedRequest<T>('GET', url, undefined, options)
 
-  const post = <T>(url: string, body?: unknown, options?: ApiOptions): Promise<Result<T, ApiError>> =>
+  const post = <T>(url: string, body?: unknown, options?: IApiOptions): Promise<Result<T, IApiError>> =>
     authenticatedRequest<T>('POST', url, body, options)
 
-  const put = <T>(url: string, body?: unknown, options?: ApiOptions): Promise<Result<T, ApiError>> =>
+  const put = <T>(url: string, body?: unknown, options?: IApiOptions): Promise<Result<T, IApiError>> =>
     authenticatedRequest<T>('PUT', url, body, options)
 
-  const del = <T>(url: string, options?: ApiOptions): Promise<Result<T, ApiError>> =>
+  const del = <T>(url: string, options?: IApiOptions): Promise<Result<T, IApiError>> =>
     authenticatedRequest<T>('DELETE', url, undefined, options)
 
   return {
@@ -147,7 +146,7 @@ export const useApi = () => {
 export const useApiUpload = () => {
   const { post } = useApi()
 
-  const uploadFile = async (url: string, file: File): Promise<Result<unknown, ApiError>> => {
+  const uploadFile = async (url: string, file: File): Promise<Result<unknown, IApiError>> => {
     const formData = new FormData()
     formData.append('file', file)
     

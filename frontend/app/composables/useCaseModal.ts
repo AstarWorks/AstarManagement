@@ -4,19 +4,19 @@
  */
 
 import { ref } from 'vue'
-import type { Case } from '~/types/case'
+import type {  ICase  } from '~/types/case'
 
 export function useCaseModal() {
   // Modal state
   const isOpen = ref(false)
-  const selectedCase = ref<Case | null>(null)
+  const selectedCase = ref<ICase | null>(null)
   const isLoading = ref(false)
 
   // VueUse for better state management
   const [isEditMode, toggleEditMode] = useToggle(false)
 
   // Open modal with case data
-  const openModal = (case_: Case) => {
+  const openModal = (case_: ICase) => {
     selectedCase.value = case_
     isOpen.value = true
     isEditMode.value = false
@@ -44,7 +44,7 @@ export function useCaseModal() {
   }
 
   // Handle case updates from modal
-  const handleCaseUpdate = (updatedCase: Case) => {
+  const handleCaseUpdate = (updatedCase: ICase) => {
     if (selectedCase.value && selectedCase.value.id === updatedCase.id) {
       selectedCase.value = { ...updatedCase }
     }
@@ -63,7 +63,7 @@ export function useCaseModal() {
   }
 
   // Prevent body scroll when modal is open
-  if (process.client) {
+  if (import.meta.client) {
     watch(isOpen, (open) => {
       if (open) {
         document.body.style.overflow = 'hidden'
@@ -74,7 +74,7 @@ export function useCaseModal() {
   }
 
   // Cleanup on unmount
-  if (process.client) {
+  if (import.meta.client) {
     onUnmounted(() => {
       document.body.style.overflow = ''
     })
@@ -98,7 +98,7 @@ export function useCaseModal() {
 }
 
 // Composable for case actions (can be used in modal and other components)
-export function useCaseActions(emit?: any) {
+export function useCaseActions(emit?: (event: string, ...args: unknown[]) => void) {
   const router = useRouter()
 
   const handleClose = () => {

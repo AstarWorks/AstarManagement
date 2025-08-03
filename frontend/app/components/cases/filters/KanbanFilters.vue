@@ -35,8 +35,8 @@
     <BasicFilters
       :filters="localFilters"
       :available-lawyers="availableLawyers"
-      @update:filters="handleUpdateFilters"
       class="mb-4"
+      @update:filters="handleUpdateFilters"
     />
 
     <!-- 詳細フィルター -->
@@ -60,8 +60,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
-import type { CaseFilters } from '~/types/case'
+import { ref, watch, onMounted } from 'vue'
+import type {  ICaseFilters  } from '~/types/case'
 import { DEFAULT_CASE_FILTERS } from '~/config/filterConfig'
 import { useFilters } from '~/composables/useFilters'
 import BasicFilters from './BasicFilters.vue'
@@ -69,12 +69,12 @@ import AdvancedFilters from './AdvancedFilters.vue'
 import ActiveFiltersSummary from './ActiveFiltersSummary.vue'
 
 interface Props {
-  filters: CaseFilters
+  filters: ICaseFilters
   availableLawyers?: Array<{ id: string; name: string }>
 }
 
 interface Emits {
-  (e: 'update:filters' | 'apply', filters: CaseFilters): void
+  (e: 'update:filters' | 'apply', filters: ICaseFilters): void
   (e: 'reset'): void
 }
 
@@ -85,14 +85,14 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<Emits>()
 
 // 状態管理
-const localFilters = ref<CaseFilters>({ ...props.filters })
+const localFilters = ref<ICaseFilters>({ ...props.filters })
 const showAdvanced = ref(false)
 
 // フィルター管理composableを使用
-const { hasActiveFilters, clearFilter, removeTag } = useFilters(localFilters.value)
+const { hasActiveFilters, clearFilter, removeTag: _removeTag } = useFilters(localFilters.value)
 
 // フィルター更新処理
-const handleUpdateFilters = (updates: Partial<CaseFilters>) => {
+const handleUpdateFilters = (updates: Partial<ICaseFilters>) => {
   localFilters.value = { ...localFilters.value, ...updates }
   emit('update:filters', { ...localFilters.value })
   emit('apply', { ...localFilters.value })
@@ -106,7 +106,7 @@ const handleClearAll = () => {
 }
 
 // 個別フィルタークリア
-const handleClearFilter = (key: keyof CaseFilters) => {
+const handleClearFilter = (key: keyof ICaseFilters) => {
   clearFilter(key)
   // localFiltersに反映
   switch (key) {
@@ -123,6 +123,10 @@ const handleClearFilter = (key: keyof CaseFilters) => {
       break
     case 'dateRange':
       localFilters.value.dateRange = null
+      break
+    default:
+      // Handle any other filter keys that might be added in the future
+      console.warn(`Unknown filter key: ${key}`)
       break
   }
   emit('update:filters', { ...localFilters.value })

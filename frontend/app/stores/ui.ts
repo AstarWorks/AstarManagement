@@ -5,7 +5,7 @@
 
 import { defineStore } from 'pinia'
 
-export interface UIState {
+export interface IUIState {
   // Sidebar state
   isSidebarOpen: boolean
   isMobileMenuOpen: boolean
@@ -26,7 +26,7 @@ export interface UIState {
 }
 
 export const useUIStore = defineStore('ui', {
-  state: (): UIState => ({
+  state: (): IUIState => ({
     isSidebarOpen: true,
     isMobileMenuOpen: false,
     breadcrumbs: [],

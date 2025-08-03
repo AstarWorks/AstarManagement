@@ -34,16 +34,16 @@
         :sort="false"
         item-key="id"
         class="space-y-3 min-h-[100px]"
-        ghost-class="ghost-card"
-        chosen-class="chosen-card"
-        drag-class="drag-card"
+        ghost-class="opacity-50 border-2 border-dashed border-primary/10 rotate-1 animate-pulse"
+        chosen-class="scale-105 shadow-2xl z-50 animate-bounce cursor-grabbing"
+        drag-class="opacity-80 rotate-1 animate-pulse"
         @start="$emit('dragStart', $event)"
         @end="$emit('dragEnd', $event)"
         @change="$emit('caseMove', $event)"
         @update:model-value="$emit('update:cases', $event)"
       >
         <template #item="{ element: case_ }">
-          <CaseCard
+          <CaseCardContainer
             :case-data="case_"
             :is-loading="loadingCaseIds.has(case_.id)"
             class="cursor-move transition-all duration-300 hover:scale-[1.02] hover:shadow-md animate-fadeIn"
@@ -57,8 +57,9 @@
 
 <script setup lang="ts">
 import draggable from 'vuedraggable'
-import type { Case, CaseStatus } from '~/types/case'
+import type { ICase, CaseStatus } from '~/types/case'
 import { Skeleton } from '~/components/ui/skeleton'
+import CaseCardContainer from '../display/CaseCardContainer.vue'
 
 interface StatusColumn {
   key: CaseStatus
@@ -70,17 +71,15 @@ interface StatusColumn {
 
 interface Props {
   status: StatusColumn
-  cases: Case[]
+  cases: ICase[]
   isLoading?: boolean
   loadingCaseIds: Set<string>
 }
 
 interface Emits {
-  (e: 'dragStart', event: any): void
-  (e: 'dragEnd', event: any): void
-  (e: 'caseMove', event: any): void
-  (e: 'caseClicked', caseData: Case): void
-  (e: 'update:cases', cases: Case[]): void
+  (e: 'dragStart' | 'dragEnd' | 'caseMove', event: DragEvent): void
+  (e: 'caseClicked', caseData: ICase): void
+  (e: 'update:cases', cases: ICase[]): void
 }
 
 defineProps<Props>()
@@ -108,17 +107,8 @@ const { t: $t } = useI18n()
   background: rgb(107 114 128);
 }
 
-/* Drag and drop styles using Tailwind classes */
-:deep(.ghost-card) {
-  @apply opacity-50 bg-primary/10 border-2 border-dashed border-primary rotate-1 animate-pulse;
-}
-
-:deep(.chosen-card) {
-  @apply scale-105 shadow-2xl z-50 animate-bounce;
+/* Additional drag and drop styles */
+.cursor-grabbing {
   cursor: grabbing !important;
-}
-
-:deep(.drag-card) {
-  @apply opacity-80 rotate-1 animate-pulse;
 }
 </style>

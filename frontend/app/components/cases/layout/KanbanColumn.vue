@@ -49,7 +49,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import type { Case, CaseStatus } from '~/types/case'
+import type { ICase, CaseStatus } from '~/types/case'
 import KanbanColumnHeader from './KanbanColumnHeader.vue'
 import KanbanColumnContent from './KanbanColumnContent.vue'
 import KanbanDropZone from './KanbanDropZone.vue'
@@ -65,13 +65,13 @@ interface StatusColumn {
 
 interface Props {
   status: StatusColumn
-  cases: Case[]
+  cases: ICase[]
   isLoading?: boolean
 }
 
 interface Emits {
   (e: 'caseMoved', caseId: string, newStatus: CaseStatus, oldStatus: CaseStatus): void
-  (e: 'caseClicked', caseData: Case): void
+  (e: 'caseClicked', caseData: ICase): void
   (e: 'addCase', status: CaseStatus): void
 }
 
@@ -82,28 +82,36 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<Emits>()
 
 // Composables
-const { t } = useI18n()
+const { t: _t } = useI18n()
 
 // Reactive state
 const isDragOver = ref(false)
 const draggedCaseStatus = ref<CaseStatus | null>(null)
 const loadingCaseIds = ref(new Set<string>())
-const localCases = ref<Case[]>([...props.cases])
+const localCases = ref<ICase[]>([...props.cases])
 
 // Methods
-const handleDragStart = (event: any) => {
+const handleDragStart = (event: DragEvent | unknown) => {
   console.log('Drag started:', event)
   isDragOver.value = true
 }
 
-const handleDragEnd = (event: any) => {
+const handleDragEnd = (event: DragEvent | unknown) => {
   console.log('Drag ended:', event)
   isDragOver.value = false
 }
 
-const handleCaseMove = (event: any) => {
-  if (event.added) {
-    const { element: case_, newIndex } = event.added
+interface SortableEvent {
+  added?: {
+    element: ICase
+    newIndex: number
+  }
+}
+
+const handleCaseMove = (event: SortableEvent | unknown) => {
+  const sortableEvent = event as SortableEvent
+  if (sortableEvent.added) {
+    const { element: case_, newIndex: _newIndex } = sortableEvent.added
     console.log(`Case ${case_.id} moved to ${props.status.key}`)
     
     // Add to loading state

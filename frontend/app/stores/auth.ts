@@ -9,11 +9,10 @@ import { ref, computed } from 'vue'
 import { z } from 'zod'
 import type { 
   IUser, 
-  IAuthTokens, 
   IAuthTokensWithTimestamp, 
   ILoginCredentials,
   AuthState,
-  AuthError
+  IAuthError
 } from '~/types/auth'
 import {
   isAuthenticatedState,
@@ -102,7 +101,7 @@ export const useAuthStore = defineStore('auth', () => {
     return isAuthenticatedState(authState.value) ? authState.value.tokens : null
   })
 
-  const currentError = computed((): AuthError | null => {
+  const currentError = computed((): IAuthError | null => {
     return isErrorState(authState.value) ? authState.value.error : null
   })
 
@@ -155,7 +154,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       console.log('🏪 AuthStore: Calling mockAuthService.login')
       const response = await mockAuthService.login(credentials)
-      console.log('🏪 AuthStore: Received response from mockAuthService', { user: !!response.user, tokens: !!response.tokens })
+      console.log('🏪 AuthStore: Received response from mockAuthService', { user: Boolean(response.user), tokens: Boolean(response.tokens) })
       
       // 認証成功状態に遷移
       const newState = {
@@ -269,6 +268,10 @@ export const useAuthStore = defineStore('auth', () => {
     return isAuthenticatedState(authState.value) ? authState.value.user.roles.some(r => r.name === role) : false
   }
 
+  const hasPermission = (permission: string): boolean => {
+    return isAuthenticatedState(authState.value) ? authState.value.user.permissions.includes(permission) : false
+  }
+
   const updateActivity = (): void => {
     // 最終アクティビティ時刻を更新（状態は変更しない）
     authState.value.lastActivity = Date.now()
@@ -318,6 +321,7 @@ export const useAuthStore = defineStore('auth', () => {
     refreshTokens,
     fetchUser,
     hasRole,
+    hasPermission,
     updateActivity,
     shouldRefreshToken,
     clearError

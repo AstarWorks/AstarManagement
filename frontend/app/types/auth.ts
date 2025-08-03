@@ -91,7 +91,7 @@ export interface IAuthTokensWithTimestamp extends IAuthTokens {
 /**
  * 認証エラー型（型安全なエラーハンドリング）
  */
-export interface AuthError {
+export interface IAuthError {
   code: 'INVALID_CREDENTIALS' | 'TOKEN_EXPIRED' | 'NETWORK_ERROR' | 'UNKNOWN_ERROR'
   message: string
   details?: Record<string, unknown>
@@ -106,19 +106,19 @@ export type AuthState =
   | { status: 'loading'; user: null; tokens: null; error: null; lastActivity: number }
   | { status: 'authenticated'; user: IUser; tokens: IAuthTokensWithTimestamp; error: null; lastActivity: number }
   | { status: 'unauthenticated'; user: null; tokens: null; error: null; lastActivity: number }
-  | { status: 'error'; user: null; tokens: null; error: AuthError; lastActivity: number }
+  | { status: 'error'; user: null; tokens: null; error: IAuthError; lastActivity: number }
 
 /**
  * Result型パターン（関数型プログラミング由来）
  */
-export type Result<T, E = AuthError> = 
+export type Result<T, E = IAuthError> = 
   | { success: true; data: T }
   | { success: false; error: E }
 
 /**
  * API レスポンス型（型安全な非同期処理）
  */
-export type AuthApiResponse<T> = Promise<Result<T, AuthError>>
+export type AuthApiResponse<T> = Promise<Result<T, IAuthError>>
 
 /**
  * 認証状態遷移ルール（case.tsパターン）
@@ -165,7 +165,7 @@ export function getNextAvailableAuthStates(currentStatus: AuthState['status']): 
   return VALID_AUTH_STATE_TRANSITIONS[currentStatus] ?? []
 }
 
-export function createAuthError(code: AuthError['code'], message: string, details?: Record<string, unknown>): AuthError {
+export function createAuthError(code: IAuthError['code'], message: string, details?: Record<string, unknown>): IAuthError {
   return { code, message, details }
 }
 
@@ -222,14 +222,7 @@ export interface ITwoFactorSetupResponse {
   backupCodes: string[]
 }
 
-/**
- * 認証エラー
- */
-export interface IAuthError {
-  code: string
-  message: string
-  details?: Record<string, any>
-}
+// IAuthError is already defined above with specific code types
 
 /**
  * 認証状態
@@ -305,6 +298,19 @@ export interface ISessionInfo {
 }
 
 /**
+ * 監査ログの詳細情報
+ */
+export interface IAuditDetails {
+  entityId?: string
+  entityType?: string
+  oldValue?: unknown
+  newValue?: unknown
+  changedFields?: string[]
+  reason?: string
+  metadata?: Record<string, unknown>
+}
+
+/**
  * 監査ログエントリ
  */
 export interface IAuditLogEntry {
@@ -312,7 +318,7 @@ export interface IAuditLogEntry {
   userId: string
   action: string
   resource: string
-  details: Record<string, any>
+  details: IAuditDetails
   ip: string
   userAgent: string
   timestamp: string
@@ -328,7 +334,7 @@ export interface IApiErrorResponse {
     message: string
     timestamp: string
     path: string
-    details?: Record<string, any>
+    details?: Record<string, unknown>
   }
 }
 

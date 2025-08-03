@@ -496,7 +496,7 @@ export interface IFooterMessages {
 }
 
 // メインメッセージ型を更新
-export interface LocaleMessages {
+export interface ILocaleMessages {
   common: ICommonMessages
   navigation: INavigationMessages
   auth: IAuthMessages
@@ -513,6 +513,9 @@ export interface LocaleMessages {
 }
 
 // 後方互換性のためのエイリアス
-export interface ILocaleMessages extends LocaleMessages {
+export type ILocaleMessagesExtended = ILocaleMessages & {
   // 各言語で固有の項目があれば追加
 }
+
+// Type alias for backward compatibility
+export type LocaleMessages = ILocaleMessages

@@ -66,7 +66,7 @@ export class MockAuthService {
   async login(credentials: ILoginCredentials): Promise<ILoginResponse> {
     console.log('🔑 MockAuth: Login attempt', { email: credentials.email })
     const user = this.users.get(credentials.email)
-    console.log('🔑 MockAuth: User found:', !!user)
+    console.log('🔑 MockAuth: User found:', Boolean(user))
     console.log('🔑 MockAuth: Available users:', Array.from(this.users.keys()))
     
     if (!user || user.password !== credentials.password) {
@@ -84,6 +84,11 @@ export class MockAuthService {
     return response
   }
 
+  async logout(): Promise<void> {
+    console.log('🔑 MockAuth: Logout')
+    // In a real implementation, this would invalidate tokens
+  }
+
   async refreshToken(refreshToken: string): Promise<IRefreshTokenResponse> {
     // Simple validation
     if (!refreshToken) throw new Error('Invalid refresh token')
@@ -93,8 +98,28 @@ export class MockAuthService {
     }
   }
 
-  private sanitizeUser(user: any): IUser {
-    const { password, ...safeUser } = user
+  async verify2FA(challenge: string, token: string): Promise<ILoginResponse> {
+    console.log('🔑 MockAuth: 2FA verification', { challenge, token })
+    
+    // Simple mock validation
+    if (!challenge || !token) {
+      throw new Error('Invalid 2FA credentials')
+    }
+    
+    // Return a mock successful response
+    const mockUser = Array.from(this.users.values())[0]
+    if (!mockUser) {
+      throw new Error('No mock users available')
+    }
+    return {
+      user: this.sanitizeUser(mockUser),
+      tokens: this.generateTokens(),
+      requiresTwoFactor: false
+    }
+  }
+
+  private sanitizeUser(user: IUser & { password: string }): IUser {
+    const { password: _password, ...safeUser } = user
     return safeUser
   }
 

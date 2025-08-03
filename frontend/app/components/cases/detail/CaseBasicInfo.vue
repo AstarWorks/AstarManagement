@@ -67,10 +67,10 @@
 </template>
 
 <script setup lang="ts">
-import type { Case } from '~/types/case'
+import type {  ICase  } from '~/types/case'
 
 interface Props {
-  caseData: Case
+  caseData: ICase
 }
 
 defineProps<Props>()

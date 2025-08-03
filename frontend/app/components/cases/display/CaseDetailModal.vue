@@ -88,16 +88,16 @@
 </template>
 
 <script setup lang="ts">
-import type { Case, CaseStatus } from '~/types/case'
+import type { ICase, CaseStatus } from '~/types/case'
 
 interface Props {
-  caseData: Case
+  caseData: ICase
   isOpen: boolean
 }
 
 interface Emits {
   (e: 'close'): void
-  (e: 'updated', caseData: Case): void
+  (e: 'updated', caseData: ICase): void
   (e: 'statusChanged', caseId: string, newStatus: CaseStatus): void
 }
 
@@ -105,7 +105,7 @@ const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 // Use composables for clean separation of concerns
-const { handleClose, handleEdit, handleStatusChange } = useCaseActions(emit)
+const { handleClose, handleEdit, handleStatusChange } = useCaseActions(emit as (event: string, ...args: unknown[]) => void)
 
 // Handle edit action
 const handleEditAction = () => {

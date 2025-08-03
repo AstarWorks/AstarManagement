@@ -6,70 +6,131 @@
   <div v-if="hasActiveFilters" class="active-filters mt-4 pt-4 border-t border-border">
     <div class="flex flex-wrap gap-2">
       <!-- Search Filter Badge -->
-      <ActiveFilterBadge
+      <Badge 
         v-if="filters.search"
-        :label="$t('matter.filters.activeFilters.search', { query: filters.search })"
-        @remove="clearFilter('search')"
-      />
+        variant="secondary" 
+        class="flex items-center gap-1"
+      >
+        {{ $t('matter.filters.activeFilters.search', { query: filters.search }) }}
+        <Button
+          variant="ghost"
+          size="sm"
+          class="h-4 w-4 p-0 hover:bg-transparent"
+          @click="clearFilter('search')"
+        >
+          <Icon name="lucide:x" class="h-3 w-3" />
+        </Button>
+      </Badge>
       
       <!-- Client Type Filter Badge -->
-      <ActiveFilterBadge
+      <Badge
         v-if="filters.clientType !== 'all'"
-        :label="$t('matter.filters.activeFilters.clientType', { 
+        variant="secondary"
+        class="flex items-center gap-1"
+      >
+        {{ $t('matter.filters.activeFilters.clientType', { 
           type: $t(`matter.filters.clientType.options.${filters.clientType}`) 
-        })"
-        @remove="clearFilter('clientType')"
-      />
+        }) }}
+        <Button
+          variant="ghost"
+          size="sm"
+          class="h-4 w-4 p-0 hover:bg-transparent"
+          @click="clearFilter('clientType')"
+        >
+          <Icon name="lucide:x" class="h-3 w-3" />
+        </Button>
+      </Badge>
       
       <!-- Priority Filter Badge -->
-      <ActiveFilterBadge
+      <Badge
         v-if="filters.priority !== 'all'"
-        :label="$t('matter.filters.activeFilters.priority', { 
+        variant="secondary"
+        class="flex items-center gap-1"
+      >
+        {{ $t('matter.filters.activeFilters.priority', { 
           priority: $t(`matter.filters.priority.options.${filters.priority}`) 
-        })"
-        @remove="clearFilter('priority')"
-      />
+        }) }}
+        <Button
+          variant="ghost"
+          size="sm"
+          class="h-4 w-4 p-0 hover:bg-transparent"
+          @click="clearFilter('priority')"
+        >
+          <Icon name="lucide:x" class="h-3 w-3" />
+        </Button>
+      </Badge>
       
       <!-- Assigned Lawyer Filter Badge -->
-      <ActiveFilterBadge
+      <Badge
         v-if="filters.assignedLawyer !== 'all'"
-        :label="$t('matter.filters.activeFilters.assignedLawyer', { 
+        variant="secondary"
+        class="flex items-center gap-1"
+      >
+        {{ $t('matter.filters.activeFilters.assignedLawyer', { 
           lawyer: getLawyerName(filters.assignedLawyer) 
-        })"
-        @remove="clearFilter('assignedLawyer')"
-      />
+        }) }}
+        <Button
+          variant="ghost"
+          size="sm"
+          class="h-4 w-4 p-0 hover:bg-transparent"
+          @click="clearFilter('assignedLawyer')"
+        >
+          <Icon name="lucide:x" class="h-3 w-3" />
+        </Button>
+      </Badge>
       
       <!-- Date Range Filter Badge -->
-      <ActiveFilterBadge
+      <Badge
         v-if="filters.dateRange"
-        :label="$t('matter.filters.activeFilters.dateRange')"
-        @remove="clearFilter('dateRange')"
-      />
+        variant="secondary"
+        class="flex items-center gap-1"
+      >
+        {{ $t('matter.filters.activeFilters.dateRange') }}
+        <Button
+          variant="ghost"
+          size="sm"
+          class="h-4 w-4 p-0 hover:bg-transparent"
+          @click="clearFilter('dateRange')"
+        >
+          <Icon name="lucide:x" class="h-3 w-3" />
+        </Button>
+      </Badge>
       
       <!-- Tag Filter Badges -->
-      <ActiveFilterBadge
+      <Badge
         v-for="tag in filters.tags"
         :key="tag"
-        :label="tag"
-        @remove="removeTag(tag)"
-      />
+        variant="secondary"
+        class="flex items-center gap-1"
+      >
+        {{ tag }}
+        <Button
+          variant="ghost"
+          size="sm"
+          class="h-4 w-4 p-0 hover:bg-transparent"
+          @click="removeTag(tag)"
+        >
+          <Icon name="lucide:x" class="h-3 w-3" />
+        </Button>
+      </Badge>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { CaseFilters } from '~/types/case'
-import { ActiveFilterBadge } from '~/components/ui/active-filter-badge'
+import type {  ICaseFilters  } from '~/types/case'
+import { Badge } from '~/components/ui/badge'
+import { Button } from '~/components/ui/button'
 
 interface Props {
-  filters: CaseFilters
+  filters: ICaseFilters
   availableLawyers?: Array<{ id: string; name: string }>
 }
 
 interface Emits {
-  (e: 'clear-filter', key: keyof CaseFilters): void
-  (e: 'remove-tag', tag: string): void
+  (e: 'clearFilter', key: keyof ICaseFilters): void
+  (e: 'removeTag', tag: string): void
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -97,13 +158,13 @@ const getLawyerName = (lawyerId: string): string => {
 }
 
 // フィルタークリア処理
-const clearFilter = (key: keyof CaseFilters) => {
-  emit('clear-filter', key)
+const clearFilter = (key: keyof ICaseFilters) => {
+  emit('clearFilter', key)
 }
 
 // タグ削除処理
 const removeTag = (tag: string) => {
-  emit('remove-tag', tag)
+  emit('removeTag', tag)
 }
 </script>
 

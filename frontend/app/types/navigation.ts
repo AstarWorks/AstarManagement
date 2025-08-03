@@ -6,7 +6,7 @@
 /**
  * ナビゲーション項目（表示用）
  */
-export interface NavigationItem {
+export interface INavigationItem {
   id: string
   label: string
   path: string
@@ -15,7 +15,7 @@ export interface NavigationItem {
   requiredPermissions?: string[]
   requiredRoles?: string[]
   requireAny?: boolean
-  children?: NavigationItem[]
+  children?: INavigationItem[]
   badge?: {
     text: string
     variant: 'default' | 'destructive' | 'outline' | 'secondary'
@@ -27,7 +27,7 @@ export interface NavigationItem {
 /**
  * ナビゲーション設定（config用）
  */
-export interface NavigationItemConfig {
+export interface INavigationItemConfig {
   id: string
   labelKey: string
   path: string
@@ -36,7 +36,7 @@ export interface NavigationItemConfig {
   requiredPermissions?: string[]
   requiredRoles?: string[]
   requireAny?: boolean
-  children?: NavigationItemConfig[]
+  children?: INavigationItemConfig[]
   badge?: {
     textKey: string
     variant: 'default' | 'destructive' | 'outline' | 'secondary'
@@ -48,7 +48,7 @@ export interface NavigationItemConfig {
 /**
  * パンくずリスト項目
  */
-export interface BreadcrumbItem {
+export interface IBreadcrumbItem {
   label: string
   path?: string
 }
@@ -56,7 +56,7 @@ export interface BreadcrumbItem {
 /**
  * 最近訪問したページ
  */
-export interface RecentlyVisitedItem {
+export interface IRecentlyVisitedItem {
   label: string
   path: string
   visitedAt?: Date
@@ -65,7 +65,14 @@ export interface RecentlyVisitedItem {
 /**
  * ナビゲーション状態
  */
-export interface NavigationState {
+export interface INavigationState {
   currentNavigationId: string | null
   isNavigationLoading: boolean
 }
+
+// Type aliases for backward compatibility
+export type NavigationItem = INavigationItem
+export type NavigationItemConfig = INavigationItemConfig
+export type BreadcrumbItem = IBreadcrumbItem
+export type RecentlyVisitedItem = IRecentlyVisitedItem
+export type NavigationState = INavigationState

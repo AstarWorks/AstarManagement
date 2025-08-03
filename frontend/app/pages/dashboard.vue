@@ -106,7 +106,7 @@ definePageMeta({
 })
 
 // Types
-interface DashboardStat {
+interface IDashboardStat {
   key: string
   labelKey: string
   icon: string
@@ -122,7 +122,7 @@ interface QuickAction {
   action: string
 }
 
-interface Activity {
+interface IActivity {
   id: string
   type: 'case' | 'document' | 'deadline' | 'client'
   title: string
@@ -131,7 +131,7 @@ interface Activity {
 }
 
 // Composables
-const { t } = useI18n()
+const { t: _t } = useI18n()
 const router = useRouter()
 
 // Dashboard data composable
@@ -171,7 +171,7 @@ const quickActions: QuickAction[] = [
 ]
 
 // Utility functions
-const formatStatValue = (stat: DashboardStat): string => {
+const formatStatValue = (stat: IDashboardStat): string => {
   if (stat.format === 'currency') {
     return new Intl.NumberFormat('ja-JP', {
       style: 'currency',
@@ -185,7 +185,7 @@ const formatRelativeTime = (timestamp: Date): string => {
   return formatRelative(timestamp, new Date(), { locale: ja })
 }
 
-const getActivityColor = (type: Activity['type']): string => {
+const getActivityColor = (type: IActivity['type']): string => {
   const colors = {
     case: 'bg-blue-500',
     document: 'bg-green-500',

@@ -12,7 +12,7 @@ export function useCaseFormatting() {
   // Date formatting utilities
   const formatCardDueDate = (dueDate: string) => {
     const date = new Date(dueDate)
-    const now = new Date()
+    const _now = new Date()
 
     if (isToday(date)) {
       return t('cases.card.dueDate.today')
@@ -79,7 +79,7 @@ export function useCaseFormatting() {
   }
 
   // Date formatting
-  const formatDate = (dateString: string, format = 'yyyy/MM/dd') => {
+  const formatDate = (dateString: string, _format = 'yyyy/MM/dd') => {
     const date = new Date(dateString)
     return date.toLocaleDateString('ja-JP')
   }

@@ -7,7 +7,7 @@ import type {
   ILoginCredentials, 
   ILoginResponse, 
   IRefreshTokenResponse,
-  AuthError,
+  IAuthError,
   Result
 } from '~/types/auth'
 import { 
@@ -24,7 +24,7 @@ export const useApiAuth = () => {
   /**
    * ログイン（Result型パターン）
    */
-  const login = async (credentials: ILoginCredentials): Promise<Result<ILoginResponse, AuthError>> => {
+  const login = async (credentials: ILoginCredentials): Promise<Result<ILoginResponse, IAuthError>> => {
     try {
       const response = await $fetch<ILoginResponse>('/api/auth/login', {
         method: 'POST',
@@ -44,9 +44,9 @@ export const useApiAuth = () => {
   /**
    * ログアウト（Result型パターン）
    */
-  const logout = async (): Promise<Result<void, AuthError>> => {
+  const logout = async (): Promise<Result<void, IAuthError>> => {
     try {
-      await $fetch<void>('/api/auth/logout', {
+      await $fetch('/api/auth/logout', {
         method: 'POST'
       })
       return createSuccess(undefined)
@@ -63,7 +63,7 @@ export const useApiAuth = () => {
   /**
    * トークンリフレッシュ（Result型パターン）
    */
-  const refreshToken = async (refreshToken: string): Promise<Result<IRefreshTokenResponse, AuthError>> => {
+  const refreshToken = async (refreshToken: string): Promise<Result<IRefreshTokenResponse, IAuthError>> => {
     try {
       const response = await $fetch<IRefreshTokenResponse>('/api/auth/refresh', {
         method: 'POST',
@@ -83,7 +83,7 @@ export const useApiAuth = () => {
   /**
    * 2要素認証確認（Result型パターン）
    */
-  const verifyTwoFactor = async (challenge: string, token: string): Promise<Result<ILoginResponse, AuthError>> => {
+  const verifyTwoFactor = async (challenge: string, token: string): Promise<Result<ILoginResponse, IAuthError>> => {
     try {
       const response = await $fetch<ILoginResponse>('/api/auth/verify-2fa', {
         method: 'POST',
@@ -103,7 +103,7 @@ export const useApiAuth = () => {
   /**
    * パスワードリセット要求（Result型パターン）
    */
-  const forgotPassword = async (email: string): Promise<Result<{ message: string }, AuthError>> => {
+  const forgotPassword = async (email: string): Promise<Result<{ message: string }, IAuthError>> => {
     try {
       const response = await $fetch<{ message: string }>('/api/auth/forgot-password', {
         method: 'POST',
@@ -123,7 +123,7 @@ export const useApiAuth = () => {
   /**
    * パスワードリセット実行（Result型パターン）
    */
-  const resetPassword = async (token: string, password: string): Promise<Result<{ message: string }, AuthError>> => {
+  const resetPassword = async (token: string, password: string): Promise<Result<{ message: string }, IAuthError>> => {
     try {
       const response = await $fetch<{ message: string }>('/api/auth/reset-password', {
         method: 'POST',
@@ -143,7 +143,7 @@ export const useApiAuth = () => {
   /**
    * 現在のユーザー情報取得（Result型パターン）
    */
-  const getCurrentUser = async (): Promise<Result<ILoginResponse['user'], AuthError>> => {
+  const getCurrentUser = async (): Promise<Result<ILoginResponse['user'], IAuthError>> => {
     try {
       const user = await $fetch<ILoginResponse['user']>('/api/auth/me')
       return createSuccess(user)

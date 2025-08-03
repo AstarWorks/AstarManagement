@@ -4,10 +4,10 @@
  */
 
 import { ref, computed } from 'vue'
-import type { Case, CaseStatus } from '~/types/case'
+import type { ICase, CaseStatus } from '~/types/case'
 
 // Mock cases data - In real implementation, this would come from an API
-const mockCases: Case[] = [
+const mockCases: ICase[] = [
   {
     id: '1',
     caseNumber: 'CASE-2024-001',
@@ -65,7 +65,7 @@ export function useCaseData() {
   const { t } = useI18n()
   
   // Reactive state
-  const cases = ref<Case[]>([...mockCases])
+  const cases = ref<ICase[]>([...mockCases])
   const isLoading = ref(false)
   const error = ref<string | null>(null)
 
@@ -148,19 +148,19 @@ export function useCaseData() {
     }
   }
 
-  const updateCase = (updatedCase: Case) => {
+  const updateCase = (updatedCase: ICase) => {
     const index = cases.value.findIndex(c => c.id === updatedCase.id)
     if (index !== -1) {
       cases.value[index] = { ...updatedCase }
     }
   }
 
-  const createCase = async (newCase: Omit<Case, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const createCase = async (newCase: Omit<ICase, 'id' | 'createdAt' | 'updatedAt'>) => {
     isLoading.value = true
     
     try {
       // Generate new case
-      const case_: Case = {
+      const case_: ICase = {
         id: `case-${Date.now()}`,
         caseNumber: newCase.caseNumber,
         title: newCase.title,

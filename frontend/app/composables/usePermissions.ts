@@ -5,7 +5,7 @@
 
 import type { IUser } from '~/types/auth'
 
-export interface PermissionCheckOptions {
+export interface IPermissionCheckOptions {
   permissions?: string[]
   roles?: string[]
   requireAny?: boolean // true: OR条件, false: AND条件
@@ -34,7 +34,7 @@ export const usePermissions = () => {
   /**
    * 複合的な権限チェック（permissions + roles）
    */
-  const hasAccess = (user: IUser | null, options: PermissionCheckOptions): boolean => {
+  const hasAccess = (user: IUser | null, options: IPermissionCheckOptions): boolean => {
     if (!user) return false
 
     const { permissions = [], roles = [], requireAny = false } = options

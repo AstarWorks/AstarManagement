@@ -17,7 +17,7 @@ import { z } from 'zod'
  * API レスポンススキーマ
  */
 const LoginResponseSchema = z.object({
-  user: z.any().optional(), // IUser構造は複雑なので any で一旦
+  user: z.unknown().optional(), // IUser構造は複雑なので unknown で一旦
   tokens: z.object({
     accessToken: z.string(),
     refreshToken: z.string(),
@@ -118,7 +118,7 @@ class ProductionAuthService implements IAuthService {
         method: 'GET',
       })
       return user
-    } catch (error) {
+    } catch {
       return null
     }
   }
@@ -128,7 +128,7 @@ class ProductionAuthService implements IAuthService {
  * モック実装（開発用）
  */
 class MockAuthService implements IAuthService {
-  private mockAuthService: any
+  private mockAuthService: ReturnType<typeof import('~/services/mockAuth').MockAuthService.getInstance> | null
 
   constructor() {
     // 動的インポートで循環依存を回避
@@ -170,33 +170,33 @@ class MockAuthService implements IAuthService {
 }
 
 /**
- * 認証サービスファクトリー
+ * 認証サービスファクトリー（モジュールパターン）
  */
-class AuthServiceFactory {
-  private static instance: IAuthService | null = null
+let authServiceInstance: IAuthService | null = null
 
-  static getAuthService(): IAuthService {
-    if (!this.instance) {
+const AuthServiceFactory = {
+  getAuthService(): IAuthService {
+    if (!authServiceInstance) {
       const config = getAuthEnvironmentConfig()
       
       if (config.enableMockAuth) {
-        this.instance = new MockAuthService()
+        authServiceInstance = new MockAuthService()
       } else {
-        this.instance = new ProductionAuthService(config.apiBaseUrl)
+        authServiceInstance = new ProductionAuthService(config.apiBaseUrl)
       }
     }
     
-    return this.instance
-  }
+    return authServiceInstance
+  },
 
   // テスト用: インスタンスをリセット
-  static resetInstance(): void {
-    this.instance = null
-  }
+  resetInstance(): void {
+    authServiceInstance = null
+  },
 
   // テスト用: モックサービスを強制設定
-  static setMockService(): void {
-    this.instance = new MockAuthService()
+  setMockService(): void {
+    authServiceInstance = new MockAuthService()
   }
 }
 
@@ -221,7 +221,7 @@ export class AuthError extends Error {
     this.name = 'AuthError'
   }
 
-  static fromFetchError(error: any): AuthError {
+  static fromFetchError(error: { statusCode?: number; message?: string }): AuthError {
     if (error.statusCode === 401) {
       return new AuthError(
         AUTH_CONFIG.messages.tokenExpired,
@@ -240,7 +240,7 @@ export class AuthError extends Error {
       )
     }
     
-    if (error.statusCode >= 500) {
+    if (error.statusCode && error.statusCode >= 500) {
       return new AuthError(
         AUTH_CONFIG.messages.networkError,
         'NETWORK_ERROR',
@@ -271,7 +271,7 @@ export const useAuthService = () => {
     try {
       return await authService.login(credentials)
     } catch (error) {
-      throw AuthError.fromFetchError(error)
+      throw AuthError.fromFetchError(error as { statusCode?: number; message?: string })
     }
   }
 
@@ -294,7 +294,7 @@ export const useAuthService = () => {
     try {
       return await authService.refreshToken(refreshToken)
     } catch (error) {
-      throw AuthError.fromFetchError(error)
+      throw AuthError.fromFetchError(error as { statusCode?: number; message?: string })
     }
   }
 
@@ -305,7 +305,7 @@ export const useAuthService = () => {
     try {
       return await authService.verify2FA(challenge, token)
     } catch (error) {
-      throw AuthError.fromFetchError(error)
+      throw AuthError.fromFetchError(error as { statusCode?: number; message?: string })
     }
   }
 

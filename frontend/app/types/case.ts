@@ -20,7 +20,7 @@ export type DateRangeOption =
 
 export type ClientType = 'individual' | 'corporate'
 
-export interface Client {
+export interface IClient {
   id: string
   name: string
   type: ClientType
@@ -29,12 +29,12 @@ export interface Client {
   address?: string
 }
 
-export interface Case {
+export interface ICase {
   id: string
   caseNumber: string
   title: string
   description?: string
-  client: Client
+  client: IClient
   status: CaseStatus
   priority: CasePriority
   assignedLawyer: string
@@ -51,7 +51,7 @@ export interface Case {
   notes?: string
 }
 
-export interface CaseFilters {
+export interface ICaseFilters {
   search: string
   clientType: 'all' | ClientType
   priority: 'all' | CasePriority  
@@ -65,7 +65,7 @@ export interface CaseFilters {
   sortOrder?: 'asc' | 'desc'
 }
 
-export interface CaseStatusColumn {
+export interface ICaseStatusColumn {
   key: CaseStatus
   title: string
   description: string
@@ -84,7 +84,7 @@ export type CaseActivityType =
   | 'communication_logged'
   | 'deadline_updated'
 
-export interface CaseActivity {
+export interface ICaseActivity {
   id: string
   caseId: string
   type: CaseActivityType
@@ -93,11 +93,11 @@ export interface CaseActivity {
   userId: string
   userName: string
   timestamp: string // ISO date string
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 }
 
 // Form validation schemas
-export interface CreateCaseForm {
+export interface ICreateCaseForm {
   title: string
   clientId: string
   assignedLawyer: string
@@ -107,20 +107,20 @@ export interface CreateCaseForm {
   description?: string
 }
 
-export interface UpdateCaseForm extends Partial<CreateCaseForm> {
+export interface IUpdateCaseForm extends Partial<ICreateCaseForm> {
   id: string
   status?: CaseStatus
 }
 
 // API response types
-export interface CaseListResponse {
-  cases: Case[]
+export interface ICaseListResponse {
+  cases: ICase[]
   totalCount: number
   hasMore: boolean
   nextCursor?: string
 }
 
-export interface CaseStatsResponse {
+export interface ICaseStatsResponse {
   totalCases: number
   casesByStatus: Record<CaseStatus, number>
   casesByPriority: Record<CasePriority, number>
@@ -129,30 +129,30 @@ export interface CaseStatsResponse {
 }
 
 // Drag and drop types
-export interface DragCaseData {
+export interface IDragCaseData {
   caseId: string
   currentStatus: CaseStatus
 }
 
 // Search and filtering
-export interface CaseSearchOptions extends CaseFilters {
+export interface ICaseSearchOptions extends ICaseFilters {
   limit?: number
   offset?: number
   includeArchived?: boolean
 }
 
 // Component prop types for better type safety
-export interface CaseCardProps {
-  case: Case
+export interface ICaseCardProps {
+  case: ICase
   viewMode?: 'minimal' | 'compact' | 'detailed'
   interactive?: boolean
   showQuickActions?: boolean
   isLoading?: boolean
 }
 
-export interface KanbanColumnProps {
-  status: CaseStatusColumn
-  cases: Case[]
+export interface IKanbanColumnProps {
+  status: ICaseStatusColumn
+  cases: ICase[]
   isLoading?: boolean
 }
 

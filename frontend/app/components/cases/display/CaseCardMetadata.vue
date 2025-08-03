@@ -35,10 +35,10 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { Case } from '~/types/case'
+import type {  ICase  } from '~/types/case'
 
 interface Props {
-  caseData: Case
+  caseData: ICase
   viewMode?: 'minimal' | 'compact' | 'detailed'
 }
 

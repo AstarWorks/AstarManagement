@@ -5,12 +5,12 @@
  * 法律事務所特有のフィルター設定を一元管理  
  */
 
-import type { CaseFilters } from '~/types/case'
+import type {  ICaseFilters  } from '~/types/case'
 
 /**
  * フィルター設定のベース型
  */
-export interface FilterOptionConfig {
+export interface IFilterOptionConfig {
   value: string
   labelKey: string // i18n key
   description?: string
@@ -19,11 +19,11 @@ export interface FilterOptionConfig {
 /**
  * フィルターグループ設定
  */
-export interface FilterGroupConfig {
+export interface IFilterGroupConfig {
   id: string
   labelKey: string
   type: 'select' | 'search' | 'dateRange' | 'tags' | 'multiSelect'
-  options?: FilterOptionConfig[]
+  options?: IFilterOptionConfig[]
   placeholder?: string
   required?: boolean
   advanced?: boolean // 詳細フィルターに配置するか
@@ -41,7 +41,7 @@ export const LEGAL_PRACTICE_TAGS = [
 /**
  * 案件フィルター設定
  */
-export const CASE_FILTER_CONFIG: FilterGroupConfig[] = [
+export const CASE_FILTER_CONFIG: IFilterGroupConfig[] = [
   // 基本フィルター
   {
     id: 'search',
@@ -125,7 +125,7 @@ export const CASE_FILTER_CONFIG: FilterGroupConfig[] = [
 /**
  * デフォルトフィルター値
  */
-export const DEFAULT_CASE_FILTERS: CaseFilters = {
+export const DEFAULT_CASE_FILTERS: ICaseFilters = {
   search: '',
   clientType: 'all',
   priority: 'all',
@@ -139,20 +139,20 @@ export const DEFAULT_CASE_FILTERS: CaseFilters = {
 /**
  * フィルター設定を取得する関数
  */
-export function getFilterConfig(filterId: string): FilterGroupConfig | undefined {
+export function getFilterConfig(filterId: string): IFilterGroupConfig | undefined {
   return CASE_FILTER_CONFIG.find(config => config.id === filterId)
 }
 
 /**
  * 基本フィルター設定のみを取得
  */
-export function getBasicFilterConfigs(): FilterGroupConfig[] {
+export function getBasicFilterConfigs(): IFilterGroupConfig[] {
   return CASE_FILTER_CONFIG.filter(config => !config.advanced)
 }
 
 /**
  * 詳細フィルター設定のみを取得
  */
-export function getAdvancedFilterConfigs(): FilterGroupConfig[] {
+export function getAdvancedFilterConfigs(): IFilterGroupConfig[] {
   return CASE_FILTER_CONFIG.filter(config => config.advanced === true)
 }

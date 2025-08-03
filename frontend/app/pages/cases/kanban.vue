@@ -8,7 +8,7 @@
       </div>
       <div class="flex items-center space-x-3">
         <!-- Desktop Filter Button -->
-        <Button variant="outline" @click="toggleFilters" class="hidden md:flex">
+        <Button variant="outline" class="hidden md:flex" @click="toggleFilters">
           <Icon name="lucide:filter" class="w-4 h-4 mr-2" />
           {{ $t('matter.kanban.actions.filter') }}
         </Button>
@@ -102,8 +102,7 @@
 </template>
 
 <script setup lang="ts">
-import { toRaw } from 'vue'
-import type { Case, CaseStatus } from '~/types/case'
+import type { ICase, CaseStatus } from '~/types/case'
 import { Skeleton } from "~/components/ui/skeleton"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "~/components/ui/sheet"
 import { ScrollArea } from "~/components/ui/scroll-area"
@@ -124,7 +123,7 @@ const caseData = useCaseData()
 const statusConfig = useKanbanStatusConfig()
 const caseFilters = useCaseFilters(caseData.cases)
 const caseModal = useCaseModal()
-const dragDrop = useCaseDragDrop()
+const _dragDrop = useCaseDragDrop()
 
 // Convert readonly case data to mutable for modal
 const modalCaseData = computed(() => {
@@ -135,7 +134,7 @@ const modalCaseData = computed(() => {
   return {
     ...selectedCase,
     tags: [...selectedCase.tags] // Convert readonly to mutable array
-  } as Case
+  } as ICase
 })
 
 // Case movement handler with enhanced error handling

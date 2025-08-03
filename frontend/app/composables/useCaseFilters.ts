@@ -4,11 +4,11 @@
  */
 
 import { ref, computed } from 'vue'
-import type { Case, CaseFilters } from '~/types/case'
+import type { ICase, ICaseFilters } from '~/types/case'
 
-export function useCaseFilters(cases: Ref<Case[]>) {
+export function useCaseFilters(cases: Ref<ICase[]>) {
   // VueUse for better state management
-  const filters = useLocalStorage<CaseFilters>('kanban-filters', {
+  const filters = useLocalStorage<ICaseFilters>('kanban-filters', {
     search: '',
     clientType: 'all',
     priority: 'all',
@@ -154,7 +154,7 @@ export function useCaseFilters(cases: Ref<Case[]>) {
   })
 
   // Filter actions
-  const applyFilters = (newFilters: CaseFilters) => {
+  const applyFilters = (newFilters: ICaseFilters) => {
     filters.value = { ...newFilters }
   }
 
@@ -170,7 +170,7 @@ export function useCaseFilters(cases: Ref<Case[]>) {
     searchInput.value = ''
   }
 
-  const removeFilter = (filterKey: keyof CaseFilters) => {
+  const removeFilter = (filterKey: keyof ICaseFilters) => {
     switch (filterKey) {
       case 'search':
         filters.value.search = ''
@@ -191,6 +191,9 @@ export function useCaseFilters(cases: Ref<Case[]>) {
       case 'dateRange':
         filters.value.dateRange = null
         break
+      default:
+        console.warn(`Unknown filter key: ${filterKey}`)
+        break
     }
   }
 
@@ -199,7 +202,7 @@ export function useCaseFilters(cases: Ref<Case[]>) {
   })
 
   // Filter cases by status (for kanban columns)
-  const getCasesByStatus = (status: Case['status']) => {
+  const getCasesByStatus = (status: ICase['status']) => {
     return filteredCases.value.filter(case_ => case_.status === status)
   }
 

@@ -5,7 +5,7 @@
  */
 
 import { decodeJwt } from 'jose'
-import { AUTH_CONFIG, JWT_CONFIG } from '~/config/authConfig'
+import { JWT_CONFIG } from '~/config/authConfig'
 import type { IAuthTokens } from '~/types/auth'
 import { z } from 'zod'
 
@@ -28,7 +28,7 @@ export type JWTPayload = z.infer<typeof JWTPayloadSchema>
 /**
  * トークン管理の結果型
  */
-export interface TokenValidationResult {
+export interface ITokenValidationResult {
   isValid: boolean
   isExpired: boolean
   payload?: JWTPayload
@@ -54,7 +54,7 @@ export const useTokenManager = () => {
   /**
    * JWTペイロードをデコードして検証
    */
-  const decodeAndValidateToken = (token: string): TokenValidationResult => {
+  const decodeAndValidateToken = (token: string): ITokenValidationResult => {
     try {
       // まずデコードを試行
       const decoded = decodeJwt(token)
@@ -101,7 +101,7 @@ export const useTokenManager = () => {
    * JWTトークンを検証（法律事務所セキュリティ要件対応）
    * 本番環境では署名検証が必要、開発環境ではデコードのみ
    */
-  const verifyToken = async (token: string): Promise<TokenValidationResult> => {
+  const verifyToken = async (token: string): Promise<ITokenValidationResult> => {
     // 開発環境では簡易検証、本番では厳密検証
     const isDevelopment = process.env.NODE_ENV === 'development'
     
@@ -112,13 +112,13 @@ export const useTokenManager = () => {
     // 本番環境では外部の署名検証サービスを呼び出し
     // (法律事務所の要件では、セキュリティ監査のため外部検証が必要)
     try {
-      interface TokenVerificationResponse {
+      interface ITokenVerificationResponse {
         valid: boolean
         payload?: JWTPayload
         error?: string
       }
       
-      const verificationResult = await $fetch<TokenVerificationResponse>('/api/auth/verify-token', {
+      const verificationResult = await $fetch<ITokenVerificationResponse>('/api/auth/verify-token', {
         method: 'POST',
         body: { token }
       })
@@ -169,7 +169,7 @@ export const useTokenManager = () => {
   /**
    * トークンの有効性を総合判定
    */
-  const validateTokens = async (tokens: IAuthTokens | null, lastActivity: number): Promise<TokenValidationResult> => {
+  const validateTokens = async (tokens: IAuthTokens | null, lastActivity: number): Promise<ITokenValidationResult> => {
     if (!tokens?.accessToken) {
       return {
         isValid: false,

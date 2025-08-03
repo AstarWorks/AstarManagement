@@ -5,7 +5,7 @@
 
 import type { CaseStatus } from '~/types/case'
 
-export interface StatusColumn {
+export interface IStatusColumn {
   key: CaseStatus
   title: string
   description: string
@@ -21,7 +21,7 @@ export interface StatusColumn {
 export function useKanbanStatusConfig() {
   const { t } = useI18n()
   
-  const statusColumns = computed<StatusColumn[]>(() => [
+  const statusColumns = computed<IStatusColumn[]>(() => [
     {
       key: 'new',
       title: t('matter.kanban.columns.new.title'),
