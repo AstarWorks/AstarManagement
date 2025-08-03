@@ -20,7 +20,7 @@ interface Props {
   showLogo?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   title: '',
   subtitle: '',
   showLogo: false

@@ -59,10 +59,11 @@
 
 <script setup lang="ts">
 // SEO and meta setup for authentication pages
+const { t } = useI18n()
 useHead({
-  title: 'ログイン - Astar Management',
+  title: t('meta.login.title'),
   meta: [
-    { name: 'description', content: '法律事務所管理システムへのログイン' },
+    { name: 'description', content: t('meta.login.description') },
     { name: 'robots', content: 'noindex,nofollow' }, // Authentication pages should not be indexed
   ],
   bodyAttrs: {

@@ -99,6 +99,7 @@
 
 <script setup lang="ts">
 import { toTypedSchema } from '@vee-validate/zod'
+import { useForm } from 'vee-validate'
 import { createLoginSchema } from '~/schemas/auth'
 import type { ILoginCredentials } from '~/types/auth'
 import { Checkbox } from '~/components/ui/checkbox'
@@ -109,7 +110,6 @@ import { Card } from '~/components/ui/card'
 import { Alert, AlertDescription } from '~/components/ui/alert'
 import AuthFormHeader from '~/components/auth/AuthFormHeader.vue'
 import AuthFormFooter from '~/components/auth/AuthFormFooter.vue'
-import PasswordInputField from '~/components/ui/PasswordInputField.vue'
 import DevelopmentDebugPanel from '~/components/auth/DevelopmentDebugPanel.vue'
 
 // Props
@@ -118,7 +118,7 @@ interface Props {
   authError?: string
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   isLoading: false,
   authError: '',
 })
@@ -126,9 +126,7 @@ const props = withDefaults(defineProps<Props>(), {
 // Emits
 interface Emits {
   (e: 'submit', credentials: ILoginCredentials): void
-  (e: 'forgotPassword'): void
-  (e: 'privacyClick'): void
-  (e: 'termsClick'): void
+  (e: 'forgotPassword' | 'privacyClick' | 'termsClick'): void
 }
 
 const emit = defineEmits<Emits>()
@@ -139,7 +137,7 @@ const isDevelopment = computed(() => {
 })
 
 // Simple form validation using vee-validate
-const { handleSubmit, isSubmitting } = useForm({
+const { handleSubmit, isSubmitting: _isSubmitting } = useForm({
   validationSchema: toTypedSchema(createLoginSchema())
 })
 
@@ -147,7 +145,7 @@ const { handleSubmit, isSubmitting } = useForm({
 const isValid = ref(false)
 
 // Form submission handler
-const onSubmit = handleSubmit((values) => {
+const onSubmit = handleSubmit((values: { email: string; password: string; rememberMe?: boolean }) => {
   const credentials: ILoginCredentials = {
     email: values.email,
     password: values.password,

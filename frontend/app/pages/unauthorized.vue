@@ -27,15 +27,10 @@
             <span class="ml-2 font-mono text-xs">{{ errorDetails.originalPath }}</span>
           </div>
           
-          <div v-if="errorDetails.required">
+          <div v-if="errorDetails.required.length">
             <span class="font-medium">{{ $t('error.unauthorized.details.required') }}:</span>
             <div class="ml-2 mt-1 text-xs">
-              <div v-if="errorDetails.required.permissions?.length">
-                {{ $t('error.unauthorized.details.permissions') }}: {{ errorDetails.required.permissions.join(', ') }}
-              </div>
-              <div v-if="errorDetails.required.roles?.length">
-                {{ $t('error.unauthorized.details.roles') }}: {{ errorDetails.required.roles.join(', ') }}
-              </div>
+              {{ errorDetails.required.join(', ') }}
             </div>
           </div>
         </AlertDescription>
@@ -106,7 +101,7 @@ definePageMeta({
 })
 
 // Types
-interface ErrorDetails {
+interface _IErrorDetails {
   reason: string
   originalPath?: string
   required?: {

@@ -83,7 +83,7 @@ interface Emits {
   (e: 'fillCredentials', credentials: ILoginCredentials): void
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   isLoading: false,
   showAdvancedDebug: false
 })

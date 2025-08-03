@@ -41,16 +41,15 @@ interface Props {
   showLinks?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   showLinks: true
 })
 
 interface Emits {
-  (e: 'privacyClick'): void
-  (e: 'termsClick'): void
+  (e: 'privacyClick' | 'termsClick'): void
 }
 
-const emit = defineEmits<Emits>()
+const _emit = defineEmits<Emits>()
 </script>
 
 <style scoped>

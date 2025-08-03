@@ -20,6 +20,7 @@ definePageMeta({
 const authStore = useAuthStore()
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
 
 // リアクティブな状態
 const isLoading = ref(false)
@@ -32,7 +33,7 @@ const redirectTo = computed(() => {
 
 // メソッド
 const handleLogin = async (credentials: LoginCredentials) => {
-  console.log('🔐 Login attempt started', { email: credentials.email, hasPassword: !!credentials.password })
+  console.log('🔐 Login attempt started', { email: credentials.email, hasPassword: Boolean(credentials.password) })
   isLoading.value = true
   authError.value = ''
 
@@ -62,9 +63,9 @@ const handleLogin = async (credentials: LoginCredentials) => {
     } else {
       console.log('🔐 Login completed but user not authenticated')
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('🔐 Login error:', error)
-    authError.value = error.message || 'ログインに失敗しました'
+    authError.value = error instanceof Error ? error.message : t('auth.errors.loginFailed')
   } finally {
     isLoading.value = false
   }
@@ -79,9 +80,9 @@ const handleForgotPassword = () => {
 onMounted(() => {
   const reason = route.query.reason as string
   if (reason === 'session_expired') {
-    authError.value = 'セッションの有効期限が切れました。再度ログインしてください。'
+    authError.value = t('auth.errors.sessionExpiredDetail')
   } else if (reason === 'unauthenticated') {
-    authError.value = 'このページにアクセスするにはログインが必要です。'
+    authError.value = t('auth.errors.loginRequired')
   }
 })
 </script>
