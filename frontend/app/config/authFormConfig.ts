@@ -6,7 +6,7 @@
 
 import type { ILoginCredentials } from '~/types/auth'
 
-export interface AuthFormConfig {
+export interface IAuthFormConfig {
   /** Form behavior settings */
   form: {
     /** Default initial values for login form */
@@ -94,7 +94,7 @@ export interface AuthFormConfig {
 /**
  * Default auth form configuration
  */
-export const defaultAuthFormConfig: AuthFormConfig = {
+export const defaultAuthFormConfig: IAuthFormConfig = {
   form: {
     defaultValues: {
       email: '',
@@ -182,7 +182,7 @@ export const defaultAuthFormConfig: AuthFormConfig = {
 /**
  * Get auth form configuration with environment-specific overrides
  */
-export const getAuthFormConfig = (): AuthFormConfig => {
+export const getAuthFormConfig = (): IAuthFormConfig => {
   const config = { ...defaultAuthFormConfig }
 
   // Production overrides
@@ -207,8 +207,8 @@ export const getAuthFormConfig = (): AuthFormConfig => {
 /**
  * Type-safe config getter for specific sections
  */
-export const getAuthFormConfigSection = <K extends keyof AuthFormConfig>(
+export const getAuthFormConfigSection = <K extends keyof IAuthFormConfig>(
   section: K
-): AuthFormConfig[K] => {
+): IAuthFormConfig[K] => {
   return getAuthFormConfig()[section]
 }

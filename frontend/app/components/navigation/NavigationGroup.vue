@@ -68,15 +68,17 @@ const toggleGroup = () => {
 
 // Watch for route changes to auto-expand relevant groups
 const route = useRoute()
+const { t } = useI18n()
+
 watch(() => route.path, () => {
   // Auto-expand group if current route matches
-  if (props.title === '案件管理' && route.path.startsWith('/cases')) {
+  if (props.title === t('navigation.groups.matters') && route.path.startsWith('/cases')) {
     isOpen.value = true
-  } else if (props.title === '依頼者管理' && route.path.startsWith('/clients')) {
+  } else if (props.title === t('navigation.groups.clients') && route.path.startsWith('/clients')) {
     isOpen.value = true
-  } else if (props.title === '書類管理' && route.path.startsWith('/documents')) {
+  } else if (props.title === t('navigation.groups.documents') && route.path.startsWith('/documents')) {
     isOpen.value = true
-  } else if (props.title === '財務管理' && route.path.startsWith('/finance')) {
+  } else if (props.title === t('navigation.groups.finance') && route.path.startsWith('/finance')) {
     isOpen.value = true
   }
 }, { immediate: true })

@@ -18,10 +18,11 @@ definePageMeta({
 // ミドルウェアによって適切なページにリダイレクトされる
 
 // ページタイトル設定
+const { t } = useI18n()
 useHead({
-  title: 'Astar Management',
+  title: t('app.title'),
   meta: [
-    { name: 'description', content: '法律事務所向け業務管理システム' }
+    { name: 'description', content: t('app.description') }
   ]
 })
 </script>

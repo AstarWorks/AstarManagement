@@ -6,7 +6,7 @@
 import { computed } from 'vue'
 import { parseISO, differenceInDays } from 'date-fns'
 
-export interface DueDateAlertConfig {
+export interface IDueDateAlertConfig {
   type: 'overdue' | 'today' | 'urgent' | 'warning'
   label: string
   icon: string
@@ -25,7 +25,7 @@ export function useDueDateAlert(dueDate: string) {
   })
 
   // Generate alert configuration based on days remaining
-  const alertConfig = computed((): DueDateAlertConfig | null => {
+  const alertConfig = computed((): IDueDateAlertConfig | null => {
     const days = daysUntilDue.value
     
     if (days === null) return null

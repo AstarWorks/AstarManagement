@@ -5,7 +5,7 @@
  * 法律事務所特有の言語設定を一元管理
  */
 
-export interface LanguageOption {
+export interface ILanguageOption {
   code: string
   name: string
   flag: string
@@ -19,7 +19,7 @@ export interface LanguageOption {
  * 現在は日本語のみ - Simple over Easy原則により
  * 多言語対応が必要になったときのための拡張可能な設計
  */
-export const AVAILABLE_LANGUAGES: LanguageOption[] = [
+export const AVAILABLE_LANGUAGES: ILanguageOption[] = [
   {
     code: 'ja',
     name: '日本語',
@@ -49,7 +49,7 @@ export const DEFAULT_LANGUAGE = 'ja'
 /**
  * 言語コードから言語オプションを取得
  */
-export function getLanguageOption(code: string): LanguageOption {
+export function getLanguageOption(code: string): ILanguageOption {
   return AVAILABLE_LANGUAGES.find(lang => lang.code === code) 
     || AVAILABLE_LANGUAGES.find(lang => lang.code === DEFAULT_LANGUAGE)!
 }

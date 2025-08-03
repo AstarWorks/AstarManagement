@@ -18,7 +18,7 @@ export function useTypedI18n() {
     locales,
     setLocale,
     // 型安全な翻訳ヘルパー
-    tt: t as (key: keyof LocaleMessages | string, params?: any) => string
+    tt: t as (key: keyof LocaleMessages | string, params?: Record<string, unknown>) => string
   }
 }
 

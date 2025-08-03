@@ -91,11 +91,11 @@
 </template>
 
 <script setup lang="ts">
-import type { NavigationItem } from '~/types/navigation'
+import type { INavigationItem } from '~/types/navigation'
 
 // Props
 interface Props {
-  item: NavigationItem
+  item: INavigationItem
   isCollapsed?: boolean
   depth?: number
   showDescription?: boolean

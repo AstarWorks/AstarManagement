@@ -4,7 +4,7 @@
  * 特定の権限やロールが必要なページで使用
  */
 
-interface RBACOptions {
+interface IRBACOptions {
   permissions?: string[]
   roles?: string[]
   require?: 'all' | 'any' // 'all': すべての権限/ロールが必要, 'any': いずれかの権限/ロールがあればOK
@@ -14,8 +14,8 @@ interface RBACOptions {
 /**
  * 権限チェック用のミドルウェアファクトリ
  */
-export const createRBACMiddleware = (options: RBACOptions) => {
-  return defineNuxtRouteMiddleware((to, from) => {
+export const createRBACMiddleware = (options: IRBACOptions) => {
+  return defineNuxtRouteMiddleware((to, _from) => {
     const authStore = useAuthStore()
     const {
       permissions = [],
@@ -91,7 +91,7 @@ export const createRBACMiddleware = (options: RBACOptions) => {
 /**
  * 権限チェック関数
  */
-function checkPermissions(authStore: any, permissions: string[], require: 'all' | 'any'): boolean {
+function checkPermissions(authStore: ReturnType<typeof useAuthStore>, permissions: string[], require: 'all' | 'any'): boolean {
   if (permissions.length === 0) return true
 
   if (require === 'all') {
@@ -104,7 +104,7 @@ function checkPermissions(authStore: any, permissions: string[], require: 'all' 
 /**
  * ロールチェック関数
  */
-function checkRoles(authStore: any, roles: string[], require: 'all' | 'any'): boolean {
+function checkRoles(authStore: ReturnType<typeof useAuthStore>, roles: string[], require: 'all' | 'any'): boolean {
   if (roles.length === 0) return true
 
   if (require === 'all') {

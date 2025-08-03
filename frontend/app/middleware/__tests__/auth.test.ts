@@ -7,7 +7,7 @@ import authMiddleware from '../auth'
 /**
  * モック用の型安全なAuthStore定義（テスト用にmutable）
  */
-interface MockAuthStore {
+interface IMockAuthStore {
   status: AuthState['status']
   isAuthenticated: boolean
   tokens: { accessToken: string; refreshToken: string; expiresIn: number } | null
@@ -19,7 +19,7 @@ interface MockAuthStore {
 }
 
 // AuthStore のモック（型安全）
-const mockAuthStore: MockAuthStore = {
+const mockAuthStore: IMockAuthStore = {
   status: 'idle',
   isAuthenticated: false,
   tokens: null,
@@ -50,13 +50,13 @@ vi.mock('~/stores/auth', () => ({
 declare global {
   var __authStore: typeof mockUseAuthStore
   var __navigateTo: typeof mockNavigateTo
-  var __defineNuxtRouteMiddleware: <T extends Function>(fn: T) => T
+  var __defineNuxtRouteMiddleware: <T extends (...args: unknown[]) => unknown>(fn: T) => T
 }
 
 // Global composables として利用可能にする（型安全）
 globalThis.__authStore = mockUseAuthStore
 globalThis.__navigateTo = mockNavigateTo
-globalThis.__defineNuxtRouteMiddleware = <T extends Function>(fn: T): T => fn
+globalThis.__defineNuxtRouteMiddleware = <T extends (...args: unknown[]) => unknown>(fn: T): T => fn
 
 // import.meta のモック
 Object.defineProperty(globalThis, 'import', {
@@ -86,7 +86,7 @@ describe('Auth Middleware', () => {
     mockAuthStore.isAuthenticated = false
     
     // Create a mock middleware that simulates server side behavior
-    const serverSideMiddleware = (to: any, from: any) => {
+    const serverSideMiddleware = (_to: any, _from: any) => {
       // Mock import.meta.server = true behavior
       return // Should return undefined and not call any functions
     }

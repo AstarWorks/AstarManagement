@@ -4,7 +4,7 @@
  */
 
 import { vi } from 'vitest'
-import { config } from '@vue/test-utils'
+import { config } from '@nuxt/test-utils/runtime'
 
 // Vue Test Utils のグローバル設定
 config.global.stubs = {

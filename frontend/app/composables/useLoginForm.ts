@@ -9,16 +9,16 @@ import { toTypedSchema } from '@vee-validate/zod'
 import { loginSchema } from '~/schemas/auth'
 import type { ILoginCredentials } from '~/types/auth'
 
-export interface UseLoginFormOptions {
+export interface IUseLoginFormOptions {
   /** Initial form values */
   initialValues?: Partial<ILoginCredentials>
   /** Whether to enable auto-fill for development */
   enableDebugFill?: boolean
   /** Custom validation schema override */
-  validationSchema?: any
+  validationSchema?: ReturnType<typeof toTypedSchema>
 }
 
-export interface UseLoginFormReturn {
+export interface IUseLoginFormReturn {
   /** VeeValidate form instance */
   form: ReturnType<typeof useForm>
   /** Computed form validity state */
@@ -32,13 +32,13 @@ export interface UseLoginFormReturn {
   /** Get current form values */
   getValues: () => ILoginCredentials
   /** Set specific field value */
-  setFieldValue: (field: keyof ILoginCredentials, value: any) => void
+  setFieldValue: (field: keyof ILoginCredentials, value: string | boolean) => void
 }
 
 /**
  * Login form composable with enhanced functionality
  */
-export const useLoginForm = (options: UseLoginFormOptions = {}): UseLoginFormReturn => {
+export const useLoginForm = (options: IUseLoginFormOptions = {}): IUseLoginFormReturn => {
   const {
     initialValues = {
       email: '',
@@ -92,7 +92,7 @@ export const useLoginForm = (options: UseLoginFormOptions = {}): UseLoginFormRet
   }
 
   // Set specific field value
-  const setFieldValue = (field: keyof ILoginCredentials, value: any) => {
+  const setFieldValue = (field: keyof ILoginCredentials, value: string | boolean) => {
     form.setFieldValue(field, value)
   }
 

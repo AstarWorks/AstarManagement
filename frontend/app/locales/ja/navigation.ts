@@ -18,6 +18,13 @@ export default {
     home: 'ホーム',
     calendar: 'カレンダー',
     feedback: 'フィードバック',
+    loginPage: 'ログインページ',
+    groups: {
+      matters: '案件管理',
+      clients: '依頼者管理',
+      documents: '書類管理',
+      finance: '財務管理'
+    },
     language: {
       switch: '言語を切り替え'
     },

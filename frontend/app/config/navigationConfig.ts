@@ -3,7 +3,12 @@
  * Simple over Easy: 設定ベースでナビゲーション構造を外部化
  */
 
-export interface NavigationItemConfig {
+import type { INavigationItemConfig } from '~/types/navigation'
+
+// Re-export for backward compatibility
+export type { INavigationItemConfig as NavigationItemConfig } from '~/types/navigation'
+
+/*
   id: string
   labelKey: string // i18nキー
   path: string
@@ -19,12 +24,12 @@ export interface NavigationItemConfig {
   }
   isExternal?: boolean
   target?: '_blank' | '_self'
-}
+} */
 
 /**
  * メインナビゲーション設定
  */
-export const MAIN_NAVIGATION_CONFIG: NavigationItemConfig[] = [
+export const MAIN_NAVIGATION_CONFIG: INavigationItemConfig[] = [
   {
     id: 'dashboard',
     labelKey: 'navigation.dashboard',
@@ -138,7 +143,7 @@ export const MAIN_NAVIGATION_CONFIG: NavigationItemConfig[] = [
 /**
  * 管理者ナビゲーション設定
  */
-export const ADMIN_NAVIGATION_CONFIG: NavigationItemConfig[] = [
+export const ADMIN_NAVIGATION_CONFIG: INavigationItemConfig[] = [
   {
     id: 'admin-dashboard',
     labelKey: 'navigation.menu.admin.dashboard',

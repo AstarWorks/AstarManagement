@@ -4,7 +4,7 @@
  * Centralizes navigation and external link handling
  */
 
-export interface UseAuthFormFooterOptions {
+export interface IUseAuthFormFooterOptions {
   /** Whether to enable analytics tracking */
   enableAnalytics?: boolean
   /** Custom base URLs for links */
@@ -15,7 +15,7 @@ export interface UseAuthFormFooterOptions {
   }
 }
 
-export interface UseAuthFormFooterReturn {
+export interface IUseAuthFormFooterReturn {
   /** Handle privacy policy click */
   handlePrivacyClick: () => void
   /** Handle terms of service click */
@@ -31,7 +31,7 @@ export interface UseAuthFormFooterReturn {
 /**
  * Auth form footer composable with enhanced navigation
  */
-export const useAuthFormFooter = (options: UseAuthFormFooterOptions = {}): UseAuthFormFooterReturn => {
+export const useAuthFormFooter = (options: IUseAuthFormFooterOptions = {}): IUseAuthFormFooterReturn => {
   const {
     enableAnalytics = false,
     baseUrls = {
@@ -44,7 +44,7 @@ export const useAuthFormFooter = (options: UseAuthFormFooterOptions = {}): UseAu
   const router = useRouter()
 
   // Analytics tracking helper
-  const trackEvent = (event: string, properties?: Record<string, any>) => {
+  const trackEvent = (event: string, properties?: Record<string, unknown>) => {
     if (enableAnalytics && process.env.NODE_ENV === 'production') {
       // Integration point for analytics (e.g., Google Analytics, Mixpanel)
       console.log('[Analytics]', event, properties)

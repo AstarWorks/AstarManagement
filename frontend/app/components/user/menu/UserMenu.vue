@@ -28,13 +28,13 @@
 </template>
 
 <script setup lang="ts">
-import type { MenuItemConfig } from '~/config/userMenuConfig'
+import type { IMenuItemConfig } from '~/config/userMenuConfig'
 
 interface Props {
   showQuickStats?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   showQuickStats: true
 })
 
@@ -70,7 +70,7 @@ const closeMenu = () => {
   isOpen.value = false
 }
 
-const handleMenuItemClick = async (item: MenuItemConfig) => {
+const handleMenuItemClick = async (item: IMenuItemConfig) => {
   closeMenu()
   
   if (item.action === 'logout') {

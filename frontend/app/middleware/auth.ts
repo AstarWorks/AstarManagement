@@ -3,7 +3,7 @@
  * 
  * 認証が必要なページで使用し、未認証の場合はログインページにリダイレクトする
  */
-export default defineNuxtRouteMiddleware((to, from) => {
+export default defineNuxtRouteMiddleware((to, _from) => {
   const authStore = useAuthStore()
 
   // サーバーサイドでは認証チェックをスキップ

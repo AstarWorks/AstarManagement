@@ -57,9 +57,8 @@
 </template>
 
 <script setup lang="ts">
-import { format } from 'date-fns'
 import type { IUser } from '~/types/auth'
-import type { MenuItemConfig, MenuSectionConfig } from '~/config/userMenuConfig'
+import type { IMenuItemConfig, IMenuSectionConfig } from '~/config/userMenuConfig'
 import { BASE_MENU_SECTIONS, ADMIN_MENU_SECTION } from '~/config/userMenuConfig'
 
 interface UserStats {
@@ -83,10 +82,9 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-  itemClick: [item: MenuItemConfig]
+  itemClick: [item: IMenuItemConfig]
 }>()
 
-const { t } = useI18n()
 const menu = ref()
 
 const shouldShowQuickStats = computed(() => {
@@ -99,7 +97,7 @@ const shouldShowQuickStats = computed(() => {
   )
 })
 
-const menuSections = computed((): MenuSectionConfig[] => {
+const menuSections = computed((): IMenuSectionConfig[] => {
   const sections = [...BASE_MENU_SECTIONS]
   
   // Add admin section for admin users
@@ -112,6 +110,7 @@ const menuSections = computed((): MenuSectionConfig[] => {
 })
 
 const formatLastLogin = (lastLogin?: Date): string => {
+  const { t } = useI18n()
   if (!lastLogin) return t('auth.lastLogin.never')
   
   const now = new Date()

@@ -4,7 +4,7 @@
  * Simple over Easy: Each enhancement is optional and composable
  */
 
-export interface UseAuthFormEnhancementsOptions {
+export interface IUseAuthFormEnhancementsOptions {
   /** Enable keyboard shortcuts */
   enableKeyboardShortcuts?: boolean
   /** Enable "Remember Me" persistence */
@@ -19,7 +19,7 @@ export interface UseAuthFormEnhancementsOptions {
   enableVisibilityPause?: boolean
 }
 
-export interface UseAuthFormEnhancementsReturn {
+export interface IUseAuthFormEnhancementsReturn {
   /** Whether app is online */
   isOnline: Ref<boolean>
   /** Whether tab is visible */
@@ -40,8 +40,8 @@ export interface UseAuthFormEnhancementsReturn {
  * Enhanced auth form functionality with VueUse
  */
 export const useAuthFormEnhancements = (
-  options: UseAuthFormEnhancementsOptions = {}
-): UseAuthFormEnhancementsReturn => {
+  options: IUseAuthFormEnhancementsOptions = {}
+): IUseAuthFormEnhancementsReturn => {
   const {
     enableKeyboardShortcuts = true,
     enableRememberMePersistence = true,

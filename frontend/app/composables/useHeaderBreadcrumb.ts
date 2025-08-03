@@ -5,7 +5,7 @@
 
 import { computed } from 'vue'
 
-export interface BreadcrumbItem {
+export interface IBreadcrumbItem {
   label: string
   href: string
 }
@@ -21,9 +21,9 @@ export function useHeaderBreadcrumb() {
   /**
    * 現在のルートからブレッドクラムアイテムを生成
    */
-  const breadcrumbs = computed<BreadcrumbItem[]>(() => {
+  const breadcrumbs = computed<IBreadcrumbItem[]>(() => {
     const pathSegments = route.path.split('/').filter(Boolean)
-    const crumbs: BreadcrumbItem[] = [
+    const crumbs: IBreadcrumbItem[] = [
       { label: t('navigation.dashboard'), href: '/dashboard' }
     ]
     

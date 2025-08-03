@@ -37,7 +37,7 @@ export const AUTH_CONFIG = {
 /**
  * 環境別設定の型定義
  */
-export interface AuthEnvironmentConfig {
+export interface IAuthEnvironmentConfig {
   apiBaseUrl: string
   enableMockAuth: boolean
   enableDebugLogging: boolean
@@ -47,7 +47,7 @@ export interface AuthEnvironmentConfig {
 /**
  * 環境別設定
  */
-export const getAuthEnvironmentConfig = (): AuthEnvironmentConfig => {
+export const getAuthEnvironmentConfig = (): IAuthEnvironmentConfig => {
   const isDevelopment = process.env.NODE_ENV === 'development'
   
   return {

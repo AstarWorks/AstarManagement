@@ -3,8 +3,8 @@
  * Simple over Easy: 権限チェックロジックを分離
  */
 
-import type { NavigationItemConfig } from '~/config/navigationConfig'
-import type { NavigationItem, BreadcrumbItem } from '~/types/navigation'
+import type { NavigationItemConfig as INavigationItemConfig } from '~/config/navigationConfig'
+import type { INavigationItem, IBreadcrumbItem } from '~/types/navigation'
 import type { IUser } from '~/types/auth'
 import { usePermissions } from '~/composables/usePermissions'
 
@@ -12,9 +12,9 @@ import { usePermissions } from '~/composables/usePermissions'
  * 設定からナビゲーション項目を生成（i18n適用）
  */
 export function createNavigationItems(
-  config: NavigationItemConfig[], 
+  config: INavigationItemConfig[], 
   t: (key: string) => string
-): NavigationItem[] {
+): INavigationItem[] {
   return config.map(item => ({
     id: item.id,
     label: t(item.labelKey),
@@ -39,9 +39,9 @@ export function createNavigationItems(
  * Simple over Easy: usePermissions composableに権限チェックを委譲
  */
 export function filterNavigationItems(
-  items: NavigationItem[], 
+  items: INavigationItem[], 
   user: IUser | null
-): NavigationItem[] {
+): INavigationItem[] {
   const { filterByAccess } = usePermissions()
   
   // 再帰的に子要素もフィルタリング
@@ -56,9 +56,9 @@ export function filterNavigationItems(
  * パスに基づいてアクティブなナビゲーション項目を見つける
  */
 export function findActiveNavigationItem(
-  items: NavigationItem[], 
+  items: INavigationItem[], 
   currentPath: string
-): NavigationItem | null {
+): INavigationItem | null {
   for (const item of items) {
     if (item.path === currentPath) {
       return item
@@ -82,11 +82,11 @@ export function findActiveNavigationItem(
  * パンくずリストを生成
  */
 export function generateBreadcrumbs(
-  items: NavigationItem[], 
+  items: INavigationItem[], 
   currentPath: string,
   t: (key: string) => string
-): BreadcrumbItem[] {
-  const breadcrumbs: BreadcrumbItem[] = []
+): IBreadcrumbItem[] {
+  const breadcrumbs: IBreadcrumbItem[] = []
   
   // ホームを追加
   breadcrumbs.push({ label: t('navigation.home'), path: '/dashboard' })
@@ -110,9 +110,9 @@ export function generateBreadcrumbs(
  * 親ナビゲーション項目を見つける
  */
 function findParentNavigationItem(
-  items: NavigationItem[], 
+  items: INavigationItem[], 
   childId: string
-): NavigationItem | null {
+): INavigationItem | null {
   for (const item of items) {
     if (item.children?.some(child => child.id === childId)) {
       return item

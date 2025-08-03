@@ -8,7 +8,7 @@
     >
       <div class="absolute inset-0 bg-black/50" />
       <div class="absolute left-0 top-0 h-full w-64 bg-background">
-        <AppSidebar :is-mobile="true" @close="closeMobileMenu" />
+        <AppSidebar is-mobile @close="closeMobileMenu" />
       </div>
     </div>
     

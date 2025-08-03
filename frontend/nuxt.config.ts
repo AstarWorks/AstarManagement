@@ -12,7 +12,6 @@ export default defineNuxtConfig({
     '@nuxt/fonts',
     '@nuxt/icon',
     '@nuxt/image',
-    '@nuxt/test-utils',
     'shadcn-nuxt',
     '@nuxtjs/i18n',
   ],
@@ -20,19 +19,11 @@ export default defineNuxtConfig({
   // Server-side rendering
   ssr: true,
 
-  // Components
-  components: [
-    {
-      path: '~/components',
-      pathPrefix: false,
-    },
-  ],
-
   // Auto imports
   imports: {
-    dirs: ['composables/**', 'utils/**', 'stores/**'],
+    dirs: ['stores/**'],
   },
-  devtools: { enabled: true },
+  devtools: { enabled: process.env.NODE_ENV !== 'production' },
 
   // App configuration
   app: {
@@ -81,7 +72,7 @@ export default defineNuxtConfig({
 
   // Experimental features
   experimental: {
-    payloadExtraction: false,
+    payloadExtraction: true,
     typedPages: true,
   },
   compatibilityDate: '2025-07-15',
@@ -98,7 +89,7 @@ export default defineNuxtConfig({
   // Vite configuration
   vite: {
     define: {
-      __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: 'false',
+      __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: process.env.NODE_ENV === 'development' ? 'true' : 'false',
     },
     plugins: [
       tailwindcss()
@@ -111,7 +102,6 @@ export default defineNuxtConfig({
         output: {
           manualChunks: {
             vendor: ['vue', 'vue-router'],
-            ui: ['radix-vue', 'lucide-vue-next'],
             utils: ['zod', 'vee-validate', 'class-variance-authority'],
           },
         },

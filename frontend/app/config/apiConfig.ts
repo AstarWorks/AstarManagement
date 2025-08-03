@@ -132,7 +132,7 @@ export const API_CONFIG = {
 /**
  * 環境別API設定
  */
-export interface ApiEnvironmentConfig {
+export interface IApiEnvironmentConfig {
   baseUrl: string
   enableLogging: boolean
   enableRetry: boolean
@@ -143,7 +143,7 @@ export interface ApiEnvironmentConfig {
 /**
  * 環境別設定を取得
  */
-export const getApiEnvironmentConfig = (): ApiEnvironmentConfig => {
+export const getApiEnvironmentConfig = (): IApiEnvironmentConfig => {
   const config = useRuntimeConfig()
   const isDevelopment = process.env.NODE_ENV === 'development'
   

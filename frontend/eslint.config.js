@@ -54,6 +54,22 @@ export default createConfigForNuxt({
         'vue/custom-event-name-casing': ['error', 'camelCase'],
         'vue/component-definition-name-casing': ['error', 'PascalCase'],
         
+        // Allow single-word component names for UI library components
+        'vue/multi-word-component-names': ['error', {
+          ignores: [
+            // UI Components (shadcn-vue style)
+            'Alert', 'Avatar', 'Badge', 'Breadcrumb', 'Button', 
+            'Calendar', 'Card', 'Checkbox', 'Collapsible', 'Command',
+            'Dialog', 'Input', 'Label', 'Popover', 'Select',
+            'Separator', 'Sheet', 'Skeleton', 'Table', 'Tabs',
+            'Textarea', 'Toggle', 'Tooltip',
+            // Page names
+            'index', 'login', 'dashboard', 'unauthorized', 'kanban',
+            // Layout names
+            'default', 'auth'
+          ]
+        }],
+        
         // Vue composition API preferences
         'vue/prefer-define-options': 'error',
         'vue/prefer-separate-static-class': 'error',

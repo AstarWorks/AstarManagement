@@ -9,7 +9,7 @@
  * ロールチェック用のミドルウェアファクトリ
  */
 export const requireRole = (allowedRoles: string | string[], redirectTo = '/unauthorized') => {
-  return defineNuxtRouteMiddleware((to, from) => {
+  return defineNuxtRouteMiddleware((to, _from) => {
     const authStore = useAuthStore()
 
     // サーバーサイドではロールチェックをスキップ
@@ -104,7 +104,7 @@ export const partnerOnly = requireRole('PARTNER_LAWYER')
  */
 export const requireAnyRole = (roles: string[]) => requireRole(roles)
 export const requireAllRoles = (roles: string[]) => {
-  return defineNuxtRouteMiddleware((to, from) => {
+  return defineNuxtRouteMiddleware((to, _from) => {
     const authStore = useAuthStore()
 
     // サーバーサイドではロールチェックをスキップ

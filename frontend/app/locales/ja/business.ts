@@ -35,6 +35,7 @@ export default {
     },
     card: {
       progress: '進捗状況',
+      ariaLabel: '案件: {title} - 依頼者: {client}',
       dueDate: {
         notSet: '期限未設定',
         overdue: '{days}日遅れ',

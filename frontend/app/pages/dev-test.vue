@@ -64,7 +64,7 @@
         <div class="max-w-md space-y-4">
           <div>
             <Label for="test-input">テスト入力フィールド</Label>
-            <Input id="test-input" placeholder="ここに入力してください" class="mt-1" />
+            <Input id="test-input" :placeholder="$t('common.placeholder.enterHere')" class="mt-1" />
           </div>
           <div>
             <Label for="test-textarea">テストテキストエリア</Label>
@@ -90,7 +90,7 @@
     <section class="mt-8">
       <h2 class="text-xl font-semibold mb-4 text-foreground">ナビゲーションテスト</h2>
       <div class="flex gap-4 flex-wrap">
-        <Button as="nuxt-link" to="/login" variant="outline">ログインページ</Button>
+        <Button as="nuxt-link" to="/login" variant="outline">{{ $t('navigation.loginPage') }}</Button>
         <Button as="nuxt-link" to="/dashboard" variant="outline">ダッシュボード</Button>
         <Button as="nuxt-link" to="/cases/kanban" variant="outline">案件管理</Button>
       </div>
@@ -105,10 +105,11 @@ definePageMeta({
 })
 
 // ページタイトル設定
+const { t } = useI18n()
 useHead({
-  title: '開発テスト - Astar Management',
+  title: `開発テスト - ${t('app.title')}`,
   meta: [
-    { name: 'description', content: 'コンポーネントと機能のテストページ' }
+    { name: 'description', content: t('meta.devTest.description') }
   ]
 })
 </script>

@@ -4,6 +4,16 @@
  */
 
 export default {
+  meta: {
+    login: {
+      title: 'ログイン - Astar Management',
+      description: '法律事務所管理システムへのログイン'
+    },
+    devTest: {
+      description: 'コンポーネントと機能のテストページ'
+    }
+  },
+  
   auth: {
     login: {
       title: 'ログイン',
@@ -77,8 +87,11 @@ export default {
       twoFactorRequired: '2要素認証が必要です',
       twoFactorInvalid: '認証コードが正しくありません',
       sessionExpired: 'セッションが期限切れです',
+      sessionExpiredDetail: 'セッションの有効期限が切れました。再度ログインしてください。',
       networkError: 'ネットワークエラーが発生しました',
-      genericError: 'ログインに失敗しました'
+      genericError: 'ログインに失敗しました',
+      loginRequired: 'このページにアクセスするにはログインが必要です。',
+      loginFailed: 'ログインに失敗しました'
     },
     lastLogin: {
       never: '未ログイン',

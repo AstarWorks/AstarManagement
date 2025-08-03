@@ -29,10 +29,10 @@
 </template>
 
 <script setup lang="ts">
-import type { MenuItemConfig } from '~/config/userMenuConfig'
+import type { IMenuItemConfig } from '~/config/userMenuConfig'
 
 interface Props {
-  item: MenuItemConfig
+  item: IMenuItemConfig
   notificationCount?: number
 }
 
@@ -41,10 +41,9 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-  click: [item: MenuItemConfig]
+  click: [item: IMenuItemConfig]
 }>()
 
-const { t } = useI18n()
 
 const itemClasses = computed(() => {
   return props.item.id === 'logout' 

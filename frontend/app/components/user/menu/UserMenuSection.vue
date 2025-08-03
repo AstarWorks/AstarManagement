@@ -9,11 +9,11 @@
 </template>
 
 <script setup lang="ts">
-import type { MenuItemConfig } from '~/config/userMenuConfig'
+import type { IMenuItemConfig } from '~/config/userMenuConfig'
 import type { IUser } from '~/types/auth'
 
 interface Props {
-  items: MenuItemConfig[]
+  items: IMenuItemConfig[]
   user: IUser | null
   notificationCounts?: Record<string, number>
 }
@@ -23,7 +23,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-  itemClick: [item: MenuItemConfig]
+  itemClick: [item: IMenuItemConfig]
 }>()
 
 const visibleItems = computed(() => {

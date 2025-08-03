@@ -4,7 +4,7 @@
  * Reusable across all forms in the application
  */
 
-export interface UseFormSubmissionOptions<T = any> {
+export interface IUseFormSubmissionOptions<T = unknown> {
   /** Whether to enable optimistic updates */
   enableOptimistic?: boolean
   /** Whether to auto-reset form on success */
@@ -12,12 +12,12 @@ export interface UseFormSubmissionOptions<T = any> {
   /** Custom success message */
   successMessage?: string
   /** Custom error handler */
-  onError?: (error: any) => void
+  onError?: (error: Error | unknown) => void
   /** Custom success handler */
   onSuccess?: (data: T) => void
 }
 
-export interface UseFormSubmissionReturn<T = any> {
+export interface IUseFormSubmissionReturn<T = unknown> {
   /** Whether form is currently submitting */
   isSubmitting: Ref<boolean>
   /** Current submission error */
@@ -35,12 +35,12 @@ export interface UseFormSubmissionReturn<T = any> {
 /**
  * Generic form submission composable
  */
-export const useFormSubmission = <T = any>(
-  options: UseFormSubmissionOptions<T> = {}
-): UseFormSubmissionReturn<T> => {
+export const useFormSubmission = <T = unknown>(
+  options: IUseFormSubmissionOptions<T> = {}
+): IUseFormSubmissionReturn<T> => {
   const {
-    enableOptimistic = false,
-    autoResetOnSuccess = false,
+    enableOptimistic: _enableOptimistic = false,
+    autoResetOnSuccess: _autoResetOnSuccess = false,
     successMessage,
     onError,
     onSuccess
@@ -89,9 +89,9 @@ export const useFormSubmission = <T = any>(
         console.log('[Success]', successMessage)
       }
 
-    } catch (error: any) {
+    } catch (error) {
       // Handle submission error
-      const errorMessage = error?.message || 'An unexpected error occurred'
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred'
       submissionError.value = errorMessage
 
       // Call error handler

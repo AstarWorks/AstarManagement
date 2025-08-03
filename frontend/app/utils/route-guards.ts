@@ -3,7 +3,7 @@
  */
 
 import type { RouteLocationNormalized } from 'vue-router'
-import type { IUser, AuthState } from '~/types/auth'
+import type { IUser } from '~/types/auth'
 
 /**
  * ページアクセス権限の設定

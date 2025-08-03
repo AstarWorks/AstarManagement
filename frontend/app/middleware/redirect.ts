@@ -3,7 +3,9 @@
  * 
  * ログイン後のリダイレクト処理や、条件によるページリダイレクトを管理
  */
-export default defineNuxtRouteMiddleware((to, from) => {
+import type { RouteLocationNormalized } from 'vue-router'
+
+export default defineNuxtRouteMiddleware((to, _from) => {
   const authStore = useAuthStore()
 
   // サーバーサイドではリダイレクトをスキップ
@@ -44,7 +46,7 @@ export default defineNuxtRouteMiddleware((to, from) => {
 /**
  * 認証状態に基づく自動リダイレクト処理
  */
-function handleAuthStateRedirect(to: any, authStore: any) {
+function handleAuthStateRedirect(to: RouteLocationNormalized, authStore: ReturnType<typeof useAuthStore>) {
   // セッション期限切れの検出とリダイレクト
   if (authStore.tokens && authStore.isTokenExpired && to.path !== '/login') {
     return navigateTo({
@@ -79,7 +81,7 @@ function handleAuthStateRedirect(to: any, authStore: any) {
 /**
  * ログイン成功後のリダイレクト先を決定
  */
-export function getPostLoginRedirect(query: any): string {
+export function getPostLoginRedirect(query: Record<string, string | string[]>): string {
   // URLパラメータからリダイレクト先を取得
   const redirectTo = query.redirect as string
 
@@ -106,7 +108,7 @@ export function getPostLoginRedirect(query: any): string {
 /**
  * エラー状態に基づくリダイレクト処理
  */
-export function handleErrorRedirect(error: any, currentPath: string): string | null {
+export function handleErrorRedirect(error: { status?: number; statusCode?: number }, currentPath: string): string | null {
   switch (error.status || error.statusCode) {
     case 401:
       // 認証エラー

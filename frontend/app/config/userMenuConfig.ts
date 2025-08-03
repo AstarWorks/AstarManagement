@@ -3,7 +3,7 @@
  * Simple over Easy: 設定ベースでメニューを動的生成
  */
 
-export interface MenuItemConfig {
+export interface IMenuItemConfig {
   id: string
   labelKey: string // i18nキー
   icon: string
@@ -13,16 +13,16 @@ export interface MenuItemConfig {
   requiredRoles?: string[]
 }
 
-export interface MenuSectionConfig {
+export interface IMenuSectionConfig {
   id: string
-  items: MenuItemConfig[]
+  items: IMenuItemConfig[]
 }
 
 /**
  * ベースメニュー設定
  * 全ユーザー共通のメニュー項目
  */
-export const BASE_MENU_SECTIONS: MenuSectionConfig[] = [
+export const BASE_MENU_SECTIONS: IMenuSectionConfig[] = [
   {
     id: 'account',
     items: [
@@ -96,7 +96,7 @@ export const BASE_MENU_SECTIONS: MenuSectionConfig[] = [
 /**
  * 管理者専用メニュー設定
  */
-export const ADMIN_MENU_SECTION: MenuSectionConfig = {
+export const ADMIN_MENU_SECTION: IMenuSectionConfig = {
   id: 'admin',
   items: [
     {

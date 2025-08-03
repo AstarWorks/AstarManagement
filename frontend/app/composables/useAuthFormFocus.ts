@@ -4,7 +4,7 @@
  * Uses VueUse for clean, declarative focus management
  */
 
-export interface UseAuthFormFocusOptions {
+export interface IUseAuthFormFocusOptions {
   /** Which field should receive initial focus */
   initialFocus?: 'email' | 'password' | 'none'
   /** Whether to enable keyboard shortcuts */
@@ -13,7 +13,7 @@ export interface UseAuthFormFocusOptions {
   focusDelay?: number
 }
 
-export interface UseAuthFormFocusReturn {
+export interface IUseAuthFormFocusReturn {
   /** Email input ref */
   emailInputRef: Ref<HTMLInputElement | undefined>
   /** Password input ref */
@@ -35,7 +35,7 @@ export interface UseAuthFormFocusReturn {
 /**
  * Auth form focus management with VueUse integration
  */
-export const useAuthFormFocus = (options: UseAuthFormFocusOptions = {}): UseAuthFormFocusReturn => {
+export const useAuthFormFocus = (options: IUseAuthFormFocusOptions = {}): IUseAuthFormFocusReturn => {
   const {
     initialFocus = 'email',
     enableKeyboardShortcuts = true,

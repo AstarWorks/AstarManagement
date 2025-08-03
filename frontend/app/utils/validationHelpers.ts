@@ -12,7 +12,7 @@ import { z } from 'zod'
 export const createI18nValidation = () => {
   // Get the global i18n function with proper typing
   const { $t } = useNuxtApp()
-  const t = $t as (key: string, params?: Record<string, any>) => string
+  const t = $t as (key: string, params?: Record<string, string | number>) => string
 
   return {
     email: z
@@ -62,9 +62,9 @@ export const createPasswordConfirmation = (
   passwordField: string = 'newPassword',
   confirmField: string = 'confirmPassword'
 ) => {
-  const { $t } = useNuxtApp()
+  const { $t: _$t } = useNuxtApp()
   
-  return (data: Record<string, any>) => {
+  return (data: Record<string, unknown>) => {
     return data[passwordField] === data[confirmField]
   }
 }
@@ -73,5 +73,7 @@ export const createPasswordConfirmation = (
  * Create validation error message for password mismatch
  */
 export const getPasswordMismatchMessage = () => {
-  return 'パスワードが一致しません' // Static fallback message
+  const { $t } = useNuxtApp()
+  const _t = $t as (key: string) => string
+  return _t('auth.validation.passwordReset.mismatch') || 'パスワードが一致しません' // Static fallback message
 }

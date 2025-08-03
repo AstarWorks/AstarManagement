@@ -4,6 +4,11 @@
  */
 
 export default {
+  app: {
+    title: 'Astar Management',
+    description: '法律事務所向け業務管理システム'
+  },
+  
   common: {
     confirm: '確認',
     cancel: 'キャンセル',
@@ -51,7 +56,10 @@ export default {
     paste: '貼り付け',
     undo: '元に戻す',
     redo: 'やり直し',
-    dateNotSet: '未設定'
+    dateNotSet: '未設定',
+    placeholder: {
+      enterHere: 'ここに入力してください'
+    }
   },
 
   error: {
