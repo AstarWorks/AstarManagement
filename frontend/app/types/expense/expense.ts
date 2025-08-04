@@ -168,7 +168,7 @@ export interface IExpenseSummary {
     total: number
   }>
   /** Period information for the summary */
-  period?: {
+  period: {
     startDate: string
     endDate: string
   }

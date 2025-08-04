@@ -19,15 +19,13 @@ export const attachmentHandlers = [
       id: `att-${Date.now()}`,
       tenantId: 'tenant-1',
       fileName: file.name,
-      originalFileName: file.name,
+      originalName: file.name,
       fileSize: file.size,
       mimeType: file.type,
-      fileType: 'unknown',
-      status: AttachmentStatus.UPLOADED,
+      storagePath: `/storage/attachments/${Date.now()}_${file.name}`,
+      status: AttachmentStatus.TEMPORARY,
       uploadedAt: new Date().toISOString(),
-      uploadedBy: 'user-1',
-      createdAt: new Date().toISOString(),
-      createdBy: 'user-1'
+      uploadedBy: 'user-1'
     }
     
     await new Promise(resolve => setTimeout(resolve, Math.random() * 800 + 300))
@@ -43,15 +41,13 @@ export const attachmentHandlers = [
       id: params.id as string,
       tenantId: 'tenant-1',
       fileName: 'document.pdf',
-      originalFileName: 'document.pdf',
+      originalName: 'document.pdf',
       fileSize: 1024 * 1024,
       mimeType: 'application/pdf',
-      fileType: 'pdf',
-      status: AttachmentStatus.PROCESSED,
+      storagePath: '/storage/attachments/document.pdf',
+      status: AttachmentStatus.TEMPORARY,
       uploadedAt: new Date().toISOString(),
-      uploadedBy: 'user-1',
-      createdAt: new Date().toISOString(),
-      createdBy: 'user-1'
+      uploadedBy: 'user-1'
     }
     
     await new Promise(resolve => setTimeout(resolve, Math.random() * 150 + 50))
