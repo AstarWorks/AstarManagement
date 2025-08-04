@@ -41,7 +41,7 @@ interface JpaAttachmentRepository : JpaRepository<Attachment, UUID> {
         JOIN ExpenseAttachment ea ON ea.attachment.id = a.id
         WHERE ea.expense.id = :expenseId
         AND a.deletedAt IS NULL
-        ORDER BY a.auditInfo.createdAt
+        ORDER BY a.uploadedAt
     """)
     fun findByExpenseId(
         @Param("expenseId") expenseId: UUID
@@ -54,7 +54,7 @@ interface JpaAttachmentRepository : JpaRepository<Attachment, UUID> {
     @Query("""
         SELECT a FROM Attachment a
         WHERE a.status = :status
-        AND a.auditInfo.createdAt < :expiryDate
+        AND a.uploadedAt < :expiryDate
         AND a.deletedAt IS NULL
     """)
     fun findExpiredTemporaryAttachments(
@@ -70,7 +70,7 @@ interface JpaAttachmentRepository : JpaRepository<Attachment, UUID> {
         WHERE a.tenantId = :tenantId
         AND a.status = :status
         AND a.deletedAt IS NULL
-        ORDER BY a.auditInfo.createdAt DESC
+        ORDER BY a.uploadedAt DESC
     """)
     fun findByTenantIdAndStatus(
         @Param("tenantId") tenantId: UUID,
@@ -115,7 +115,7 @@ interface JpaAttachmentRepository : JpaRepository<Attachment, UUID> {
             WHERE ea.attachment.id = a.id
         )
         AND a.deletedAt IS NULL
-        AND a.auditInfo.createdAt < :beforeDate
+        AND a.uploadedAt < :beforeDate
     """)
     fun findOrphanedAttachments(
         @Param("tenantId") tenantId: UUID,
