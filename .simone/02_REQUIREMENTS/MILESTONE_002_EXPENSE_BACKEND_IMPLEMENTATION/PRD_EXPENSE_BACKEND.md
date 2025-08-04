@@ -140,7 +140,7 @@ DELETE /api/v1/attachments/{id}
 - Optimistic UI updates with rollback
 
 ### External Systems
-- Supabase Storage for file attachments
+- Local file storage for attachments (S3 compatible in production)
 - PostgreSQL for data persistence
 - Redis for caching (future)
 

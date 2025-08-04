@@ -17,7 +17,7 @@ Implement advanced features including tag management system, file attachment han
 ## Key Deliverables
 - Tag management system (personal and shared tags)
 - Tag normalization and search functionality
-- File upload service for receipts (Supabase Storage)
+- File upload service for receipts (local storage / S3)
 - Thumbnail generation for images
 - Attachment linking to expenses
 - Reporting queries (by period, case, category)
@@ -39,7 +39,7 @@ Implement advanced features including tag management system, file attachment han
 
 ## Dependencies
 - S03_M002 completion (core business logic)
-- Supabase Storage configuration
+- File storage configuration (local or S3)
 - Tag management API design from specs
 
 ## Notes

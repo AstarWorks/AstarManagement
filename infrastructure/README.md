@@ -1,31 +1,70 @@
-# Infrastructure
+# Astar Management Infrastructure
 
-インフラストラクチャ設定とデプロイメント用ファイル
+法律事務所向け業務管理システムのインフラストラクチャ設定です。
 
-## ディレクトリ構成
+## 概要
 
-### 環境別構成
-- `local/` - ローカル開発環境
-  - `docker/` - Docker Compose設定（Supabase、Redis等）
-  - ドキュメントとセットアップスクリプト
-- `staging/` - ステージング環境
-  - Kubernetes設定
-  - CI/CD設定
-- `production/` - 本番環境
-  - Kubernetes設定
-  - Terraform設定
-  - CI/CD設定
+このディレクトリには、Astar Managementシステムの実行に必要なインフラストラクチャ設定が含まれています。
+
+## 構成
+
+```
+infrastructure/
+├── local/                      # ローカル開発環境
+│   └── docker/                # Docker設定
+│       ├── postgresql/        # PostgreSQL設定
+│       │   ├── docker-compose.yml
+│       │   ├── init/         # DB初期化スクリプト
+│       │   ├── .env.example
+│       │   └── README.md
+│       └── supabase/         # Supabase設定（廃止予定）
+└── README.md                 # このファイル
+```
+
+## クイックスタート
+
+### PostgreSQL（推奨）
+
+```bash
+# PostgreSQLディレクトリに移動
+cd local/docker/postgresql
+
+# 環境変数の設定
+cp .env.example .env
+
+# 開発用PostgreSQLを起動
+docker-compose up -d postgres-dev
+
+# 接続確認
+docker exec -it astarmanagement-postgres-dev psql -U postgres -d astarmanagement_dev
+```
+
+詳細は[PostgreSQL README](local/docker/postgresql/README.md)を参照してください。
 
 ## 開発環境
 
-### ローカルSupabase起動
-```bash
-cd local/docker/supabase
-docker-compose up -d
-```
+### ローカル開発環境の選択
 
-詳細は `local/SUPABASE_LOCAL.md` を参照
+1. **PostgreSQL**（推奨）
+   - 本番環境と同じデータベース
+   - Flywayマイグレーション対応
+   - [セットアップ手順](local/docker/postgresql/README.md)
 
-## ステージング・本番環境
+2. **H2 Database**（簡易テスト用）
+   - PostgreSQLなしで動作
+   - メモリ内データベース
+   - `--spring.profiles.active=default`で使用
 
-（今後追加予定）
+## 本番環境
+
+本番環境では管理されたPostgreSQLサービスの使用を推奨します：
+- Amazon RDS for PostgreSQL
+- Google Cloud SQL
+- Azure Database for PostgreSQL
+
+## セキュリティ注意事項
+
+- パスワードは環境変数で管理
+- `.env`ファイルはGitにコミットしない
+- 本番環境では必ず強力なパスワードを使用
+- ネットワークアクセスを適切に制限
