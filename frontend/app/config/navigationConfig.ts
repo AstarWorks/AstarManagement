@@ -127,7 +127,11 @@ export const MAIN_NAVIGATION_CONFIG: INavigationItemConfig[] = [
         id: 'finance-expenses',
         labelKey: 'navigation.menu.finance.expenses',
         path: '/expenses',
-        icon: 'lucide:receipt-text'
+        icon: 'lucide:receipt-text',
+        badge: {
+          textKey: 'expense.navigation.badge',
+          variant: 'default'
+        }
       },
       {
         id: 'finance-billing',
@@ -143,6 +147,37 @@ export const MAIN_NAVIGATION_CONFIG: INavigationItemConfig[] = [
     path: '/settings',
     icon: 'lucide:settings',
     descriptionKey: 'settings.title'
+  }
+]
+
+/**
+ * クイックアクション設定
+ */
+export interface IQuickActionConfig {
+  id: string
+  labelKey: string
+  path: string
+  icon: string
+  variant: 'default' | 'outline' | 'secondary' | 'destructive'
+  permission?: string
+}
+
+export const QUICK_ACTIONS_CONFIG: IQuickActionConfig[] = [
+  {
+    id: 'new-expense',
+    labelKey: 'expense.actions.create',
+    path: '/expenses/new',
+    icon: 'lucide:plus-circle',
+    variant: 'default',
+    permission: 'expense:create'
+  },
+  {
+    id: 'import-expenses',
+    labelKey: 'expense.actions.import',
+    path: '/expenses/import',
+    icon: 'lucide:upload',
+    variant: 'outline',
+    permission: 'expense:import'
   }
 ]
 
