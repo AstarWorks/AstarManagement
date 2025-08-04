@@ -17,5 +17,5 @@ CREATE EXTENSION IF NOT EXISTS "btree_gin";
 -- CREATE EXTENSION IF NOT EXISTS "vector";
 
 -- データベース設定
-ALTER DATABASE aster_management SET timezone TO 'Asia/Tokyo';
-ALTER DATABASE aster_management SET search_path TO public;
+ALTER DATABASE Astar_management SET timezone TO 'Asia/Tokyo';
+ALTER DATABASE Astar_management SET search_path TO public;

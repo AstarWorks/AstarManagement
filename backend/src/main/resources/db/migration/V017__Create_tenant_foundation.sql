@@ -275,7 +275,7 @@ GROUP BY t.id, t.name, t.subdomain, t.subscription_plan, t.subscription_status, 
 
 -- Add table comments
 COMMENT ON TABLE tenants IS 'Multi-tenant organization table for law firm isolation';
-COMMENT ON COLUMN tenants.subdomain IS 'Unique subdomain for tenant access (e.g., lawfirm.astermanagement.com)';
+COMMENT ON COLUMN tenants.subdomain IS 'Unique subdomain for tenant access (e.g., lawfirm.Astarmanagement.com)';
 COMMENT ON COLUMN tenants.settings IS 'JSON configuration settings for tenant customization';
 COMMENT ON COLUMN tenants.law_firm_name IS 'Official legal name of the law firm';
 COMMENT ON COLUMN tenants.registration_number IS 'Bar association or legal practice registration number';
@@ -299,7 +299,7 @@ INSERT INTO tenants (
     'Demo Law Firm',
     'demo',
     '田中法律事務所',
-    'admin@demo.astermanagement.com',
+    'admin@demo.Astarmanagement.com',
     'professional',
     'active'
 );

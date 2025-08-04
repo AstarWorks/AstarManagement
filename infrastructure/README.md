@@ -2,34 +2,30 @@
 
 インフラストラクチャ設定とデプロイメント用ファイル
 
-## 構成
+## ディレクトリ構成
 
-### Docker
-- `docker/backend/` - バックエンド用Dockerfile
-- `docker/frontend/` - フロントエンド用Dockerfile  
-- `docker/compose/` - Docker Compose設定
+### 環境別構成
+- `local/` - ローカル開発環境
+  - `docker/` - Docker Compose設定（Supabase、Redis等）
+  - ドキュメントとセットアップスクリプト
+- `staging/` - ステージング環境
+  - Kubernetes設定
+  - CI/CD設定
+- `production/` - 本番環境
+  - Kubernetes設定
+  - Terraform設定
+  - CI/CD設定
 
-### Kubernetes
-- `kubernetes/base/` - 基本設定
-- `kubernetes/overlays/` - 環境別設定（dev/staging/prod）
-- `kubernetes/components/` - 再利用可能コンポーネント
+## 開発環境
 
-### Terraform
-- `terraform/modules/` - Terraformモジュール
-- `terraform/environments/` - 環境別設定
-
-## デプロイメント
-
-### 開発環境
+### ローカルSupabase起動
 ```bash
-docker-compose -f docker/compose/docker-compose.dev.yml up
+cd local/docker/supabase
+docker-compose up -d
 ```
 
-### Kubernetes
-```bash
-# 基本リソース適用
-kubectl apply -k kubernetes/base/
+詳細は `local/SUPABASE_LOCAL.md` を参照
 
-# 環境別設定適用
-kubectl apply -k kubernetes/overlays/staging/
-```
+## ステージング・本番環境
+
+（今後追加予定）
