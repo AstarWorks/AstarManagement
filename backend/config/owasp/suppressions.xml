@@ -54,7 +54,7 @@
     <!-- Jackson vulnerabilities that don't affect our specific usage -->
     <suppress>
         <notes>Jackson vulnerability mitigated by input validation in our application layer</notes>
-        <packageUrl regex="true">^pkg:maven/com\.fasterxml\.jackson\..*@.*$</packageUrl>
+        <packageUrl regex="true">^pkg:maven/com\.fAstarxml\.jackson\..*@.*$</packageUrl>
         <cve>CVE-2020-36518</cve>
     </suppress>
     

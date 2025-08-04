@@ -1,4 +1,4 @@
-package dev.ryuzu.astarmanagement
+package com.astarworks.astarmanagement
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication

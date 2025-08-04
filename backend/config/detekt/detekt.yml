@@ -1,4 +1,4 @@
-# Detekt Configuration for Aster Management Backend
+# Detekt Configuration for Astar Management Backend
 # Kotlin static analysis rules for legal domain system
 
 build:
@@ -434,7 +434,7 @@ naming:
     ignoreOverridden: true
   InvalidPackageDeclaration:
     active: true
-    rootPackage: 'dev.ryuzu.astermanagement'
+    rootPackage: 'dev.ryuzu.Astarmanagement'
     requireRootInDeclaration: true
   LambdaParameterNaming:
     active: false
