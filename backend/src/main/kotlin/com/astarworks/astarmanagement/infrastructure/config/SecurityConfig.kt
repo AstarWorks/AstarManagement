@@ -24,7 +24,6 @@ class SecurityConfig(
                 auth
                     .requestMatchers("/api/v1/auth/**").permitAll()
                     .requestMatchers("/api/v1/hello").permitAll()
-                    .requestMatchers("/api/v1/supabase-test/**").permitAll()
                     .requestMatchers("/actuator/**").permitAll()
                     .anyRequest().authenticated()
             }
