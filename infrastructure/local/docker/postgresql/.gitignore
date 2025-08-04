@@ -1,0 +1,14 @@
+# 環境変数
+.env
+.env.local
+
+# バックアップ
+*.sql
+*.dump
+*.backup
+
+# ログ
+*.log
+
+# 一時ファイル
+*.tmp
