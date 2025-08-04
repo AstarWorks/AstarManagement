@@ -23,7 +23,7 @@ export const attachmentHandlers = [
       fileSize: file.size,
       mimeType: file.type,
       storagePath: `/storage/attachments/${Date.now()}_${file.name}`,
-      status: AttachmentStatus.TEMPORARY,
+      status: AttachmentStatus.UPLOADED,
       uploadedAt: new Date().toISOString(),
       uploadedBy: 'user-1'
     }
@@ -45,7 +45,7 @@ export const attachmentHandlers = [
       fileSize: 1024 * 1024,
       mimeType: 'application/pdf',
       storagePath: '/storage/attachments/document.pdf',
-      status: AttachmentStatus.TEMPORARY,
+      status: AttachmentStatus.UPLOADED,
       uploadedAt: new Date().toISOString(),
       uploadedBy: 'user-1'
     }
