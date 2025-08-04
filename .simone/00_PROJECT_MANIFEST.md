@@ -10,16 +10,16 @@ Complete legal practice management system for Japanese law firms (1-10 employees
 - Created: 2025-07-23
 - Status: Active
 - Version: 0.0.1
-- Updated: 2025-08-03 13:23
+- Updated: 2025-08-04 02:50
 - **Current Milestone**: MILESTONE_002_EXPENSE_BACKEND_IMPLEMENTATION
 - **Highest Milestone**: M002
 - **Highest Sprint in M002**: S05_M002_EXPENSE_INTEGRATION_TESTING
 
 ## Current Sprint Status
 - **Active Sprint**: S01_M002_EXPENSE_API_FOUNDATION
-- **Current Task**: T01_S01_M002_Expense_Module_Setup (in_progress)
-- **Last Completed**: T04_S01_Case_Management_Kanban - Japanese legal case kanban board with drag-and-drop
-- **Updated**: 2025-08-03 13:23
+- **Current Task**: None (Sprint tasks T01-T02 completed)
+- **Last Completed**: T02_S01_M002_Domain_Models_Creation - Domain models and DTOs with validation fixes
+- **Updated**: 2025-08-04 02:50
 
 ## Milestones
 - [x] M001: MVP Foundation - Status: In Progress - [Details](02_REQUIREMENTS/MILESTONE_001_MVP_FOUNDATION/MILESTONE_001_milestone_meta.md)
