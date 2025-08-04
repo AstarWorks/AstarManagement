@@ -9,6 +9,7 @@
 
 <script setup lang="ts">
 import type { LoginCredentials } from '~/types/auth'
+import LoginForm from "~/components/auth/LoginForm.vue";
 
 // ゲスト専用ページ（認証済みユーザーはリダイレクト）
 definePageMeta({

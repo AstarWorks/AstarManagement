@@ -130,9 +130,9 @@ export const useAuthFormEnhancements = (
   if (enableOfflineDetection) {
     watch(isOnline, (online) => {
       if (!online) {
-        setTitle('Aster Management (Offline)')
+        setTitle('Astar Management (Offline)')
       } else {
-        setTitle('Aster Management')
+        setTitle('Astar Management')
       }
     })
   }

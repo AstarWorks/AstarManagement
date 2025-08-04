@@ -34,7 +34,7 @@ export const API_CONFIG = {
   headers: {
     defaultContentType: 'application/json',
     acceptLanguage: 'ja,en',
-    userAgent: 'AsterManagement/1.0',
+    userAgent: 'AstarManagement/1.0',
   },
 
   // 認証設定

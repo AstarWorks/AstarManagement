@@ -140,8 +140,8 @@ export const defaultAuthFormConfig: IAuthFormConfig = {
         labelKey: 'auth.debug.demoUser',
         icon: 'lucide:user',
         credentials: {
-          email: 'tanaka@astellaw.co.jp',
-          password: 'SecurePass123!',
+          email: 'lawyer@test.com',
+          password: 'password123',
           rememberMe: false
         }
       },
@@ -150,8 +150,8 @@ export const defaultAuthFormConfig: IAuthFormConfig = {
         labelKey: 'auth.debug.twoFactorUser',
         icon: 'lucide:shield-check',
         credentials: {
-          email: 'sato@astellaw.co.jp',
-          password: 'SecurePass123!',
+          email: 'clerk@test.com',
+          password: 'password123',
           rememberMe: false
         }
       },
@@ -160,8 +160,8 @@ export const defaultAuthFormConfig: IAuthFormConfig = {
         labelKey: 'auth.debug.adminUser',
         icon: 'lucide:crown',
         credentials: {
-          email: 'admin@astellaw.co.jp',
-          password: 'AdminPass123!',
+          email: 'client@test.com',
+          password: 'password123',
           rememberMe: true
         }
       }

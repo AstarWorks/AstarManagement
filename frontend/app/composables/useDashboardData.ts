@@ -29,7 +29,7 @@ export function useDashboardData() {
   const dashboardStats = ref<IDashboardStat[]>([
     {
       key: 'activeCases',
-      labelKey: 'dashboard.stats.activeCases',
+      labelKey: 'dashboard.stats.activeMatter',
       icon: 'lucide:briefcase',
       value: 12,
       change: '+2',
@@ -37,26 +37,26 @@ export function useDashboardData() {
     },
     {
       key: 'totalRevenue',
-      labelKey: 'dashboard.stats.revenue',
+      labelKey: 'dashboard.stats.revenueThisMonth',
       icon: 'lucide:trending-up',
       value: 1250000,
       change: '+15%',
       format: 'currency'
     },
     {
-      key: 'pendingInvoices',
-      labelKey: 'dashboard.stats.pendingInvoices',
-      icon: 'lucide:file-text',
-      value: 8,
-      change: '-3',
+      key: 'totalClients',
+      labelKey: 'dashboard.stats.totalClients',
+      icon: 'lucide:users',
+      value: 48,
+      change: '+5',
       format: 'number'
     },
     {
-      key: 'upcomingDeadlines',
-      labelKey: 'dashboard.stats.deadlines',
-      icon: 'lucide:calendar-check',
-      value: 5,
-      change: '0',
+      key: 'documentsThisMonth',
+      labelKey: 'dashboard.stats.documentsThisMonth',
+      icon: 'lucide:file-text',
+      value: 25,
+      change: '+8',
       format: 'number'
     }
   ])

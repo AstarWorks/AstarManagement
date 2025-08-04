@@ -94,6 +94,7 @@ export default {
       loginFailed: 'ログインに失敗しました'
     },
     lastLogin: {
+      label: '最終ログイン',
       never: '未ログイン',
       minutesAgo: '{minutes}分前',
       hoursAgo: '{hours}時間前',
@@ -108,6 +109,10 @@ export default {
       CLERK: '事務員',
       CLIENT: '依頼者',
       ADMIN: '管理者',
+      lawyer: '弁護士',
+      clerk: '事務員',
+      client: '依頼者',
+      admin: '管理者',
       unknown: '未設定',
       guest: 'ゲスト'
     },

@@ -63,7 +63,7 @@ export const getAuthEnvironmentConfig = (): IAuthEnvironmentConfig => {
  */
 export const JWT_CONFIG = {
   algorithms: ['HS256', 'RS256'] as const,
-  issuer: 'aster-management',
-  audience: 'aster-management-client',
+  issuer: 'Astar-management',
+  audience: 'Astar-management-client',
   clockTolerance: 30, // 30秒の時刻ずれを許容
 } as const

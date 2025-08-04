@@ -136,9 +136,12 @@ const isDevelopment = computed(() => {
   return process.env.NODE_ENV === 'development' || import.meta.env.DEV
 })
 
+// Get i18n translation function
+const { t } = useI18n()
+
 // Simple form validation using vee-validate
 const { handleSubmit, isSubmitting: _isSubmitting } = useForm({
-  validationSchema: toTypedSchema(createLoginSchema())
+  validationSchema: toTypedSchema(createLoginSchema(t))
 })
 
 // Form validation state

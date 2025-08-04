@@ -24,6 +24,10 @@
 </template>
 
 <script setup lang="ts">
+import SidebarUserInfo from "~/components/layout/SidebarUserInfo.vue";
+import SidebarNavigation from "~/components/layout/SidebarNavigation.vue";
+import SidebarHeader from "~/components/layout/SidebarHeader.vue";
+
 interface Props {
   collapsed?: boolean
   isMobile?: boolean

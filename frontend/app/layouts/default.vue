@@ -49,6 +49,9 @@
 
 <script setup lang="ts">
 import { useBreakpoints } from '@vueuse/core'
+import AppSidebar from "~/components/layout/AppSidebar.vue";
+import AppHeader from "~/components/layout/AppHeader.vue";
+import AppFooter from "~/components/layout/AppFooter.vue";
 
 // Responsive breakpoints
 const breakpoints = useBreakpoints({

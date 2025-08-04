@@ -44,7 +44,7 @@
       <div class="px-4 py-3 bg-gray-50 border-t border-gray-100 rounded-b-lg">
         <div class="flex items-center justify-between text-xs text-gray-500">
           <span>
-            {{ $t('auth.lastLogin') }}: {{ formatLastLogin(user?.lastLoginAt) }}
+            {{ $t('auth.lastLogin.label') }}: {{ formatLastLogin(user?.lastLoginAt) }}
           </span>
           <div class="flex items-center space-x-2">
             <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"/>
@@ -60,6 +60,8 @@
 import type { IUser } from '~/types/auth'
 import type { IMenuItemConfig, IMenuSectionConfig } from '~/config/userMenuConfig'
 import { BASE_MENU_SECTIONS, ADMIN_MENU_SECTION } from '~/config/userMenuConfig'
+import UserInfo from "~/components/user/profile/UserInfo.vue";
+import UserQuickStats from "~/components/user/profile/UserQuickStats.vue";
 
 interface UserStats {
   activeCases: number

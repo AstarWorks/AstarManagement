@@ -117,24 +117,3 @@ if (isDevelopment.value) {
   console.log('[Debug Panel] Initialized with', debugCredentials.value.length, 'credential options')
 }
 </script>
-
-<style scoped>
-/* Debug panel specific styling */
-.debug-panel {
-  background: repeating-linear-gradient(
-    45deg,
-    transparent,
-    transparent 10px,
-    rgba(0, 0, 0, 0.02) 10px,
-    rgba(0, 0, 0, 0.02) 20px
-  );
-}
-
-/* Prevent debug panel from appearing in production builds */
-@media (prefers-reduced-motion: reduce) {
-  .debug-panel * {
-    animation: none !important;
-    transition: none !important;
-  }
-}
-</style>

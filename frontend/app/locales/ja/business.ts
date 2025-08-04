@@ -77,9 +77,12 @@ export default {
     subtitle: 'システムの概要と重要な情報を確認できます',
     stats: {
       activeMatter: '進行中の案件',
+      activeCases: '進行中の案件',
       totalClients: '総顧客数',
       documentsThisMonth: '今月の文書数',
-      revenueThisMonth: '今月の売上'
+      revenueThisMonth: '今月の売上',
+      tasksToday: '今日のタスク',
+      unreadMessages: '未読メッセージ'
     },
     sections: {
       recentMatters: {

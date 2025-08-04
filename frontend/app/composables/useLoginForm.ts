@@ -6,7 +6,7 @@
 
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
-import { loginSchema } from '~/schemas/auth'
+import { createLoginSchema } from '~/schemas/auth'
 import type { ILoginCredentials } from '~/types/auth'
 
 export interface IUseLoginFormOptions {
@@ -39,6 +39,9 @@ export interface IUseLoginFormReturn {
  * Login form composable with enhanced functionality
  */
 export const useLoginForm = (options: IUseLoginFormOptions = {}): IUseLoginFormReturn => {
+  // Get i18n translation function
+  const { t } = useI18n()
+  
   const {
     initialValues = {
       email: '',
@@ -46,7 +49,7 @@ export const useLoginForm = (options: IUseLoginFormOptions = {}): IUseLoginFormR
       rememberMe: false,
     },
     enableDebugFill = false,
-    validationSchema = toTypedSchema(loginSchema)
+    validationSchema = toTypedSchema(createLoginSchema(t))
   } = options
 
   // Form setup with VeeValidate

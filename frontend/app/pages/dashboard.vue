@@ -8,7 +8,7 @@
       </div>
       <Button @click="createNewCase">
         <Icon name="lucide:plus" class="w-4 h-4 mr-2" />
-        {{ $t('dashboard.actions.newCase') }}
+        {{ $t('dashboard.sections.quickActions.newMatter') }}
       </Button>
     </div>
 
@@ -26,7 +26,9 @@
         <CardContent>
           <div class="text-2xl font-bold">{{ formatStatValue(stat) }}</div>
           <p class="text-xs text-muted-foreground">
-            {{ $t('dashboard.stats.change', { change: stat.change }) }}
+            <span :class="stat.change.startsWith('+') ? 'text-green-600' : stat.change.startsWith('-') ? 'text-red-600' : 'text-gray-600'">
+            {{ stat.change }}
+          </span>
           </p>
         </CardContent>
       </Card>
@@ -36,8 +38,8 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <Card>
         <CardHeader>
-          <CardTitle>{{ $t('dashboard.quickActions.title') }}</CardTitle>
-          <CardDescription>{{ $t('dashboard.quickActions.description') }}</CardDescription>
+          <CardTitle>{{ $t('dashboard.sections.quickActions.title') }}</CardTitle>
+          <CardDescription>{{ $t('common.select') }}</CardDescription>
         </CardHeader>
         <CardContent class="grid grid-cols-2 gap-4">
           <Button
@@ -55,8 +57,8 @@
 
       <Card>
         <CardHeader>
-          <CardTitle>{{ $t('dashboard.recentActivity.title') }}</CardTitle>
-          <CardDescription>{{ $t('dashboard.recentActivity.description') }}</CardDescription>
+          <CardTitle>{{ $t('dashboard.sections.recentMatters.title') }}</CardTitle>
+          <CardDescription>{{ $t('dashboard.sections.recentMatters.viewAll') }}</CardDescription>
         </CardHeader>
         <CardContent>
           <div v-if="isLoadingActivity" class="space-y-4">
@@ -131,7 +133,6 @@ interface IActivity {
 }
 
 // Composables
-const { t: _t } = useI18n()
 const router = useRouter()
 
 // Dashboard data composable
@@ -146,27 +147,27 @@ const {
 const quickActions: QuickAction[] = [
   {
     key: 'newCase',
-    labelKey: 'dashboard.quickActions.newCase',
+    labelKey: 'dashboard.sections.quickActions.newMatter',
     icon: 'lucide:plus',
     action: 'newCase'
   },
   {
     key: 'newClient',
-    labelKey: 'dashboard.quickActions.newClient',
+    labelKey: 'dashboard.sections.quickActions.newClient',
     icon: 'lucide:user-plus',
     action: 'newClient'
   },
   {
-    key: 'uploadDocument',
-    labelKey: 'dashboard.quickActions.uploadDocument',
-    icon: 'lucide:upload',
-    action: 'uploadDocument'
+    key: 'createDocument',
+    labelKey: 'dashboard.sections.quickActions.createDocument',
+    icon: 'lucide:file-plus',
+    action: 'createDocument'
   },
   {
-    key: 'manageDueDates',
-    labelKey: 'dashboard.quickActions.manageDueDates',
-    icon: 'lucide:calendar',
-    action: 'manageDueDates'
+    key: 'addExpense',
+    labelKey: 'dashboard.sections.quickActions.addExpense',
+    icon: 'lucide:receipt',
+    action: 'addExpense'
   }
 ]
 
