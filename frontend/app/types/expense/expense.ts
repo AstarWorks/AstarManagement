@@ -61,6 +61,16 @@ export interface IExpenseFilter {
   searchQuery?: string
   /** Alternative search term field for compatibility */
   searchTerm?: string
+  /** Minimum amount filter */
+  minAmount?: number
+  /** Maximum amount filter */
+  maxAmount?: number
+  /** Balance type filter (positive, negative, zero, all) */
+  balanceType?: string
+  /** Filter for expenses with memo */
+  hasMemo?: boolean
+  /** Filter for expenses with attachments */
+  hasAttachments?: boolean
   /** Field to sort by */
   sortBy?: 'date' | 'category' | 'description' | 'balance' | 'amount'
   /** Sort order direction */

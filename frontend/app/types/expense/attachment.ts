@@ -3,9 +3,11 @@
  * Maps to backend attachment status from M002 API specifications
  */
 export enum AttachmentStatus {
-  /** Attachment is uploaded but not yet linked to an expense */
-  TEMPORARY = 'TEMPORARY',
-  /** Attachment is linked to an expense and permanent */
+  /** Attachment is uploaded but not yet processed */
+  UPLOADED = 'UPLOADED',
+  /** Attachment has been processed and is ready */
+  PROCESSED = 'PROCESSED',
+  /** Attachment is linked to an expense */
   LINKED = 'LINKED',
   /** Attachment is marked for deletion */
   DELETED = 'DELETED'
