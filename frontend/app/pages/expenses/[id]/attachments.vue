@@ -341,13 +341,15 @@ const uploadFile = async (file: File, uploadFileItem: _IUploadFile) => {
       id: `att-${Date.now()}`,
       tenantId: 'tenant-123',
       fileName: file.name,
-      originalName: file.name,
+      originalFileName: file.name,
       fileSize: file.size,
       mimeType: file.type,
-      storagePath: `/storage/${Date.now()}/${file.name}`,
+      fileType: 'unknown',
       status: AttachmentStatus.LINKED,
       uploadedAt: new Date().toISOString(),
-      uploadedBy: 'user-123'
+      uploadedBy: 'user-123',
+      createdAt: new Date().toISOString(),
+      createdBy: 'user-123'
     }
     
     attachments.value.push(newAttachment)
@@ -446,25 +448,29 @@ const loadData = async () => {
         id: 'att-1',
         tenantId: 'tenant-123',
         fileName: '領収書_新幹線.pdf',
-        originalName: '領収書_新幹線.pdf',
+        originalFileName: '領収書_新幹線.pdf',
         fileSize: 256 * 1024,
         mimeType: 'application/pdf',
-        storagePath: '/storage/att-1/領収書_新幹線.pdf',
+        fileType: 'pdf',
         status: AttachmentStatus.LINKED,
         uploadedAt: '2025-08-04T10:00:00Z',
-        uploadedBy: 'user-123'
+        uploadedBy: 'user-123',
+        createdAt: '2025-08-04T10:00:00Z',
+        createdBy: 'user-123'
       },
       {
         id: 'att-2',
         tenantId: 'tenant-123',
         fileName: '交通費精算書.xlsx',
-        originalName: '交通費精算書.xlsx',
+        originalFileName: '交通費精算書.xlsx',
         fileSize: 128 * 1024,
         mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        storagePath: '/storage/att-2/交通費精算書.xlsx',
+        fileType: 'spreadsheet',
         status: AttachmentStatus.LINKED,
         uploadedAt: '2025-08-04T10:05:00Z',
-        uploadedBy: 'user-123'
+        uploadedBy: 'user-123',
+        createdAt: '2025-08-04T10:05:00Z',
+        createdBy: 'user-123'
       }
     ]
   } catch (err) {

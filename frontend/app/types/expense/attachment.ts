@@ -3,9 +3,11 @@
  * Maps to backend attachment status from M002 API specifications
  */
 export enum AttachmentStatus {
-  /** Attachment is uploaded but not yet linked to an expense */
-  TEMPORARY = 'TEMPORARY',
-  /** Attachment is linked to an expense and permanent */
+  /** Attachment is uploaded but not yet processed */
+  UPLOADED = 'UPLOADED',
+  /** Attachment has been processed and is ready */
+  PROCESSED = 'PROCESSED',
+  /** Attachment is linked to an expense */
   LINKED = 'LINKED',
   /** Attachment is marked for deletion */
   DELETED = 'DELETED'
@@ -20,34 +22,34 @@ export interface IAttachment {
   id: string
   /** Tenant ID for multi-tenancy isolation */
   tenantId: string
+  /** Associated expense ID (optional for temporary uploads) */
+  expenseId?: string
   /** Current filename in storage */
   fileName: string
   /** Original filename as uploaded by user */
-  originalName: string
+  originalFileName: string
   /** File size in bytes */
   fileSize: number
   /** MIME type of the file */
   mimeType: string
-  /** Storage path (internal use) */
-  storagePath: string
+  /** File type for categorization */
+  fileType: 'image' | 'pdf' | 'document' | 'spreadsheet' | 'unknown'
+  /** Optional description */
+  description?: string
   /** Current status of the attachment */
   status: AttachmentStatus
-  /** Timestamp when attachment was linked to an expense */
-  linkedAt?: string
-  /** Timestamp when temporary attachment expires */
-  expiresAt?: string
-  /** Path to thumbnail (for images) */
-  thumbnailPath?: string
-  /** Thumbnail file size in bytes */
-  thumbnailSize?: number
+  /** Download URL */
+  downloadUrl?: string
+  /** Thumbnail URL (for images) */
+  thumbnailUrl?: string
   /** Timestamp when the file was uploaded */
   uploadedAt: string
   /** User ID who uploaded the file */
   uploadedBy: string
-  /** Timestamp when the attachment was soft deleted */
-  deletedAt?: string
-  /** User ID who deleted the attachment */
-  deletedBy?: string
+  /** Timestamp when the attachment was created */
+  createdAt: string
+  /** User ID who created the attachment */
+  createdBy: string
 }
 
 /**
@@ -58,7 +60,7 @@ export interface IAttachmentResponse {
   /** Unique identifier for the uploaded attachment */
   id: string
   /** Original filename */
-  originalName: string
+  originalFileName: string
   /** File size in bytes */
   fileSize: number
   /** MIME type */
@@ -117,7 +119,7 @@ export interface IAttachmentFilter {
   uploadedAfter?: string
   uploadedBefore?: string
   /** Sort by field */
-  sortBy?: 'uploadedAt' | 'originalName' | 'fileSize'
+  sortBy?: 'uploadedAt' | 'originalFileName' | 'fileSize'
   /** Sort order */
   sortOrder?: 'ASC' | 'DESC'
 }

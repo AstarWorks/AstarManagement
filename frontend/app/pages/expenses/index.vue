@@ -211,6 +211,7 @@ const loadSummary = async () => {
       totalExpense: 0,
       balance: 0,
       count: 0,
+      categories: [],
       period: {
         startDate: filters.value.startDate || '',
         endDate: filters.value.endDate || ''

@@ -29,7 +29,7 @@ export interface ITag {
   /** Number of times this tag has been used */
   usageCount: number
   /** Timestamp when the tag was last used */
-  lastUsedAt?: string
+  lastUsedAt?: string | null
   /** Timestamp when the tag was created */
   createdAt: string
   /** User ID who created the tag */
@@ -58,6 +58,8 @@ export interface IUpdateTagRequest {
   name?: string
   /** Optional new color for the tag */
   color?: string
+  /** Optional new scope for the tag */
+  scope?: TagScope
 }
 
 /**

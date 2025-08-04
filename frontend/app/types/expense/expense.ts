@@ -59,10 +59,16 @@ export interface IExpenseFilter {
   tagIds?: string[]
   /** Full-text search query across description and memo */
   searchQuery?: string
+  /** Alternative search term field for compatibility */
+  searchTerm?: string
   /** Field to sort by */
-  sortBy?: 'date' | 'category' | 'description' | 'balance'
+  sortBy?: 'date' | 'category' | 'description' | 'balance' | 'amount'
   /** Sort order direction */
   sortOrder?: 'ASC' | 'DESC'
+  /** Pagination offset */
+  offset?: number
+  /** Items per page limit */
+  limit?: number
 }
 
 /**
@@ -155,8 +161,14 @@ export interface IExpenseSummary {
   balance: number
   /** Number of transactions */
   count: number
-  /** Period for the summary */
-  period: {
+  /** Categories breakdown */
+  categories: Array<{
+    name: string
+    count: number
+    total: number
+  }>
+  /** Period information for the summary */
+  period?: {
     startDate: string
     endDate: string
   }

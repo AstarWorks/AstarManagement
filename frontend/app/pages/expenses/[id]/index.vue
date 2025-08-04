@@ -308,13 +308,15 @@ const loadExpense = async () => {
           id: 'att-1',
           tenantId: 'tenant-123',
           fileName: '領収書.pdf',
-          originalName: '領収書.pdf',
+          originalFileName: '領収書.pdf',
           fileSize: 1024 * 250,
           mimeType: 'application/pdf',
-          storagePath: '/storage/att-1/領収書.pdf',
+          fileType: 'pdf',
           status: AttachmentStatus.LINKED,
           uploadedAt: '2025-08-04T10:00:00Z',
-          uploadedBy: 'user-123'
+          uploadedBy: 'user-123',
+          createdAt: '2025-08-04T10:00:00Z',
+          createdBy: 'user-123'
         }
       ],
       createdAt: '2025-08-04T10:00:00Z',
