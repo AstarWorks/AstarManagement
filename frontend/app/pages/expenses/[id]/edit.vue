@@ -12,7 +12,7 @@
           <Icon name="lucide:alert-circle" class="w-12 h-12 text-destructive mx-auto mb-4" />
           <p class="text-destructive mb-4">{{ loadError }}</p>
           <Button variant="outline" @click="loadExpense">
-            {{ $t('common.retry') }}
+            {{ t('common.retry') }}
           </Button>
         </CardContent>
       </Card>
@@ -25,7 +25,7 @@
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink :as="NuxtLink" to="/expenses">
-              {{ $t('expense.navigation.title') }}
+              {{ t('expense.navigation.title') }}
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
@@ -37,7 +37,7 @@
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbPage>
-              {{ $t('expense.form.title.edit') }}
+              {{ t('expense.form.title.edit') }}
             </BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
@@ -45,7 +45,7 @@
 
       <!-- Page Header -->
       <div class="page-header mb-6">
-        <h1 class="text-2xl font-bold">{{ $t('expense.form.title.edit') }}</h1>
+        <h1 class="text-2xl font-bold">{{ t('expense.form.title.edit') }}</h1>
       </div>
 
       <!-- Expense Form -->
@@ -54,7 +54,7 @@
           <form @submit.prevent="handleSubmit">
             <!-- Date Field -->
             <div class="form-group mb-4">
-              <Label for="date">{{ $t('expense.form.fields.date') }}</Label>
+              <Label for="date">{{ t('expense.form.fields.date') }}</Label>
               <Input 
                 id="date" 
                 v-model="formData.date" 
@@ -68,17 +68,17 @@
 
             <!-- Category Field -->
             <div class="form-group mb-4">
-              <Label for="category">{{ $t('expense.form.fields.category') }}</Label>
+              <Label for="category">{{ t('expense.form.fields.category') }}</Label>
               <Select v-model="formData.category">
                 <SelectTrigger :class="{ 'border-destructive': hasError('category') }">
-                  <SelectValue :placeholder="$t('expense.form.placeholders.category')" />
+                  <SelectValue :placeholder="t('expense.form.placeholders.category')" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="travel">{{ $t('expense.categories.travel') }}</SelectItem>
-                  <SelectItem value="meal">{{ $t('expense.categories.meal') }}</SelectItem>
-                  <SelectItem value="office">{{ $t('expense.categories.office') }}</SelectItem>
-                  <SelectItem value="communication">{{ $t('expense.categories.communication') }}</SelectItem>
-                  <SelectItem value="other">{{ $t('expense.categories.other') }}</SelectItem>
+                  <SelectItem value="travel">{{ t('expense.categories.travel') }}</SelectItem>
+                  <SelectItem value="meal">{{ t('expense.categories.meal') }}</SelectItem>
+                  <SelectItem value="office">{{ t('expense.categories.office') }}</SelectItem>
+                  <SelectItem value="communication">{{ t('expense.categories.communication') }}</SelectItem>
+                  <SelectItem value="other">{{ t('expense.categories.other') }}</SelectItem>
                 </SelectContent>
               </Select>
               <p v-if="hasError('category')" class="text-sm text-destructive mt-1">
@@ -88,12 +88,12 @@
 
             <!-- Description Field -->
             <div class="form-group mb-4">
-              <Label for="description">{{ $t('expense.form.fields.description') }}</Label>
+              <Label for="description">{{ t('expense.form.fields.description') }}</Label>
               <Input 
                 id="description" 
                 v-model="formData.description" 
                 type="text"
-                :placeholder="$t('expense.form.placeholders.description')"
+                :placeholder="t('expense.form.placeholders.description')"
                 :class="{ 'border-destructive': hasError('description') }"
               />
               <p v-if="hasError('description')" class="text-sm text-destructive mt-1">
@@ -103,7 +103,7 @@
 
             <!-- Income Amount Field -->
             <div class="form-group mb-4">
-              <Label for="incomeAmount">{{ $t('expense.form.fields.incomeAmount') }}</Label>
+              <Label for="incomeAmount">{{ t('expense.form.fields.incomeAmount') }}</Label>
               <div class="relative">
                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">¥</span>
                 <Input 
@@ -112,7 +112,7 @@
                   type="number"
                   min="0"
                   class="pl-8"
-                  :placeholder="$t('expense.form.placeholders.amount')"
+                  :placeholder="t('expense.form.placeholders.amount')"
                   :class="{ 'border-destructive': hasError('incomeAmount') }"
                 />
               </div>
@@ -123,7 +123,7 @@
 
             <!-- Expense Amount Field -->
             <div class="form-group mb-4">
-              <Label for="expenseAmount">{{ $t('expense.form.fields.expenseAmount') }}</Label>
+              <Label for="expenseAmount">{{ t('expense.form.fields.expenseAmount') }}</Label>
               <div class="relative">
                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">¥</span>
                 <Input 
@@ -132,7 +132,7 @@
                   type="number"
                   min="0"
                   class="pl-8"
-                  :placeholder="$t('expense.form.placeholders.amount')"
+                  :placeholder="t('expense.form.placeholders.amount')"
                   :class="{ 'border-destructive': hasError('expenseAmount') }"
                 />
               </div>
@@ -143,13 +143,13 @@
 
             <!-- Case Field (Optional) -->
             <div class="form-group mb-4">
-              <Label for="caseId">{{ $t('expense.form.fields.case') }}</Label>
+              <Label for="caseId">{{ t('expense.form.fields.case') }}</Label>
               <Select v-model="formData.caseId">
                 <SelectTrigger>
-                  <SelectValue :placeholder="$t('expense.form.placeholders.case')" />
+                  <SelectValue :placeholder="t('expense.form.placeholders.case')" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem :value="null">{{ $t('common.none') }}</SelectItem>
+                  <SelectItem :value="null">{{ t('common.none') }}</SelectItem>
                   <!-- Cases will be loaded dynamically -->
                 </SelectContent>
               </Select>
@@ -157,11 +157,11 @@
 
             <!-- Memo Field -->
             <div class="form-group mb-6">
-              <Label for="memo">{{ $t('expense.form.fields.memo') }}</Label>
+              <Label for="memo">{{ t('expense.form.fields.memo') }}</Label>
               <Textarea 
                 id="memo" 
                 v-model="formData.memo" 
-                :placeholder="$t('expense.form.placeholders.memo')"
+                :placeholder="t('expense.form.placeholders.memo')"
                 rows="3"
               />
             </div>
@@ -174,14 +174,14 @@
                 :disabled="saving"
                 @click="handleCancel"
               >
-                {{ $t('common.cancel') }}
+                {{ t('common.cancel') }}
               </Button>
               <Button 
                 type="submit"
                 :disabled="saving || !isFormValid || !hasChanges"
               >
                 <Icon v-if="saving" name="lucide:loader-2" class="w-4 h-4 mr-2 animate-spin" />
-                {{ saving ? $t('common.saving') : $t('expense.actions.update') }}
+                {{ saving ? t('common.saving') : t('expense.actions.update') }}
               </Button>
             </div>
           </form>
@@ -192,8 +192,8 @@
 </template>
 
 <script setup lang="ts">
-import type { Expense, ExpenseFormData } from '~/types/expense'
-import type { ValidationError } from '~/types/common'
+import type { IExpense, IExpenseFormData } from '~/types/expense'
+import type { IValidationError } from '~/types/common'
 import { 
   Breadcrumb, 
   BreadcrumbList, 
@@ -216,31 +216,35 @@ import {
 } from '~/components/ui/select'
 import { Icon } from '#components'
 
+defineOptions({
+  name: 'ExpenseEdit'
+})
+
 // Meta
 definePageMeta({
   title: 'expense.form.title.edit',
-  layout: 'dashboard',
   middleware: ['auth'],
-  validate: ({ params }) => {
+  validate: ({ params }: { params: Record<string, unknown> }) => {
     return typeof params.id === 'string' && params.id.length > 0
   }
 })
 
 // Composables
-const { $t } = useNuxtApp()
+const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const NuxtLink = resolveComponent('NuxtLink')
 
 // State
+// @ts-expect-error - route params typing issue in Nuxt
 const expenseId = route.params.id as string
-const formData = ref<ExpenseFormData | null>(null)
-const originalData = ref<ExpenseFormData | null>(null)
+const formData = ref<IExpenseFormData | null>(null)
+const originalData = ref<IExpenseFormData | null>(null)
 const originalDescription = ref('')
 const loading = ref(true)
 const loadError = ref<string>()
 const saving = ref(false)
-const formErrors = ref<ValidationError[]>([])
+const formErrors = ref<IValidationError[]>([])
 
 // Form validation
 const isFormValid = computed(() => {
@@ -264,7 +268,7 @@ const hasError = (field: string): boolean => {
 
 const getError = (field: string): string => {
   const error = formErrors.value.find(err => err.field === field)
-  return error ? $t(`expense.errors.${error.code}`, error.message) : ''
+  return error ? t(`expense.errors.${error.code}`, error.message) : ''
 }
 
 // Form validation
@@ -323,7 +327,7 @@ const loadExpense = async () => {
     await new Promise(resolve => setTimeout(resolve, 1000))
     
     // Mock expense data
-    const expense: Expense = {
+    const expense: IExpense = {
       id: expenseId,
       date: '2025-08-04',
       category: 'travel',
@@ -344,7 +348,7 @@ const loadExpense = async () => {
     }
     
     // Convert to form data
-    const data: ExpenseFormData = {
+    const data: IExpenseFormData = {
       date: expense.date,
       category: expense.category,
       description: expense.description,
@@ -359,8 +363,8 @@ const loadExpense = async () => {
     formData.value = { ...data }
     originalData.value = { ...data }
     originalDescription.value = expense.description
-  } catch (err) {
-    loadError.value = $t('expense.errors.loadFailed')
+  } catch (err: unknown) {
+    loadError.value = t('expense.errors.loadFailed')
     console.error('Failed to load expense:', err)
   } finally {
     loading.value = false
@@ -382,7 +386,7 @@ const handleSubmit = async () => {
     
     // Success - redirect to detail view
     await router.push(`/expenses/${expenseId}`)
-  } catch (error) {
+  } catch (error: unknown) {
     formErrors.value = [{ 
       field: 'general', 
       message: 'Failed to update expense', 
@@ -395,7 +399,7 @@ const handleSubmit = async () => {
 }
 
 const handleCancel = () => {
-  if (hasChanges.value && !confirm($t('common.confirm.discardChanges'))) {
+  if (hasChanges.value && !confirm(t('common.confirm.discardChanges'))) {
     return
   }
   router.back()
@@ -409,9 +413,9 @@ onMounted(() => {
 // SEO
 useSeoMeta({
   title: () => originalDescription.value 
-    ? `${$t('expense.form.title.edit')} - ${originalDescription.value}`
-    : $t('expense.form.title.edit'),
-  description: $t('expense.form.description.edit')
+    ? `${t('expense.form.title.edit')} - ${originalDescription.value}`
+    : t('expense.form.title.edit'),
+  description: t('expense.form.description.edit')
 })
 </script>
 

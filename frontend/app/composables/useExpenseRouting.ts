@@ -1,27 +1,41 @@
-import type { ExpenseFilter } from '~/types/expense'
+import type { IExpenseFilter } from '~/types/expense'
 
 export const useExpenseRouting = () => {
   const route = useRoute()
   const router = useRouter()
 
   const updateQuery = (updates: Record<string, string | string[] | undefined>) => {
-    const query = { ...route.query, ...updates }
+    const query: Record<string, string | string[]> = {}
     
-    // Remove undefined or empty values
-    Object.keys(query).forEach(key => {
-      if (query[key] === undefined || query[key] === '' || query[key] === null) {
-        delete query[key]
+    // Copy existing query params
+    Object.entries(route.query).forEach(([key, value]) => {
+      if (value !== null && value !== undefined) {
+        query[key] = value as string | string[]
       }
     })
     
-    router.push({ query })
+    // Apply updates
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value !== undefined) {
+        query[key] = value
+      }
+    })
+    
+    // Filter out undefined or empty values
+    const cleanQuery = Object.fromEntries(
+      Object.entries(query).filter(([_, value]) => 
+        value !== undefined && value !== '' && value !== null
+      )
+    )
+    
+    router.push({ query: cleanQuery })
   }
 
   const clearQuery = () => {
     router.push({ query: {} })
   }
 
-  const getQueryFilters = (): ExpenseFilter => {
+  const getQueryFilters = (): IExpenseFilter => {
     return {
       startDate: route.query.startDate as string,
       endDate: route.query.endDate as string,
@@ -45,28 +59,54 @@ export const useExpenseRouting = () => {
     }
   }
 
-  const setFilters = (filters: Partial<ExpenseFilter>) => {
-    const query: Record<string, string | string[] | undefined> = { ...route.query }
+  const setFilters = (filters: Partial<IExpenseFilter>) => {
+    const query: Record<string, string | string[]> = {}
     
-    // Update filter values
+    // Copy existing query params
+    Object.entries(route.query).forEach(([key, value]) => {
+      if (value !== null && value !== undefined) {
+        query[key] = value as string | string[]
+      }
+    })
+    
+    // Update filter values  
+    const updates: Record<string, string | string[]> = {}
     Object.entries(filters).forEach(([key, value]) => {
-      if (value === undefined || value === null || value === '') {
-        delete query[key]
-      } else if (Array.isArray(value)) {
-        query[key] = value.length > 0 ? value : undefined
-      } else {
-        query[key] = value
+      if (value !== undefined && value !== null && value !== '') {
+        if (Array.isArray(value)) {
+          if (value.length > 0) {
+            updates[key] = value
+          }
+        } else {
+          updates[key] = value
+        }
+      }
+    })
+    
+    // Add existing query params that are not being updated
+    Object.entries(query).forEach(([key, value]) => {
+      if (!(key in filters) && value !== undefined) {
+        updates[key] = value
       }
     })
     
     // Reset to page 1 when filters change
-    query.page = '1'
+    updates.page = '1'
     
-    router.push({ query })
+    const cleanQuery = updates
+    
+    router.push({ query: cleanQuery })
   }
 
   const setPagination = (page: number, limit?: number) => {
-    const query = { ...route.query }
+    const query: Record<string, string | string[]> = {}
+    
+    // Copy existing query params
+    Object.entries(route.query).forEach(([key, value]) => {
+      if (value !== null && value !== undefined) {
+        query[key] = value as string | string[]
+      }
+    })
     
     query.page = page.toString()
     if (limit) {

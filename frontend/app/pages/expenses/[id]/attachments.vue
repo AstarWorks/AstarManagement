@@ -12,7 +12,7 @@
           <Icon name="lucide:alert-circle" class="w-12 h-12 text-destructive mx-auto mb-4" />
           <p class="text-destructive mb-4">{{ error }}</p>
           <Button variant="outline" @click="loadData">
-            {{ $t('common.retry') }}
+            {{ t('common.retry') }}
           </Button>
         </CardContent>
       </Card>
@@ -25,7 +25,7 @@
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink :as="NuxtLink" to="/expenses">
-              {{ $t('expense.navigation.title') }}
+              {{ t('expense.navigation.title') }}
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
@@ -37,7 +37,7 @@
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbPage>
-              {{ $t('expense.attachments.title') }}
+              {{ t('expense.attachments.title') }}
             </BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
@@ -46,9 +46,9 @@
       <!-- Page Header -->
       <div class="page-header mb-6">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <h1 class="text-2xl font-bold">{{ $t('expense.attachments.title') }}</h1>
+          <h1 class="text-2xl font-bold">{{ t('expense.attachments.title') }}</h1>
           <div class="text-sm text-muted-foreground">
-            {{ attachments.length }} / {{ maxAttachments }} {{ $t('expense.attachments.files') }}
+            {{ attachments.length }} / {{ maxAttachments }} {{ t('expense.attachments.files') }}
           </div>
         </div>
       </div>
@@ -56,7 +56,7 @@
       <!-- Upload Section -->
       <Card class="mb-6">
         <CardHeader>
-          <CardTitle>{{ $t('expense.attachments.upload.title') }}</CardTitle>
+          <CardTitle>{{ t('expense.attachments.upload.title') }}</CardTitle>
         </CardHeader>
         <CardContent>
           <div 
@@ -78,13 +78,13 @@
             
             <Icon name="lucide:upload-cloud" class="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
             <p class="font-medium mb-1">
-              {{ $t('expense.attachments.upload.dropzone') }}
+              {{ t('expense.attachments.upload.dropzone') }}
             </p>
             <p class="text-sm text-muted-foreground">
-              {{ $t('expense.attachments.upload.formats') }}
+              {{ t('expense.attachments.upload.formats') }}
             </p>
             <p class="text-xs text-muted-foreground mt-2">
-              {{ $t('expense.attachments.upload.maxSize', { size: '10MB' }) }}
+              {{ t('expense.attachments.upload.maxSize', { size: '10MB' }) }}
             </p>
           </div>
 
@@ -131,12 +131,12 @@
       <!-- Attachments List -->
       <Card>
         <CardHeader>
-          <CardTitle>{{ $t('expense.attachments.list.title') }}</CardTitle>
+          <CardTitle>{{ t('expense.attachments.list.title') }}</CardTitle>
         </CardHeader>
         <CardContent>
           <div v-if="attachments.length === 0" class="text-center py-8 text-muted-foreground">
             <Icon name="lucide:file-x" class="w-12 h-12 mx-auto mb-3" />
-            <p>{{ $t('expense.attachments.list.empty') }}</p>
+            <p>{{ t('expense.attachments.list.empty') }}</p>
           </div>
 
           <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -193,7 +193,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Expense, Attachment } from '~/types/expense'
+import type { IExpense, IAttachment } from '~/types/expense'
 import { AttachmentStatus } from '~/types/expense'
 import { 
   Breadcrumb, 
@@ -207,18 +207,21 @@ import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import { Button } from '~/components/ui/button'
 import { Icon } from '#components'
 
+defineOptions({
+  name: 'ExpenseAttachments'
+})
+
 // Meta
 definePageMeta({
   title: 'expense.attachments.title',
-  layout: 'dashboard',
   middleware: ['auth'],
-  validate: ({ params }) => {
+  validate: ({ params }: { params: Record<string, unknown> }) => {
     return typeof params.id === 'string' && params.id.length > 0
   }
 })
 
 // Types
-interface UploadFile {
+interface _IUploadFile {
   id: string
   name: string
   size: number
@@ -227,18 +230,19 @@ interface UploadFile {
 }
 
 // Composables
-const { $t } = useNuxtApp()
+const { t } = useI18n()
 const route = useRoute()
 const NuxtLink = resolveComponent('NuxtLink')
 
-// State
+// State  
+// @ts-expect-error - route params typing issue in Nuxt
 const expenseId = route.params.id as string
-const expense = ref<Expense>()
-const attachments = ref<Attachment[]>([])
+const expense = ref<IExpense>()
+const attachments = ref<IAttachment[]>([])
 const loading = ref(true)
 const error = ref<string>()
 const uploading = ref(false)
-const uploadQueue = ref<UploadFile[]>([])
+const uploadQueue = ref<_IUploadFile[]>([])
 const downloading = ref<Record<string, boolean>>({})
 const deleting = ref<Record<string, boolean>>({})
 const fileInput = ref<HTMLInputElement>()
@@ -306,7 +310,7 @@ const processFiles = (files: File[]) => {
   })
   
   validFiles.forEach(file => {
-    const uploadFileData: UploadFile = {
+    const uploadFileData: _IUploadFile = {
       id: `upload-${Date.now()}-${Math.random()}`,
       name: file.name,
       size: file.size,
@@ -319,7 +323,7 @@ const processFiles = (files: File[]) => {
   })
 }
 
-const uploadFile = async (file: File, uploadFileItem: UploadFile) => {
+const uploadFile = async (file: File, uploadFileItem: _IUploadFile) => {
   uploading.value = true
   uploadFileItem.status = 'uploading'
   
@@ -333,7 +337,7 @@ const uploadFile = async (file: File, uploadFileItem: UploadFile) => {
     uploadFileItem.status = 'completed'
     
     // Add to attachments list
-    const newAttachment: Attachment = {
+    const newAttachment: IAttachment = {
       id: `att-${Date.now()}`,
       tenantId: 'tenant-123',
       fileName: file.name,
@@ -350,7 +354,7 @@ const uploadFile = async (file: File, uploadFileItem: UploadFile) => {
     
     // Remove from upload queue after a delay
     setTimeout(() => {
-      const index = uploadQueue.value.findIndex(f => f.id === uploadFileItem.id)
+      const index = uploadQueue.value.findIndex((f: _IUploadFile) => f.id === uploadFileItem.id)
       if (index !== -1) {
         uploadQueue.value.splice(index, 1)
       }
@@ -364,13 +368,13 @@ const uploadFile = async (file: File, uploadFileItem: UploadFile) => {
 }
 
 const cancelUpload = (fileId: string) => {
-  const index = uploadQueue.value.findIndex(f => f.id === fileId)
+  const index = uploadQueue.value.findIndex((f: _IUploadFile) => f.id === fileId)
   if (index !== -1) {
     uploadQueue.value.splice(index, 1)
   }
 }
 
-const downloadAttachment = async (attachment: Attachment) => {
+const downloadAttachment = async (attachment: IAttachment) => {
   downloading.value[attachment.id] = true
   
   try {
@@ -386,8 +390,8 @@ const downloadAttachment = async (attachment: Attachment) => {
   }
 }
 
-const deleteAttachment = async (attachment: Attachment) => {
-  if (!confirm($t('expense.attachments.confirm.delete'))) {
+const deleteAttachment = async (attachment: IAttachment) => {
+  if (!confirm(t('expense.attachments.confirm.delete'))) {
     return
   }
   
@@ -398,7 +402,7 @@ const deleteAttachment = async (attachment: Attachment) => {
     await new Promise(resolve => setTimeout(resolve, 1000))
     
     // Remove from list
-    const index = attachments.value.findIndex(a => a.id === attachment.id)
+    const index = attachments.value.findIndex((a: IAttachment) => a.id === attachment.id)
     if (index !== -1) {
       attachments.value.splice(index, 1)
     }
@@ -426,11 +430,14 @@ const loadData = async () => {
       incomeAmount: 0,
       expenseAmount: 15000,
       balance: -15000,
+      tags: [],
       attachments: [],
       createdAt: '2025-08-04T10:00:00Z',
       updatedAt: '2025-08-04T10:00:00Z',
       createdBy: 'user-123',
-      tenantId: 'tenant-123'
+      updatedBy: 'user-123',
+      tenantId: 'tenant-123',
+      version: 1
     }
     
     // Mock attachments
@@ -461,7 +468,7 @@ const loadData = async () => {
       }
     ]
   } catch (err) {
-    error.value = $t('expense.errors.loadFailed')
+    error.value = t('expense.errors.loadFailed')
     console.error('Failed to load data:', err)
   } finally {
     loading.value = false
@@ -476,9 +483,9 @@ onMounted(() => {
 // SEO
 useSeoMeta({
   title: () => expense.value 
-    ? `${$t('expense.attachments.title')} - ${expense.value.description}`
-    : $t('expense.attachments.title'),
-  description: $t('expense.attachments.description')
+    ? `${t('expense.attachments.title')} - ${expense.value.description}`
+    : t('expense.attachments.title'),
+  description: t('expense.attachments.description')
 })
 </script>
 

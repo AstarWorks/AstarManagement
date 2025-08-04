@@ -13,7 +13,7 @@ export enum TagScope {
  * Tag entity for categorizing and organizing expenses
  * Maps to backend Tag entity from M002 API specifications
  */
-export interface Tag {
+export interface ITag {
   /** Unique identifier for the tag */
   id: string
   /** Tenant ID for multi-tenancy isolation */
@@ -40,7 +40,7 @@ export interface Tag {
  * Request DTO for creating a new tag
  * Maps to backend CreateTagRequest from M002 API specifications
  */
-export interface CreateTagRequest {
+export interface ICreateTagRequest {
   /** Name of the tag to create */
   name: string
   /** Color code in hex format (e.g., #FF5733) */
@@ -53,7 +53,7 @@ export interface CreateTagRequest {
  * Request DTO for updating an existing tag
  * Maps to backend UpdateTagRequest from M002 API specifications
  */
-export interface UpdateTagRequest {
+export interface IUpdateTagRequest {
   /** Optional new name for the tag */
   name?: string
   /** Optional new color for the tag */
@@ -63,7 +63,7 @@ export interface UpdateTagRequest {
 /**
  * Tag with usage statistics for UI display
  */
-export interface TagWithStats extends Tag {
+export interface ITagWithStats extends ITag {
   /** Recent usage trend (positive for increasing, negative for decreasing) */
   usageTrend: number
   /** Total expense amount associated with this tag */
@@ -75,7 +75,7 @@ export interface TagWithStats extends Tag {
 /**
  * Tag filter criteria for search and filtering
  */
-export interface TagFilter {
+export interface ITagFilter {
   /** Filter by tag scope */
   scope?: TagScope
   /** Search query for tag names */

@@ -1,12 +1,12 @@
 /**
  * Validation rule function type
  */
-export type ValidationRule<T = any> = (value: T) => string | boolean
+export type ValidationRule<T = unknown> = (value: T) => string | boolean
 
 /**
  * Validation rules collection for a form field
  */
-export interface FieldValidationRules<T = any> {
+export interface IFieldValidationRules<T = unknown> {
   /** Field is required */
   required?: boolean | string
   /** Minimum length for strings */
@@ -31,13 +31,13 @@ export interface FieldValidationRules<T = any> {
  * Form validation schema
  */
 export type ValidationSchema<T> = {
-  [K in keyof T]?: FieldValidationRules<T[K]>
+  [K in keyof T]?: IFieldValidationRules<T[K]>
 }
 
 /**
  * Field validation result
  */
-export interface FieldValidationResult {
+export interface IFieldValidationResult {
   /** Whether the field is valid */
   isValid: boolean
   /** Validation error message */
@@ -49,12 +49,12 @@ export interface FieldValidationResult {
 /**
  * Form validation result
  */
-export interface FormValidationResult<T> {
+export interface IFormValidationResult<T> {
   /** Whether the entire form is valid */
   isValid: boolean
   /** Field-specific validation results */
   fields: {
-    [K in keyof T]?: FieldValidationResult
+    [K in keyof T]?: IFieldValidationResult
   }
   /** Global form errors */
   globalErrors: string[]
@@ -63,25 +63,25 @@ export interface FormValidationResult<T> {
 /**
  * Expense form validation schema
  */
-export interface ExpenseValidationRules {
-  date: FieldValidationRules<string>
-  category: FieldValidationRules<string>
-  description: FieldValidationRules<string>
-  incomeAmount: FieldValidationRules<number>
-  expenseAmount: FieldValidationRules<number>
-  caseId: FieldValidationRules<string>
-  memo: FieldValidationRules<string>
-  tagIds: FieldValidationRules<string[]>
-  attachmentIds: FieldValidationRules<string[]>
+export interface IExpenseValidationRules {
+  date: IFieldValidationRules<string>
+  category: IFieldValidationRules<string>
+  description: IFieldValidationRules<string>
+  incomeAmount: IFieldValidationRules<number>
+  expenseAmount: IFieldValidationRules<number>
+  caseId: IFieldValidationRules<string>
+  memo: IFieldValidationRules<string>
+  tagIds: IFieldValidationRules<string[]>
+  attachmentIds: IFieldValidationRules<string[]>
 }
 
 /**
  * Tag form validation schema
  */
-export interface TagValidationRules {
-  name: FieldValidationRules<string>
-  color: FieldValidationRules<string>
-  scope: FieldValidationRules<string>
+export interface ITagValidationRules {
+  name: IFieldValidationRules<string>
+  color: IFieldValidationRules<string>
+  scope: IFieldValidationRules<string>
 }
 
 /**
@@ -105,7 +105,7 @@ export enum ValidationErrorCode {
 /**
  * Validation configuration options
  */
-export interface ValidationConfig {
+export interface IValidationConfig {
   /** Whether to validate on field blur */
   validateOnBlur: boolean
   /** Whether to validate on field change */
@@ -121,12 +121,12 @@ export interface ValidationConfig {
 /**
  * Async validation function type
  */
-export type AsyncValidationRule<T = any> = (value: T) => Promise<string | boolean>
+export type AsyncValidationRule<T = unknown> = (value: T) => Promise<string | boolean>
 
 /**
  * Async validation result
  */
-export interface AsyncValidationResult {
+export interface IAsyncValidationResult {
   /** Whether the validation is complete */
   isComplete: boolean
   /** Whether the field is valid */
@@ -142,7 +142,7 @@ export interface AsyncValidationResult {
 /**
  * Cross-field validation rule
  */
-export interface CrossFieldValidationRule<T> {
+export interface ICrossFieldValidationRule<T> {
   /** Fields that this rule depends on */
   dependencies: (keyof T)[]
   /** Validation function */
@@ -154,11 +154,11 @@ export interface CrossFieldValidationRule<T> {
 /**
  * Conditional validation rule
  */
-export interface ConditionalValidationRule<T> {
+export interface IConditionalValidationRule<T> {
   /** Condition function to determine if validation should run */
-  condition: (value: T, formData: any) => boolean
+  condition: (value: T, formData: Record<string, unknown>) => boolean
   /** Validation rules to apply when condition is true */
-  rules: FieldValidationRules<T>
+  rules: IFieldValidationRules<T>
 }
 
 /**
@@ -174,9 +174,9 @@ export type ValidationEvent = 'blur' | 'change' | 'submit' | 'focus' | 'manual'
 /**
  * Validation context for custom rules
  */
-export interface ValidationContext<T> {
+export interface IValidationContext<T> {
   /** Current field value */
-  value: any
+  value: unknown
   /** All form data */
   formData: Partial<T>
   /** Field name being validated */
@@ -184,13 +184,13 @@ export interface ValidationContext<T> {
   /** Validation event that triggered this validation */
   event: ValidationEvent
   /** Previous validation result */
-  previousResult?: FieldValidationResult
+  previousResult?: IFieldValidationResult
 }
 
 /**
  * Server-side validation error format
  */
-export interface ServerValidationError {
+export interface IServerValidationError {
   /** Field path (supports nested fields with dot notation) */
   field: string
   /** Error message */
@@ -198,27 +198,27 @@ export interface ServerValidationError {
   /** Error code */
   code: string
   /** Additional error context */
-  context?: Record<string, any>
+  context?: Record<string, unknown>
 }
 
 /**
  * Validation state for reactive forms
  */
-export interface ReactiveValidationState<T> {
+export interface IReactiveValidationState<T> {
   /** Current validation results for each field */
   results: {
-    [K in keyof T]?: FieldValidationResult
+    [K in keyof T]?: IFieldValidationResult
   }
   /** Whether form is currently being validated */
   isValidating: boolean
   /** Async validation states */
   asyncResults: {
-    [K in keyof T]?: AsyncValidationResult
+    [K in keyof T]?: IAsyncValidationResult
   }
   /** Cross-field validation errors */
   crossFieldErrors: string[]
   /** Server validation errors */
-  serverErrors: ServerValidationError[]
+  serverErrors: IServerValidationError[]
   /** Last validation timestamp */
   lastValidated?: Date
 }

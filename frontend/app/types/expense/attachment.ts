@@ -15,7 +15,7 @@ export enum AttachmentStatus {
  * File attachment entity for expense documents
  * Maps to backend Attachment entity from M002 API specifications
  */
-export interface Attachment {
+export interface IAttachment {
   /** Unique identifier for the attachment */
   id: string
   /** Tenant ID for multi-tenancy isolation */
@@ -54,7 +54,7 @@ export interface Attachment {
  * Response DTO for file upload operations
  * Returned by upload endpoints
  */
-export interface AttachmentResponse {
+export interface IAttachmentResponse {
   /** Unique identifier for the uploaded attachment */
   id: string
   /** Original filename */
@@ -76,7 +76,7 @@ export interface AttachmentResponse {
 /**
  * File upload progress information
  */
-export interface UploadProgress {
+export interface IUploadProgress {
   /** Attachment ID being uploaded */
   attachmentId: string
   /** Upload progress percentage (0-100) */
@@ -92,7 +92,7 @@ export interface UploadProgress {
 /**
  * File type validation rules
  */
-export interface FileTypeRule {
+export interface IFileTypeRule {
   /** MIME type pattern */
   mimeType: string
   /** File extension */
@@ -106,7 +106,7 @@ export interface FileTypeRule {
 /**
  * Attachment filter criteria
  */
-export interface AttachmentFilter {
+export interface IAttachmentFilter {
   /** Filter by attachment status */
   status?: AttachmentStatus
   /** Filter by MIME type pattern */
@@ -125,7 +125,7 @@ export interface AttachmentFilter {
 /**
  * Supported file types for expense attachments
  */
-export const SUPPORTED_FILE_TYPES: FileTypeRule[] = [
+export const SUPPORTED_FILE_TYPES: IFileTypeRule[] = [
   // Images
   {
     mimeType: 'image/jpeg',

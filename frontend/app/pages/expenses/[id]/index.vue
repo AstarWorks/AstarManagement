@@ -12,7 +12,7 @@
           <Icon name="lucide:alert-circle" class="w-12 h-12 text-destructive mx-auto mb-4" />
           <p class="text-destructive mb-4">{{ error }}</p>
           <Button variant="outline" @click="loadExpense">
-            {{ $t('common.retry') }}
+            {{ t('common.retry') }}
           </Button>
         </CardContent>
       </Card>
@@ -25,7 +25,7 @@
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink :as="NuxtLink" to="/expenses">
-              {{ $t('expense.navigation.title') }}
+              {{ t('expense.navigation.title') }}
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
@@ -40,14 +40,14 @@
       <!-- Page Header -->
       <div class="page-header mb-6">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <h1 class="text-2xl font-bold">{{ $t('expense.form.title.view') }}</h1>
+          <h1 class="text-2xl font-bold">{{ t('expense.form.title.view') }}</h1>
           <div class="flex flex-wrap gap-2">
             <NuxtLink 
               :to="`/expenses/${expense.id}/edit`" 
               class="inline-flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
             >
               <Icon name="lucide:edit" class="w-4 h-4 mr-2" />
-              {{ $t('expense.actions.edit') }}
+              {{ t('expense.actions.edit') }}
             </NuxtLink>
             <Button 
               variant="destructive" 
@@ -56,7 +56,7 @@
             >
               <Icon v-if="deleting" name="lucide:loader-2" class="w-4 h-4 mr-2 animate-spin" />
               <Icon v-else name="lucide:trash-2" class="w-4 h-4 mr-2" />
-              {{ $t('expense.actions.delete') }}
+              {{ t('expense.actions.delete') }}
             </Button>
           </div>
         </div>
@@ -65,31 +65,31 @@
       <!-- Expense Details Card -->
       <Card class="mb-6">
         <CardHeader>
-          <CardTitle>{{ $t('expense.detail.basicInfo') }}</CardTitle>
+          <CardTitle>{{ t('expense.detail.basicInfo') }}</CardTitle>
         </CardHeader>
         <CardContent>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Date -->
             <div>
-              <Label class="text-muted-foreground">{{ $t('expense.form.fields.date') }}</Label>
+              <Label class="text-muted-foreground">{{ t('expense.form.fields.date') }}</Label>
               <p class="mt-1 font-medium">{{ formatDate(expense.date) }}</p>
             </div>
 
             <!-- Category -->
             <div>
-              <Label class="text-muted-foreground">{{ $t('expense.form.fields.category') }}</Label>
-              <p class="mt-1 font-medium">{{ $t(`expense.categories.${expense.category}`) }}</p>
+              <Label class="text-muted-foreground">{{ t('expense.form.fields.category') }}</Label>
+              <p class="mt-1 font-medium">{{ t(`expense.categories.${expense.category}`) }}</p>
             </div>
 
             <!-- Description -->
             <div class="md:col-span-2">
-              <Label class="text-muted-foreground">{{ $t('expense.form.fields.description') }}</Label>
+              <Label class="text-muted-foreground">{{ t('expense.form.fields.description') }}</Label>
               <p class="mt-1 font-medium">{{ expense.description }}</p>
             </div>
 
             <!-- Income Amount -->
             <div>
-              <Label class="text-muted-foreground">{{ $t('expense.form.fields.incomeAmount') }}</Label>
+              <Label class="text-muted-foreground">{{ t('expense.form.fields.incomeAmount') }}</Label>
               <p class="mt-1 font-medium text-green-600">
                 {{ formatCurrency(expense.incomeAmount) }}
               </p>
@@ -97,7 +97,7 @@
 
             <!-- Expense Amount -->
             <div>
-              <Label class="text-muted-foreground">{{ $t('expense.form.fields.expenseAmount') }}</Label>
+              <Label class="text-muted-foreground">{{ t('expense.form.fields.expenseAmount') }}</Label>
               <p class="mt-1 font-medium text-red-600">
                 {{ formatCurrency(expense.expenseAmount) }}
               </p>
@@ -105,7 +105,7 @@
 
             <!-- Balance -->
             <div class="md:col-span-2">
-              <Label class="text-muted-foreground">{{ $t('expense.form.fields.balance') }}</Label>
+              <Label class="text-muted-foreground">{{ t('expense.form.fields.balance') }}</Label>
               <p class="mt-1 text-lg font-bold" :class="balanceClass">
                 {{ formatCurrency(expense.balance) }}
               </p>
@@ -113,7 +113,7 @@
 
             <!-- Case -->
             <div v-if="expense.caseId" class="md:col-span-2">
-              <Label class="text-muted-foreground">{{ $t('expense.form.fields.case') }}</Label>
+              <Label class="text-muted-foreground">{{ t('expense.form.fields.case') }}</Label>
               <p class="mt-1 font-medium">
                 {{ expense.caseId }}
               </p>
@@ -121,13 +121,13 @@
 
             <!-- Memo -->
             <div v-if="expense.memo" class="md:col-span-2">
-              <Label class="text-muted-foreground">{{ $t('expense.form.fields.memo') }}</Label>
+              <Label class="text-muted-foreground">{{ t('expense.form.fields.memo') }}</Label>
               <p class="mt-1 whitespace-pre-wrap">{{ expense.memo }}</p>
             </div>
 
             <!-- Tags -->
             <div v-if="expense.tags && expense.tags.length > 0" class="md:col-span-2">
-              <Label class="text-muted-foreground">{{ $t('expense.form.fields.tags') }}</Label>
+              <Label class="text-muted-foreground">{{ t('expense.form.fields.tags') }}</Label>
               <div class="flex flex-wrap gap-2 mt-2">
                 <Badge v-for="tag in expense.tags" :key="tag.id" variant="secondary">
                   {{ tag.name }}
@@ -142,12 +142,12 @@
       <Card v-if="expense.attachments && expense.attachments.length > 0">
         <CardHeader>
           <div class="flex justify-between items-center">
-            <CardTitle>{{ $t('expense.form.fields.attachments') }}</CardTitle>
+            <CardTitle>{{ t('expense.form.fields.attachments') }}</CardTitle>
             <NuxtLink 
               :to="`/expenses/${expense.id}/attachments`" 
               class="text-sm text-primary hover:underline"
             >
-              {{ $t('expense.actions.manageAttachments') }}
+              {{ t('expense.actions.manageAttachments') }}
             </NuxtLink>
           </div>
         </CardHeader>
@@ -177,9 +177,9 @@
 
       <!-- Metadata -->
       <div class="mt-6 text-sm text-muted-foreground">
-        <p>{{ $t('common.createdAt') }}: {{ formatDateTime(expense.createdAt) }}</p>
+        <p>{{ t('common.createdAt') }}: {{ formatDateTime(expense.createdAt) }}</p>
         <p v-if="expense.updatedAt !== expense.createdAt">
-          {{ $t('common.updatedAt') }}: {{ formatDateTime(expense.updatedAt) }}
+          {{ t('common.updatedAt') }}: {{ formatDateTime(expense.updatedAt) }}
         </p>
       </div>
     </template>
@@ -187,7 +187,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Expense } from '~/types/expense'
+import type { IExpense } from '~/types/expense'
 import { TagScope, AttachmentStatus } from '~/types/expense'
 import { 
   Breadcrumb, 
@@ -206,22 +206,22 @@ import { Icon } from '#components'
 // Meta
 definePageMeta({
   title: 'expense.form.title.view',
-  layout: 'dashboard',
   middleware: ['auth'],
-  validate: ({ params }) => {
+  validate: ({ params }: { params: Record<string, unknown> }) => {
     return typeof params.id === 'string' && params.id.length > 0
   }
 })
 
 // Composables
-const { $t } = useNuxtApp()
+const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const NuxtLink = resolveComponent('NuxtLink')
 
 // State
+// @ts-expect-error - route params typing issue in Nuxt
 const expenseId = route.params.id as string
-const expense = ref<Expense>()
+const expense = ref<IExpense>()
 const loading = ref(true)
 const error = ref<string>()
 const deleting = ref(false)
@@ -325,7 +325,7 @@ const loadExpense = async () => {
       version: 1
     }
   } catch (err) {
-    error.value = $t('expense.errors.loadFailed')
+    error.value = t('expense.errors.loadFailed')
     console.error('Failed to load expense:', err)
   } finally {
     loading.value = false
@@ -334,7 +334,7 @@ const loadExpense = async () => {
 
 // Event handlers
 const handleDelete = async () => {
-  if (!confirm($t('expense.confirm.delete'))) {
+  if (!confirm(t('expense.confirm.delete'))) {
     return
   }
   
@@ -347,7 +347,7 @@ const handleDelete = async () => {
     // Success - redirect to list
     await router.push('/expenses')
   } catch (err) {
-    error.value = $t('expense.errors.deleteFailed')
+    error.value = t('expense.errors.deleteFailed')
     console.error('Failed to delete expense:', err)
   } finally {
     deleting.value = false
@@ -362,10 +362,10 @@ onMounted(() => {
 // SEO
 useSeoMeta({
   title: () => expense.value 
-    ? `${$t('expense.form.title.view')} - ${expense.value.description}`
-    : $t('expense.form.title.view'),
+    ? `${t('expense.form.title.view')} - ${expense.value.description}`
+    : t('expense.form.title.view'),
   description: () => expense.value
-    ? `${formatDate(expense.value.date)} - ${$t(`expense.categories.${expense.value.category}`)} - ${formatCurrency(expense.value.expenseAmount)}`
+    ? `${formatDate(expense.value.date)} - ${t(`expense.categories.${expense.value.category}`)} - ${formatCurrency(expense.value.expenseAmount)}`
     : ''
 })
 </script>

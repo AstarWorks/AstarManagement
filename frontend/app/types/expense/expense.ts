@@ -1,11 +1,11 @@
-import type { Tag } from './tag'
-import type { Attachment } from './attachment'
+import type { ITag } from './tag'
+import type { IAttachment } from './attachment'
 
 /**
  * Core expense entity representing a financial transaction
  * Maps to backend Expense entity from M002 API specifications
  */
-export interface Expense {
+export interface IExpense {
   /** Unique identifier for the expense */
   id: string
   /** Tenant ID for multi-tenancy isolation */
@@ -27,9 +27,9 @@ export interface Expense {
   /** Optional memo or additional notes */
   memo?: string
   /** Tags associated with this expense */
-  tags: Tag[]
+  tags: ITag[]
   /** File attachments associated with this expense */
-  attachments: Attachment[]
+  attachments: IAttachment[]
   /** Timestamp when the expense was created */
   createdAt: string
   /** Timestamp when the expense was last updated */
@@ -46,7 +46,7 @@ export interface Expense {
  * Filter criteria for expense queries
  * Used for search and filtering operations
  */
-export interface ExpenseFilter {
+export interface IExpenseFilter {
   /** Start date for date range filter (inclusive) */
   startDate?: string
   /** End date for date range filter (inclusive) */
@@ -69,9 +69,9 @@ export interface ExpenseFilter {
  * Paginated list of expenses with metadata
  * Returned by list endpoints
  */
-export interface ExpenseList {
+export interface IExpenseList {
   /** Array of expense items */
-  items: Expense[]
+  items: IExpense[]
   /** Total number of expenses matching the filter */
   total: number
   /** Current offset for pagination */
@@ -86,7 +86,7 @@ export interface ExpenseList {
  * Form data structure for expense creation/editing
  * Optimized for UI form handling
  */
-export interface ExpenseFormData {
+export interface IExpenseFormData {
   /** Date of the expense */
   date: string
   /** Category of the expense */
@@ -110,7 +110,7 @@ export interface ExpenseFormData {
 /**
  * Computed expense statistics for dashboard and reporting
  */
-export interface ExpenseStats {
+export interface IExpenseStats {
   /** Total income amount */
   totalIncome: number
   /** Total expense amount */
@@ -129,7 +129,7 @@ export interface ExpenseStats {
 /**
  * Expense category with usage statistics
  */
-export interface ExpenseCategory {
+export interface IExpenseCategory {
   /** Category name */
   name: string
   /** Display label for the category */
@@ -146,7 +146,7 @@ export interface ExpenseCategory {
  * Summary data for expense list page
  * Used for displaying aggregate statistics
  */
-export interface ExpenseSummary {
+export interface IExpenseSummary {
   /** Total income amount for the period */
   totalIncome: number
   /** Total expense amount for the period */

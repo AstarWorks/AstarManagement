@@ -1,7 +1,7 @@
 /**
  * Generic validation error for form fields
  */
-export interface ValidationError {
+export interface IValidationError {
   /** Field name that has the error */
   field: string
   /** Human-readable error message */
@@ -13,11 +13,11 @@ export interface ValidationError {
 /**
  * Generic form state wrapper for any form data type
  */
-export interface FormState<T> {
+export interface IFormState<T> {
   /** Current form data */
   data: T
   /** Array of validation errors */
-  errors: ValidationError[]
+  errors: IValidationError[]
   /** Whether the form is valid (no errors) */
   isValid: boolean
   /** Whether the form has been modified from initial state */
@@ -31,7 +31,7 @@ export interface FormState<T> {
 /**
  * Generic loading state for async operations
  */
-export interface LoadingState {
+export interface ILoadingState {
   /** Whether the operation is currently loading */
   isLoading: boolean
   /** Error message if the operation failed */
@@ -43,7 +43,7 @@ export interface LoadingState {
 /**
  * Extended loading state with progress information
  */
-export interface ProgressLoadingState extends LoadingState {
+export interface IProgressLoadingState extends ILoadingState {
   /** Progress percentage (0-100) */
   progress?: number
   /** Current status message */
@@ -55,7 +55,7 @@ export interface ProgressLoadingState extends LoadingState {
 /**
  * Generic table column definition
  */
-export interface TableColumn<T> {
+export interface ITableColumn<T> {
   /** Property key to display from the data object */
   key: keyof T
   /** Display label for the column header */
@@ -69,7 +69,7 @@ export interface TableColumn<T> {
   /** Maximum column width (CSS value) */
   maxWidth?: string
   /** Custom render function for cell content */
-  render?: (value: any, item: T, index: number) => string
+  render?: (value: unknown, item: T, index: number) => string
   /** CSS class for the column */
   className?: string
   /** Whether the column is visible */
@@ -81,7 +81,7 @@ export interface TableColumn<T> {
 /**
  * Table sort configuration
  */
-export interface TableSort {
+export interface ITableSort {
   /** Field to sort by */
   field: string
   /** Sort direction */
@@ -91,7 +91,7 @@ export interface TableSort {
 /**
  * Generic filter option for dropdowns and multi-select
  */
-export interface FilterOption {
+export interface IFilterOption {
   /** Option value */
   value: string
   /** Display label */
@@ -111,7 +111,7 @@ export interface FilterOption {
 /**
  * Pagination configuration
  */
-export interface PaginationState {
+export interface IPaginationState {
   /** Current page number (1-based) */
   currentPage: number
   /** Items per page */
@@ -129,7 +129,7 @@ export interface PaginationState {
 /**
  * Date range picker state
  */
-export interface DateRange {
+export interface IDateRange {
   /** Start date (ISO string) */
   startDate?: string
   /** End date (ISO string) */
@@ -139,13 +139,13 @@ export interface DateRange {
 /**
  * Modal dialog state
  */
-export interface ModalState {
+export interface IModalState {
   /** Whether the modal is open */
   isOpen: boolean
   /** Modal title */
   title?: string
   /** Modal content data */
-  data?: any
+  data?: Record<string, unknown>
   /** Modal size */
   size?: 'small' | 'medium' | 'large' | 'fullscreen'
   /** Whether the modal can be closed by clicking outside */
@@ -155,7 +155,7 @@ export interface ModalState {
 /**
  * Toast notification configuration
  */
-export interface ToastNotification {
+export interface IToastNotification {
   /** Unique identifier */
   id: string
   /** Notification type */
@@ -178,7 +178,7 @@ export interface ToastNotification {
 /**
  * Generic search state
  */
-export interface SearchState {
+export interface ISearchState {
   /** Current search query */
   query: string
   /** Whether search is active */
@@ -192,7 +192,7 @@ export interface SearchState {
 /**
  * File upload state
  */
-export interface FileUploadState {
+export interface IFileUploadState {
   /** Array of files being uploaded */
   files: File[]
   /** Upload progress percentage (0-100) */
@@ -208,9 +208,9 @@ export interface FileUploadState {
 /**
  * Generic dropdown/select state
  */
-export interface SelectState<T> {
+export interface ISelectState<T> {
   /** Available options */
-  options: FilterOption[]
+  options: IFilterOption[]
   /** Selected value(s) */
   selected: T | T[]
   /** Whether the dropdown is open */
@@ -224,17 +224,17 @@ export interface SelectState<T> {
 /**
  * Data table state with filtering, sorting, and pagination
  */
-export interface DataTableState<T> {
+export interface IDataTableState<T> {
   /** Table data */
   data: T[]
   /** Column definitions */
-  columns: TableColumn<T>[]
+  columns: ITableColumn<T>[]
   /** Current sort configuration */
-  sort: TableSort
+  sort: ITableSort
   /** Pagination state */
-  pagination: PaginationState
+  pagination: IPaginationState
   /** Loading state */
-  loading: LoadingState
+  loading: ILoadingState
   /** Selected row IDs */
   selectedIds: string[]
   /** Whether all rows are selected */
@@ -244,7 +244,7 @@ export interface DataTableState<T> {
 /**
  * Theme configuration
  */
-export interface ThemeConfig {
+export interface IThemeConfig {
   /** Theme mode */
   mode: 'light' | 'dark' | 'auto'
   /** Primary color */
@@ -260,7 +260,7 @@ export interface ThemeConfig {
 /**
  * Responsive breakpoint configuration
  */
-export interface Breakpoints {
+export interface IBreakpoints {
   /** Mobile breakpoint */
   mobile: number
   /** Tablet breakpoint */
@@ -274,7 +274,7 @@ export interface Breakpoints {
 /**
  * Generic async operation result
  */
-export interface AsyncResult<T, E = string> {
+export interface IAsyncResult<T, E = string> {
   /** Whether the operation was successful */
   success: boolean
   /** Result data if successful */

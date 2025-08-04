@@ -7,44 +7,44 @@
 
 // UI component types
 export type {
-  ValidationError,
-  FormState,
-  LoadingState,
-  ProgressLoadingState,
-  TableColumn,
-  TableSort,
-  FilterOption,
-  PaginationState,
-  DateRange,
-  ModalState,
-  ToastNotification,
-  SearchState,
-  FileUploadState,
-  SelectState,
-  DataTableState,
-  ThemeConfig,
-  Breakpoints,
-  AsyncResult
+  IValidationError,
+  IFormState,
+  ILoadingState,
+  IProgressLoadingState,
+  ITableColumn,
+  ITableSort,
+  IFilterOption,
+  IPaginationState,
+  IDateRange,
+  IModalState,
+  IToastNotification,
+  ISearchState,
+  IFileUploadState,
+  ISelectState,
+  IDataTableState,
+  IThemeConfig,
+  IBreakpoints,
+  IAsyncResult
 } from './ui'
 
 // Validation types
 export type {
   ValidationRule,
-  FieldValidationRules,
+  IFieldValidationRules,
   ValidationSchema,
-  FieldValidationResult,
-  FormValidationResult,
-  ExpenseValidationRules,
-  TagValidationRules,
+  IFieldValidationResult,
+  IFormValidationResult,
+  IExpenseValidationRules,
+  ITagValidationRules,
   AsyncValidationRule,
-  AsyncValidationResult,
-  CrossFieldValidationRule,
-  ConditionalValidationRule,
+  IAsyncValidationResult,
+  ICrossFieldValidationRule,
+  IConditionalValidationRule,
   DynamicValidationSchema,
   ValidationEvent,
-  ValidationContext,
-  ServerValidationError,
-  ReactiveValidationState
+  IValidationContext,
+  IServerValidationError,
+  IReactiveValidationState
 } from './validation'
 
 export {
@@ -52,32 +52,32 @@ export {
 } from './validation'
 
 export type {
-  ValidationConfig
+  IValidationConfig
 } from './validation'
 
 // API types
 export type {
   HttpMethod,
-  ApiRequestConfig,
-  ApiResponse,
-  ApiError,
-  ValidationErrorResponse,
-  PaginationParams,
-  SortParams,
-  ListRequestParams,
-  ApiClientConfig,
+  IApiRequestConfig,
+  IApiResponse,
+  IApiError,
+  IValidationErrorResponse,
+  IPaginationParams,
+  ISortParams,
+  IListRequestParams,
+  IApiClientConfig,
   RequestInterceptor,
   ResponseInterceptor,
-  ApiEndpoint,
-  BatchRequest,
-  BatchResponseItem,
-  FileUploadConfig,
-  WebSocketMessage,
-  WebSocketConfig,
-  CacheConfig,
+  IApiEndpoint,
+  IBatchRequest,
+  IBatchResponseItem,
+  IFileUploadConfig,
+  IWebSocketMessage,
+  IWebSocketConfig,
+  ICacheConfig,
   RouteParams,
   QueryParams,
-  ApiHookResult
+  IApiHookResult
 } from './api'
 
 export {

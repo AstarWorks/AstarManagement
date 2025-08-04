@@ -1,12 +1,13 @@
-export interface NavigationPermission {
+export interface INavigationPermission {
   action: string
   resource: string
 }
 
 export const useNavigationPermissions = () => {
-  const { user } = useAuth()
+  // Mock implementation - will be replaced with useAuth() when authentication is implemented
+  // const { user } = useAuth()
 
-  const hasPermission = (permission: string): boolean => {
+  const hasPermission = (_permission: string): boolean => {
     // Mock implementation - will be replaced with real permission check
     // In the future, this will check against user.permissions or user.roles
     return true

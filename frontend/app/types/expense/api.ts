@@ -1,11 +1,11 @@
-import type { Tag } from './tag'
-import type { Attachment } from './attachment'
+import type { ITag } from './tag'
+import type { IAttachment } from './attachment'
 
 /**
  * Request DTO for creating a new expense
  * Maps to backend CreateExpenseRequest from M002 API specifications
  */
-export interface CreateExpenseRequest {
+export interface ICreateExpenseRequest {
   /** Date of the expense transaction */
   date: string
   /** Category of the expense */
@@ -30,7 +30,7 @@ export interface CreateExpenseRequest {
  * Request DTO for updating an existing expense
  * Maps to backend UpdateExpenseRequest from M002 API specifications
  */
-export interface UpdateExpenseRequest {
+export interface IUpdateExpenseRequest {
   /** Optional new date */
   date?: string
   /** Optional new category */
@@ -55,7 +55,7 @@ export interface UpdateExpenseRequest {
  * Response DTO for expense operations
  * Maps to backend ExpenseResponse from M002 API specifications
  */
-export interface ExpenseResponse {
+export interface IExpenseResponse {
   /** Unique identifier */
   id: string
   /** Transaction date */
@@ -75,9 +75,9 @@ export interface ExpenseResponse {
   /** Memo or notes */
   memo?: string
   /** Associated tags */
-  tags: Tag[]
+  tags: ITag[]
   /** Associated attachments */
-  attachments: Attachment[]
+  attachments: IAttachment[]
   /** Creation timestamp */
   createdAt: string
   /** Last update timestamp */
@@ -90,7 +90,7 @@ export interface ExpenseResponse {
  * Generic paginated response wrapper
  * Maps to backend PagedResponse from M002 API specifications
  */
-export interface PagedResponse<T> {
+export interface IPagedResponse<T> {
   /** Array of items */
   items: T[]
   /** Total number of items matching the filter */
@@ -107,7 +107,7 @@ export interface PagedResponse<T> {
  * Expense list query parameters
  * Used for GET /api/v1/expenses endpoint
  */
-export interface ExpenseListParams {
+export interface IExpenseListParams {
   /** Pagination offset (default: 0) */
   offset?: number
   /** Items per page (default: 20) */
@@ -134,7 +134,7 @@ export interface ExpenseListParams {
  * Tag list query parameters
  * Used for GET /api/v1/tags endpoint
  */
-export interface TagListParams {
+export interface ITagListParams {
   /** Filter by tag scope */
   scope?: 'TENANT' | 'PERSONAL'
   /** Search query for tag names */
@@ -145,7 +145,7 @@ export interface TagListParams {
  * Standard API error response
  * Consistent error format across all endpoints
  */
-export interface ApiErrorResponse {
+export interface IApiErrorResponse {
   /** Error code for programmatic handling */
   code: string
   /** Human-readable error message */
@@ -162,7 +162,7 @@ export interface ApiErrorResponse {
  * Validation error details
  * Used for form validation errors
  */
-export interface ValidationErrorResponse extends ApiErrorResponse {
+export interface IValidationErrorResponse extends IApiErrorResponse {
   /** Field-specific validation errors */
   fieldErrors: {
     /** Field name */
@@ -178,7 +178,7 @@ export interface ValidationErrorResponse extends ApiErrorResponse {
  * Expense statistics response
  * Used for dashboard and reporting endpoints
  */
-export interface ExpenseStatsResponse {
+export interface IExpenseStatsResponse {
   /** Period for these statistics */
   period: {
     startDate: string
@@ -219,7 +219,7 @@ export interface ExpenseStatsResponse {
 /**
  * Bulk operation request for multiple expenses
  */
-export interface BulkExpenseRequest {
+export interface IBulkExpenseRequest {
   /** Array of expense IDs to operate on */
   expenseIds: string[]
   /** Operation to perform */
@@ -236,7 +236,7 @@ export interface BulkExpenseRequest {
 /**
  * Bulk operation response
  */
-export interface BulkExpenseResponse {
+export interface IBulkExpenseResponse {
   /** Number of successfully processed items */
   successCount: number
   /** Number of failed items */
@@ -251,7 +251,7 @@ export interface BulkExpenseResponse {
 /**
  * CSV import request structure
  */
-export interface CsvImportRequest {
+export interface ICsvImportRequest {
   /** CSV file content or file ID */
   fileId: string
   /** Column mapping configuration */
@@ -275,7 +275,7 @@ export interface CsvImportRequest {
 /**
  * CSV import response
  */
-export interface CsvImportResponse {
+export interface ICsvImportResponse {
   /** Import job ID for tracking */
   jobId: string
   /** Number of rows processed */
@@ -285,7 +285,7 @@ export interface CsvImportResponse {
   /** Number of failed imports */
   failureCount: number
   /** Preview of imported data */
-  preview: ExpenseResponse[]
+  preview: IExpenseResponse[]
   /** Import errors */
   errors: {
     row: number

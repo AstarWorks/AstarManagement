@@ -5,10 +5,7 @@
 
 import { computed } from 'vue'
 
-export interface IBreadcrumbItem {
-  label: string
-  href: string
-}
+import type { IBreadcrumbItem } from '~/types/navigation'
 
 /**
  * ヘッダーブレッドクラム機能のcomposable

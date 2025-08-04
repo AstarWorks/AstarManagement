@@ -7,22 +7,22 @@
 
 // Core expense domain types
 export type {
-  Expense,
-  ExpenseFilter,
-  ExpenseList,
-  ExpenseFormData,
-  ExpenseStats,
-  ExpenseCategory,
-  ExpenseSummary
+  IExpense,
+  IExpenseFilter,
+  IExpenseList,
+  IExpenseFormData,
+  IExpenseStats,
+  IExpenseCategory,
+  IExpenseSummary
 } from './expense'
 
 // Tag types
 export type {
-  Tag,
-  CreateTagRequest,
-  UpdateTagRequest,
-  TagWithStats,
-  TagFilter,
+  ITag,
+  ICreateTagRequest,
+  IUpdateTagRequest,
+  ITagWithStats,
+  ITagFilter,
   TagColor
 } from './tag'
 
@@ -33,11 +33,11 @@ export {
 
 // Attachment types
 export type {
-  Attachment,
-  AttachmentResponse,
-  UploadProgress,
-  FileTypeRule,
-  AttachmentFilter
+  IAttachment,
+  IAttachmentResponse,
+  IUploadProgress,
+  IFileTypeRule,
+  IAttachmentFilter
 } from './attachment'
 
 export {
@@ -48,17 +48,17 @@ export {
 
 // API types
 export type {
-  CreateExpenseRequest,
-  UpdateExpenseRequest,
-  ExpenseResponse,
-  PagedResponse,
-  ExpenseListParams,
-  TagListParams,
-  ApiErrorResponse,
-  ValidationErrorResponse,
-  ExpenseStatsResponse,
-  BulkExpenseRequest,
-  BulkExpenseResponse,
-  CsvImportRequest,
-  CsvImportResponse
+  ICreateExpenseRequest,
+  IUpdateExpenseRequest,
+  IExpenseResponse,
+  IPagedResponse,
+  IExpenseListParams,
+  ITagListParams,
+  IApiErrorResponse,
+  IValidationErrorResponse,
+  IExpenseStatsResponse,
+  IBulkExpenseRequest,
+  IBulkExpenseResponse,
+  ICsvImportRequest,
+  ICsvImportResponse
 } from './api'

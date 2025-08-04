@@ -3,21 +3,21 @@
     <!-- Page Header -->
     <div class="page-header mb-6">
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 class="text-2xl font-bold">{{ $t('expense.list.title') }}</h1>
+        <h1 class="text-2xl font-bold">{{ t('expense.list.title') }}</h1>
         <div class="flex flex-wrap gap-2">
           <NuxtLink 
             to="/expenses/new" 
             class="inline-flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
           >
             <Icon name="lucide:plus-circle" class="w-4 h-4 mr-2" />
-            {{ $t('expense.actions.create') }}
+            {{ t('expense.actions.create') }}
           </NuxtLink>
           <NuxtLink 
             to="/expenses/import" 
             class="inline-flex items-center px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 transition-colors"
           >
             <Icon name="lucide:upload" class="w-4 h-4 mr-2" />
-            {{ $t('expense.actions.import') }}
+            {{ t('expense.actions.import') }}
           </NuxtLink>
         </div>
       </div>
@@ -29,7 +29,7 @@
       <Card>
         <CardContent class="p-4">
           <div class="text-muted-foreground">
-            {{ $t('common.loading') }}... (ExpenseFilters component)
+            {{ t('common.loading') }}... (ExpenseFilters component)
           </div>
         </CardContent>
       </Card>
@@ -41,7 +41,7 @@
       <Card>
         <CardContent class="p-4">
           <div class="text-muted-foreground">
-            {{ $t('common.loading') }}... (ExpenseSummary component)
+            {{ t('common.loading') }}... (ExpenseSummary component)
           </div>
         </CardContent>
       </Card>
@@ -61,7 +61,7 @@
             <Icon name="lucide:alert-circle" class="w-12 h-12 text-destructive mx-auto mb-4" />
             <p class="text-destructive">{{ listError }}</p>
             <Button variant="outline" class="mt-4" @click="loadExpenses">
-              {{ $t('common.retry') }}
+              {{ t('common.retry') }}
             </Button>
           </CardContent>
         </Card>
@@ -73,7 +73,7 @@
         <Card>
           <CardContent class="p-4">
             <div class="text-muted-foreground">
-              {{ $t('common.loading') }}... (ExpenseList component)
+              {{ t('common.loading') }}... (ExpenseList component)
             </div>
           </CardContent>
         </Card>
@@ -85,7 +85,7 @@
       <!-- Placeholder for Pagination component -->
       <div class="flex justify-center">
         <div class="text-muted-foreground">
-          {{ $t('common.loading') }}... (Pagination component)
+          {{ t('common.loading') }}... (Pagination component)
         </div>
       </div>
     </div>
@@ -93,7 +93,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ExpenseFilter, ExpenseList, ExpenseSummary } from '~/types/expense'
+import type { IExpenseFilter, IExpenseList, IExpenseSummary } from '~/types/expense'
 import { Card, CardContent } from '~/components/ui/card'
 import { Button } from '~/components/ui/button'
 import { Icon } from '#components'
@@ -101,25 +101,24 @@ import { Icon } from '#components'
 // Meta and SEO
 definePageMeta({
   title: 'expense.navigation.title',
-  layout: 'dashboard',
   middleware: ['auth']
 })
 
 // Composables
-const { $t } = useNuxtApp()
+const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 
 // Reactive state
-const filters = ref<ExpenseFilter>({})
-const expenses = ref<ExpenseList>({ 
+const filters = ref<IExpenseFilter>({})
+const expenses = ref<IExpenseList>({ 
   items: [], 
   total: 0, 
   offset: 0, 
   limit: 20, 
   hasMore: false 
 })
-const expenseSummary = ref<ExpenseSummary>()
+const expenseSummary = ref<IExpenseSummary>()
 const currentPage = ref(1)
 const perPage = ref(20)
 
@@ -147,29 +146,29 @@ watchEffect(() => {
 })
 
 // Event handlers
-const handleFiltersApply = (newFilters: ExpenseFilter) => {
+const _handleFiltersApply = (newFilters: IExpenseFilter) => {
   const query = { ...newFilters, page: '1' }
   router.push({ query })
 }
 
-const handleFiltersReset = () => {
+const _handleFiltersReset = () => {
   router.push({ query: {} })
 }
 
-const handleExpenseEdit = (expenseId: string) => {
+const _handleExpenseEdit = (expenseId: string) => {
   router.push(`/expenses/${expenseId}/edit`)
 }
 
-const handleExpenseView = (expenseId: string) => {
+const _handleExpenseView = (expenseId: string) => {
   router.push(`/expenses/${expenseId}`)
 }
 
-const handleExpenseDelete = async (expenseId: string) => {
+const _handleExpenseDelete = async (expenseId: string) => {
   // Delete logic will be implemented when we have the service
   console.log('Delete expense:', expenseId)
 }
 
-const handlePageChange = (page: number) => {
+const _handlePageChange = (page: number) => {
   const query = { ...route.query, page: page.toString() }
   router.push({ query })
 }
@@ -192,7 +191,7 @@ const loadExpenses = async () => {
       hasMore: false
     }
   } catch (error) {
-    listError.value = $t('expense.errors.loadFailed')
+    listError.value = t('expense.errors.loadFailed')
     console.error('Failed to load expenses:', error)
   } finally {
     listLoading.value = false
@@ -234,8 +233,8 @@ watchEffect(async () => {
 
 // SEO
 useSeoMeta({
-  title: $t('expense.navigation.title'),
-  description: $t('expense.list.description')
+  title: t('expense.navigation.title'),
+  description: t('expense.list.description')
 })
 </script>
 

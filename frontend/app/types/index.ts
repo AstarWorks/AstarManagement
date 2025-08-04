@@ -19,25 +19,25 @@ export * from './common/ui'
 export * from './common/validation'
 export type {
   HttpMethod,
-  ApiRequestConfig,
-  ApiResponse,
-  ApiError,
-  PaginationParams,
-  SortParams,
-  ListRequestParams,
-  ApiClientConfig,
+  IApiRequestConfig,
+  IApiResponse,
+  IApiError,
+  IPaginationParams,
+  ISortParams,
+  IListRequestParams,
+  IApiClientConfig,
   RequestInterceptor,
   ResponseInterceptor,
-  ApiEndpoint,
-  BatchRequest,
-  BatchResponseItem,
-  FileUploadConfig,
-  WebSocketMessage,
-  WebSocketConfig,
-  CacheConfig,
+  IApiEndpoint,
+  IBatchRequest,
+  IBatchResponseItem,
+  IFileUploadConfig,
+  IWebSocketMessage,
+  IWebSocketConfig,
+  ICacheConfig,
   RouteParams,
   QueryParams,
-  ApiHookResult
+  IApiHookResult
 } from './common/api'
 
 export {
@@ -91,7 +91,7 @@ export type URL = string
 export type HexColor = string
 
 // Frontend-specific utility types
-export type ComponentProps<T = Record<string, any>> = T & {
+export type ComponentProps<T = Record<string, unknown>> = T & {
   class?: string
   style?: string | Record<string, string>
 }
@@ -114,7 +114,7 @@ export type FormField<T> = {
   valid: boolean
 }
 
-export type FormData<T extends Record<string, any>> = {
+export type FormData<T extends Record<string, unknown>> = {
   [K in keyof T]: FormField<T[K]>
 }
 

@@ -90,8 +90,6 @@ const cardClasses = computed(() => [
 </script>
 
 <style scoped>
-@reference "~/assets/css/main.css"
-
 .case-card.priority-high {
   @apply border-l-4 border-l-red-500;
 }

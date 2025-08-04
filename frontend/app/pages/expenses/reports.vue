@@ -5,13 +5,13 @@
       <BreadcrumbList>
         <BreadcrumbItem>
           <BreadcrumbLink :as="NuxtLink" to="/expenses">
-            {{ $t('expense.navigation.title') }}
+            {{ t('expense.navigation.title') }}
           </BreadcrumbLink>
         </BreadcrumbItem>
         <BreadcrumbSeparator />
         <BreadcrumbItem>
           <BreadcrumbPage>
-            {{ $t('expense.reports.title') }}
+            {{ t('expense.reports.title') }}
           </BreadcrumbPage>
         </BreadcrumbItem>
       </BreadcrumbList>
@@ -20,11 +20,11 @@
     <!-- Page Header -->
     <div class="page-header mb-6">
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 class="text-2xl font-bold">{{ $t('expense.reports.title') }}</h1>
+        <h1 class="text-2xl font-bold">{{ t('expense.reports.title') }}</h1>
         <Button :disabled="exporting" @click="exportReport">
           <Icon v-if="exporting" name="lucide:loader-2" class="w-4 h-4 mr-2 animate-spin" />
           <Icon v-else name="lucide:download" class="w-4 h-4 mr-2" />
-          {{ $t('expense.reports.actions.export') }}
+          {{ t('expense.reports.actions.export') }}
         </Button>
       </div>
     </div>
@@ -32,22 +32,22 @@
     <!-- Report Filters -->
     <Card class="mb-6">
       <CardHeader>
-        <CardTitle>{{ $t('expense.reports.filters.title') }}</CardTitle>
+        <CardTitle>{{ t('expense.reports.filters.title') }}</CardTitle>
       </CardHeader>
       <CardContent>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <!-- Period Filter -->
           <div>
-            <Label for="period">{{ $t('expense.reports.filters.period') }}</Label>
-            <Select v-model="filters.period" @update:modelValue="handleFilterChange">
+            <Label for="period">{{ t('expense.reports.filters.period') }}</Label>
+            <Select v-model="filters.period" @update:model-value="handleFilterChange">
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="month">{{ $t('expense.reports.periods.month') }}</SelectItem>
-                <SelectItem value="quarter">{{ $t('expense.reports.periods.quarter') }}</SelectItem>
-                <SelectItem value="year">{{ $t('expense.reports.periods.year') }}</SelectItem>
-                <SelectItem value="custom">{{ $t('expense.reports.periods.custom') }}</SelectItem>
+                <SelectItem value="month">{{ t('expense.reports.periods.month') }}</SelectItem>
+                <SelectItem value="quarter">{{ t('expense.reports.periods.quarter') }}</SelectItem>
+                <SelectItem value="year">{{ t('expense.reports.periods.year') }}</SelectItem>
+                <SelectItem value="custom">{{ t('expense.reports.periods.custom') }}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -55,7 +55,7 @@
           <!-- Custom Date Range -->
           <template v-if="filters.period === 'custom'">
             <div>
-              <Label for="startDate">{{ $t('expense.reports.filters.startDate') }}</Label>
+              <Label for="startDate">{{ t('expense.reports.filters.startDate') }}</Label>
               <Input 
                 id="startDate"
                 v-model="filters.startDate" 
@@ -64,7 +64,7 @@
               />
             </div>
             <div>
-              <Label for="endDate">{{ $t('expense.reports.filters.endDate') }}</Label>
+              <Label for="endDate">{{ t('expense.reports.filters.endDate') }}</Label>
               <Input 
                 id="endDate"
                 v-model="filters.endDate" 
@@ -76,15 +76,15 @@
 
           <!-- Group By -->
           <div>
-            <Label for="groupBy">{{ $t('expense.reports.filters.groupBy') }}</Label>
-            <Select v-model="filters.groupBy" @update:modelValue="handleFilterChange">
+            <Label for="groupBy">{{ t('expense.reports.filters.groupBy') }}</Label>
+            <Select v-model="filters.groupBy" @update:model-value="handleFilterChange">
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="category">{{ $t('expense.reports.groupBy.category') }}</SelectItem>
-                <SelectItem value="case">{{ $t('expense.reports.groupBy.case') }}</SelectItem>
-                <SelectItem value="user">{{ $t('expense.reports.groupBy.user') }}</SelectItem>
+                <SelectItem value="category">{{ t('expense.reports.groupBy.category') }}</SelectItem>
+                <SelectItem value="case">{{ t('expense.reports.groupBy.case') }}</SelectItem>
+                <SelectItem value="user">{{ t('expense.reports.groupBy.user') }}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -97,7 +97,7 @@
       <Card>
         <CardHeader class="pb-2">
           <CardTitle class="text-sm font-medium text-muted-foreground">
-            {{ $t('expense.reports.summary.totalIncome') }}
+            {{ t('expense.reports.summary.totalIncome') }}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -108,7 +108,7 @@
             <span :class="summary.incomeChange >= 0 ? 'text-green-600' : 'text-red-600'">
               {{ summary.incomeChange >= 0 ? '+' : '' }}{{ summary.incomeChange }}%
             </span>
-            {{ $t('expense.reports.summary.fromLastPeriod') }}
+            {{ t('expense.reports.summary.fromLastPeriod') }}
           </p>
         </CardContent>
       </Card>
@@ -116,7 +116,7 @@
       <Card>
         <CardHeader class="pb-2">
           <CardTitle class="text-sm font-medium text-muted-foreground">
-            {{ $t('expense.reports.summary.totalExpense') }}
+            {{ t('expense.reports.summary.totalExpense') }}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -127,7 +127,7 @@
             <span :class="summary.expenseChange >= 0 ? 'text-red-600' : 'text-green-600'">
               {{ summary.expenseChange >= 0 ? '+' : '' }}{{ summary.expenseChange }}%
             </span>
-            {{ $t('expense.reports.summary.fromLastPeriod') }}
+            {{ t('expense.reports.summary.fromLastPeriod') }}
           </p>
         </CardContent>
       </Card>
@@ -135,7 +135,7 @@
       <Card>
         <CardHeader class="pb-2">
           <CardTitle class="text-sm font-medium text-muted-foreground">
-            {{ $t('expense.reports.summary.balance') }}
+            {{ t('expense.reports.summary.balance') }}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -143,7 +143,7 @@
             {{ formatCurrency(summary.balance) }}
           </p>
           <p class="text-xs text-muted-foreground mt-1">
-            {{ $t('expense.reports.summary.netAmount') }}
+            {{ t('expense.reports.summary.netAmount') }}
           </p>
         </CardContent>
       </Card>
@@ -151,7 +151,7 @@
       <Card>
         <CardHeader class="pb-2">
           <CardTitle class="text-sm font-medium text-muted-foreground">
-            {{ $t('expense.reports.summary.transactionCount') }}
+            {{ t('expense.reports.summary.transactionCount') }}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -159,7 +159,7 @@
             {{ summary.count }}
           </p>
           <p class="text-xs text-muted-foreground mt-1">
-            {{ $t('expense.reports.summary.transactions') }}
+            {{ t('expense.reports.summary.transactions') }}
           </p>
         </CardContent>
       </Card>
@@ -170,14 +170,14 @@
       <!-- Pie Chart -->
       <Card>
         <CardHeader>
-          <CardTitle>{{ $t('expense.reports.charts.breakdown') }}</CardTitle>
+          <CardTitle>{{ t('expense.reports.charts.breakdown') }}</CardTitle>
         </CardHeader>
         <CardContent>
           <div class="h-[300px] flex items-center justify-center">
             <!-- Placeholder for chart -->
             <div class="text-center text-muted-foreground">
               <Icon name="lucide:pie-chart" class="w-16 h-16 mx-auto mb-4" />
-              <p>{{ $t('expense.reports.charts.pieChart') }}</p>
+              <p>{{ t('expense.reports.charts.pieChart') }}</p>
             </div>
           </div>
         </CardContent>
@@ -186,14 +186,14 @@
       <!-- Bar Chart -->
       <Card>
         <CardHeader>
-          <CardTitle>{{ $t('expense.reports.charts.trend') }}</CardTitle>
+          <CardTitle>{{ t('expense.reports.charts.trend') }}</CardTitle>
         </CardHeader>
         <CardContent>
           <div class="h-[300px] flex items-center justify-center">
             <!-- Placeholder for chart -->
             <div class="text-center text-muted-foreground">
               <Icon name="lucide:bar-chart-3" class="w-16 h-16 mx-auto mb-4" />
-              <p>{{ $t('expense.reports.charts.barChart') }}</p>
+              <p>{{ t('expense.reports.charts.barChart') }}</p>
             </div>
           </div>
         </CardContent>
@@ -203,7 +203,7 @@
     <!-- Detailed Table -->
     <Card>
       <CardHeader>
-        <CardTitle>{{ $t('expense.reports.table.title') }}</CardTitle>
+        <CardTitle>{{ t('expense.reports.table.title') }}</CardTitle>
       </CardHeader>
       <CardContent>
         <div v-if="loading" class="flex justify-center py-8">
@@ -211,7 +211,7 @@
         </div>
         
         <div v-else-if="tableData.length === 0" class="text-center py-8 text-muted-foreground">
-          {{ $t('expense.reports.table.noData') }}
+          {{ t('expense.reports.table.noData') }}
         </div>
         
         <div v-else class="overflow-x-auto">
@@ -219,10 +219,10 @@
             <TableHeader>
               <TableRow>
                 <TableHead>{{ getGroupByLabel() }}</TableHead>
-                <TableHead class="text-right">{{ $t('expense.reports.table.income') }}</TableHead>
-                <TableHead class="text-right">{{ $t('expense.reports.table.expense') }}</TableHead>
-                <TableHead class="text-right">{{ $t('expense.reports.table.balance') }}</TableHead>
-                <TableHead class="text-right">{{ $t('expense.reports.table.count') }}</TableHead>
+                <TableHead class="text-right">{{ t('expense.reports.table.income') }}</TableHead>
+                <TableHead class="text-right">{{ t('expense.reports.table.expense') }}</TableHead>
+                <TableHead class="text-right">{{ t('expense.reports.table.balance') }}</TableHead>
+                <TableHead class="text-right">{{ t('expense.reports.table.count') }}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -241,7 +241,7 @@
               </TableRow>
               <!-- Total Row -->
               <TableRow class="font-bold border-t-2">
-                <TableCell>{{ $t('expense.reports.table.total') }}</TableCell>
+                <TableCell>{{ t('expense.reports.table.total') }}</TableCell>
                 <TableCell class="text-right text-green-600">
                   {{ formatCurrency(summary.totalIncome) }}
                 </TableCell>
@@ -291,15 +291,18 @@ import {
 } from '~/components/ui/table'
 import { Icon } from '#components'
 
+defineOptions({
+  name: 'ExpenseReports'
+})
+
 // Meta
 definePageMeta({
   title: 'expense.reports.title',
-  layout: 'dashboard',
   middleware: ['auth']
 })
 
 // Composables
-const { $t } = useNuxtApp()
+const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const NuxtLink = resolveComponent('NuxtLink')
@@ -346,11 +349,11 @@ const formatCurrency = (amount: number): string => {
 const getGroupByLabel = (): string => {
   switch (filters.value.groupBy) {
     case 'category':
-      return $t('expense.reports.table.category')
+      return t('expense.reports.table.category')
     case 'case':
-      return $t('expense.reports.table.case')
+      return t('expense.reports.table.case')
     case 'user':
-      return $t('expense.reports.table.user')
+      return t('expense.reports.table.user')
     default:
       return ''
   }
@@ -422,8 +425,8 @@ onMounted(() => {
 
 // SEO
 useSeoMeta({
-  title: $t('expense.reports.title'),
-  description: $t('expense.reports.description')
+  title: t('expense.reports.title'),
+  description: t('expense.reports.description')
 })
 </script>
 

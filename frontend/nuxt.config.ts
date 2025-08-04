@@ -1,5 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import tailwindcss from "@tailwindcss/vite";
+import tailwindAutoReference from 'vite-plugin-vue-tailwind-auto-reference';
 
 export default defineNuxtConfig({
 
@@ -41,7 +42,7 @@ export default defineNuxtConfig({
   },
 
   // CSS
-  css: ['~/assets/css/tailwind.css'],
+  css: ['~/assets/css/main.css'],
 
 
   // Runtime config
@@ -92,6 +93,8 @@ export default defineNuxtConfig({
       __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: process.env.NODE_ENV === 'development' ? 'true' : 'false',
     },
     plugins: [
+      // @ts-expect-error - Plugin type compatibility issue with Vite v6
+      tailwindAutoReference('assets/css/main.css'),
       tailwindcss()
     ],
     optimizeDeps: {

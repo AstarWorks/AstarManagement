@@ -5,13 +5,13 @@
       <BreadcrumbList>
         <BreadcrumbItem>
           <BreadcrumbLink :as="NuxtLink" to="/expenses">
-            {{ $t('expense.navigation.title') }}
+            {{ t('expense.navigation.title') }}
           </BreadcrumbLink>
         </BreadcrumbItem>
         <BreadcrumbSeparator />
         <BreadcrumbItem>
           <BreadcrumbPage>
-            {{ $t('expense.import.title') }}
+            {{ t('expense.import.title') }}
           </BreadcrumbPage>
         </BreadcrumbItem>
       </BreadcrumbList>
@@ -19,9 +19,9 @@
 
     <!-- Page Header -->
     <div class="page-header mb-6">
-      <h1 class="text-2xl font-bold">{{ $t('expense.import.title') }}</h1>
+      <h1 class="text-2xl font-bold">{{ t('expense.import.title') }}</h1>
       <p class="text-muted-foreground mt-2">
-        {{ $t('expense.import.description') }}
+        {{ t('expense.import.description') }}
       </p>
     </div>
 
@@ -66,7 +66,7 @@
                 class="text-sm transition-colors"
                 :class="currentStep >= index ? 'text-foreground' : 'text-muted-foreground'"
               >
-                {{ $t(step.label) }}
+                {{ t(step.label) }}
               </p>
             </div>
           </div>
@@ -79,10 +79,10 @@
             <div class="text-center">
               <Icon name="lucide:upload-cloud" class="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
               <h3 class="text-lg font-semibold mb-2">
-                {{ $t('expense.import.steps.upload.title') }}
+                {{ t('expense.import.steps.upload.title') }}
               </h3>
               <p class="text-muted-foreground mb-6">
-                {{ $t('expense.import.steps.upload.description') }}
+                {{ t('expense.import.steps.upload.description') }}
               </p>
               
               <!-- File Upload Area -->
@@ -102,10 +102,10 @@
                 
                 <Icon name="lucide:file-text" class="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
                 <p class="font-medium mb-2">
-                  {{ $t('expense.import.steps.upload.dropzone') }}
+                  {{ t('expense.import.steps.upload.dropzone') }}
                 </p>
                 <p class="text-sm text-muted-foreground">
-                  {{ $t('expense.import.steps.upload.fileType') }}
+                  {{ t('expense.import.steps.upload.fileType') }}
                 </p>
               </div>
               
@@ -136,7 +136,7 @@
           <!-- Step 2: Preview -->
           <div v-else-if="currentStep === 1" class="step-content">
             <h3 class="text-lg font-semibold mb-4">
-              {{ $t('expense.import.steps.preview.title') }}
+              {{ t('expense.import.steps.preview.title') }}
             </h3>
             
             <!-- Preview Table -->
@@ -144,11 +144,11 @@
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{{ $t('expense.form.fields.date') }}</TableHead>
-                    <TableHead>{{ $t('expense.form.fields.category') }}</TableHead>
-                    <TableHead>{{ $t('expense.form.fields.description') }}</TableHead>
-                    <TableHead class="text-right">{{ $t('expense.form.fields.incomeAmount') }}</TableHead>
-                    <TableHead class="text-right">{{ $t('expense.form.fields.expenseAmount') }}</TableHead>
+                    <TableHead>{{ t('expense.form.fields.date') }}</TableHead>
+                    <TableHead>{{ t('expense.form.fields.category') }}</TableHead>
+                    <TableHead>{{ t('expense.form.fields.description') }}</TableHead>
+                    <TableHead class="text-right">{{ t('expense.form.fields.incomeAmount') }}</TableHead>
+                    <TableHead class="text-right">{{ t('expense.form.fields.expenseAmount') }}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -165,7 +165,7 @@
             
             <div class="mt-4 p-4 bg-muted rounded-lg">
               <p class="text-sm">
-                {{ $t('expense.import.steps.preview.summary', { count: previewData.length }) }}
+                {{ t('expense.import.steps.preview.summary', { count: previewData.length }) }}
               </p>
             </div>
           </div>
@@ -173,22 +173,22 @@
           <!-- Step 3: Mapping -->
           <div v-else-if="currentStep === 2" class="step-content">
             <h3 class="text-lg font-semibold mb-4">
-              {{ $t('expense.import.steps.mapping.title') }}
+              {{ t('expense.import.steps.mapping.title') }}
             </h3>
             <p class="text-muted-foreground mb-6">
-              {{ $t('expense.import.steps.mapping.description') }}
+              {{ t('expense.import.steps.mapping.description') }}
             </p>
             
             <!-- Column Mapping -->
             <div class="space-y-4">
               <div v-for="field in mappingFields" :key="field.id" class="grid grid-cols-2 gap-4 items-center">
-                <Label>{{ $t(field.label) }}</Label>
+                <Label>{{ t(field.label) }}</Label>
                 <Select v-model="columnMapping[field.id]">
                   <SelectTrigger>
-                    <SelectValue :placeholder="$t('expense.import.steps.mapping.selectColumn')" />
+                    <SelectValue :placeholder="t('expense.import.steps.mapping.selectColumn')" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem :value="null">{{ $t('common.none') }}</SelectItem>
+                    <SelectItem :value="null">{{ t('common.none') }}</SelectItem>
                     <SelectItem v-for="col in csvColumns" :key="col" :value="col">
                       {{ col }}
                     </SelectItem>
@@ -208,13 +208,13 @@
               />
               <h3 class="text-lg font-semibold mb-2">
                 {{ importSuccess 
-                  ? $t('expense.import.steps.result.success') 
-                  : $t('expense.import.steps.result.error') 
+                  ? t('expense.import.steps.result.success') 
+                  : t('expense.import.steps.result.error') 
                 }}
               </h3>
               <p class="text-muted-foreground mb-6">
                 {{ importSuccess 
-                  ? $t('expense.import.steps.result.successMessage', { count: importedCount })
+                  ? t('expense.import.steps.result.successMessage', { count: importedCount })
                   : importErrorMessage
                 }}
               </p>
@@ -224,11 +224,11 @@
                   variant="outline"
                   @click="resetImport"
                 >
-                  {{ $t('expense.import.actions.importAnother') }}
+                  {{ t('expense.import.actions.importAnother') }}
                 </Button>
                 <NuxtLink to="/expenses">
                   <Button>
-                    {{ $t('expense.import.actions.viewExpenses') }}
+                    {{ t('expense.import.actions.viewExpenses') }}
                   </Button>
                 </NuxtLink>
               </div>
@@ -243,7 +243,7 @@
             :disabled="currentStep === 0 || processing"
             @click="previousStep"
           >
-            {{ $t('common.previous') }}
+            {{ t('common.previous') }}
           </Button>
           
           <Button 
@@ -252,8 +252,8 @@
           >
             <Icon v-if="processing" name="lucide:loader-2" class="w-4 h-4 mr-2 animate-spin" />
             {{ currentStep === steps.length - 1 
-              ? $t('common.finish') 
-              : $t('common.next') 
+              ? t('common.finish') 
+              : t('common.next') 
             }}
           </Button>
         </div>
@@ -291,15 +291,18 @@ import {
 } from '~/components/ui/table'
 import { Icon } from '#components'
 
+defineOptions({
+  name: 'ExpenseImport'
+})
+
 // Meta
 definePageMeta({
   title: 'expense.import.title',
-  layout: 'dashboard',
   middleware: ['auth']
 })
 
 // Composables
-const { $t } = useNuxtApp()
+const { t } = useI18n()
 const NuxtLink = resolveComponent('NuxtLink')
 
 // Import wizard steps
@@ -315,7 +318,16 @@ const currentStep = ref(0)
 const selectedFile = ref<File | null>(null)
 const fileInput = ref<HTMLInputElement>()
 const processing = ref(false)
-const previewData = ref<any[]>([])
+interface IPreviewData {
+  date: string
+  category: string
+  description: string
+  incomeAmount: number
+  expenseAmount: number
+  memo?: string
+}
+
+const previewData = ref<IPreviewData[]>([])
 const csvColumns = ref<string[]>([])
 const columnMapping = ref<Record<string, string>>({})
 const importSuccess = ref(false)
@@ -461,9 +473,9 @@ const importData = async () => {
     
     importSuccess.value = true
     importedCount.value = previewData.value.length
-  } catch (error) {
+  } catch {
     importSuccess.value = false
-    importErrorMessage.value = $t('expense.import.errors.importFailed')
+    importErrorMessage.value = t('expense.import.errors.importFailed')
   } finally {
     processing.value = false
   }
@@ -500,8 +512,8 @@ const resetImport = () => {
 
 // SEO
 useSeoMeta({
-  title: $t('expense.import.title'),
-  description: $t('expense.import.description')
+  title: t('expense.import.title'),
+  description: t('expense.import.description')
 })
 </script>
 

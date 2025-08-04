@@ -117,7 +117,7 @@ interface IDashboardStat {
   format?: 'number' | 'currency'
 }
 
-interface QuickAction {
+interface IQuickAction {
   key: string
   labelKey: string
   icon: string
@@ -144,7 +144,7 @@ const {
 } = useDashboardData()
 
 // Configuration for quick actions
-const quickActions: QuickAction[] = [
+const quickActions: IQuickAction[] = [
   {
     key: 'newCase',
     labelKey: 'dashboard.sections.quickActions.newMatter',

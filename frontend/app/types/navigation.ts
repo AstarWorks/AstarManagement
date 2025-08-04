@@ -50,6 +50,8 @@ export interface INavigationItemConfig {
  */
 export interface IBreadcrumbItem {
   label: string
+  to?: string
+  href?: string
   path?: string
 }
 

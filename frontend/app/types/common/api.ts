@@ -33,7 +33,7 @@ export enum HttpStatusCode {
 /**
  * API request configuration
  */
-export interface ApiRequestConfig {
+export interface IApiRequestConfig {
   /** Request URL */
   url: string
   /** HTTP method */
@@ -41,7 +41,7 @@ export interface ApiRequestConfig {
   /** Request headers */
   headers?: Record<string, string>
   /** Request body */
-  body?: any
+  body?: Record<string, unknown> | FormData | string | null
   /** Query parameters */
   params?: Record<string, string | number | boolean>
   /** Request timeout in milliseconds */
@@ -55,7 +55,7 @@ export interface ApiRequestConfig {
 /**
  * API response wrapper
  */
-export interface ApiResponse<T = any> {
+export interface IApiResponse<T = unknown> {
   /** Response data */
   data: T
   /** HTTP status code */
@@ -65,19 +65,19 @@ export interface ApiResponse<T = any> {
   /** Response headers */
   headers: Record<string, string>
   /** Request configuration that generated this response */
-  config: ApiRequestConfig
+  config: IApiRequestConfig
 }
 
 /**
  * Standard error response format
  */
-export interface ApiError {
+export interface IApiError {
   /** Error code for programmatic handling */
   code: string
   /** Human-readable error message */
   message: string
   /** Additional error details */
-  details?: Record<string, any>
+  details?: Record<string, unknown>
   /** HTTP status code */
   status?: number
   /** Timestamp when error occurred */
@@ -91,7 +91,7 @@ export interface ApiError {
 /**
  * Validation error response
  */
-export interface ValidationErrorResponse {
+export interface IValidationErrorResponse {
   /** Error code */
   code: string
   /** Main error message */
@@ -101,7 +101,7 @@ export interface ValidationErrorResponse {
     field: string
     message: string
     code: string
-    value?: any
+    value?: unknown
   }[]
   /** Timestamp */
   timestamp: string
@@ -110,7 +110,7 @@ export interface ValidationErrorResponse {
 /**
  * Pagination parameters for API requests
  */
-export interface PaginationParams {
+export interface IPaginationParams {
   /** Page offset (0-based) */
   offset?: number
   /** Number of items per page */
@@ -124,7 +124,7 @@ export interface PaginationParams {
 /**
  * Sorting parameters for API requests
  */
-export interface SortParams {
+export interface ISortParams {
   /** Field to sort by */
   sortBy?: string
   /** Sort direction */
@@ -136,17 +136,17 @@ export interface SortParams {
 /**
  * Generic list request parameters
  */
-export interface ListRequestParams extends PaginationParams, SortParams {
+export interface IListRequestParams extends IPaginationParams, ISortParams {
   /** Search query */
   search?: string
   /** Additional filters */
-  filters?: Record<string, any>
+  filters?: Record<string, unknown>
 }
 
 /**
  * API client configuration
  */
-export interface ApiClientConfig {
+export interface IApiClientConfig {
   /** Base URL for all requests */
   baseURL: string
   /** Default timeout in milliseconds */
@@ -158,37 +158,37 @@ export interface ApiClientConfig {
   /** Response interceptors */
   responseInterceptors: ResponseInterceptor[]
   /** Error handler */
-  errorHandler?: (error: ApiError) => void
+  errorHandler?: (error: IApiError) => void
   /** Retry configuration */
   retry?: {
     maxRetries: number
     retryDelay: number
-    retryCondition: (error: ApiError) => boolean
+    retryCondition: (error: IApiError) => boolean
   }
 }
 
 /**
  * Request interceptor function type
  */
-export type RequestInterceptor = (config: ApiRequestConfig) => Promise<ApiRequestConfig> | ApiRequestConfig
+export type RequestInterceptor = (config: IApiRequestConfig) => Promise<IApiRequestConfig> | IApiRequestConfig
 
 /**
  * Response interceptor function type
  */
-export type ResponseInterceptor = (response: ApiResponse) => Promise<ApiResponse> | ApiResponse
+export type ResponseInterceptor = (response: IApiResponse) => Promise<IApiResponse> | IApiResponse
 
 /**
  * API endpoint definition
  */
-export interface ApiEndpoint {
+export interface IApiEndpoint {
   /** Endpoint path (can include parameters like :id) */
   path: string
   /** HTTP method */
   method: HttpMethod
   /** Request body schema validation */
-  requestSchema?: any
+  requestSchema?: Record<string, unknown>
   /** Response schema validation */
-  responseSchema?: any
+  responseSchema?: Record<string, unknown>
   /** Whether authentication is required */
   requiresAuth?: boolean
   /** Rate limiting configuration */
@@ -201,23 +201,23 @@ export interface ApiEndpoint {
 /**
  * Batch request configuration
  */
-export interface BatchRequest {
+export interface IBatchRequest {
   /** Unique identifier for this request in the batch */
   id: string
   /** Request configuration */
-  request: ApiRequestConfig
+  request: IApiRequestConfig
 }
 
 /**
  * Batch response item
  */
-export interface BatchResponseItem<T = any> {
+export interface IBatchResponseItem<T = unknown> {
   /** Request ID from the batch */
   id: string
   /** Response data if successful */
   data?: T
   /** Error if request failed */
-  error?: ApiError
+  error?: IApiError
   /** HTTP status code */
   status: number
 }
@@ -225,7 +225,7 @@ export interface BatchResponseItem<T = any> {
 /**
  * File upload configuration
  */
-export interface FileUploadConfig {
+export interface IFileUploadConfig {
   /** Upload endpoint URL */
   url: string
   /** Form field name for the file */
@@ -245,7 +245,7 @@ export interface FileUploadConfig {
 /**
  * WebSocket message types
  */
-export interface WebSocketMessage<T = any> {
+export interface IWebSocketMessage<T = unknown> {
   /** Message type */
   type: string
   /** Message payload */
@@ -259,7 +259,7 @@ export interface WebSocketMessage<T = any> {
 /**
  * WebSocket configuration
  */
-export interface WebSocketConfig {
+export interface IWebSocketConfig {
   /** WebSocket URL */
   url: string
   /** Connection protocols */
@@ -281,9 +281,9 @@ export interface WebSocketConfig {
 /**
  * Cache configuration for API responses
  */
-export interface CacheConfig {
+export interface ICacheConfig {
   /** Cache key generator */
-  keyGenerator?: (config: ApiRequestConfig) => string
+  keyGenerator?: (config: IApiRequestConfig) => string
   /** Cache TTL in milliseconds */
   ttl?: number
   /** Maximum cache size */
@@ -307,13 +307,13 @@ export type QueryParams = Record<string, string | number | boolean | string[] | 
 /**
  * API hook return type for async operations
  */
-export interface ApiHookResult<T> {
+export interface IApiHookResult<T> {
   /** Response data */
   data: T | null
   /** Loading state */
   loading: boolean
   /** Error state */
-  error: ApiError | null
+  error: IApiError | null
   /** Function to trigger refetch */
   refetch: () => Promise<void>
   /** Function to mutate data optimistically */
