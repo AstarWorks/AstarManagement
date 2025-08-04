@@ -7,7 +7,7 @@ plugins {
     kotlin("plugin.serialization") version "2.2.0"
     id("org.springframework.boot") version "3.4.2"
     id("io.spring.dependency-management") version "1.1.7"
-    id("io.gitlab.arturbosch.detekt") version "1.23.0"
+    // id("io.gitlab.arturbosch.detekt") version "1.23.6" // Temporarily disabled due to Kotlin 2.2.0 incompatibility
 }
 
 group = "com.astarworks"
@@ -48,6 +48,10 @@ dependencies {
     implementation("io.jsonwebtoken:jjwt-api:0.12.3")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.3")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.3")
+    
+    // OpenAPI/Swagger Documentation
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-api:2.6.0")
     
     // WebClient for HTTP calls
 
