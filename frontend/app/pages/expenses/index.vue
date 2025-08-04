@@ -147,7 +147,19 @@ watchEffect(() => {
 
 // Event handlers
 const _handleFiltersApply = (newFilters: IExpenseFilter) => {
-  const query = { ...newFilters, page: '1' }
+  // Convert filter values to strings for URL query parameters
+  const query: Record<string, string> = { page: '1' }
+  
+  Object.entries(newFilters).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      if (Array.isArray(value)) {
+        query[key] = value.join(',')
+      } else {
+        query[key] = String(value)
+      }
+    }
+  })
+  
   router.push({ query })
 }
 

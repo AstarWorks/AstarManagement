@@ -78,7 +78,11 @@ export const useExpenseRouting = () => {
             updates[key] = value
           }
         } else {
-          updates[key] = value
+          // Type-safe string conversion with validation
+          const stringValue = typeof value === 'string' ? value : String(value)
+          if (stringValue.trim()) {
+            updates[key] = stringValue
+          }
         }
       }
     })

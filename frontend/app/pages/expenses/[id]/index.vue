@@ -312,7 +312,7 @@ const loadExpense = async () => {
           fileSize: 1024 * 250,
           mimeType: 'application/pdf',
           storagePath: '/attachments/receipt.pdf',
-          status: AttachmentStatus.TEMPORARY,
+          status: AttachmentStatus.LINKED,
           uploadedAt: '2025-08-04T10:00:00Z',
           uploadedBy: 'user-123'
         }

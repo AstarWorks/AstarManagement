@@ -345,7 +345,7 @@ const uploadFile = async (file: File, uploadFileItem: _IUploadFile) => {
       fileSize: file.size,
       mimeType: file.type,
       storagePath: `/attachments/${Date.now()}_${file.name}`,
-      status: AttachmentStatus.TEMPORARY,
+      status: AttachmentStatus.UPLOADED,
       uploadedAt: new Date().toISOString(),
       uploadedBy: 'user-123'
     }
@@ -450,7 +450,7 @@ const loadData = async () => {
         fileSize: 256 * 1024,
         mimeType: 'application/pdf',
         storagePath: '/attachments/receipt_shinkansen.pdf',
-        status: AttachmentStatus.TEMPORARY,
+        status: AttachmentStatus.LINKED,
         uploadedAt: '2025-08-04T10:00:00Z',
         uploadedBy: 'user-123'
       },
@@ -462,7 +462,7 @@ const loadData = async () => {
         fileSize: 128 * 1024,
         mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         storagePath: '/attachments/expense_report.xlsx',
-        status: AttachmentStatus.TEMPORARY,
+        status: AttachmentStatus.LINKED,
         uploadedAt: '2025-08-04T10:05:00Z',
         uploadedBy: 'user-123'
       }
