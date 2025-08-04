@@ -141,3 +141,23 @@ export interface ExpenseCategory {
   /** Color for UI display */
   color?: string
 }
+
+/**
+ * Summary data for expense list page
+ * Used for displaying aggregate statistics
+ */
+export interface ExpenseSummary {
+  /** Total income amount for the period */
+  totalIncome: number
+  /** Total expense amount for the period */
+  totalExpense: number
+  /** Net balance (income - expense) */
+  balance: number
+  /** Number of transactions */
+  count: number
+  /** Period for the summary */
+  period: {
+    startDate: string
+    endDate: string
+  }
+}

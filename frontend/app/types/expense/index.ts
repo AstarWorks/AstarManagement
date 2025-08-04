@@ -12,7 +12,8 @@ export type {
   ExpenseList,
   ExpenseFormData,
   ExpenseStats,
-  ExpenseCategory
+  ExpenseCategory,
+  ExpenseSummary
 } from './expense'
 
 // Tag types

@@ -124,6 +124,12 @@ export const MAIN_NAVIGATION_CONFIG: INavigationItemConfig[] = [
         icon: 'lucide:bar-chart-3'
       },
       {
+        id: 'finance-expenses',
+        labelKey: 'navigation.menu.finance.expenses',
+        path: '/expenses',
+        icon: 'lucide:receipt-text'
+      },
+      {
         id: 'finance-billing',
         labelKey: 'navigation.menu.finance.billing',
         path: '/finance/billing',
