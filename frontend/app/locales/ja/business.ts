@@ -505,5 +505,111 @@ export default {
       hoursAgo: '{hours}時間前',
       daysAgo: '{days}日前'
     }
+  },
+
+  expense: {
+    navigation: {
+      title: '実費管理',
+      list: '実費一覧',
+      new: '新規実費',
+      import: 'CSVインポート',
+      reports: '集計レポート'
+    },
+    form: {
+      title: {
+        create: '新規実費登録',
+        edit: '実費編集',
+        view: '実費詳細'
+      },
+      fields: {
+        date: '日付',
+        category: 'カテゴリ',
+        description: '内容',
+        incomeAmount: '収入金額',
+        expenseAmount: '支出金額',
+        balance: '残高',
+        caseId: '案件',
+        memo: 'メモ',
+        tags: 'タグ',
+        attachments: '添付ファイル'
+      },
+      placeholders: {
+        date: '日付を選択してください',
+        category: '交通費、事務用品など',
+        description: '詳細な内容を入力してください',
+        incomeAmount: '0',
+        expenseAmount: '0',
+        memo: '補足事項があれば入力してください'
+      },
+      validation: {
+        required: '{field}は必須です',
+        minAmount: '金額は0円以上で入力してください',
+        maxAmount: '金額は999,999,999円以下で入力してください',
+        futureDate: '未来の日付は選択できません',
+        invalidCategory: 'カテゴリは50文字以内で入力してください',
+        invalidDescription: '内容は500文字以内で入力してください'
+      }
+    },
+    list: {
+      title: '実費一覧',
+      empty: '実費データがありません',
+      columns: {
+        date: '日付',
+        category: 'カテゴリ',
+        description: '内容',
+        amount: '金額',
+        balance: '残高',
+        tags: 'タグ',
+        actions: '操作'
+      },
+      summary: {
+        total: '合計',
+        income: '収入',
+        expense: '支出',
+        balance: '残高'
+      }
+    },
+    actions: {
+      create: '新規作成',
+      edit: '編集',
+      delete: '削除',
+      save: '保存',
+      cancel: 'キャンセル',
+      back: '戻る',
+      import: 'インポート',
+      export: 'エクスポート',
+      filter: '絞り込み',
+      search: '検索',
+      clear: 'クリア'
+    },
+    filters: {
+      title: '絞り込み条件',
+      dateRange: '期間',
+      category: 'カテゴリ',
+      case: '案件',
+      tags: 'タグ',
+      amount: '金額範囲',
+      all: 'すべて'
+    },
+    status: {
+      draft: '下書き',
+      confirmed: '確定',
+      deleted: '削除済み'
+    },
+    notifications: {
+      created: '実費を登録しました',
+      updated: '実費を更新しました',
+      deleted: '実費を削除しました',
+      importSuccess: '{count}件の実費をインポートしました',
+      importError: 'インポートに失敗しました'
+    },
+    errors: {
+      loadFailed: '実費データの読み込みに失敗しました',
+      saveFailed: '実費の保存に失敗しました',
+      deleteFailed: '実費の削除に失敗しました',
+      notFound: '指定された実費が見つかりません',
+      networkError: 'ネットワークエラーが発生しました',
+      unauthorized: 'この操作を実行する権限がありません'
+    }
   }
 } as const
