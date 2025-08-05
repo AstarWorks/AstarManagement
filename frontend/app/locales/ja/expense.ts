@@ -24,7 +24,14 @@ export default {
       cancel: 'キャンセル',
       reset: 'リセット',
       apply: '適用',
-      clear: 'クリア'
+      clear: 'クリア',
+      print: '印刷',
+      copy: 'コピー',
+      copySuccess: 'クリップボードにコピーしました',
+      copySuccessDescription: '経費情報をクリップボードにコピーしました',
+      copyFailed: 'コピーに失敗しました',
+      copyFailedDescription: 'クリップボードへのアクセスが拒否されました',
+      manageAttachments: '添付ファイル管理'
     },
 
     // Table
@@ -286,6 +293,41 @@ export default {
       bulkDelete: '{count}件の経費を削除してもよろしいですか？',
       unsavedChanges: '未保存の変更があります。本当にページを離れますか？',
       reset: 'すべての変更をリセットしてもよろしいですか？'
+    },
+    
+    // Detail view
+    detail: {
+      basicInfo: '基本情報',
+      caseInfo: '案件情報',
+      caseTitle: '案件名',
+      caseStatus: '案件ステータス',
+      auditInfo: '監査情報',
+      tagCount: 'タグ数: {count}',
+      notFound: {
+        title: '経費が見つかりません',
+        message: '指定された経費が見つかりませんでした。'
+      },
+      actions: {
+        backToList: '経費一覧に戻る'
+      }
+    },
+    
+    // Preview
+    preview: {
+      notImplemented: 'プレビュー機能は未実装です',
+      comingSoon: 'この機能は今後実装予定です'
+    },
+    
+    // Delete
+    delete: {
+      title: '経費の削除',
+      confirmation: 'この経費を削除してもよろしいですか？この操作は取り消せません。',
+      success: '経費を削除しました'
+    },
+    
+    // Confirm dialog
+    confirm: {
+      delete: 'この経費を削除してもよろしいですか？'
     },
 
     // Tooltips and help text

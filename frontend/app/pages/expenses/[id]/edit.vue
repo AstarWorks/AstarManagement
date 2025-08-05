@@ -1,8 +1,17 @@
 <template>
   <div class="expense-edit-page">
-    <!-- Loading state -->
-    <div v-if="loading" class="flex justify-center py-12">
-      <Icon name="lucide:loader-2" class="w-8 h-8 animate-spin text-primary" />
+    <!-- Loading Skeleton -->
+    <div v-if="loading" class="space-y-6">
+      <div class="h-6 bg-muted rounded animate-pulse" />
+      <div class="h-8 bg-muted rounded animate-pulse" />
+      <Card>
+        <CardContent class="p-6 space-y-4">
+          <div v-for="i in 6" :key="i" class="space-y-2">
+            <div class="h-4 bg-muted rounded animate-pulse w-24" />
+            <div class="h-10 bg-muted rounded animate-pulse" />
+          </div>
+        </CardContent>
+      </Card>
     </div>
 
     <!-- Error state -->
@@ -19,7 +28,7 @@
     </div>
 
     <!-- Content -->
-    <template v-else-if="formData">
+    <template v-else-if="currentData">
       <!-- Breadcrumb -->
       <Breadcrumb class="mb-6">
         <BreadcrumbList>
@@ -43,157 +52,88 @@
         </BreadcrumbList>
       </Breadcrumb>
 
-      <!-- Page Header -->
-      <div class="page-header mb-6">
-        <h1 class="text-2xl font-bold">{{ t('expense.form.title.edit') }}</h1>
+      <!-- Page Header with Status Indicators -->
+      <div class="page-header mb-6 flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-bold">{{ t('expense.form.title.edit') }}</h1>
+          <div class="flex items-center gap-2 mt-2">
+            <Badge v-if="hasOptimisticUpdate" variant="secondary" class="text-xs">
+              <Icon name="lucide:zap" class="w-3 h-3 mr-1" />
+              {{ t('expense.status.optimistic') }}
+            </Badge>
+            <Badge v-if="isDirty" variant="outline" class="text-xs">
+              <Icon name="lucide:circle" class="w-2 h-2 mr-1 fill-current text-warning" />
+              {{ t('expense.status.unsavedChanges') }}
+            </Badge>
+          </div>
+        </div>
       </div>
 
       <!-- Expense Form -->
       <Card>
         <CardContent class="p-6">
-          <form @submit.prevent="handleSubmit">
-            <!-- Date Field -->
-            <div class="form-group mb-4">
-              <Label for="date">{{ t('expense.form.fields.date') }}</Label>
-              <Input 
-                id="date" 
-                v-model="formData.date" 
-                type="date" 
-                :class="{ 'border-destructive': hasError('date') }"
+          <Form v-slot="{ handleSubmit: formHandleSubmit }" :validation-schema="validationSchema">
+            <form @submit="formHandleSubmit($event => handleSubmit($event as IExpenseFormData))">
+              <!-- Form Fields Component -->
+              <ExpenseFormFields
+                mode="edit"
+                :disabled="isSubmitting"
+                @field-change="handleFieldChange"
+                @open-tag-selector="handleOpenTagSelector"
+                @open-attachment-upload="handleOpenAttachmentUpload"
               />
-              <p v-if="hasError('date')" class="text-sm text-destructive mt-1">
-                {{ getError('date') }}
-              </p>
-            </div>
 
-            <!-- Category Field -->
-            <div class="form-group mb-4">
-              <Label for="category">{{ t('expense.form.fields.category') }}</Label>
-              <Select v-model="formData.category">
-                <SelectTrigger :class="{ 'border-destructive': hasError('category') }">
-                  <SelectValue :placeholder="t('expense.form.placeholders.category')" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="travel">{{ t('expense.categories.travel') }}</SelectItem>
-                  <SelectItem value="meal">{{ t('expense.categories.meal') }}</SelectItem>
-                  <SelectItem value="office">{{ t('expense.categories.office') }}</SelectItem>
-                  <SelectItem value="communication">{{ t('expense.categories.communication') }}</SelectItem>
-                  <SelectItem value="other">{{ t('expense.categories.other') }}</SelectItem>
-                </SelectContent>
-              </Select>
-              <p v-if="hasError('category')" class="text-sm text-destructive mt-1">
-                {{ getError('category') }}
-              </p>
-            </div>
-
-            <!-- Description Field -->
-            <div class="form-group mb-4">
-              <Label for="description">{{ t('expense.form.fields.description') }}</Label>
-              <Input 
-                id="description" 
-                v-model="formData.description" 
-                type="text"
-                :placeholder="t('expense.form.placeholders.description')"
-                :class="{ 'border-destructive': hasError('description') }"
-              />
-              <p v-if="hasError('description')" class="text-sm text-destructive mt-1">
-                {{ getError('description') }}
-              </p>
-            </div>
-
-            <!-- Income Amount Field -->
-            <div class="form-group mb-4">
-              <Label for="incomeAmount">{{ t('expense.form.fields.incomeAmount') }}</Label>
-              <div class="relative">
-                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">¥</span>
-                <Input 
-                  id="incomeAmount" 
-                  v-model.number="formData.incomeAmount" 
-                  type="number"
-                  min="0"
-                  class="pl-8"
-                  :placeholder="t('expense.form.placeholders.amount')"
-                  :class="{ 'border-destructive': hasError('incomeAmount') }"
-                />
+              <!-- Form Actions -->
+              <div class="flex flex-col sm:flex-row gap-3 justify-end mt-6">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  :disabled="isSubmitting"
+                  @click="handleCancel"
+                >
+                  {{ t('common.cancel') }}
+                </Button>
+                <Button 
+                  type="submit"
+                  :disabled="isSubmitting || !isFormValid || !isDirty"
+                  class="relative"
+                >
+                  <Icon v-if="isSubmitting" name="lucide:loader-2" class="w-4 h-4 mr-2 animate-spin" />
+                  {{ isSubmitting ? t('common.saving') : t('expense.actions.update') }}
+                </Button>
               </div>
-              <p v-if="hasError('incomeAmount')" class="text-sm text-destructive mt-1">
-                {{ getError('incomeAmount') }}
-              </p>
-            </div>
-
-            <!-- Expense Amount Field -->
-            <div class="form-group mb-4">
-              <Label for="expenseAmount">{{ t('expense.form.fields.expenseAmount') }}</Label>
-              <div class="relative">
-                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">¥</span>
-                <Input 
-                  id="expenseAmount" 
-                  v-model.number="formData.expenseAmount" 
-                  type="number"
-                  min="0"
-                  class="pl-8"
-                  :placeholder="t('expense.form.placeholders.amount')"
-                  :class="{ 'border-destructive': hasError('expenseAmount') }"
-                />
-              </div>
-              <p v-if="hasError('expenseAmount')" class="text-sm text-destructive mt-1">
-                {{ getError('expenseAmount') }}
-              </p>
-            </div>
-
-            <!-- Case Field (Optional) -->
-            <div class="form-group mb-4">
-              <Label for="caseId">{{ t('expense.form.fields.case') }}</Label>
-              <Select v-model="formData.caseId">
-                <SelectTrigger>
-                  <SelectValue :placeholder="t('expense.form.placeholders.case')" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem :value="null">{{ t('common.none') }}</SelectItem>
-                  <!-- Cases will be loaded dynamically -->
-                </SelectContent>
-              </Select>
-            </div>
-
-            <!-- Memo Field -->
-            <div class="form-group mb-6">
-              <Label for="memo">{{ t('expense.form.fields.memo') }}</Label>
-              <Textarea 
-                id="memo" 
-                v-model="formData.memo" 
-                :placeholder="t('expense.form.placeholders.memo')"
-                rows="3"
-              />
-            </div>
-
-            <!-- Form Actions -->
-            <div class="flex flex-col sm:flex-row gap-3 justify-end">
-              <Button 
-                type="button" 
-                variant="outline" 
-                :disabled="saving"
-                @click="handleCancel"
-              >
-                {{ t('common.cancel') }}
-              </Button>
-              <Button 
-                type="submit"
-                :disabled="saving || !isFormValid || !hasChanges"
-              >
-                <Icon v-if="saving" name="lucide:loader-2" class="w-4 h-4 mr-2 animate-spin" />
-                {{ saving ? t('common.saving') : t('expense.actions.update') }}
-              </Button>
-            </div>
-          </form>
+            </form>
+          </Form>
         </CardContent>
       </Card>
+
+      <!-- Optimistic Update Indicator -->
+      <div v-if="hasOptimisticUpdate" class="fixed bottom-4 right-4 z-50">
+        <Alert class="w-80 bg-primary/10 border-primary">
+          <Icon name="lucide:zap" class="h-4 w-4" />
+          <AlertDescription>
+            {{ t('expense.status.optimisticUpdate') }}
+          </AlertDescription>
+        </Alert>
+      </div>
+
+      <!-- Conflict Resolution Dialog -->
+      <ConflictResolutionDialog
+        :open="showConflictDialog"
+        :conflict="currentConflict"
+        @update:open="showConflictDialog = $event"
+        @resolve="handleConflictResolution"
+        @cancel="handleConflictCancel"
+      />
     </template>
   </div>
 </template>
 
 <script setup lang="ts">
+import { toTypedSchema } from '@vee-validate/zod'
+import { createExpenseSchema } from '~/schemas/expense'
 import type { IExpense, IExpenseFormData } from '~/types/expense'
-import type { IValidationError } from '~/types/common'
+import type { IConflictResolution } from '~/composables/useFormSubmissionOptimistic'
 import { 
   Breadcrumb, 
   BreadcrumbList, 
@@ -204,17 +144,12 @@ import {
 } from '~/components/ui/breadcrumb'
 import { Card, CardContent } from '~/components/ui/card'
 import { Button } from '~/components/ui/button'
-import { Input } from '~/components/ui/input'
-import { Label } from '~/components/ui/label'
-import { Textarea } from '~/components/ui/textarea'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '~/components/ui/select'
+import { Badge } from '~/components/ui/badge'
+import { Alert, AlertDescription } from '~/components/ui/alert'
+import { Form } from '~/components/ui/form'
 import { Icon } from '#components'
+import ExpenseFormFields from '~/components/expenses/ExpenseFormFields.vue'
+import ConflictResolutionDialog from '~/components/expenses/ConflictResolutionDialog.vue'
 
 defineOptions({
   name: 'ExpenseEdit'
@@ -238,84 +173,80 @@ const NuxtLink = resolveComponent('NuxtLink')
 // State
 // @ts-expect-error - route params typing issue in Nuxt
 const expenseId = route.params.id as string
-const formData = ref<IExpenseFormData | null>(null)
-const originalData = ref<IExpenseFormData | null>(null)
-const originalDescription = ref('')
 const loading = ref(true)
 const loadError = ref<string>()
-const saving = ref(false)
-const formErrors = ref<IValidationError[]>([])
+const originalDescription = ref('')
+
+// Conflict resolution state
+const showConflictDialog = ref(false)
+const currentConflict = ref<IConflictResolution<IExpenseFormData> | null>(null)
+
+// Validation schema
+const validationSchema = toTypedSchema(createExpenseSchema(t))
 
 // Form validation
 const isFormValid = computed(() => {
-  if (!formData.value) return false
-  return formData.value.date && 
-         formData.value.category && 
-         formData.value.description &&
-         (formData.value.incomeAmount > 0 || formData.value.expenseAmount > 0)
+  return currentData.value?.date && 
+         currentData.value?.category && 
+         currentData.value?.description &&
+         ((currentData.value?.incomeAmount || 0) > 0 || (currentData.value?.expenseAmount || 0) > 0)
 })
 
-// Check if data has changed
-const hasChanges = computed(() => {
-  if (!formData.value || !originalData.value) return false
-  return JSON.stringify(formData.value) !== JSON.stringify(originalData.value)
+// Initialize optimistic form submission
+const {
+  formState,
+  currentData,
+  isDirty,
+  isSubmitting,
+  hasOptimisticUpdate,
+  submitWithOptimistic,
+  updateFormData,
+  clearError,
+  resolveConflict
+} = useFormSubmissionOptimistic<IExpenseFormData>({
+  initialData: {
+    date: '',
+    category: '',
+    description: '',
+    incomeAmount: 0,
+    expenseAmount: 0,
+    caseId: undefined,
+    memo: '',
+    tagIds: [],
+    attachmentIds: []
+  },
+  version: 1,
+  enableOptimistic: true,
+  conflictResolver: async (conflict) => {
+    currentConflict.value = conflict
+    showConflictDialog.value = true
+    
+    // Return a promise that resolves when dialog is closed
+    return new Promise((resolve) => {
+      const unwatch = watch(showConflictDialog, (isOpen) => {
+        if (!isOpen && currentConflict.value) {
+          resolve(currentConflict.value.localData) // Default resolution
+          unwatch()
+        }
+      })
+    })
+  },
+  onSuccess: (_data) => {
+    router.push(`/expenses/${expenseId}`)
+  },
+  onError: (error) => {
+    console.error('Form submission error:', error)
+  }
 })
 
-// Error handling helpers
-const hasError = (field: string): boolean => {
-  return formErrors.value.some(error => error.field === field)
-}
-
-const getError = (field: string): string => {
-  const error = formErrors.value.find(err => err.field === field)
-  return error ? t(`expense.errors.${error.code}`, error.message) : ''
-}
-
-// Form validation
-const validateForm = (): boolean => {
-  formErrors.value = []
-  
-  if (!formData.value) return false
-  
-  if (!formData.value.date) {
-    formErrors.value.push({ 
-      field: 'date', 
-      message: 'Date is required', 
-      code: 'REQUIRED' 
-    })
+// Navigation guards
+const { enableGuards, disableGuards } = useFormNavigationGuards({
+  isDirty,
+  confirmMessage: t('expense.form.confirmDiscardChanges'),
+  onNavigationAllowed: () => {
+    // Allow navigation when form is saved successfully
   }
-  
-  if (!formData.value.category) {
-    formErrors.value.push({ 
-      field: 'category', 
-      message: 'Category is required', 
-      code: 'REQUIRED' 
-    })
-  }
-  
-  if (!formData.value.description) {
-    formErrors.value.push({ 
-      field: 'description', 
-      message: 'Description is required', 
-      code: 'REQUIRED' 
-    })
-  }
-  
-  if (formData.value.incomeAmount === 0 && formData.value.expenseAmount === 0) {
-    formErrors.value.push({ 
-      field: 'incomeAmount', 
-      message: 'Either income or expense amount is required', 
-      code: 'AMOUNT_REQUIRED' 
-    })
-    formErrors.value.push({ 
-      field: 'expenseAmount', 
-      message: 'Either income or expense amount is required', 
-      code: 'AMOUNT_REQUIRED' 
-    })
-  }
-  
-  return formErrors.value.length === 0
-}
+})
 
 // Load expense data
 const loadExpense = async () => {
@@ -360,9 +291,12 @@ const loadExpense = async () => {
       attachmentIds: expense.attachments?.map(a => a.id) || []
     }
     
-    formData.value = { ...data }
-    originalData.value = { ...data }
+    // Initialize form with loaded data
+    formState.value.data = { ...data }
+    formState.value.originalData = { ...data }
+    formState.value.version = expense.version
     originalDescription.value = expense.description
+    
   } catch (err: unknown) {
     loadError.value = t('expense.errors.loadFailed')
     console.error('Failed to load expense:', err)
@@ -372,42 +306,86 @@ const loadExpense = async () => {
 }
 
 // Event handlers
-const handleSubmit = async () => {
-  if (!validateForm() || !formData.value) {
-    return
-  }
+const handleSubmit = async (_formData: IExpenseFormData) => {
+  clearError()
   
-  saving.value = true
-  formErrors.value = []
-  
-  try {
+  await submitWithOptimistic(async (_data) => {
     // Mock API call - will be replaced with actual service
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    await new Promise(resolve => setTimeout(resolve, 1500))
     
-    // Success - redirect to detail view
-    await router.push(`/expenses/${expenseId}`)
-  } catch (error: unknown) {
-    formErrors.value = [{ 
-      field: 'general', 
-      message: 'Failed to update expense', 
-      code: 'UPDATE_FAILED' 
-    }]
-    console.error('Failed to update expense:', error)
-  } finally {
-    saving.value = false
-  }
+    // Mock response with updated version
+    return {
+      ...currentData.value,
+      version: formState.value.version + 1,
+      updatedAt: new Date().toISOString()
+    }
+  })
+}
+
+const handleFieldChange = (field: string, value: unknown) => {
+  updateFormData({ [field]: value })
 }
 
 const handleCancel = () => {
-  if (hasChanges.value && !confirm(t('common.confirm.discardChanges'))) {
-    return
+  if (isDirty.value) {
+    // Navigation guard will handle confirmation
+    router.back()
+  } else {
+    router.back()
   }
-  router.back()
 }
 
-// Load data on mount
+// Tag and attachment handlers (placeholders)
+const handleOpenTagSelector = () => {
+  // TODO: Implement tag selector dialog
+  console.log('Open tag selector')
+}
+
+const handleOpenAttachmentUpload = () => {
+  // TODO: Implement attachment upload dialog
+  console.log('Open attachment upload')
+}
+
+// Conflict resolution handlers
+const handleConflictResolution = async (resolution: string, mergedData?: unknown) => {
+  if (currentConflict.value) {
+    let resolvedData: IExpenseFormData
+    
+    switch (resolution) {
+      case 'keep_local':
+        resolvedData = currentConflict.value.localData
+        break
+      case 'use_server':
+        resolvedData = currentConflict.value.serverData
+        break
+      case 'merge':
+        resolvedData = (mergedData as IExpenseFormData) || currentConflict.value.localData
+        break
+      default:
+        resolvedData = currentConflict.value.localData
+        break
+    }
+    
+    await resolveConflict(resolvedData, currentConflict.value.serverVersion)
+  }
+  
+  showConflictDialog.value = false
+  currentConflict.value = null
+}
+
+const handleConflictCancel = () => {
+  showConflictDialog.value = false
+  currentConflict.value = null
+}
+
+// Lifecycle hooks
 onMounted(() => {
   loadExpense()
+  enableGuards()
+})
+
+onUnmounted(() => {
+  disableGuards()
 })
 
 // SEO
