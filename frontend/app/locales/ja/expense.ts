@@ -142,28 +142,99 @@ export default {
 
     // Form fields
     form: {
-      date: '日付',
-      dateRequired: '日付は必須です',
-      dateInvalid: '有効な日付を入力してください',
-      category: 'カテゴリ',
-      categoryRequired: 'カテゴリは必須です',
-      description: '説明',
-      descriptionRequired: '説明は必須です',
-      descriptionPlaceholder: '経費の詳細を入力...',
-      incomeAmount: '収入金額',
-      expenseAmount: '支出金額',
-      amountRequired: '金額は必須です',
-      amountInvalid: '有効な金額を入力してください',
-      amountMin: '金額は0以上である必要があります',
-      balance: '残高',
-      caseId: '案件ID',
-      casePlaceholder: '案件を選択（任意）',
-      memo: 'メモ',
-      memoPlaceholder: '追加情報やメモ...',
-      tags: 'タグ',
-      tagsPlaceholder: 'タグを選択（任意）',
-      attachments: '添付ファイル',
-      attachmentsPlaceholder: 'ファイルをドラッグ＆ドロップまたは選択'
+      // Field labels
+      fields: {
+        date: '日付',
+        category: '分類',
+        description: '説明',
+        incomeAmount: '収入金額',
+        expenseAmount: '支出金額',
+        case: '案件',
+        memo: 'メモ',
+        tags: 'タグ'
+      },
+
+      // Form placeholders
+      placeholders: {
+        date: '日付を選択',
+        category: '分類を選択してください',
+        description: '経費の詳細を入力してください',
+        incomeAmount: '0',
+        expenseAmount: '0',
+        case: '案件を選択（任意）',
+        memo: '追加情報やメモを入力',
+        tags: 'タグを選択'
+      },
+
+      // Form descriptions
+      descriptions: {
+        date: '経費が発生した日付を選択してください',
+        category: '経費のカテゴリを選択してください',
+        description: '経費の詳細な説明を入力してください（最大500文字）',
+        incomeAmount: '収入として受け取った金額を入力してください',
+        expenseAmount: '支出として支払った金額を入力してください',
+        case: '関連する案件があれば選択してください',
+        memo: '追加の説明やメモがあれば入力してください（最大1000文字）',
+        tags: '分類用のタグを選択してください'
+      },
+
+      // Multi-step form
+      steps: {
+        basic: '基本情報', 
+        basicDescription: '経費の基本的な情報を入力してください',
+        amount: '金額情報',
+        amountDescription: '収入または支出の金額を入力してください',
+        additional: '追加情報',
+        additionalDescription: '案件やタグなどの追加情報を入力してください'
+      },
+
+      // Form validation messages
+      validation: {
+        required: '{field}は必須です',
+        futureDate: '未来の日付は入力できません',
+        invalidCategory: '無効なカテゴリです',
+        invalidDescription: '説明は500文字以内で入力してください',
+        minAmount: '金額は0以上である必要があります',
+        maxAmount: '金額が上限を超えています',
+        maxMemo: 'メモは1000文字以内で入力してください',
+        amountRequired: '収入金額または支出金額のいずれかを入力してください'
+      },
+
+      // Amount types and calculations
+      amountType: '取引種別',
+      amountTypes: {
+        expense: '支出',
+        income: '収入'
+      },
+      balanceCalculation: '収支計算',
+      balanceTypes: {
+        positive: '収入超過',
+        negative: '支出超過',
+        zero: '収支0'
+      },
+      commonAmounts: 'よく使う金額',
+
+      // Quick templates and tags
+      quickTemplates: 'よく使う説明',
+      templates: {
+        court: '裁判所',
+        client: 'クライアント',
+        copying: 'コピー',
+        postage: '郵送',
+        stamp: '印紙',
+        supplies: '用品',
+        materials: '資料',
+        other: 'その他'
+      },
+      quickTags: 'よく使うタグ',
+
+      // Additional info
+      noCase: '案件なし',
+      noTags: 'タグなし',
+      characters: '文字',
+      summary: '入力内容確認',
+      attachmentPlaceholder: '添付ファイル',
+      attachmentComingSoon: '添付ファイル機能は次のバージョンで実装予定です'
     },
 
     // Virtual scrolling
