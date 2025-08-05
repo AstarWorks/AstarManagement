@@ -144,7 +144,9 @@ export default {
       of: '/',
       showing: '表示中',
       to: '〜',
-      results: '件'
+      results: '件',
+      noResults: '結果がありません',
+      summary: '{start}-{end} / {total} 件'
     },
 
     // Form fields

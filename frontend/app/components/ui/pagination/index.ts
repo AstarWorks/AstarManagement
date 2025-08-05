@@ -1,0 +1,5 @@
+export { default as PaginationRoot } from './PaginationRoot.vue'
+export { default as PaginationInfo } from './PaginationInfo.vue'
+export { default as PaginationNav } from './PaginationNav.vue'
+export { default as PaginationPageSize } from './PaginationPageSize.vue'
+export { default as PaginationJumpTo } from './PaginationJumpTo.vue'
