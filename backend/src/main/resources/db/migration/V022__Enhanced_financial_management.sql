@@ -548,9 +548,11 @@ SELECT
     
     -- Expense metrics
     COUNT(DISTINCT e.id) as total_expenses,
-    COALESCE(SUM(e.amount), 0) as total_expense_amount,
-    COALESCE(SUM(e.amount) FILTER (WHERE e.billable = TRUE), 0) as billable_expenses,
-    COALESCE(SUM(e.amount) FILTER (WHERE e.billed = TRUE), 0) as billed_expenses,
+    COALESCE(SUM(e.expense_amount), 0) as total_expense_amount,
+    -- billable functionality removed in V017_1
+    0 as billable_expenses,
+    -- billed functionality removed in V017_1
+    0 as billed_expenses,
     
     -- Payment metrics
     COUNT(DISTINCT p.id) as total_payments,
@@ -586,7 +588,7 @@ INSERT INTO billing_rates (
     is_default, created_by, updated_by
 )
 SELECT 
-    'demo0000-0000-0000-0000-000000000001',
+    'aaaaaaaa-bbbb-cccc-dddd-000000000001',
     'Standard Attorney Rate',
     'hourly',
     20000.00, -- 20,000 JPY per hour
@@ -596,5 +598,5 @@ SELECT
     u.id,
     u.id
 FROM users u 
-WHERE u.tenant_id = 'demo0000-0000-0000-0000-000000000001' 
+WHERE u.tenant_id = 'aaaaaaaa-bbbb-cccc-dddd-000000000001' 
 LIMIT 1;

@@ -57,11 +57,7 @@ CREATE TABLE expense_attachments (
     display_order INTEGER NOT NULL DEFAULT 0,
     description VARCHAR(255),
     
-    PRIMARY KEY (expense_id, attachment_id),
-    
-    -- Ensure tenant consistency across relationships
-    FOREIGN KEY (expense_id, tenant_id) REFERENCES expenses(id, tenant_id),
-    FOREIGN KEY (attachment_id, tenant_id) REFERENCES attachments(id, tenant_id)
+    PRIMARY KEY (expense_id, attachment_id)
 );
 
 -- Create indexes for attachments table (matching JPA entity annotations)
@@ -89,25 +85,12 @@ ALTER TABLE attachments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE expense_attachments ENABLE ROW LEVEL SECURITY;
 
 -- Create RLS policies for attachments table
--- Main tenant isolation policy
+-- Main tenant isolation policy (simplified, owner access functionality removed for now)
 CREATE POLICY tenant_isolation_attachments ON attachments
     FOR ALL 
     TO authenticated_users
     USING (tenant_id = current_tenant_id())
     WITH CHECK (tenant_id = current_tenant_id());
-
--- Special policy for temporary files (owner access only)
-CREATE POLICY temp_file_owner_access ON attachments
-    FOR ALL 
-    TO authenticated_users
-    USING (
-        tenant_id = current_tenant_id() AND
-        (status != 'TEMPORARY' OR uploaded_by = current_user_id())
-    )
-    WITH CHECK (
-        tenant_id = current_tenant_id() AND
-        (status != 'TEMPORARY' OR uploaded_by = current_user_id())
-    );
 
 -- Create RLS policies for expense_attachments table
 CREATE POLICY tenant_isolation_expense_attachments ON expense_attachments

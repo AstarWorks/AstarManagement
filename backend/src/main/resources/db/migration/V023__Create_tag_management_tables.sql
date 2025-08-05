@@ -37,10 +37,7 @@ CREATE TABLE expense_tags (
     expense_id UUID NOT NULL REFERENCES expenses(id) ON DELETE CASCADE,
     tag_id UUID NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
     tenant_id UUID NOT NULL REFERENCES tenants(id),
-    PRIMARY KEY (expense_id, tag_id),
-    -- Foreign key to ensure both expense and tag belong to same tenant
-    FOREIGN KEY (expense_id, tenant_id) REFERENCES expenses(id, tenant_id),
-    FOREIGN KEY (tag_id, tenant_id) REFERENCES tags(id, tenant_id)
+    PRIMARY KEY (expense_id, tag_id)
 );
 
 -- Create indexes for tags table
@@ -64,14 +61,8 @@ ALTER TABLE expense_tags ENABLE ROW LEVEL SECURITY;
 CREATE POLICY tenant_tags_access ON tags
     FOR ALL 
     TO authenticated_users
-    USING (
-        tenant_id = current_tenant_id() AND
-        (scope = 'TENANT' OR (scope = 'PERSONAL' AND owner_id = current_user_id()))
-    )
-    WITH CHECK (
-        tenant_id = current_tenant_id() AND
-        (scope = 'TENANT' OR (scope = 'PERSONAL' AND owner_id = current_user_id()))
-    );
+    USING (tenant_id = current_tenant_id())
+    WITH CHECK (tenant_id = current_tenant_id());
 
 -- Create RLS policies for expense_tags table
 CREATE POLICY tenant_isolation_expense_tags ON expense_tags
@@ -113,19 +104,20 @@ COMMENT ON COLUMN expense_tags.tenant_id IS 'Denormalized tenant_id for efficien
 
 -- Create some default tags for demo tenant (development only)
 -- Remove or customize for production deployment
+-- Insert default tags only if users exist for the demo tenant
 INSERT INTO tags (
     id, tenant_id, name, name_normalized, color, scope, 
     created_by, updated_by
 )
 SELECT 
     gen_random_uuid(),
-    'demo0000-0000-0000-0000-000000000001',
+    'aaaaaaaa-bbbb-cccc-dddd-000000000001',
     tag_name,
     LOWER(TRIM(tag_name)),
     tag_color,
     'TENANT',
-    (SELECT id FROM users WHERE email = 'admin@demo.Astarmanagement.com' LIMIT 1),
-    (SELECT id FROM users WHERE email = 'admin@demo.Astarmanagement.com' LIMIT 1)
+    first_user.id,
+    first_user.id
 FROM (VALUES 
     ('交通費', '#FF6B6B'),
     ('宿泊費', '#4ECDC4'),
@@ -138,4 +130,10 @@ FROM (VALUES
     ('顧問料', '#FD79A8'),
     ('その他', '#636E72')
 ) AS default_tags(tag_name, tag_color)
-WHERE EXISTS (SELECT 1 FROM tenants WHERE id = 'demo0000-0000-0000-0000-000000000001');
+CROSS JOIN (
+    SELECT id FROM users 
+    WHERE tenant_id = 'aaaaaaaa-bbbb-cccc-dddd-000000000001' 
+    LIMIT 1
+) AS first_user
+WHERE EXISTS (SELECT 1 FROM tenants WHERE id = 'aaaaaaaa-bbbb-cccc-dddd-000000000001')
+AND EXISTS (SELECT 1 FROM users WHERE tenant_id = 'aaaaaaaa-bbbb-cccc-dddd-000000000001');

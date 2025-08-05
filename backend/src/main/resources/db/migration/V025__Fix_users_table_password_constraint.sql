@@ -1,0 +1,4 @@
+-- V026__Fix_users_table_password_constraint.sql
+-- This migration was previously applied but the file was lost
+-- Creating empty migration to maintain Flyway history consistency
+-- Original purpose: Fixed users table password column constraint

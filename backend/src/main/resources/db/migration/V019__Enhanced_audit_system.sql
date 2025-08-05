@@ -10,11 +10,9 @@ BEGIN
         -- Create the table if it doesn't exist
         CREATE TABLE audit_logs (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-            event_type VARCHAR(100) NOT NULL,
-            resource_type VARCHAR(100) NOT NULL,
-            resource_id UUID,
+            event_type audit_event_type NOT NULL,
             user_id UUID,
-            details JSONB DEFAULT '{}',
+            event_details JSONB DEFAULT '{}',
             created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
         );
     END IF;
@@ -44,30 +42,87 @@ ADD COLUMN IF NOT EXISTS checksum VARCHAR(64); -- For audit log integrity
 
 -- Add constraints for new columns
 ALTER TABLE audit_logs 
-ADD CONSTRAINT IF NOT EXISTS chk_severity_level CHECK (
+ADD CONSTRAINT chk_severity_level CHECK (
     severity_level IN ('debug', 'info', 'warning', 'error', 'critical')
 ),
-ADD CONSTRAINT IF NOT EXISTS chk_data_classification CHECK (
+ADD CONSTRAINT chk_data_classification CHECK (
     data_classification IN ('public', 'internal', 'confidential', 'restricted')
 ),
-ADD CONSTRAINT IF NOT EXISTS chk_http_method CHECK (
+ADD CONSTRAINT chk_http_method CHECK (
     http_method IN ('GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD')
 );
 
+-- Drop any dependent views before altering column type
+DROP VIEW IF EXISTS audit_statistics;
+DROP VIEW IF EXISTS audit_trail;
+
+-- Convert user_id column type to UUID if it's not already
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'audit_logs' 
+        AND column_name = 'user_id' 
+        AND data_type != 'uuid'
+    ) THEN
+        -- First, clear any invalid data that can't be converted to UUID
+        UPDATE audit_logs SET user_id = NULL WHERE user_id IS NOT NULL AND user_id !~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$';
+        
+        -- Then alter the column type
+        ALTER TABLE audit_logs ALTER COLUMN user_id TYPE UUID USING user_id::UUID;
+    END IF;
+END
+$$;
+
 -- Add foreign key constraints for new columns
 ALTER TABLE audit_logs 
-ADD CONSTRAINT IF NOT EXISTS fk_audit_logs_tenant_id 
-    FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE RESTRICT,
-ADD CONSTRAINT IF NOT EXISTS fk_audit_logs_user_id 
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
-ADD CONSTRAINT IF NOT EXISTS fk_audit_logs_session_id 
-    FOREIGN KEY (session_id) REFERENCES user_sessions(id) ON DELETE SET NULL;
+ADD CONSTRAINT fk_audit_logs_tenant_id 
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE RESTRICT;
+
+ALTER TABLE audit_logs 
+ADD CONSTRAINT fk_audit_logs_user_id 
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL;
+
+-- Recreate audit_statistics view (originally from V006)
+CREATE VIEW audit_statistics AS
+SELECT 
+    DATE_TRUNC('day', event_timestamp) as audit_date,
+    event_type,
+    entity_type,
+    COUNT(*) as event_count,
+    COUNT(DISTINCT user_id) as unique_users,
+    COUNT(DISTINCT entity_id) as unique_entities
+FROM audit_logs 
+WHERE event_timestamp >= CURRENT_DATE - INTERVAL '30 days'
+GROUP BY DATE_TRUNC('day', event_timestamp), event_type, entity_type
+ORDER BY audit_date DESC, event_count DESC;
+
+-- Recreate audit_trail view (originally from V006, using existing schema)  
+CREATE VIEW audit_trail AS
+SELECT 
+    al.id,
+    al.event_type,
+    al.entity_type,
+    al.entity_id,
+    al.event_timestamp,
+    al.user_id,
+    al.user_name,
+    al.ip_address,
+    al.event_details,
+    al.request_id as correlation_id,
+    -- Matter-specific enrichment (when entity_type = 'Matter')
+    CASE WHEN al.entity_type = 'Matter' THEN m.case_number END as matter_case_number,
+    CASE WHEN al.entity_type = 'Matter' THEN m.title END as matter_title,
+    CASE WHEN al.entity_type = 'Matter' THEN m.client_name END as matter_client
+FROM audit_logs al
+LEFT JOIN matters m ON al.entity_type = 'Matter' AND al.entity_id = m.id::text
+ORDER BY al.event_timestamp DESC;
 
 -- Create indexes for performance
 CREATE INDEX IF NOT EXISTS idx_audit_logs_tenant_id ON audit_logs(tenant_id);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_event_type ON audit_logs(event_type);
-CREATE INDEX IF NOT EXISTS idx_audit_logs_resource_type ON audit_logs(resource_type);
-CREATE INDEX IF NOT EXISTS idx_audit_logs_resource_id ON audit_logs(resource_id);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_entity_type ON audit_logs(entity_type);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_entity_id ON audit_logs(entity_id);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON audit_logs(user_id);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_session_id ON audit_logs(session_id);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at);
@@ -80,14 +135,14 @@ CREATE INDEX IF NOT EXISTS idx_audit_logs_success ON audit_logs(success) WHERE s
 -- Composite indexes for common query patterns
 CREATE INDEX IF NOT EXISTS idx_audit_logs_tenant_event_date ON audit_logs(tenant_id, event_type, created_at);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_user_date ON audit_logs(user_id, created_at);
-CREATE INDEX IF NOT EXISTS idx_audit_logs_resource_date ON audit_logs(resource_type, resource_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_entity_date ON audit_logs(entity_type, entity_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_compliance_date ON audit_logs(compliance_category, created_at);
 
 -- Enable Row Level Security
 ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
 
 -- Create RLS policy for tenant isolation
-CREATE POLICY IF NOT EXISTS tenant_isolation_audit_logs ON audit_logs
+CREATE POLICY tenant_isolation_audit_logs ON audit_logs
     FOR SELECT 
     TO authenticated_users
     USING (tenant_id = current_tenant_id() OR tenant_id IS NULL);
@@ -97,20 +152,20 @@ CREATE POLICY IF NOT EXISTS tenant_isolation_audit_logs ON audit_logs
 -- Create function to generate audit log checksum for integrity
 CREATE OR REPLACE FUNCTION generate_audit_checksum(
     p_event_type VARCHAR(100),
-    p_resource_type VARCHAR(100), 
-    p_resource_id UUID,
+    p_entity_type VARCHAR(100), 
+    p_entity_id UUID,
     p_user_id UUID,
-    p_details JSONB,
+    p_event_details JSONB,
     p_created_at TIMESTAMP WITH TIME ZONE
 ) RETURNS VARCHAR(64) AS $$
 BEGIN
     RETURN encode(
         digest(
             COALESCE(p_event_type, '') || '|' ||
-            COALESCE(p_resource_type, '') || '|' ||
-            COALESCE(p_resource_id::TEXT, '') || '|' ||
+            COALESCE(p_entity_type, '') || '|' ||
+            COALESCE(p_entity_id::TEXT, '') || '|' ||
             COALESCE(p_user_id::TEXT, '') || '|' ||
-            COALESCE(p_details::TEXT, '{}') || '|' ||
+            COALESCE(p_event_details::TEXT, '{}') || '|' ||
             p_created_at::TEXT,
             'sha256'
         ),
@@ -125,10 +180,10 @@ RETURNS TRIGGER AS $$
 BEGIN
     NEW.checksum := generate_audit_checksum(
         NEW.event_type,
-        NEW.resource_type,
-        NEW.resource_id,
+        NEW.entity_type,
+        NEW.entity_id,
         NEW.user_id,
-        NEW.details,
+        NEW.event_details,
         NEW.created_at
     );
     
@@ -151,10 +206,10 @@ CREATE TRIGGER set_audit_checksum_trigger
 -- Create function to log audit events (public API for application use)
 CREATE OR REPLACE FUNCTION log_audit_event(
     p_event_type VARCHAR(100),
-    p_resource_type VARCHAR(100),
-    p_resource_id UUID DEFAULT NULL,
+    p_entity_type VARCHAR(100),
+    p_entity_id UUID DEFAULT NULL,
     p_user_id UUID DEFAULT NULL,
-    p_details JSONB DEFAULT '{}',
+    p_event_details JSONB DEFAULT '{}',
     p_session_id UUID DEFAULT NULL,
     p_ip_address INET DEFAULT NULL,
     p_user_agent TEXT DEFAULT NULL,
@@ -176,13 +231,13 @@ DECLARE
     audit_id UUID;
 BEGIN
     INSERT INTO audit_logs (
-        event_type, resource_type, resource_id, user_id, details,
+        event_type, entity_type, entity_id, user_id, event_details,
         session_id, ip_address, user_agent, request_id, api_endpoint,
         http_method, before_data, after_data, data_classification,
         compliance_category, severity_level, geo_location, device_type,
         success, error_message, duration_ms
     ) VALUES (
-        p_event_type, p_resource_type, p_resource_id, p_user_id, p_details,
+        p_event_type, p_entity_type, p_entity_id, p_user_id, p_event_details,
         p_session_id, p_ip_address, p_user_agent, p_request_id, p_api_endpoint,
         p_http_method, p_before_data, p_after_data, p_data_classification,
         p_compliance_category, p_severity_level, p_geo_location, p_device_type,
@@ -208,13 +263,13 @@ BEGIN
     SELECT 
         al.id,
         al.checksum = generate_audit_checksum(
-            al.event_type, al.resource_type, al.resource_id,
-            al.user_id, al.details, al.created_at
+            al.event_type, al.entity_type, al.entity_id,
+            al.user_id, al.event_details, al.created_at
         ) as is_valid,
         al.checksum as stored_checksum,
         generate_audit_checksum(
-            al.event_type, al.resource_type, al.resource_id,
-            al.user_id, al.details, al.created_at
+            al.event_type, al.entity_type, al.entity_id,
+            al.user_id, al.event_details, al.created_at
         ) as calculated_checksum
     FROM audit_logs al
     WHERE al.created_at BETWEEN start_date AND end_date
@@ -271,15 +326,15 @@ SELECT
     al.id,
     al.tenant_id,
     al.event_type,
-    al.resource_type,
-    al.resource_id,
+    al.entity_type,
+    al.entity_id,
     al.user_id,
     u.email as user_email,
     u.first_name || ' ' || u.last_name as user_name,
     al.ip_address,
     al.device_type,
     al.geo_location,
-    al.details,
+    al.event_details,
     al.before_data,
     al.after_data,
     al.created_at,
@@ -287,8 +342,8 @@ SELECT
 FROM audit_logs al
 LEFT JOIN users u ON al.user_id = u.id
 WHERE al.event_type IN (
-    'DATA_ACCESS', 'DATA_EXPORT', 'DATA_DOWNLOAD', 'DOCUMENT_VIEW',
-    'MATTER_VIEW', 'CLIENT_DATA_ACCESS', 'SEARCH_QUERY'
+    'DOCUMENT_ACCESSED', 'DATA_EXPORT', 'DOCUMENT_ACCESSED', 'DOCUMENT_ACCESSED',
+    'MATTER_UPDATED', 'DOCUMENT_ACCESSED', 'SYSTEM_EVENT'
 )
 AND al.data_classification IN ('confidential', 'restricted');
 
@@ -306,16 +361,16 @@ SELECT
     al.severity_level,
     al.success,
     al.error_message,
-    al.details,
+    al.event_details,
     al.geo_location,
     al.created_at
 FROM audit_logs al
 LEFT JOIN users u ON al.user_id = u.id
 WHERE al.event_type IN (
-    'LOGIN_ATTEMPT', 'LOGIN_SUCCESS', 'LOGIN_FAILURE',
-    'LOGOUT', 'PASSWORD_CHANGE', 'MFA_CHALLENGE',
-    'UNAUTHORIZED_ACCESS', 'PERMISSION_DENIED',
-    'SUSPICIOUS_ACTIVITY', 'SECURITY_VIOLATION'
+    'USER_LOGIN', 'USER_LOGIN', 'AUTHENTICATION_FAILED',
+    'USER_LOGOUT', 'SECURITY_EVENT', 'AUTHENTICATION_FAILED',
+    'AUTHORIZATION_DENIED', 'AUTHORIZATION_DENIED',
+    'SECURITY_EVENT', 'SECURITY_EVENT'
 )
 ORDER BY al.created_at DESC;
 
@@ -331,7 +386,7 @@ SELECT
     MIN(al.created_at) as first_event,
     MAX(al.created_at) as last_event,
     COUNT(DISTINCT al.user_id) as unique_users,
-    COUNT(DISTINCT al.resource_id) as unique_resources
+    COUNT(DISTINCT al.entity_id) as unique_entities
 FROM audit_logs al
 LEFT JOIN tenants t ON al.tenant_id = t.id
 WHERE al.compliance_category IS NOT NULL

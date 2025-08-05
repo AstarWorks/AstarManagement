@@ -140,6 +140,19 @@ ALTER TABLE expenses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE roles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_roles ENABLE ROW LEVEL SECURITY;
 
+-- Create authenticated_users role first (required for RLS policies)
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticated_users') THEN
+        CREATE ROLE authenticated_users;
+    END IF;
+END
+$$;
+
+-- Grant necessary permissions to authenticated_users role
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO authenticated_users;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO authenticated_users;
+
 -- Create RLS policies for tenant isolation
 
 -- Users table RLS policy
@@ -191,12 +204,7 @@ CREATE POLICY tenant_isolation_user_roles ON user_roles
     USING (tenant_id = current_tenant_id())
     WITH CHECK (tenant_id = current_tenant_id());
 
--- Create application database user role for RLS
-CREATE ROLE authenticated_users;
-
--- Grant necessary permissions to authenticated_users role
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO authenticated_users;
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO authenticated_users;
+-- Note: authenticated_users role already created above
 
 -- Create function to automatically set tenant_id on INSERT
 CREATE OR REPLACE FUNCTION set_tenant_id_on_insert()
@@ -295,7 +303,7 @@ INSERT INTO tenants (
     subscription_plan,
     subscription_status
 ) VALUES (
-    'demo0000-0000-0000-0000-000000000001',
+    'aaaaaaaa-bbbb-cccc-dddd-000000000001'::uuid,
     'Demo Law Firm',
     'demo',
     '田中法律事務所',
@@ -306,13 +314,13 @@ INSERT INTO tenants (
 
 -- Update existing data to belong to demo tenant (development only)
 -- In production, this would need careful data migration planning
-UPDATE users SET tenant_id = 'demo0000-0000-0000-0000-000000000001' WHERE tenant_id IS NULL;
-UPDATE matters SET tenant_id = 'demo0000-0000-0000-0000-000000000001' WHERE tenant_id IS NULL;
-UPDATE documents SET tenant_id = 'demo0000-0000-0000-0000-000000000001' WHERE tenant_id IS NULL;
-UPDATE memos SET tenant_id = 'demo0000-0000-0000-0000-000000000001' WHERE tenant_id IS NULL;
-UPDATE expenses SET tenant_id = 'demo0000-0000-0000-0000-000000000001' WHERE tenant_id IS NULL;
-UPDATE roles SET tenant_id = 'demo0000-0000-0000-0000-000000000001' WHERE tenant_id IS NULL AND is_system_role = false;
-UPDATE user_roles SET tenant_id = 'demo0000-0000-0000-0000-000000000001' WHERE tenant_id IS NULL;
+UPDATE users SET tenant_id = 'aaaaaaaa-bbbb-cccc-dddd-000000000001'::uuid WHERE tenant_id IS NULL;
+UPDATE matters SET tenant_id = 'aaaaaaaa-bbbb-cccc-dddd-000000000001'::uuid WHERE tenant_id IS NULL;
+UPDATE documents SET tenant_id = 'aaaaaaaa-bbbb-cccc-dddd-000000000001'::uuid WHERE tenant_id IS NULL;
+UPDATE memos SET tenant_id = 'aaaaaaaa-bbbb-cccc-dddd-000000000001'::uuid WHERE tenant_id IS NULL;
+UPDATE expenses SET tenant_id = 'aaaaaaaa-bbbb-cccc-dddd-000000000001'::uuid WHERE tenant_id IS NULL;
+UPDATE roles SET tenant_id = 'aaaaaaaa-bbbb-cccc-dddd-000000000001'::uuid WHERE tenant_id IS NULL AND is_system_role = false;
+UPDATE user_roles SET tenant_id = 'aaaaaaaa-bbbb-cccc-dddd-000000000001'::uuid WHERE tenant_id IS NULL;
 
 -- Make tenant_id NOT NULL after populating existing data
 ALTER TABLE users ALTER COLUMN tenant_id SET NOT NULL;
