@@ -24,8 +24,9 @@ export const useExpenseDelete = (): IExpenseDeleteComposable => {
     deleteError.value = null
     
     try {
-      // Mock API call for now - will be replaced with actual service
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      await $fetch(`/api/v1/expenses/${expenseId}`, {
+        method: 'DELETE'
+      })
       
       toast.success(t('expense.delete.success'), {
         description: t('expense.delete.successDescription'),
@@ -49,10 +50,11 @@ export const useExpenseDelete = (): IExpenseDeleteComposable => {
     }
   }
   
-  const undoDelete = async (_expenseId: string): Promise<IExpenseDeleteResult> => {
+  const undoDelete = async (expenseId: string): Promise<IExpenseDeleteResult> => {
     try {
-      // Mock API call for restore
-      await new Promise(resolve => setTimeout(resolve, 800))
+      await $fetch(`/api/v1/expenses/${expenseId}/restore`, {
+        method: 'POST'
+      })
       
       toast.success(t('expense.restore.success'), {
         description: t('expense.restore.successDescription')
