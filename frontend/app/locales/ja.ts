@@ -8,11 +8,13 @@ import auth from './ja/auth'
 import navigation from './ja/navigation'
 import business from './ja/business'
 import expense from './ja/expense'
+import states from './ja/states'
 
 export default {
   ...common,
   ...auth,
   ...navigation,
   ...business,
-  ...expense
+  ...expense,
+  ...states
 }
