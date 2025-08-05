@@ -91,6 +91,18 @@ class Tag(
      */
     fun isShared(): Boolean = scope == TagScope.TENANT
     
+    /**
+     * Checks if this tag has been soft deleted.
+     * @return true if the tag is deleted
+     */
+    fun isDeleted(): Boolean = auditInfo.isDeleted()
+    
+    /**
+     * Marks this tag as deleted with soft delete support.
+     * @param userId The ID of the user performing the deletion
+     */
+    fun markDeleted(userId: UUID) = auditInfo.markDeleted(userId)
+    
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is Tag) return false

@@ -1,6 +1,8 @@
 package com.astarworks.astarmanagement.expense.domain.model
 
 import jakarta.persistence.*
+import org.hibernate.annotations.SQLDelete
+import org.hibernate.annotations.Where
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.UUID
@@ -13,8 +15,11 @@ import java.util.UUID
 @Table(name = "expenses", indexes = [
     Index(name = "idx_expenses_tenant_date", columnList = "tenant_id, date DESC"),
     Index(name = "idx_expenses_case", columnList = "case_id"),
-    Index(name = "idx_expenses_created_at", columnList = "created_at")
+    Index(name = "idx_expenses_created_at", columnList = "created_at"),
+    Index(name = "idx_expenses_deleted_at", columnList = "deleted_at")
 ])
+@SQLDelete(sql = "UPDATE expenses SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?")
+@Where(clause = "deleted_at IS NULL")
 class Expense(
     @Id
     @Column(name = "id", nullable = false)
@@ -65,6 +70,15 @@ class Expense(
     @Column(name = "version", nullable = false)
     val version: Int = 0
 ) {
+    /**
+     * Virtual field for JPA queries - represents net amount (income - expense).
+     * This field is calculated at runtime and not persisted in database.
+     * Added to support existing repository queries that reference 'amount'.
+     */
+    @get:Transient
+    val amount: BigDecimal
+        get() = incomeAmount - expenseAmount
+    
     init {
         require(incomeAmount >= BigDecimal.ZERO) { "Income amount cannot be negative" }
         require(expenseAmount >= BigDecimal.ZERO) { "Expense amount cannot be negative" }
@@ -117,6 +131,30 @@ class Expense(
     fun addAttachment(attachment: ExpenseAttachment) {
         attachments.add(attachment)
         attachment.expense = this
+    }
+    
+    /**
+     * Checks if this expense has been soft deleted.
+     * @return true if the expense is deleted, false otherwise
+     */
+    fun isDeleted(): Boolean = auditInfo.isDeleted()
+    
+    /**
+     * Marks this expense as deleted with soft delete support.
+     * @param userId The ID of the user performing the deletion
+     */
+    fun markDeleted(userId: UUID) {
+        auditInfo.markDeleted(userId)
+    }
+    
+    /**
+     * Restores this expense from soft deletion.
+     * @param userId The ID of the user performing the restoration
+     */
+    fun restore(userId: UUID) {
+        auditInfo.deletedAt = null
+        auditInfo.deletedBy = null
+        auditInfo.markUpdated(userId)
     }
     
     override fun equals(other: Any?): Boolean {

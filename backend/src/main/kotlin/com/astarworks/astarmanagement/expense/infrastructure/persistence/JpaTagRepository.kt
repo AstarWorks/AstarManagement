@@ -24,7 +24,7 @@ interface JpaTagRepository : JpaRepository<Tag, UUID> {
         SELECT t FROM Tag t 
         WHERE t.id = :id 
         AND t.tenantId = :tenantId 
-        AND t.deletedAt IS NULL
+        AND t.auditInfo.deletedAt IS NULL
     """)
     fun findByIdAndTenantId(
         @Param("id") id: UUID,
@@ -37,7 +37,7 @@ interface JpaTagRepository : JpaRepository<Tag, UUID> {
     @Query("""
         SELECT t FROM Tag t 
         WHERE t.tenantId = :tenantId 
-        AND t.deletedAt IS NULL
+        AND t.auditInfo.deletedAt IS NULL
         ORDER BY t.name
     """)
     fun findByTenantId(
@@ -51,7 +51,7 @@ interface JpaTagRepository : JpaRepository<Tag, UUID> {
         SELECT t FROM Tag t 
         WHERE t.tenantId = :tenantId 
         AND t.scope = :scope
-        AND t.deletedAt IS NULL
+        AND t.auditInfo.deletedAt IS NULL
         ORDER BY t.name
     """)
     fun findByTenantIdAndScope(
@@ -66,7 +66,7 @@ interface JpaTagRepository : JpaRepository<Tag, UUID> {
         SELECT t FROM Tag t 
         WHERE t.tenantId = :tenantId 
         AND t.nameNormalized = :nameNormalized
-        AND t.deletedAt IS NULL
+        AND t.auditInfo.deletedAt IS NULL
     """)
     fun findByTenantIdAndNameNormalized(
         @Param("tenantId") tenantId: UUID,
@@ -80,18 +80,18 @@ interface JpaTagRepository : JpaRepository<Tag, UUID> {
     @Query("""
         SELECT t FROM Tag t
         WHERE t.tenantId = :tenantId
-        AND t.deletedAt IS NULL
+        AND t.auditInfo.deletedAt IS NULL
         AND EXISTS (
             SELECT 1 FROM Expense e
             JOIN e.tags et
             WHERE et.id = t.id
-            AND e.deletedAt IS NULL
+            AND e.auditInfo.deletedAt IS NULL
         )
         ORDER BY (
             SELECT COUNT(e.id) FROM Expense e
             JOIN e.tags et
             WHERE et.id = t.id
-            AND e.deletedAt IS NULL
+            AND e.auditInfo.deletedAt IS NULL
         ) DESC
     """)
     fun findMostUsedTags(
@@ -107,7 +107,7 @@ interface JpaTagRepository : JpaRepository<Tag, UUID> {
         FROM Tag t
         WHERE t.tenantId = :tenantId
         AND LOWER(t.name) = LOWER(:name)
-        AND t.deletedAt IS NULL
+        AND t.auditInfo.deletedAt IS NULL
     """)
     fun existsByTenantIdAndNameIgnoreCase(
         @Param("tenantId") tenantId: UUID,
@@ -121,7 +121,7 @@ interface JpaTagRepository : JpaRepository<Tag, UUID> {
         SELECT t FROM Tag t
         WHERE t.tenantId = :tenantId
         AND LOWER(t.name) LIKE LOWER(CONCAT('%', :pattern, '%'))
-        AND t.deletedAt IS NULL
+        AND t.auditInfo.deletedAt IS NULL
         ORDER BY t.name
     """)
     fun findByNamePattern(
