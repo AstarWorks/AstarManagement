@@ -1,7 +1,10 @@
 package com.astarworks.astarmanagement.expense.infrastructure.persistence
 
 import com.astarworks.astarmanagement.expense.domain.model.Expense
+import com.astarworks.astarmanagement.expense.domain.model.ExpenseNotFoundException
+import com.astarworks.astarmanagement.expense.domain.model.InsufficientPermissionException
 import com.astarworks.astarmanagement.expense.domain.repository.ExpenseRepository
+import com.astarworks.astarmanagement.infrastructure.security.SecurityContextService
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
@@ -18,7 +21,8 @@ import java.util.UUID
  */
 @Component
 class ExpenseRepositoryImpl(
-    private val jpaExpenseRepository: JpaExpenseRepository
+    private val jpaExpenseRepository: JpaExpenseRepository,
+    private val securityContextService: SecurityContextService
 ) : ExpenseRepository {
     
     override fun save(expense: Expense): Expense {
@@ -32,6 +36,10 @@ class ExpenseRepositoryImpl(
     }
     
     override fun findByIdAndTenantId(id: UUID, tenantId: UUID): Expense? {
+        val currentTenantId = securityContextService.getCurrentTenantId()
+        if (currentTenantId != null && currentTenantId != tenantId) {
+            throw InsufficientPermissionException("access expense from different tenant")
+        }
         return jpaExpenseRepository.findByIdAndTenantId(id, tenantId)
     }
     
@@ -79,10 +87,7 @@ class ExpenseRepositoryImpl(
     }
     
     override fun delete(expense: Expense) {
-        // Soft delete is handled by marking deleted in the audit info
-        // Note: In a real implementation, userId would come from security context
-        val userId = UUID.randomUUID() // TODO: Get from security context
-        expense.auditInfo.markDeleted(userId)
+        // Business logic for soft delete is now handled in the service layer
         jpaExpenseRepository.save(expense)
     }
     
@@ -92,5 +97,17 @@ class ExpenseRepositoryImpl(
         excludeId: UUID
     ): BigDecimal? {
         return jpaExpenseRepository.calculatePreviousBalance(tenantId, date, excludeId)
+    }
+    
+    override fun findByIdIncludingDeleted(id: UUID, tenantId: UUID): Expense? {
+        val currentTenantId = securityContextService.getCurrentTenantId()
+        if (currentTenantId != null && currentTenantId != tenantId) {
+            throw InsufficientPermissionException("access expense from different tenant")
+        }
+        return jpaExpenseRepository.findByIdAndTenantIdIncludingDeleted(id, tenantId)
+    }
+    
+    override fun findDeletedByTenantId(tenantId: UUID, pageable: Pageable): Page<Expense> {
+        return jpaExpenseRepository.findDeletedByTenantId(tenantId, pageable)
     }
 }

@@ -54,4 +54,15 @@ data class AuditInfo(
      * @return true if the entity is deleted, false otherwise
      */
     fun isDeleted(): Boolean = deletedAt != null
+    
+    /**
+     * Restores a soft-deleted entity.
+     * @param userId The ID of the user performing the restoration
+     */
+    fun restore(userId: UUID) {
+        deletedAt = null
+        deletedBy = null
+        updatedAt = Instant.now()
+        updatedBy = userId
+    }
 }

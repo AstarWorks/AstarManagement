@@ -1,7 +1,10 @@
 package com.astarworks.astarmanagement.expense.infrastructure.persistence
 
 import com.astarworks.astarmanagement.expense.domain.model.Attachment
+import com.astarworks.astarmanagement.expense.domain.model.AttachmentNotFoundException
+import com.astarworks.astarmanagement.expense.domain.model.InsufficientPermissionException
 import com.astarworks.astarmanagement.expense.domain.repository.AttachmentRepository
+import com.astarworks.astarmanagement.infrastructure.security.SecurityContextService
 import org.springframework.stereotype.Component
 import java.time.Instant
 import java.util.UUID
@@ -14,7 +17,8 @@ import java.util.UUID
  */
 @Component
 class AttachmentRepositoryImpl(
-    private val jpaAttachmentRepository: JpaAttachmentRepository
+    private val jpaAttachmentRepository: JpaAttachmentRepository,
+    private val securityContextService: SecurityContextService
 ) : AttachmentRepository {
     
     override fun save(attachment: Attachment): Attachment {
@@ -28,6 +32,10 @@ class AttachmentRepositoryImpl(
     }
     
     override fun findByIdAndTenantId(id: UUID, tenantId: UUID): Attachment? {
+        val currentTenantId = securityContextService.getCurrentTenantId()
+        if (currentTenantId != null && currentTenantId != tenantId) {
+            throw InsufficientPermissionException("access attachment from different tenant")
+        }
         return jpaAttachmentRepository.findByIdAndTenantId(id, tenantId)
     }
     
@@ -42,10 +50,7 @@ class AttachmentRepositoryImpl(
     }
     
     override fun delete(attachment: Attachment) {
-        // Soft delete is handled by the entity's markDeleted method
-        // Note: In a real implementation, userId would come from security context
-        val userId = UUID.randomUUID() // TODO: Get from security context
-        attachment.markDeleted(userId)
+        // Business logic for soft delete is now handled in the service layer
         jpaAttachmentRepository.save(attachment)
     }
 }

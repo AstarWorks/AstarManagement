@@ -1,5 +1,6 @@
 package com.astarworks.astarmanagement.expense.presentation.controller
 
+import com.astarworks.astarmanagement.expense.application.service.TagService
 import com.astarworks.astarmanagement.expense.domain.model.TagScope
 import com.astarworks.astarmanagement.expense.presentation.request.CreateTagRequest
 import com.astarworks.astarmanagement.expense.presentation.request.UpdateTagRequest
@@ -20,7 +21,9 @@ import java.util.UUID
 @RequestMapping("/api/v1/tags")
 @Tag(name = "Tag Management", description = "Tag operations for expense categorization")
 @Validated
-class TagController {
+class TagController(
+    private val tagService: TagService
+) {
     
     /**
      * Creates a new tag for expense categorization.
@@ -34,21 +37,7 @@ class TagController {
     fun createTag(
         @Valid @RequestBody request: CreateTagRequest
     ): TagResponse {
-        // Implementation stub
-        // TODO: Inject TagService and delegate to service layer
-        return TagResponse(
-            id = UUID.randomUUID(),
-            name = "stub-tag",
-            color = "#FF0000",
-            scope = TagScope.TENANT,
-            ownerId = UUID.randomUUID(),
-            usageCount = 0,
-            lastUsedAt = null,
-            createdAt = java.time.Instant.now(),
-            updatedAt = java.time.Instant.now(),
-            isPersonal = false,
-            isShared = true
-        )
+        return tagService.create(request)
     }
     
     /**
@@ -64,9 +53,7 @@ class TagController {
         @RequestParam scope: TagScope?,
         @RequestParam search: String?
     ): List<TagResponse> {
-        // Implementation stub
-        // TODO: Implement with TagService
-        return emptyList()
+        return tagService.listAccessibleTags(scope, search)
     }
     
     /**
@@ -81,9 +68,7 @@ class TagController {
     fun getTagSuggestions(
         @RequestParam(defaultValue = "10") limit: Int
     ): List<TagResponse> {
-        // Implementation stub
-        // TODO: Implement with TagService
-        return emptyList()
+        return tagService.getSuggestions(limit)
     }
     
     /**
@@ -99,21 +84,7 @@ class TagController {
         @PathVariable id: UUID,
         @Valid @RequestBody request: UpdateTagRequest
     ): TagResponse {
-        // Implementation stub
-        // TODO: Implement with TagService
-        return TagResponse(
-            id = id,
-            name = "updated-tag",
-            color = "#00FF00",
-            scope = TagScope.TENANT,
-            ownerId = UUID.randomUUID(),
-            usageCount = 5,
-            lastUsedAt = java.time.Instant.now(),
-            createdAt = java.time.Instant.now(),
-            updatedAt = java.time.Instant.now(),
-            isPersonal = false,
-            isShared = true
-        )
+        return tagService.update(id, request)
     }
     
     /**
@@ -126,7 +97,6 @@ class TagController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Delete tag")
     fun deleteTag(@PathVariable id: UUID) {
-        // Implementation stub
-        // TODO: Implement with TagService
+        tagService.delete(id)
     }
 }

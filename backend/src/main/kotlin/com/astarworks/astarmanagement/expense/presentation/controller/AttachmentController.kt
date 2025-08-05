@@ -1,5 +1,6 @@
 package com.astarworks.astarmanagement.expense.presentation.controller
 
+import com.astarworks.astarmanagement.expense.application.service.AttachmentService
 import com.astarworks.astarmanagement.expense.presentation.response.AttachmentResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -21,7 +22,9 @@ import java.util.UUID
 @RequestMapping("/api/v1/attachments")
 @Tag(name = "Attachment Management", description = "File upload and management")
 @Validated
-class AttachmentController {
+class AttachmentController(
+    private val attachmentService: AttachmentService
+) {
     
     /**
      * Uploads a new file attachment.
@@ -36,27 +39,7 @@ class AttachmentController {
     fun uploadAttachment(
         @RequestParam("file") file: MultipartFile
     ): AttachmentResponse {
-        // Implementation stub
-        // TODO: Inject AttachmentService and delegate to service layer
-        // TODO: Add file validation (size, type, etc.)
-        return AttachmentResponse(
-            id = UUID.randomUUID(),
-            fileName = "stub-file.pdf",
-            originalName = file.originalFilename ?: "unknown",
-            fileSize = file.size,
-            mimeType = file.contentType ?: "application/octet-stream",
-            status = com.astarworks.astarmanagement.expense.domain.model.AttachmentStatus.TEMPORARY,
-            thumbnailPath = null,
-            uploadedAt = java.time.Instant.now(),
-            uploadedBy = UUID.randomUUID(),
-            linkedAt = null,
-            expiresAt = null,
-            downloadUrl = null,
-            thumbnailUrl = null,
-            isImage = false,
-            isPdf = true,
-            fileExtension = "pdf"
-        )
+        return attachmentService.upload(file)
     }
     
     /**
@@ -68,26 +51,8 @@ class AttachmentController {
     @GetMapping("/{id}")
     @Operation(summary = "Get attachment metadata")
     fun getAttachment(@PathVariable id: UUID): AttachmentResponse {
-        // Implementation stub
-        // TODO: Implement with AttachmentService
-        return AttachmentResponse(
-            id = id,
-            fileName = "stub-file.pdf",
-            originalName = "Original File.pdf",
-            fileSize = 1024L,
-            mimeType = "application/pdf",
-            status = com.astarworks.astarmanagement.expense.domain.model.AttachmentStatus.TEMPORARY,
-            thumbnailPath = null,
-            uploadedAt = java.time.Instant.now(),
-            uploadedBy = UUID.randomUUID(),
-            linkedAt = null,
-            expiresAt = null,
-            downloadUrl = null,
-            thumbnailUrl = null,
-            isImage = false,
-            isPdf = true,
-            fileExtension = "pdf"
-        )
+        return attachmentService.findById(id)
+            ?: throw IllegalArgumentException("Attachment not found with id: $id")
     }
     
     /**
@@ -101,13 +66,13 @@ class AttachmentController {
     fun downloadAttachment(
         @PathVariable id: UUID
     ): ResponseEntity<Resource> {
-        // Implementation stub
-        // TODO: Implement with AttachmentService
-        // TODO: Set proper Content-Type and Content-Disposition headers
+        val (resource, attachment) = attachmentService.downloadFile(id)
+            ?: throw IllegalArgumentException("Attachment not found with id: $id")
+        
         return ResponseEntity.ok()
-            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"placeholder.pdf\"")
-            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE)
-            .build()
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"${attachment.originalName}\"")
+            .header(HttpHeaders.CONTENT_TYPE, attachment.mimeType)
+            .body(resource)
     }
     
     /**
@@ -120,8 +85,6 @@ class AttachmentController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Delete attachment")
     fun deleteAttachment(@PathVariable id: UUID) {
-        // Implementation stub
-        // TODO: Implement with AttachmentService
-        // TODO: Ensure proper cleanup of physical file
+        attachmentService.delete(id)
     }
 }

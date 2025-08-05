@@ -27,7 +27,7 @@ interface JpaExpenseRepository : JpaRepository<Expense, UUID> {
         SELECT e FROM Expense e 
         WHERE e.id = :id 
         AND e.tenantId = :tenantId 
-        AND e.deletedAt IS NULL
+        AND e.auditInfo.deletedAt IS NULL
     """)
     fun findByIdAndTenantId(
         @Param("id") id: UUID,
@@ -40,7 +40,7 @@ interface JpaExpenseRepository : JpaRepository<Expense, UUID> {
     @Query("""
         SELECT e FROM Expense e 
         WHERE e.tenantId = :tenantId 
-        AND e.deletedAt IS NULL
+        AND e.auditInfo.deletedAt IS NULL
         ORDER BY e.date DESC, e.auditInfo.createdAt DESC
     """)
     fun findByTenantId(
@@ -58,7 +58,7 @@ interface JpaExpenseRepository : JpaRepository<Expense, UUID> {
         AND (:endDate IS NULL OR e.date <= :endDate)
         AND (:caseId IS NULL OR e.caseId = :caseId)
         AND (:category IS NULL OR e.category = :category)
-        AND e.deletedAt IS NULL
+        AND e.auditInfo.deletedAt IS NULL
         ORDER BY e.date DESC, e.auditInfo.createdAt DESC
     """)
     fun findByFilters(
@@ -79,7 +79,7 @@ interface JpaExpenseRepository : JpaRepository<Expense, UUID> {
         JOIN e.tags t
         WHERE e.tenantId = :tenantId
         AND t.id IN :tagIds
-        AND e.deletedAt IS NULL
+        AND e.auditInfo.deletedAt IS NULL
         ORDER BY e.date DESC, e.auditInfo.createdAt DESC
     """)
     fun findByTagIds(
@@ -93,11 +93,11 @@ interface JpaExpenseRepository : JpaRepository<Expense, UUID> {
      * Used for running balance calculations.
      */
     @Query("""
-        SELECT SUM(e.amount) FROM Expense e
+        SELECT SUM(e.incomeAmount - e.expenseAmount) FROM Expense e
         WHERE e.tenantId = :tenantId
         AND e.date < :date
         AND e.id != :excludeId
-        AND e.deletedAt IS NULL
+        AND e.auditInfo.deletedAt IS NULL
     """)
     fun calculatePreviousBalance(
         @Param("tenantId") tenantId: UUID,
@@ -109,4 +109,32 @@ interface JpaExpenseRepository : JpaRepository<Expense, UUID> {
      * Checks if an expense exists for a tenant.
      */
     fun existsByIdAndTenantId(id: UUID, tenantId: UUID): Boolean
+    
+    /**
+     * Finds an expense by ID including soft-deleted records.
+     * Used for restore operations.
+     */
+    @Query("""
+        SELECT e FROM Expense e 
+        WHERE e.id = :id 
+        AND e.tenantId = :tenantId
+    """)
+    fun findByIdAndTenantIdIncludingDeleted(
+        @Param("id") id: UUID,
+        @Param("tenantId") tenantId: UUID
+    ): Expense?
+    
+    /**
+     * Finds all soft-deleted expenses for a tenant.
+     */
+    @Query("""
+        SELECT e FROM Expense e 
+        WHERE e.tenantId = :tenantId 
+        AND e.auditInfo.deletedAt IS NOT NULL
+        ORDER BY e.auditInfo.deletedAt DESC
+    """)
+    fun findDeletedByTenantId(
+        @Param("tenantId") tenantId: UUID,
+        pageable: Pageable
+    ): Page<Expense>
 }

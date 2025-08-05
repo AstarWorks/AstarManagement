@@ -1,5 +1,7 @@
 package com.astarworks.astarmanagement.expense.presentation.controller
 
+import com.astarworks.astarmanagement.expense.application.service.ExpenseService
+import com.astarworks.astarmanagement.expense.application.service.ExpenseSummaryResponse
 import com.astarworks.astarmanagement.expense.presentation.request.CreateExpenseRequest
 import com.astarworks.astarmanagement.expense.presentation.request.UpdateExpenseRequest
 import com.astarworks.astarmanagement.expense.presentation.response.ExpenseResponse
@@ -14,6 +16,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.HttpStatus
 import org.springframework.validation.annotation.Validated
@@ -29,7 +33,9 @@ import java.util.UUID
 @RequestMapping("/api/v1/expenses")
 @Tag(name = "Expense Management", description = "Expense CRUD operations")
 @Validated
-class ExpenseController {
+class ExpenseController(
+    private val expenseService: ExpenseService
+) {
     
     /**
      * Creates a new expense entry.
@@ -152,28 +158,7 @@ class ExpenseController {
         )
         request: CreateExpenseRequest
     ): ExpenseResponse {
-        // Implementation will be added in later sprint
-        // TODO: Inject ExpenseService and delegate to service layer
-        return ExpenseResponse(
-            id = UUID.randomUUID(),
-            tenantId = UUID.randomUUID(),
-            date = java.time.LocalDate.now(),
-            category = "stub",
-            description = "Stub expense",
-            incomeAmount = java.math.BigDecimal.ZERO,
-            expenseAmount = java.math.BigDecimal("100.00"),
-            balance = java.math.BigDecimal("-100.00"),
-            netAmount = java.math.BigDecimal("-100.00"),
-            caseId = null,
-            memo = null,
-            tags = emptyList(),
-            attachments = emptyList(),
-            createdAt = java.time.Instant.now(),
-            updatedAt = java.time.Instant.now(),
-            createdBy = UUID.randomUUID(),
-            updatedBy = UUID.randomUUID(),
-            version = 1
-        )
+        return expenseService.create(request)
     }
     
     /**
@@ -258,15 +243,24 @@ class ExpenseController {
         @Parameter(description = "Sort specification (field,direction)", example = "date,desc")
         @RequestParam(defaultValue = "date,desc") sort: String
     ): PagedResponse<ExpenseResponse> {
-        // Implementation stub
-        // TODO: Implement with ExpenseService
-        return PagedResponse(
-            data = emptyList(),
-            offset = page * size,
-            limit = size,
-            total = 0L,
-            hasNext = false,
-            hasPrevious = page > 0
+        // Parse sort parameter
+        val sortParts = sort.split(",")
+        val sortField = sortParts.getOrElse(0) { "date" }
+        val sortDirection = if (sortParts.getOrElse(1) { "desc" }.lowercase() == "asc") {
+            Sort.Direction.ASC
+        } else {
+            Sort.Direction.DESC
+        }
+        
+        val pageable = PageRequest.of(page, size, Sort.by(sortDirection, sortField))
+        
+        return expenseService.findByFilters(
+            startDate = startDate,
+            endDate = endDate,
+            caseId = caseId,
+            category = category,
+            tagIds = tagIds,
+            pageable = pageable
         )
     }
     
@@ -279,28 +273,8 @@ class ExpenseController {
     @GetMapping("/{id}")
     @Operation(summary = "Get expense by ID")
     fun getExpense(@PathVariable id: UUID): ExpenseResponse {
-        // Implementation stub
-        // TODO: Implement with ExpenseService
-        return ExpenseResponse(
-            id = id,
-            tenantId = UUID.randomUUID(),
-            date = java.time.LocalDate.now(),
-            category = "stub",
-            description = "Stub expense",
-            incomeAmount = java.math.BigDecimal.ZERO,
-            expenseAmount = java.math.BigDecimal("100.00"),
-            balance = java.math.BigDecimal("-100.00"),
-            netAmount = java.math.BigDecimal("-100.00"),
-            caseId = null,
-            memo = null,
-            tags = emptyList(),
-            attachments = emptyList(),
-            createdAt = java.time.Instant.now(),
-            updatedAt = java.time.Instant.now(),
-            createdBy = UUID.randomUUID(),
-            updatedBy = UUID.randomUUID(),
-            version = 1
-        )
+        return expenseService.findById(id) 
+            ?: throw IllegalArgumentException("Expense not found with id: $id")
     }
     
     /**
@@ -316,28 +290,7 @@ class ExpenseController {
         @PathVariable id: UUID,
         @Valid @RequestBody request: UpdateExpenseRequest
     ): ExpenseResponse {
-        // Implementation stub
-        // TODO: Implement with ExpenseService
-        return ExpenseResponse(
-            id = id,
-            tenantId = UUID.randomUUID(),
-            date = java.time.LocalDate.now(),
-            category = "stub",
-            description = "Updated stub expense",
-            incomeAmount = java.math.BigDecimal.ZERO,
-            expenseAmount = java.math.BigDecimal("150.00"),
-            balance = java.math.BigDecimal("-150.00"),
-            netAmount = java.math.BigDecimal("-150.00"),
-            caseId = null,
-            memo = null,
-            tags = emptyList(),
-            attachments = emptyList(),
-            createdAt = java.time.Instant.now(),
-            updatedAt = java.time.Instant.now(),
-            createdBy = UUID.randomUUID(),
-            updatedBy = UUID.randomUUID(),
-            version = 2
-        )
+        return expenseService.update(id, request)
     }
     
     /**
@@ -347,10 +300,41 @@ class ExpenseController {
      */
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @Operation(summary = "Delete expense")
+    @Operation(summary = "Delete expense", description = "Soft deletes an expense. The expense can be restored within 30 days.")
+    @ApiResponses(value = [
+        ApiResponse(responseCode = "204", description = "Expense deleted successfully"),
+        ApiResponse(responseCode = "404", description = "Expense not found"),
+        ApiResponse(responseCode = "401", description = "Unauthorized")
+    ])
     fun deleteExpense(@PathVariable id: UUID) {
-        // Implementation stub
-        // TODO: Implement with ExpenseService
+        expenseService.delete(id)
+    }
+    
+    /**
+     * Restores a soft-deleted expense.
+     * 
+     * @param id The expense ID to restore
+     * @return The restored expense response
+     */
+    @PostMapping("/{id}/restore")
+    @Operation(
+        summary = "Restore deleted expense",
+        description = "Restores a previously soft-deleted expense. Only works within 30 days of deletion."
+    )
+    @ApiResponses(value = [
+        ApiResponse(
+            responseCode = "200",
+            description = "Expense restored successfully",
+            content = [Content(
+                mediaType = "application/json",
+                schema = Schema(implementation = ExpenseResponse::class)
+            )]
+        ),
+        ApiResponse(responseCode = "404", description = "Expense not found or not deleted"),
+        ApiResponse(responseCode = "401", description = "Unauthorized")
+    ])
+    fun restoreExpense(@PathVariable id: UUID): ExpenseResponse {
+        return expenseService.restore(id)
     }
     
     /**
@@ -365,9 +349,7 @@ class ExpenseController {
     fun createBulkExpenses(
         @Valid @RequestBody requests: List<CreateExpenseRequest>
     ): List<ExpenseResponse> {
-        // Implementation stub
-        // TODO: Implement with ExpenseService
-        return emptyList()
+        return expenseService.createBulk(requests)
     }
     
     /**
@@ -383,20 +365,6 @@ class ExpenseController {
         @RequestParam period: String,
         @RequestParam groupBy: String?
     ): ExpenseSummaryResponse {
-        // Implementation stub
-        // TODO: Implement with ExpenseService
-        return ExpenseSummaryResponse()
+        return expenseService.getSummary(period, groupBy)
     }
 }
-
-/**
- * Response DTO for expense summary data.
- * This is a placeholder that will be properly implemented in a later sprint.
- */
-data class ExpenseSummaryResponse(
-    val period: String = "",
-    val totalIncome: String = "0.00",
-    val totalExpense: String = "0.00",
-    val netAmount: String = "0.00",
-    val groupedData: Map<String, Any> = emptyMap()
-)

@@ -2,7 +2,10 @@ package com.astarworks.astarmanagement.expense.infrastructure.persistence
 
 import com.astarworks.astarmanagement.expense.domain.model.Tag
 import com.astarworks.astarmanagement.expense.domain.model.TagScope
+import com.astarworks.astarmanagement.expense.domain.model.TagNotFoundException
+import com.astarworks.astarmanagement.expense.domain.model.InsufficientPermissionException
 import com.astarworks.astarmanagement.expense.domain.repository.TagRepository
+import com.astarworks.astarmanagement.infrastructure.security.SecurityContextService
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Component
 import java.util.UUID
@@ -15,7 +18,8 @@ import java.util.UUID
  */
 @Component
 class TagRepositoryImpl(
-    private val jpaTagRepository: JpaTagRepository
+    private val jpaTagRepository: JpaTagRepository,
+    private val securityContextService: SecurityContextService
 ) : TagRepository {
     
     override fun save(tag: Tag): Tag {
@@ -29,6 +33,10 @@ class TagRepositoryImpl(
     }
     
     override fun findByIdAndTenantId(id: UUID, tenantId: UUID): Tag? {
+        val currentTenantId = securityContextService.getCurrentTenantId()
+        if (currentTenantId != null && currentTenantId != tenantId) {
+            throw InsufficientPermissionException("access tag from different tenant")
+        }
         return jpaTagRepository.findByIdAndTenantId(id, tenantId)
     }
     
@@ -59,10 +67,7 @@ class TagRepositoryImpl(
     }
     
     override fun delete(tag: Tag) {
-        // Soft delete is handled by marking deleted in the audit info
-        // Note: In a real implementation, userId would come from security context
-        val userId = UUID.randomUUID() // TODO: Get from security context
-        tag.auditInfo.markDeleted(userId)
+        // Business logic for soft delete is now handled in the service layer
         jpaTagRepository.save(tag)
     }
 }

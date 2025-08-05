@@ -95,4 +95,26 @@ interface ExpenseRepository {
         date: LocalDate,
         excludeId: UUID
     ): BigDecimal?
+    
+    /**
+     * Finds an expense by ID including soft-deleted records.
+     * Used for restore operations.
+     * 
+     * @param id The expense ID
+     * @param tenantId The tenant ID for isolation
+     * @return The expense if found, null otherwise
+     */
+    fun findByIdIncludingDeleted(id: UUID, tenantId: UUID): Expense?
+    
+    /**
+     * Finds all soft-deleted expenses for a tenant.
+     * 
+     * @param tenantId The tenant ID
+     * @param pageable Pagination parameters
+     * @return Page of deleted expenses
+     */
+    fun findDeletedByTenantId(
+        tenantId: UUID,
+        pageable: Pageable
+    ): Page<Expense>
 }
