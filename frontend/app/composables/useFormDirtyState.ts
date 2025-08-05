@@ -5,8 +5,8 @@
 
 export interface IFieldState {
   isDirty: boolean
-  originalValue: any
-  currentValue: any
+  originalValue: unknown
+  currentValue: unknown
   hasValidationError: boolean
   touched: boolean
   lastModified?: Date
@@ -18,7 +18,7 @@ export interface IDirtyStateOptions {
   /** Whether to track modification timestamps */
   trackTimestamps?: boolean
   /** Custom equality checker */
-  isEqual?: (a: any, b: any) => boolean
+  isEqual?: (a: unknown, b: unknown) => boolean
   /** Fields to ignore in dirty checking */
   ignoreFields?: string[]
 }
@@ -33,9 +33,9 @@ export interface IDirtyStateReturn {
   /** Touched fields list */
   touchedFields: ComputedRef<string[]>
   /** Initialize field tracking */
-  initializeField: (fieldName: string, initialValue: any) => void
+  initializeField: (fieldName: string, initialValue: unknown) => void
   /** Update field value */
-  updateField: (fieldName: string, newValue: any) => void
+  updateField: (fieldName: string, newValue: unknown) => void
   /** Mark field as touched */
   touchField: (fieldName: string) => void
   /** Reset specific field */
@@ -45,9 +45,9 @@ export interface IDirtyStateReturn {
   /** Check if specific field is dirty */
   isFieldDirty: (fieldName: string) => boolean
   /** Get field's original value */
-  getOriginalValue: (fieldName: string) => any
+  getOriginalValue: (fieldName: string) => unknown
   /** Get changed values object */
-  getChangedValues: () => Record<string, any>
+  getChangedValues: () => Record<string, unknown>
 }
 
 /**
@@ -85,7 +85,7 @@ export const useFormDirtyState = (options: IDirtyStateOptions = {}): IDirtyState
   })
 
   // Initialize field tracking
-  const initializeField = (fieldName: string, initialValue: any) => {
+  const initializeField = (fieldName: string, initialValue: unknown) => {
     fieldStates.value[fieldName] = {
       isDirty: false,
       originalValue: deepClone(initialValue),
@@ -97,7 +97,7 @@ export const useFormDirtyState = (options: IDirtyStateOptions = {}): IDirtyState
   }
 
   // Update field value
-  const updateField = (fieldName: string, newValue: any) => {
+  const updateField = (fieldName: string, newValue: unknown) => {
     if (!fieldStates.value[fieldName]) {
       initializeField(fieldName, newValue)
       return
@@ -155,13 +155,13 @@ export const useFormDirtyState = (options: IDirtyStateOptions = {}): IDirtyState
   }
 
   // Get field's original value
-  const getOriginalValue = (fieldName: string): any => {
+  const getOriginalValue = (fieldName: string): unknown => {
     return fieldStates.value[fieldName]?.originalValue
   }
 
   // Get only changed values
-  const getChangedValues = (): Record<string, any> => {
-    const changes: Record<string, any> = {}
+  const getChangedValues = (): Record<string, unknown> => {
+    const changes: Record<string, unknown> = {}
     
     Object.entries(fieldStates.value).forEach(([fieldName, state]) => {
       if (state.isDirty && !ignoreFields.includes(fieldName)) {

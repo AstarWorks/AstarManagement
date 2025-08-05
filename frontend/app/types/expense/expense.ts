@@ -121,6 +121,8 @@ export interface IExpenseFormData {
   tagIds: string[]
   /** Array of attachment IDs to associate */
   attachmentIds: string[]
+  /** Index signature for Record compatibility */
+  [key: string]: unknown
 }
 
 /**

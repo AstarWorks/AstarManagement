@@ -284,3 +284,111 @@ export interface IAsyncResult<T, E = string> {
   /** Operation timestamp */
   timestamp: string
 }
+
+// State Component Types
+
+/**
+ * Loading spinner component props
+ */
+export interface ILoadingSpinnerProps {
+  /** Size variant */
+  size?: 'sm' | 'md' | 'lg'
+  /** Color variant */
+  variant?: 'primary' | 'secondary' | 'muted'
+  /** Loading label text */
+  label?: string
+  /** Whether to display inline */
+  inline?: boolean
+}
+
+/**
+ * Skeleton component props
+ */
+export interface ISkeletonProps {
+  /** Visual variant */
+  variant?: 'text' | 'circular' | 'rectangular' | 'rounded'
+  /** Width (CSS value or pixels) */
+  width?: string | number
+  /** Height (CSS value or pixels) */
+  height?: string | number
+  /** Animation type */
+  animation?: 'pulse' | 'wave' | false
+  /** Number of skeleton items */
+  count?: number
+}
+
+/**
+ * Empty state action button configuration
+ */
+export interface IEmptyStateAction {
+  /** Button label */
+  label: string
+  /** Click handler */
+  onClick: () => void
+  /** Button variant */
+  variant?: 'default' | 'secondary' | 'ghost' | 'outline'
+  /** Loading state */
+  loading?: boolean
+}
+
+/**
+ * Empty state component props
+ */
+export interface IEmptyStateProps {
+  /** Title text */
+  title: string
+  /** Description text */
+  description?: string
+  /** Icon (string emoji or Vue component) */
+  icon?: string | Component
+  /** Primary action button */
+  primaryAction?: IEmptyStateAction
+  /** Secondary action buttons */
+  secondaryActions?: IEmptyStateAction[]
+  /** Compact layout */
+  compact?: boolean
+}
+
+/**
+ * Error display component props
+ */
+export interface IErrorDisplayProps {
+  /** Error object or message */
+  error: Error | string
+  /** Error title */
+  title?: string
+  /** Show retry button */
+  showRetry?: boolean
+  /** Show support contact */
+  showSupport?: boolean
+  /** Custom retry label */
+  retryLabel?: string
+  /** Retry handler */
+  onRetry?: () => void | Promise<void>
+  /** Support email */
+  supportEmail?: string
+}
+
+/**
+ * Validation error object
+ */
+export interface IValidationErrorItem {
+  /** Field name (optional) */
+  field?: string
+  /** Error message */
+  message: string
+  /** Error code (optional) */
+  code?: string
+}
+
+/**
+ * Filter configuration for empty states
+ */
+export interface IFilterConfig {
+  /** Filter label */
+  label: string
+  /** Filter value */
+  value: string | string[]
+  /** Filter type */
+  type: 'single' | 'multiple'
+}

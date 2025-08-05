@@ -4,9 +4,9 @@
  */
 
 export interface IOptimisticFormState {
-  data: Record<string, any>
-  originalData: Record<string, any>
-  optimisticData?: Record<string, any>
+  data: Record<string, unknown>
+  originalData: Record<string, unknown>
+  optimisticData?: Record<string, unknown>
   isDirty: boolean
   isSubmitting: boolean
   hasOptimisticUpdate: boolean
@@ -70,7 +70,7 @@ export interface IOptimisticSubmissionReturn<T> {
 /**
  * Enhanced form submission composable with optimistic updates
  */
-export const useFormSubmissionOptimistic = <T extends Record<string, any>>(
+export const useFormSubmissionOptimistic = <T extends Record<string, unknown>>(
   options: IOptimisticSubmissionOptions<T>
 ): IOptimisticSubmissionReturn<T> => {
   const {
@@ -166,13 +166,13 @@ export const useFormSubmissionOptimistic = <T extends Record<string, any>>(
       formState.value.optimisticData = undefined
       formState.value.hasOptimisticUpdate = false
       formState.value.isDirty = false
-      formState.value.version = (result as any).version || formState.value.version + 1
+      formState.value.version = (result as T & { version?: number }).version || formState.value.version + 1
 
       if (onSuccess) {
         onSuccess(result)
       }
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Revert optimistic update on error
       if (formState.value.hasOptimisticUpdate) {
         formState.value.optimisticData = undefined
@@ -184,9 +184,10 @@ export const useFormSubmissionOptimistic = <T extends Record<string, any>>(
       }
 
       // Handle version conflicts
-      if (error.code === 'VERSION_CONFLICT' && error.serverData) {
+      const errorObj = error as { code?: string; serverData?: T; serverVersion?: number }
+      if (errorObj.code === 'VERSION_CONFLICT' && errorObj.serverData) {
         formState.value.conflictDetected = true
-        await resolveConflict(error.serverData, error.serverVersion)
+        await resolveConflict(errorObj.serverData, errorObj.serverVersion || 0)
       } else {
         // Handle other errors
         const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred'
@@ -218,7 +219,7 @@ export const useFormSubmissionOptimistic = <T extends Record<string, any>>(
 
     // Find conflicting fields
     const conflictingFields = Object.keys(formState.value.data).filter(key => 
-      JSON.stringify(formState.value.data[key]) !== JSON.stringify((serverData as any)[key])
+      JSON.stringify(formState.value.data[key]) !== JSON.stringify((serverData as Record<string, unknown>)[key])
     )
 
     const conflict: IConflictResolution<T> = {
