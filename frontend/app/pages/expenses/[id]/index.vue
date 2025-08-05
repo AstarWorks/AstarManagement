@@ -26,7 +26,7 @@
 import type { IExpense, IAttachment } from '~/types/expense'
 import { TagScope, AttachmentStatus } from '~/types/expense'
 import ExpenseDetailView from '~/components/expenses/detail/ExpenseDetailView.vue'
-import ExpenseDeleteDialog from '~/components/expenses/ExpenseDeleteDialog.vue'
+import ExpenseDeleteDialog from '~/components/expense/ExpenseDeleteDialog.vue'
 import { useExpenseActions } from '~/composables/useExpenseActions'
 import { useExpenseDelete } from '~/composables/useExpenseDelete'
 import { toast } from 'vue-sonner'
