@@ -320,9 +320,21 @@ export default {
     
     // Delete
     delete: {
-      title: '経費の削除',
-      confirmation: 'この経費を削除してもよろしいですか？この操作は取り消せません。',
-      success: '経費を削除しました'
+      title: '実費を削除',
+      message: '「{{title}}」を削除してもよろしいですか？',
+      warning: 'この操作は30日間元に戻すことができます',
+      confirm: '削除する',
+      success: '実費を削除しました',
+      successDescription: '30日以内であれば復元できます',
+      error: '削除に失敗しました',
+      undo: '元に戻す'
+    },
+    
+    // Restore
+    restore: {
+      success: '実費を復元しました',
+      successDescription: '削除が取り消されました',
+      error: '復元に失敗しました'
     },
     
     // Confirm dialog
