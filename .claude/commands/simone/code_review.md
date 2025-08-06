@@ -88,6 +88,34 @@ With the identified Scope use `git diff` (on default: `git diff HEAD~1`) to find
   - **Behaviour** — business rules, side-effects, error handling.
   - **Quality** — naming, formatting, tests, linter status.
 
+**Frontend-Specific Review Criteria:**
+
+- **Simple over Easy Design**: 
+  - Is the implementation straightforward and explicit rather than clever?
+  - Are abstractions avoided unless truly necessary?
+  - Is the code readable and direct?
+
+- **Component Architecture**:
+  - Are components appropriately sized (not too long)?
+  - Is there proper separation of concerns?
+  - Are components reusable and well-structured?
+  - Is extensibility considered without over-engineering?
+
+- **Abstraction Level**:
+  - Is the code sufficiently abstracted without being over-abstracted?
+  - Are common patterns extracted appropriately?
+
+- **Library Usage**:
+  - Are existing libraries (VueUse, etc.) used where appropriate?
+  - Is code simplified using available utilities?
+  - Is shadcn/ui used instead of custom components where applicable?
+  - Are wheel-reinvention issues avoided?
+
+- **Internationalization**:
+  - Are all user-facing strings using `$t('key')` instead of hardcoded text?
+  - Is Japanese localization properly implemented?
+  - Are translation keys hierarchically structured?
+
 **IMPORTANT**:
 
 - Deviations from the Specs is not allowed. Not even small ones. Be very picky here!

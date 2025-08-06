@@ -43,6 +43,13 @@
 - Create Storybook stories for components
 - Follow Clean Architecture principles
 
+### Backend Architecture (Spring Boot)
+- **Service Layer Required**: All business logic must be in service classes with `@Transactional` annotations
+- **Repository Pattern**: Repositories handle only CRUD operations, no business logic
+- **Controller Pattern**: Controllers delegate to services, handle only HTTP concerns
+- **Layer Flow**: Controller → Service → Repository (never skip service layer)
+- **Transaction Boundaries**: Use `@Transactional` for write operations, `@Transactional(readOnly = true)` for read operations
+
 ### Legal Domain Requirements
 - Implement tenant isolation for all data operations
 - Add audit logging for sensitive operations
