@@ -2,11 +2,11 @@
 sprint_id: S01_M002_EXPENSE_API_FOUNDATION
 milestone_id: MILESTONE_002_EXPENSE_BACKEND_IMPLEMENTATION
 title: Expense API Foundation
-status: planned
+status: completed
 estimated_duration: 5 days
-actual_duration: null
-start_date: null
-end_date: null
+actual_duration: 5 days
+start_date: 2025-07-31
+end_date: 2025-08-04
 ---
 
 # S01_M002: Expense API Foundation
@@ -25,15 +25,15 @@ Establish the foundational API structure for the expense management system, incl
 - Basic unit test structure
 
 ## Definition of Done
-- [ ] Expense module created with proper package structure
-- [ ] Basic CRUD endpoints defined (not fully implemented)
-- [ ] Repository interfaces created
-- [ ] DTOs and domain models defined
-- [ ] Global exception handler configured
-- [ ] Swagger UI accessible at /swagger-ui
-- [ ] Unit test framework established
-- [ ] Code compiles without errors
-- [ ] Basic CI pipeline runs successfully
+- [x] Expense module created with proper package structure
+- [x] Basic CRUD endpoints defined (not fully implemented)
+- [x] Repository interfaces created
+- [x] DTOs and domain models defined
+- [x] Global exception handler configured
+- [x] Swagger UI accessible at /swagger-ui
+- [x] Unit test framework established
+- [x] Code compiles without errors
+- [x] Basic CI pipeline runs successfully
 
 ## Dependencies
 - Spring Boot project structure from M001
