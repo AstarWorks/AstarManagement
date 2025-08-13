@@ -96,13 +96,13 @@ interface JpaExpenseRepository : JpaRepository<Expense, UUID> {
         SELECT SUM(e.incomeAmount - e.expenseAmount) FROM Expense e
         WHERE e.tenantId = :tenantId
         AND e.date < :date
-        AND e.id != :excludeId
+        AND (:excludeId IS NULL OR e.id != :excludeId)
         AND e.auditInfo.deletedAt IS NULL
     """)
     fun calculatePreviousBalance(
         @Param("tenantId") tenantId: UUID,
         @Param("date") date: LocalDate,
-        @Param("excludeId") excludeId: UUID
+        @Param("excludeId") excludeId: UUID?
     ): BigDecimal?
     
     /**

@@ -93,7 +93,7 @@ interface ExpenseRepository {
     fun findPreviousBalance(
         tenantId: UUID,
         date: LocalDate,
-        excludeId: UUID
+        excludeId: UUID?
     ): BigDecimal?
     
     /**

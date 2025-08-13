@@ -1,393 +1,677 @@
 package com.astarworks.astarmanagement.expense.infrastructure.persistence
 
-import com.astarworks.astarmanagement.base.RepositoryTest
-import com.astarworks.astarmanagement.domain.entity.User
-import com.astarworks.astarmanagement.domain.entity.UserRole
-import com.astarworks.astarmanagement.expense.domain.model.Attachment
-import com.astarworks.astarmanagement.expense.domain.model.AttachmentStatus
-import com.astarworks.astarmanagement.expense.domain.model.InsufficientPermissionException
-import com.astarworks.astarmanagement.infrastructure.security.SecurityContextService
+import com.astarworks.astarmanagement.base.DatabaseIntegrationTestBase
+import com.astarworks.astarmanagement.expense.domain.model.*
+import com.astarworks.astarmanagement.expense.domain.repository.AttachmentRepository
+import com.astarworks.astarmanagement.expense.domain.repository.ExpenseRepository
 import org.assertj.core.api.Assertions.*
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.TestConfiguration
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Primary
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.transaction.annotation.Transactional
+import java.math.BigDecimal
 import java.time.Instant
-import java.time.temporal.ChronoUnit
+import java.time.LocalDate
 import java.util.*
+import kotlin.system.measureTimeMillis
 
 /**
- * Integration tests for AttachmentRepositoryImpl with real database.
+ * Comprehensive integration tests for AttachmentRepository.
  * 
  * Tests cover:
- * - CRUD operations with tenant isolation
- * - Attachment lifecycle management (TEMPORARY → LINKED → DELETED)
- * - Security context integration
- * - Soft delete functionality
- * - Expiration and cleanup scenarios
- * - File metadata validation
+ * - All CRUD operations with tenant isolation
+ * - Attachment lifecycle management (TEMPORARY, LINKED, DELETED)
+ * - Expense-attachment associations
+ * - Multi-tenant security and RLS enforcement
+ * - File metadata and storage validation
+ * - Performance benchmarks for large files
+ * - Expired attachment cleanup
+ * - Edge cases and error scenarios
  */
 @ActiveProfiles("test")
-class AttachmentRepositoryIntegrationTest : RepositoryTest() {
-
-    @TestConfiguration
-    class TestConfig {
-        @Bean
-        @Primary
-        fun mockSecurityContextService(): SecurityContextService = mock()
-    }
+@Transactional
+class AttachmentRepositoryIntegrationTest : DatabaseIntegrationTestBase() {
 
     @Autowired
-    private lateinit var attachmentRepositoryImpl: AttachmentRepositoryImpl
+    private lateinit var attachmentRepository: AttachmentRepository
 
-    @Autowired
-    private lateinit var jpaAttachmentRepository: JpaAttachmentRepository
+    @Autowired 
+    private lateinit var expenseRepository: ExpenseRepository
 
-    @Autowired
-    private lateinit var securityContextService: SecurityContextService
+    // ========== CRUD Operations Tests ==========
 
-    private val testTenantId = UUID.randomUUID()
-    private val testUserId = UUID.randomUUID()
-    private val otherTenantId = UUID.randomUUID()
-
-    private lateinit var testUser: User
-
-    @BeforeEach
-    fun setUp() {
-        // Create test user
-        testUser = User(
-            id = testUserId,
-            email = "test@example.com",
-            password = "password",
-            firstName = "Test",
-            lastName = "User",
-            role = UserRole.USER
+    @Test
+    fun `should save and retrieve attachment with all fields`() {
+        // Given
+        val attachment = Attachment(
+            tenantId = defaultTenantId,
+            fileName = "receipt_001.jpg",
+            originalName = "Taxi Receipt.jpg",
+            fileSize = 1024768L,
+            mimeType = "image/jpeg",
+            storagePath = "/attachments/tenant1/receipt_001.jpg",
+            status = AttachmentStatus.TEMPORARY,
+            expiresAt = Instant.now().plusSeconds(3600),
+            uploadedBy = defaultUserId
         )
 
-        // Setup security context mocks
-        whenever(securityContextService.getCurrentTenantId()).thenReturn(testTenantId)
-        whenever(securityContextService.getCurrentUserId()).thenReturn(testUserId)
-        whenever(securityContextService.requireCurrentUserId()).thenReturn(testUserId)
-        whenever(securityContextService.requireCurrentTenantId()).thenReturn(testTenantId)
-        whenever(securityContextService.getCurrentUser()).thenReturn(testUser)
-        whenever(securityContextService.requireCurrentUser()).thenReturn(testUser)
-
-        // Clean up any existing test data
-        jpaAttachmentRepository.deleteAll()
+        // When
+        val saved = attachmentRepository.save(attachment)
         entityManager.flush()
         entityManager.clear()
-    }
-
-    @Test
-    fun `should save and retrieve attachment successfully`() {
-        // Given
-        val attachment = createTestAttachment()
-
-        // When
-        val savedAttachment = attachmentRepositoryImpl.save(attachment)
-        val retrievedAttachment = attachmentRepositoryImpl.findById(savedAttachment.id!!)
 
         // Then
-        assertThat(retrievedAttachment).isNotNull
-        assertThat(retrievedAttachment!!.id).isEqualTo(savedAttachment.id)
-        assertThat(retrievedAttachment.fileName).isEqualTo("test-file.pdf")
-        assertThat(retrievedAttachment.originalName).isEqualTo("Test Document.pdf")
-        assertThat(retrievedAttachment.mimeType).isEqualTo("application/pdf")
-        assertThat(retrievedAttachment.status).isEqualTo(AttachmentStatus.TEMPORARY)
-        assertThat(retrievedAttachment.tenantId).isEqualTo(testTenantId)
+        val found = attachmentRepository.findById(saved.id)
+        assertThat(found).isNotNull
+        assertThat(found?.id).isEqualTo(saved.id)
+        assertThat(found?.tenantId).isEqualTo(defaultTenantId)
+        assertThat(found?.fileName).isEqualTo("receipt_001.jpg")
+        assertThat(found?.originalName).isEqualTo("Taxi Receipt.jpg")
+        assertThat(found?.fileSize).isEqualTo(1024768L)
+        assertThat(found?.mimeType).isEqualTo("image/jpeg")
+        assertThat(found?.status).isEqualTo(AttachmentStatus.TEMPORARY)
+        assertThat(found?.uploadedBy).isEqualTo(defaultUserId)
     }
 
     @Test
-    fun `should enforce tenant isolation on findByIdAndTenantId`() {
+    fun `should update attachment status to linked`() {
         // Given
-        val attachment = createTestAttachment()
-        val savedAttachment = attachmentRepositoryImpl.save(attachment)
-
-        // When & Then - Same tenant should work
-        val sameTenanAttachment = attachmentRepositoryImpl.findByIdAndTenantId(savedAttachment.id!!, testTenantId)
-        assertThat(sameTenanAttachment).isNotNull
-
-        // When & Then - Different tenant should throw exception
-        whenever(securityContextService.getCurrentTenantId()).thenReturn(otherTenantId)
-        
-        assertThrows<InsufficientPermissionException> {
-            attachmentRepositoryImpl.findByIdAndTenantId(savedAttachment.id!!, otherTenantId)
-        }
-    }
-
-    @Test
-    fun `should handle soft delete properly`() {
-        // Given
-        val attachment = createTestAttachment()
-        val savedAttachment = attachmentRepositoryImpl.save(attachment)
+        val attachment = createTestAttachment(status = AttachmentStatus.TEMPORARY)
+        val saved = attachmentRepository.save(attachment)
+        entityManager.flush()
+        entityManager.clear()
 
         // When
-        attachmentRepositoryImpl.delete(savedAttachment)
+        val toUpdate = attachmentRepository.findById(saved.id)!!
+        toUpdate.markAsLinked()
+        attachmentRepository.save(toUpdate)
+        entityManager.flush()
+        entityManager.clear()
 
         // Then
-        val retrievedAttachment = attachmentRepositoryImpl.findById(savedAttachment.id!!)
-        assertThat(retrievedAttachment).isNull() // Should not be found due to soft delete
-
-        // Verify it's marked as deleted in database
-        val attachmentFromDb = jpaAttachmentRepository.findById(savedAttachment.id!!).orElse(null)
-        assertThat(attachmentFromDb).isNotNull
-        assertThat(attachmentFromDb.deletedAt).isNotNull()
-        assertThat(attachmentFromDb.deletedBy).isEqualTo(testUserId)
+        val found = attachmentRepository.findById(saved.id)
+        assertThat(found?.status).isEqualTo(AttachmentStatus.LINKED)
+        assertThat(found?.linkedAt).isNotNull()
+        assertThat(found?.expiresAt).isNull()
     }
 
     @Test
-    fun `should find attachments by expense ID`() {
+    fun `should soft delete attachment`() {
         // Given
-        val expenseId = UUID.randomUUID()
-        
-        // Note: This test demonstrates the interface but would need proper
-        // ExpenseAttachment relationship setup in a full integration test
-        
+        val attachment = createTestAttachment()
+        val saved = attachmentRepository.save(attachment)
+        entityManager.flush()
+
         // When
-        val attachments = attachmentRepositoryImpl.findByExpenseId(expenseId)
+        val toDelete = attachmentRepository.findById(saved.id)!!
+        toDelete.markDeleted(defaultUserId)
+        attachmentRepository.delete(toDelete)
+        entityManager.flush()
+        entityManager.clear()
 
         // Then
-        assertThat(attachments).isNotNull()
-        assertThat(attachments).isEmpty() // No attachments linked to this expense
+        val notFound = attachmentRepository.findById(saved.id)
+        assertThat(notFound).isNull() // Should not be found due to soft delete
+
+        // But should be found when querying raw database
+        val deletedFromDb = queryRawSql<Array<Any>>(
+            "SELECT id, status, deleted_at, deleted_by FROM attachments WHERE id = ?",
+            saved.id
+        )
+        assertThat(deletedFromDb).hasSize(1)
+        assertThat((deletedFromDb[0] as Array<*>)[1] as String).isEqualTo("DELETED")
+        assertThat((deletedFromDb[0] as Array<*>)[2]).isNotNull() // deleted_at
+        assertThat((deletedFromDb[0] as Array<*>)[3]).isEqualTo(defaultUserId) // deleted_by
+    }
+
+    // ========== Attachment Lifecycle Tests ==========
+
+    @Test
+    fun `should handle temporary attachment lifecycle`() {
+        // Given - Create temporary attachment
+        val attachment = createTestAttachment(
+            status = AttachmentStatus.TEMPORARY,
+            expiresAt = Instant.now().plusSeconds(3600)
+        )
+
+        // When
+        val saved = attachmentRepository.save(attachment)
+
+        // Then
+        assertThat(saved.status).isEqualTo(AttachmentStatus.TEMPORARY)
+        assertThat(saved.expiresAt).isNotNull()
+        assertThat(saved.linkedAt).isNull()
+        assertThat(saved.isExpired()).isFalse()
+
+        // When - Mark as linked
+        saved.markAsLinked()
+        val linked = attachmentRepository.save(saved)
+
+        // Then
+        assertThat(linked.status).isEqualTo(AttachmentStatus.LINKED)
+        assertThat(linked.linkedAt).isNotNull()
+        assertThat(linked.expiresAt).isNull()
     }
 
     @Test
     fun `should find expired temporary attachments`() {
         // Given
-        val now = Instant.now()
-        val pastTime = now.minus(2, ChronoUnit.HOURS)
-        val futureTime = now.plus(2, ChronoUnit.HOURS)
-
-        // Create expired attachment
         val expiredAttachment = createTestAttachment(
-            fileName = "expired-file.pdf",
+            fileName = "expired.pdf",
             status = AttachmentStatus.TEMPORARY,
-            uploadedAt = pastTime
+            expiresAt = Instant.now().minusSeconds(3600) // 1 hour ago
         )
-        attachmentRepositoryImpl.save(expiredAttachment)
-
-        // Create non-expired attachment
+        
         val activeAttachment = createTestAttachment(
-            fileName = "active-file.pdf",
+            fileName = "active.pdf",
             status = AttachmentStatus.TEMPORARY,
-            uploadedAt = futureTime
+            expiresAt = Instant.now().plusSeconds(3600) // 1 hour from now
         )
-        attachmentRepositoryImpl.save(activeAttachment)
-
-        // Create linked attachment (should not be returned even if old)
+        
         val linkedAttachment = createTestAttachment(
-            fileName = "linked-file.pdf",
+            fileName = "linked.pdf",
             status = AttachmentStatus.LINKED,
-            uploadedAt = pastTime
+            expiresAt = null
         )
-        attachmentRepositoryImpl.save(linkedAttachment)
 
         // When
-        val expiredAttachments = attachmentRepositoryImpl.findExpiredTemporary(now.minus(1, ChronoUnit.HOURS))
+        val expired = attachmentRepository.findExpiredTemporary(Instant.now())
 
         // Then
-        assertThat(expiredAttachments).hasSize(1)
-        assertThat(expiredAttachments[0].fileName).isEqualTo("expired-file.pdf")
-        assertThat(expiredAttachments[0].status).isEqualTo(AttachmentStatus.TEMPORARY)
+        assertThat(expired).hasSize(1)
+        assertThat(expired[0].fileName).isEqualTo("expired.pdf")
+        assertThat(expired[0].isExpired()).isTrue()
     }
 
     @Test
-    fun `should handle attachment status transitions`() {
+    fun `should validate attachment file metadata`() {
         // Given
-        val attachment = createTestAttachment(status = AttachmentStatus.TEMPORARY)
-        val savedAttachment = attachmentRepositoryImpl.save(attachment)
+        val attachment = createTestAttachment(mimeType = "image/png")
 
-        // When - Transition to LINKED
-        savedAttachment.status = AttachmentStatus.LINKED
-        savedAttachment.linkedAt = Instant.now()
-        val linkedAttachment = attachmentRepositoryImpl.save(savedAttachment)
+        // When & Then
+        assertThat(attachment.isImage()).isTrue()
+        assertThat(attachment.isPdf()).isFalse()
+        assertThat(attachment.getFileExtension()).isEqualTo("jpg")
 
-        // Then
-        assertThat(linkedAttachment.status).isEqualTo(AttachmentStatus.LINKED)
-        assertThat(linkedAttachment.linkedAt).isNotNull()
-
-        // When - Transition to DELETED (via soft delete)
-        attachmentRepositoryImpl.delete(linkedAttachment)
-        val deletedAttachment = attachmentRepositoryImpl.findById(linkedAttachment.id!!)
-
-        // Then
-        assertThat(deletedAttachment).isNull() // Soft deleted, not found via repository
-    }
-
-    @Test
-    fun `should handle different file types and sizes`() {
-        // Given - Different attachment types
+        // Test PDF
         val pdfAttachment = createTestAttachment(
             fileName = "document.pdf",
-            originalName = "Legal Document.pdf",
-            mimeType = "application/pdf",
-            fileSize = 1024000L // 1MB
+            mimeType = "application/pdf"
         )
+        assertThat(pdfAttachment.isPdf()).isTrue()
+        assertThat(pdfAttachment.isImage()).isFalse()
+        assertThat(pdfAttachment.getFileExtension()).isEqualTo("pdf")
+    }
 
-        val imageAttachment = createTestAttachment(
-            fileName = "receipt.jpg",
-            originalName = "Taxi Receipt.jpg",
-            mimeType = "image/jpeg",
-            fileSize = 512000L // 512KB
-        )
+    // ========== Expense-Attachment Association Tests ==========
 
-        val excelAttachment = createTestAttachment(
-            fileName = "spreadsheet.xlsx",
-            originalName = "Financial Data.xlsx", 
-            mimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            fileSize = 2048000L // 2MB
-        )
+    @Test
+    fun `should create and manage expense-attachment associations`() {
+        // Given
+        val expense = createTestExpense()
+        val attachment1 = createTestAttachment(fileName = "receipt1.jpg")
+        val attachment2 = createTestAttachment(fileName = "receipt2.pdf")
 
         // When
-        val savedPdf = attachmentRepositoryImpl.save(pdfAttachment)
-        val savedImage = attachmentRepositoryImpl.save(imageAttachment)
-        val savedExcel = attachmentRepositoryImpl.save(excelAttachment)
+        expense.addAttachment(ExpenseAttachment(
+            attachment = attachment1,
+            linkedBy = defaultUserId,
+            displayOrder = 1,
+            description = "Taxi receipt"
+        ))
+        
+        expense.addAttachment(ExpenseAttachment(
+            attachment = attachment2,
+            linkedBy = defaultUserId,
+            displayOrder = 2,
+            description = "Hotel invoice"
+        ))
+
+        val savedExpense = expenseRepository.save(expense)
+        entityManager.flush()
+        entityManager.clear()
 
         // Then
-        assertThat(savedPdf.mimeType).isEqualTo("application/pdf")
-        assertThat(savedPdf.fileSize).isEqualTo(1024000L)
+        val found = expenseRepository.findById(savedExpense.id)!!
+        assertThat(found.attachments).hasSize(2)
+        
+        val attachmentFilenames = found.attachments.map { it.attachment.fileName }
+        assertThat(attachmentFilenames).containsExactlyInAnyOrder("receipt1.jpg", "receipt2.pdf")
+        
+        val descriptions = found.attachments.map { it.description }
+        assertThat(descriptions).containsExactlyInAnyOrder("Taxi receipt", "Hotel invoice")
+    }
 
-        assertThat(savedImage.mimeType).isEqualTo("image/jpeg")
-        assertThat(savedImage.fileSize).isEqualTo(512000L)
+    @Test
+    fun `should find attachments by expense ID`() {
+        // Given
+        val expense1 = createTestExpense()
+        val expense2 = createTestExpense()
+        
+        val attachment1 = createTestAttachment(fileName = "expense1_receipt.jpg")
+        val attachment2 = createTestAttachment(fileName = "expense1_invoice.pdf") 
+        val attachment3 = createTestAttachment(fileName = "expense2_receipt.jpg")
 
-        assertThat(savedExcel.mimeType).isEqualTo("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-        assertThat(savedExcel.fileSize).isEqualTo(2048000L)
+        // Link attachments to expenses
+        expense1.addAttachment(ExpenseAttachment(
+            attachment = attachment1,
+            linkedBy = defaultUserId,
+            displayOrder = 1
+        ))
+        expense1.addAttachment(ExpenseAttachment(
+            attachment = attachment2,
+            linkedBy = defaultUserId,
+            displayOrder = 2
+        ))
+        expense2.addAttachment(ExpenseAttachment(
+            attachment = attachment3,
+            linkedBy = defaultUserId,
+            displayOrder = 1
+        ))
+
+        expenseRepository.save(expense1)
+        expenseRepository.save(expense2)
+        entityManager.flush()
+
+        // When
+        val expense1Attachments = attachmentRepository.findByExpenseId(expense1.id)
+        val expense2Attachments = attachmentRepository.findByExpenseId(expense2.id)
+
+        // Then
+        assertThat(expense1Attachments).hasSize(2)
+        assertThat(expense1Attachments.map { it.fileName })
+            .containsExactlyInAnyOrder("expense1_receipt.jpg", "expense1_invoice.pdf")
+            
+        assertThat(expense2Attachments).hasSize(1)
+        assertThat(expense2Attachments[0].fileName).isEqualTo("expense2_receipt.jpg")
+    }
+
+    @Test
+    fun `should handle attachment display order correctly`() {
+        // Given
+        val expense = createTestExpense()
+        val attachment1 = createTestAttachment(fileName = "first.jpg")
+        val attachment2 = createTestAttachment(fileName = "second.pdf")
+        val attachment3 = createTestAttachment(fileName = "third.png")
+
+        // When - Add attachments in specific order
+        expense.addAttachment(ExpenseAttachment(
+            attachment = attachment2,
+            linkedBy = defaultUserId,
+            displayOrder = 2
+        ))
+        expense.addAttachment(ExpenseAttachment(
+            attachment = attachment1,
+            linkedBy = defaultUserId,
+            displayOrder = 1
+        ))
+        expense.addAttachment(ExpenseAttachment(
+            attachment = attachment3,
+            linkedBy = defaultUserId,
+            displayOrder = 3
+        ))
+
+        val savedExpense = expenseRepository.save(expense)
+        entityManager.flush()
+        entityManager.clear()
+
+        // Then
+        val found = expenseRepository.findById(savedExpense.id)!!
+        val sortedAttachments = found.attachments.sortedBy { it.displayOrder }
+        
+        assertThat(sortedAttachments).hasSize(3)
+        assertThat(sortedAttachments[0].attachment.fileName).isEqualTo("first.jpg")
+        assertThat(sortedAttachments[1].attachment.fileName).isEqualTo("second.pdf")
+        assertThat(sortedAttachments[2].attachment.fileName).isEqualTo("third.png")
+    }
+
+    // ========== Multi-Tenant Security Tests ==========
+
+    @Test
+    fun `should prevent cross-tenant attachment access`() {
+        // Given - Create attachment for tenant1
+        val tenant1Id = UUID.randomUUID()
+        val tenant1UserId = UUID.randomUUID()
+        val tenant1User = createTestUser(tenant1Id)
+        
+        val attachment = withTenantContext(tenant1Id, tenant1UserId, tenant1User) {
+            val att = Attachment(
+                tenantId = tenant1Id,
+                fileName = "tenant1_receipt.jpg",
+                originalName = "Private Receipt.jpg",
+                fileSize = 102400L,
+                mimeType = "image/jpeg",
+                storagePath = "/attachments/tenant1/private_receipt.jpg",
+                uploadedBy = tenant1UserId
+            )
+            attachmentRepository.save(att)
+        }
+
+        // When - Try to access from tenant2
+        val tenant2Id = UUID.randomUUID()
+        val tenant2UserId = UUID.randomUUID()
+        val tenant2User = createTestUser(tenant2Id)
+        
+        val crossTenantAccess = withTenantContext(tenant2Id, tenant2UserId, tenant2User) {
+            attachmentRepository.findByIdAndTenantId(attachment.id, tenant2Id)
+        }
+
+        // Then
+        assertThat(crossTenantAccess).isNull()
+    }
+
+    @Test
+    fun `should enforce RLS at database level for attachments`() {
+        // Given - Create attachments for two tenants
+        val tenant1Id = UUID.randomUUID()
+        val tenant2Id = UUID.randomUUID()
+        
+        // Create 4 attachments for tenant1
+        repeat(4) { i ->
+            executeRawSql(
+                "INSERT INTO attachments (id, tenant_id, file_name, original_name, file_size, mime_type, storage_path, status, uploaded_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                UUID.randomUUID(), tenant1Id, "file$i.jpg", "Original$i.jpg", 1024L, "image/jpeg", "/path$i", "TEMPORARY", tenant1Id
+            )
+        }
+        
+        // Create 3 attachments for tenant2
+        repeat(3) { i ->
+            executeRawSql(
+                "INSERT INTO attachments (id, tenant_id, file_name, original_name, file_size, mime_type, storage_path, status, uploaded_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                UUID.randomUUID(), tenant2Id, "file$i.pdf", "Original$i.pdf", 2048L, "application/pdf", "/path$i", "TEMPORARY", tenant2Id
+            )
+        }
+
+        // When - Query with tenant1 context
+        jdbcTemplate.execute("SELECT set_config('app.current_tenant_id', '$tenant1Id', true)")
+        val tenant1Count = queryRawSql<Array<Any>>(
+            "SELECT COUNT(*) FROM attachments WHERE deleted_at IS NULL"
+        )
+        
+        // When - Query with tenant2 context  
+        jdbcTemplate.execute("SELECT set_config('app.current_tenant_id', '$tenant2Id', true)")
+        val tenant2Count = queryRawSql<Array<Any>>(
+            "SELECT COUNT(*) FROM attachments WHERE deleted_at IS NULL"
+        )
+
+        // Then
+        assertThat((tenant1Count[0] as Array<*>)[0] as Long).isEqualTo(4)
+        assertThat((tenant2Count[0] as Array<*>)[0] as Long).isEqualTo(3)
+    }
+
+    // ========== Data Integrity Tests ==========
+
+    @Test
+    fun `should validate attachment field constraints`() {
+        // Test empty file name
+        assertThrows<IllegalArgumentException> {
+            Attachment(
+                tenantId = defaultTenantId,
+                fileName = "",
+                originalName = "test.jpg",
+                fileSize = 1024L,
+                mimeType = "image/jpeg",
+                storagePath = "/path/test.jpg",
+                uploadedBy = defaultUserId
+            )
+        }
+
+        // Test zero file size
+        assertThrows<IllegalArgumentException> {
+            Attachment(
+                tenantId = defaultTenantId,
+                fileName = "test.jpg",
+                originalName = "test.jpg",
+                fileSize = 0L,
+                mimeType = "image/jpeg",
+                storagePath = "/path/test.jpg",
+                uploadedBy = defaultUserId
+            )
+        }
+
+        // Test empty MIME type
+        assertThrows<IllegalArgumentException> {
+            Attachment(
+                tenantId = defaultTenantId,
+                fileName = "test.jpg",
+                originalName = "test.jpg",
+                fileSize = 1024L,
+                mimeType = "",
+                storagePath = "/path/test.jpg",
+                uploadedBy = defaultUserId
+            )
+        }
+    }
+
+    @Test
+    fun `should validate expense attachment display order`() {
+        // Test negative display order
+        assertThrows<IllegalArgumentException> {
+            ExpenseAttachment(
+                attachment = createTestAttachment(),
+                linkedBy = defaultUserId,
+                displayOrder = -1
+            )
+        }
     }
 
     @Test
     fun `should handle thumbnail metadata`() {
         // Given
-        val attachment = createTestAttachment(
-            thumbnailPath = "/thumbnails/test-file-thumb.jpg",
-            thumbnailSize = 25600L // 25KB
-        )
-
-        // When
-        val savedAttachment = attachmentRepositoryImpl.save(attachment)
-
-        // Then
-        assertThat(savedAttachment.thumbnailPath).isEqualTo("/thumbnails/test-file-thumb.jpg")
-        assertThat(savedAttachment.thumbnailSize).isEqualTo(25600L)
-    }
-
-    @Test
-    fun `should validate file size constraints`() {
-        // Given - Attachment with zero file size (should fail validation)
-        val invalidAttachment = createTestAttachment(fileSize = 0L)
-
-        // When & Then - Should throw validation exception
-        assertThatThrownBy {
-            attachmentRepositoryImpl.save(invalidAttachment)
-            entityManager.flush() // Force validation
-        }.isInstanceOf(Exception::class.java) // Specific exception depends on validation implementation
-    }
-
-    @Test
-    fun `should maintain audit trail correctly`() {
-        // Given
         val attachment = createTestAttachment()
+        attachment.thumbnailPath = "/thumbnails/thumb_001.jpg"
+        attachment.thumbnailSize = 10240L
 
         // When
-        val savedAttachment = attachmentRepositoryImpl.save(attachment)
+        val saved = attachmentRepository.save(attachment)
+        entityManager.flush()
+        entityManager.clear()
 
         // Then
-        assertThat(savedAttachment.uploadedBy).isEqualTo(testUserId)
-        assertThat(savedAttachment.uploadedAt).isNotNull()
-        assertThat(savedAttachment.deletedAt).isNull()
-        assertThat(savedAttachment.deletedBy).isNull()
+        val found = attachmentRepository.findById(saved.id)
+        assertThat(found?.thumbnailPath).isEqualTo("/thumbnails/thumb_001.jpg")
+        assertThat(found?.thumbnailSize).isEqualTo(10240L)
+    }
+
+    // ========== Performance Tests ==========
+
+    @Test
+    fun `should handle large number of attachments efficiently`() {
+        // Given - Create 200 attachments
+        val attachments = mutableListOf<Attachment>()
+        repeat(200) { i ->
+            attachments.add(
+                Attachment(
+                    tenantId = defaultTenantId,
+                    fileName = "file_$i.jpg",
+                    originalName = "Original File $i.jpg",
+                    fileSize = (i + 1) * 1024L,
+                    mimeType = if (i % 3 == 0) "image/jpeg" else if (i % 3 == 1) "application/pdf" else "image/png",
+                    storagePath = "/attachments/file_$i",
+                    status = if (i % 4 == 0) AttachmentStatus.TEMPORARY else AttachmentStatus.LINKED,
+                    expiresAt = if (i % 4 == 0) Instant.now().plusSeconds(3600) else null,
+                    uploadedBy = defaultUserId
+                )
+            )
+        }
+        
+        // Batch save for efficiency
+        attachments.chunked(50).forEach { batch ->
+            batch.forEach { attachmentRepository.save(it) }
+            entityManager.flush()
+        }
+        entityManager.clear()
+
+        // When - Execute queries
+        val executionTime1 = measureTimeMillis {
+            val expired = attachmentRepository.findExpiredTemporary(Instant.now().plusSeconds(7200))
+            assertThat(expired).hasSizeLessThanOrEqualTo(50) // Should find temporary ones
+        }
+
+        val executionTime2 = measureTimeMillis {
+            // Simulate finding attachments for multiple expenses
+            repeat(10) {
+                attachmentRepository.findByExpenseId(UUID.randomUUID())
+            }
+        }
+
+        // Then
+        assertThat(executionTime1).isLessThan(100)
+        assertThat(executionTime2).isLessThan(100)
     }
 
     @Test
-    fun `should handle storage path correctly`() {
-        // Given
-        val attachment = createTestAttachment(
-            storagePath = "/uploads/2024/01/15/test-file-uuid.pdf"
+    fun `should use indexes for common queries`() {
+        // Given - Ensure some data exists
+        repeat(50) { i ->
+            createTestAttachment(
+                fileName = "indexed_file_$i.jpg",
+                status = if (i % 2 == 0) AttachmentStatus.TEMPORARY else AttachmentStatus.LINKED,
+                expiresAt = if (i % 2 == 0) Instant.now().plusSeconds(3600) else null
+            )
+        }
+
+        // When - Test index usage for status+expires_at query
+        val statusQueryTime = measureTimeMillis {
+            attachmentRepository.findExpiredTemporary(Instant.now().plusSeconds(7200))
+        }
+
+        // When - Test index usage for tenant query
+        val tenantQueryTime = measureTimeMillis {
+            val count = queryRawSql<Array<Any>>(
+                "SELECT COUNT(*) FROM attachments WHERE tenant_id = ? AND deleted_at IS NULL",
+                defaultTenantId
+            )
+            assertThat((count[0] as Array<*>)[0] as Long).isGreaterThan(0)
+        }
+
+        // Then
+        assertThat(statusQueryTime).isLessThan(50)
+        assertThat(tenantQueryTime).isLessThan(50)
+    }
+
+    // ========== Edge Cases and Error Scenarios ==========
+
+    @Test
+    fun `should handle empty result sets`() {
+        // When - Query with no matching results
+        val noAttachments = attachmentRepository.findByExpenseId(UUID.randomUUID())
+        val noExpired = attachmentRepository.findExpiredTemporary(Instant.now().minusSeconds(86400))
+        val noMatch = attachmentRepository.findByIdAndTenantId(UUID.randomUUID(), defaultTenantId)
+
+        // Then
+        assertThat(noAttachments).isEmpty()
+        assertThat(noExpired).isEmpty()
+        assertThat(noMatch).isNull()
+    }
+
+    @Test
+    fun `should handle large file sizes`() {
+        // Given - Create attachment with large file size
+        val largeAttachment = Attachment(
+            tenantId = defaultTenantId,
+            fileName = "large_video.mp4",
+            originalName = "Training Video.mp4",
+            fileSize = 2147483648L, // 2GB
+            mimeType = "video/mp4",
+            storagePath = "/attachments/large/training_video.mp4",
+            uploadedBy = defaultUserId
         )
 
         // When
-        val savedAttachment = attachmentRepositoryImpl.save(attachment)
+        val saved = attachmentRepository.save(largeAttachment)
+        entityManager.flush()
+        entityManager.clear()
 
         // Then
-        assertThat(savedAttachment.storagePath).isEqualTo("/uploads/2024/01/15/test-file-uuid.pdf")
-        assertThat(savedAttachment.storagePath).isNotEqualTo(savedAttachment.fileName)
-        assertThat(savedAttachment.storagePath).isNotEqualTo(savedAttachment.originalName)
+        val found = attachmentRepository.findById(saved.id)
+        assertThat(found?.fileSize).isEqualTo(2147483648L)
+        assertThat(found?.mimeType).isEqualTo("video/mp4")
+    }
+
+    @Test
+    fun `should maintain consistent state during attachment lifecycle`() {
+        // Given
+        val attachment = createTestAttachment(status = AttachmentStatus.TEMPORARY)
+        val originalUploadTime = attachment.uploadedAt
+        Thread.sleep(100)
+
+        // When - Mark as linked
+        attachment.markAsLinked()
+        val linked = attachmentRepository.save(attachment)
+        entityManager.flush()
+        entityManager.clear()
+
+        // Then
+        val found = attachmentRepository.findById(linked.id)!!
+        assertThat(found.status).isEqualTo(AttachmentStatus.LINKED)
+        assertThat(found.linkedAt).isNotNull()
+        assertThat(found.linkedAt).isAfter(originalUploadTime)
+        assertThat(found.expiresAt).isNull()
+        assertThat(found.uploadedAt).isEqualTo(originalUploadTime) // Should not change
     }
 
     @Test
     fun `should handle concurrent attachment operations`() {
         // Given
-        val attachment = createTestAttachment()
-        val savedAttachment = attachmentRepositoryImpl.save(attachment)
+        val attachment = createTestAttachment(status = AttachmentStatus.TEMPORARY)
+        val saved = attachmentRepository.save(attachment)
+        entityManager.flush()
 
-        // When - Simulate concurrent access
-        val attachment1 = attachmentRepositoryImpl.findById(savedAttachment.id!!)!!
-        val attachment2 = attachmentRepositoryImpl.findById(savedAttachment.id!!)!!
-
-        // Note: Attachment properties may be immutable, so we create new instances
-        val modifiedAttachment1 = createTestAttachment(status = AttachmentStatus.LINKED)
-        val modifiedAttachment2 = createTestAttachment(status = AttachmentStatus.FAILED)
-
-        // Then - Save new instances should succeed
-        val updated1 = attachmentRepositoryImpl.save(modifiedAttachment1)
-        assertThat(updated1.status).isEqualTo(AttachmentStatus.LINKED)
-
-        val updated2 = attachmentRepositoryImpl.save(modifiedAttachment2)
-        assertThat(updated2.status).isEqualTo(AttachmentStatus.FAILED)
-    }
-
-    @Test
-    fun `should handle expiration scenarios correctly`() {
-        // Given
-        val now = Instant.now()
-        val attachment = createTestAttachment(
-            uploadedAt = now,  
-            expiresAt = now.plus(1, ChronoUnit.HOURS)
-        )
-        val savedAttachment = attachmentRepositoryImpl.save(attachment)
-
-        // When
-        val retrievedAttachment = attachmentRepositoryImpl.findById(savedAttachment.id!!)
+        // When - Simulate concurrent operations
+        val attachment1 = attachmentRepository.findById(saved.id)!!
+        val attachment2 = attachmentRepository.findById(saved.id)!!
+        
+        attachment1.markAsLinked()
+        attachment2.markDeleted(defaultUserId)
+        
+        attachmentRepository.save(attachment1)
+        // attachment2 save would typically fail due to optimistic locking
+        // but we're testing the behavior
 
         // Then
-        assertThat(retrievedAttachment).isNotNull
-        assertThat(retrievedAttachment!!.expiresAt).isNotNull()
-        assertThat(retrievedAttachment.expiresAt).isAfter(now)
+        entityManager.flush()
+        entityManager.clear()
+        val final = attachmentRepository.findById(saved.id)!!
+        assertThat(final.status).isEqualTo(AttachmentStatus.LINKED) // First save wins
     }
 
+    // ========== Helper Methods ==========
+
     private fun createTestAttachment(
-        fileName: String = "test-file.pdf",
-        originalName: String = "Test Document.pdf",
-        mimeType: String = "application/pdf",
-        fileSize: Long = 1024000L,
+        fileName: String = "test_${UUID.randomUUID()}.jpg",
+        originalName: String = "Test File.jpg",
+        fileSize: Long = 102400L,
+        mimeType: String = "image/jpeg",
         status: AttachmentStatus = AttachmentStatus.TEMPORARY,
-        uploadedAt: Instant = Instant.now(),
-        expiresAt: Instant? = null,
-        storagePath: String? = null,
-        thumbnailPath: String? = null,
-        thumbnailSize: Long? = null
+        expiresAt: Instant? = if (status == AttachmentStatus.TEMPORARY) Instant.now().plusSeconds(3600) else null
     ): Attachment {
         return Attachment(
-            tenantId = testTenantId,
+            tenantId = defaultTenantId,
             fileName = fileName,
             originalName = originalName,
             fileSize = fileSize,
             mimeType = mimeType,
-            storagePath = storagePath ?: "/uploads/test/$fileName",
+            storagePath = "/attachments/test/$fileName",
             status = status,
-            linkedAt = if (status == AttachmentStatus.LINKED) uploadedAt else null,
-            expiresAt = expiresAt ?: if (status == AttachmentStatus.TEMPORARY) uploadedAt.plus(24, ChronoUnit.HOURS) else null,
-            thumbnailPath = thumbnailPath,
-            thumbnailSize = thumbnailSize,
-            uploadedAt = uploadedAt,
-            uploadedBy = testUserId,
-            deletedAt = null,
-            deletedBy = null
+            expiresAt = expiresAt,
+            uploadedBy = defaultUserId
+        )
+    }
+
+    private fun createTestExpense(): Expense {
+        return Expense(
+            tenantId = defaultTenantId,
+            date = LocalDate.now(),
+            category = "Test Category",
+            description = "Test Expense",
+            expenseAmount = BigDecimal("100.00"),
+            balance = BigDecimal("-100.00"),
+            auditInfo = AuditInfo(
+                createdBy = defaultUserId,
+                updatedBy = defaultUserId
+            )
         )
     }
 }

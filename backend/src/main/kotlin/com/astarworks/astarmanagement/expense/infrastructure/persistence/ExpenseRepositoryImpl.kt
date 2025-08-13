@@ -94,7 +94,7 @@ class ExpenseRepositoryImpl(
     override fun findPreviousBalance(
         tenantId: UUID,
         date: LocalDate,
-        excludeId: UUID
+        excludeId: UUID?
     ): BigDecimal? {
         return jpaExpenseRepository.calculatePreviousBalance(tenantId, date, excludeId)
     }
