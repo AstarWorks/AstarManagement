@@ -83,6 +83,10 @@ const emit = defineEmits<{
     columnFilters: ColumnFiltersState
     columnVisibility: VisibilityState
   }]
+  /**
+   * Emitted when a row is clicked
+   */
+  'rowClick': [row: TData]
 }>()
 
 // Table state
@@ -174,7 +178,8 @@ defineExpose({
               v-for="row in table.getRowModel().rows"
               :key="row.id"
               :data-state="row.getIsSelected() && 'selected'"
-              class="hover:bg-muted/50"
+              class="hover:bg-muted/50 cursor-pointer"
+              @click="emit('rowClick', row.original)"
             >
               <TableCell
                 v-for="cell in row.getVisibleCells()"
