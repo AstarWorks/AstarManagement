@@ -63,6 +63,14 @@ Implement the essential expense CRUD operations and forms, providing users with 
 - Debounced search and filter inputs
 - Form state persistence during navigation
 - Proper TypeScript types throughout
+- **Use TanStackTable (TanStack Table v8) for all table implementations**
+  - Replace any existing custom table implementations with TanStackTable
+  - Leverage TanStackTable's built-in features: sorting, filtering, pagination, column resizing
+  - Implement server-side pagination and filtering with TanStackTable adapters
+- **Use shadcn-vue components for UI consistency**
+  - Integrate shadcn-vue table components with TanStackTable
+  - Use shadcn-vue form components for all forms
+  - Ensure consistent styling across all UI elements
 
 ## Notes
 This sprint delivers the core user-facing functionality that legal professionals will use daily. Focus on intuitive design, helpful validation messages, and smooth interactions. The mock data service will simulate backend responses until M002 integration.

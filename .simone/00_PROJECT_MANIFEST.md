@@ -10,7 +10,7 @@ Complete legal practice management system for Japanese law firms (1-10 employees
 - Created: 2025-07-23
 - Status: Active
 - Version: 0.0.1
-- Updated: 2025-08-05 02:32
+- Updated: 2025-08-06 13:30
 - **Current Milestone**: MILESTONE_002_EXPENSE_BACKEND_IMPLEMENTATION
 - **Highest Milestone**: M003
 - **Highest Sprint in M002**: S05_M002_EXPENSE_INTEGRATION_TESTING
@@ -19,14 +19,14 @@ Complete legal practice management system for Japanese law firms (1-10 employees
 ## Current Sprint Status
 - **Active Sprints (Parallel Execution)**: 
   - S02_M002_EXPENSE_DATABASE (M002 - Backend Development)
-  - S03_M003_ADVANCED_FEATURES (M003 - Frontend Development - READY)
+  - S02B_M003_TANSTACK_MIGRATION (M003 - Frontend Development - IN PROGRESS)
 - **Current Tasks**: 
-  - M002: Next task to be assigned (T07_S02_M002_Repository_Implementation available)
-  - M003: S03_M003 sprint ready - 9 tasks created (T01-T09)
+  - M002: Next task to be assigned (T08_S02_M002_Database_Integration_Tests available)
+  - M003: Next task to be assigned (T02_S02B_M003_Expense_List_Refactoring available)
 - **Last Completed**: 
-  - M002: TX06_S02_M002_Test_Data_Seeder - Test Data Seeder Implementation
-  - M003: S02_M003_CORE_FEATURES - All 7 tasks completed
-- **Updated**: 2025-08-05 10:50
+  - M002: TX07_S02_M002_Repository_Implementation - Repository Implementation
+  - M003: TX01_S02B_M003_TanStackTable_Core_Setup - TanStackTable Core Setup
+- **Updated**: 2025-08-13 08:10
 
 ## Milestones
 - [x] M001: MVP Foundation - Status: In Progress - [Details](02_REQUIREMENTS/MILESTONE_001_MVP_FOUNDATION/MILESTONE_001_milestone_meta.md)
@@ -43,6 +43,8 @@ Complete legal practice management system for Japanese law firms (1-10 employees
 ## M003 Sprint Roadmap
 - [x] **S01_M003_FOUNDATION_ROUTING**: Completed - Frontend routing, navigation, mock data services (5 days)
 - [x] **S02_M003_CORE_FEATURES**: Completed - Essential expense CRUD operations and forms (5 days)
+  - **Note**: Technical requirements updated to use TanStackTable v8 and shadcn-vue for all table implementations
+- [ ] **S02B_M003_TANSTACK_MIGRATION**: Planned - Refactor tables to use TanStackTable v8 (3 days, 8 tasks)
 - [ ] **S03_M003_ADVANCED_FEATURES**: Ready - CSV import, reporting, file attachments (7 days, 9 tasks)
 - [ ] **S04_M003_INTEGRATION_POLISH**: Planned - Dashboard integration and production readiness (7 days)
 

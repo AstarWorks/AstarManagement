@@ -24,6 +24,7 @@
 - **`ui-design.md`** - 画面レイアウト・ユーザーフロー・インタラクション
 - **`component-design.md`** - Vueコンポーネント構成・状態管理
 - **`ui-libraries.md`** - 使用するUIライブラリとコンポーネント
+- **`frontend-routing-design.md`** - フロントエンドルーティング設計（URL構造・ナビゲーション）
 
 ## 🔗 関連ドキュメント
 
