@@ -22,11 +22,11 @@ Complete legal practice management system for Japanese law firms (1-10 employees
   - S02B_M003_TANSTACK_MIGRATION (M003 - Frontend Development - IN PROGRESS)
 - **Current Tasks**: 
   - M002: Next task to be assigned (T08_S02_M002_Database_Integration_Tests available)
-  - M003: Next task to be assigned (T03_S02B_M003_Advanced_Table_Features available)
+  - M003: Next task to be assigned (T04_S02B_M003_Filter_Integration available)
 - **Last Completed**: 
   - M002: TX07_S02_M002_Repository_Implementation - Repository Implementation
-  - M003: TX02_S02B_M003_Expense_List_Refactoring - Expense List Refactoring
-- **Updated**: 2025-08-13 09:34
+  - M003: TX03_S02B_M003_Advanced_Table_Features - Advanced Table Features Implementation
+- **Updated**: 2025-08-13 12:43
 
 ## Milestones
 - [x] M001: MVP Foundation - Status: In Progress - [Details](02_REQUIREMENTS/MILESTONE_001_MVP_FOUNDATION/MILESTONE_001_milestone_meta.md)

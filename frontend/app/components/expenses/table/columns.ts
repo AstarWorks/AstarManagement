@@ -1,4 +1,4 @@
-import type { ColumnDef } from '@tanstack/vue-table'
+import type { ColumnDef, Column } from '@tanstack/vue-table'
 import type { IExpense } from '~/types/expense'
 import { h } from 'vue'
 import { Checkbox } from '~/components/ui/checkbox'
@@ -13,7 +13,26 @@ import {
   DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
 import { Icon } from '#components'
-import { ArrowUpDown } from 'lucide-vue-next'
+import SortIndicator from '~/components/ui/data-table/SortIndicator.vue'
+
+// Helper function to create sortable header
+const createSortableHeader = (label: string, column: Column<IExpense, unknown>) => h(
+  Button,
+  {
+    variant: 'ghost',
+    onClick: (event: MouseEvent) => {
+      if (event.shiftKey) {
+        column.toggleSorting(column.getIsSorted() === 'asc', true)
+      } else {
+        column.toggleSorting(column.getIsSorted() === 'asc')
+      }
+    },
+  },
+  () => [
+    label,
+    h(SortIndicator, { sortDirection: column.getIsSorted() }),
+  ]
+)
 
 export const createExpenseColumns = (
   t: (key: string) => string,
@@ -54,32 +73,15 @@ export const createExpenseColumns = (
   },
   {
     accessorKey: 'date',
-    header: ({ column }) => h(
-      Button,
-      {
-        variant: 'ghost',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      },
-      () => [
-        t('expense.fields.date'),
-        h(ArrowUpDown, { class: 'ml-2 h-4 w-4' }),
-      ]
-    ),
+    meta: { label: t('expense.fields.date') },
+    enablePinning: true,
+    header: ({ column }) => createSortableHeader(t('expense.fields.date'), column),
     cell: ({ row }) => formatters.formatDate(row.getValue('date')),
   },
   {
     accessorKey: 'category',
-    header: ({ column }) => h(
-      Button,
-      {
-        variant: 'ghost',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      },
-      () => [
-        t('expense.fields.category'),
-        h(ArrowUpDown, { class: 'ml-2 h-4 w-4' }),
-      ]
-    ),
+    meta: { label: t('expense.fields.category') },
+    header: ({ column }) => createSortableHeader(t('expense.fields.category'), column),
     cell: ({ row }) => h(
       Badge,
       {
@@ -91,17 +93,8 @@ export const createExpenseColumns = (
   },
   {
     accessorKey: 'description',
-    header: ({ column }) => h(
-      Button,
-      {
-        variant: 'ghost',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      },
-      () => [
-        t('expense.fields.description'),
-        h(ArrowUpDown, { class: 'ml-2 h-4 w-4' }),
-      ]
-    ),
+    meta: { label: t('expense.fields.description') },
+    header: ({ column }) => createSortableHeader(t('expense.fields.description'), column),
     cell: ({ row }) => {
       const description = row.getValue('description') as string
       const memo = row.original.memo
@@ -113,6 +106,8 @@ export const createExpenseColumns = (
   },
   {
     id: 'amounts',
+    meta: { label: t('expense.fields.amount') },
+    enablePinning: true,
     header: () => t('expense.fields.amount'),
     cell: ({ row }) => {
       const income = row.original.incomeAmount
@@ -125,17 +120,8 @@ export const createExpenseColumns = (
   },
   {
     accessorKey: 'balance',
-    header: ({ column }) => h(
-      Button,
-      {
-        variant: 'ghost',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-      },
-      () => [
-        t('expense.fields.balance'),
-        h(ArrowUpDown, { class: 'ml-2 h-4 w-4' }),
-      ]
-    ),
+    meta: { label: t('expense.fields.balance') },
+    header: ({ column }) => createSortableHeader(t('expense.fields.balance'), column),
     cell: ({ row }) => h(
       'div',
       {

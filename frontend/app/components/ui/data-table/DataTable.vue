@@ -1,5 +1,5 @@
 <script setup lang="ts" generic="TData, TValue">
-import type { ColumnDef, ColumnFiltersState, SortingState, VisibilityState } from '@tanstack/vue-table'
+import type { ColumnDef, ColumnFiltersState, SortingState, VisibilityState, ColumnSizingState, ColumnPinningState } from '@tanstack/vue-table'
 import {
   FlexRender,
   getCoreRowModel,
@@ -10,6 +10,7 @@ import {
 } from '@tanstack/vue-table'
 import { computed, ref, watch } from 'vue'
 import { valueUpdater } from '../table/utils'
+import { useTablePersistence } from '~/composables/useTablePersistence'
 import {
   Table,
   TableBody,
@@ -63,6 +64,10 @@ interface DataTableProps<TData, TValue> {
    * Page size for pagination
    */
   pageSize?: number
+  /**
+   * Unique ID for table state persistence
+   */
+  persistenceId?: string
 }
 
 const props = withDefaults(defineProps<DataTableProps<TData, TValue>>(), {
@@ -89,11 +94,17 @@ const emit = defineEmits<{
   'rowClick': [row: TData]
 }>()
 
-// Table state
-const sorting = ref<SortingState>([])
+// Persistence setup
+const persistence = props.persistenceId ? useTablePersistence(props.persistenceId) : null
+const persistedState = persistence?.loadState() || {}
+
+// Table state - initialize with persisted values if available
+const sorting = ref<SortingState>(persistedState.sorting || [])
 const columnFilters = ref<ColumnFiltersState>([])
-const columnVisibility = ref<VisibilityState>({})
+const columnVisibility = ref<VisibilityState>(persistedState.columnVisibility || {})
 const rowSelection = ref({})
+const columnSizing = ref<ColumnSizingState>(persistedState.columnSizing || {})
+const columnPinning = ref<ColumnPinningState>(persistedState.columnPinning || { left: [], right: [] })
 
 // Create table instance
 const table = useVueTable({
@@ -107,26 +118,47 @@ const table = useVueTable({
   onColumnFiltersChange: updaterOrValue => valueUpdater(updaterOrValue, columnFilters),
   onColumnVisibilityChange: updaterOrValue => valueUpdater(updaterOrValue, columnVisibility),
   onRowSelectionChange: updaterOrValue => valueUpdater(updaterOrValue, rowSelection),
+  onColumnSizingChange: updaterOrValue => valueUpdater(updaterOrValue, columnSizing),
+  onColumnPinningChange: updaterOrValue => valueUpdater(updaterOrValue, columnPinning),
   state: {
     get sorting() { return sorting.value },
     get columnFilters() { return columnFilters.value },
     get columnVisibility() { return columnVisibility.value },
     get rowSelection() { return rowSelection.value },
+    get columnSizing() { return columnSizing.value },
+    get columnPinning() { return columnPinning.value },
   },
   initialState: {
     pagination: {
       pageSize: props.pageSize,
     },
   },
+  // Enable multi-column sorting
+  enableMultiSort: true,
+  enableSortingRemoval: true,
+  maxMultiSortColCount: 3,
+  // Enable column resizing
+  columnResizeMode: 'onChange',
+  enableColumnResizing: true,
 })
 
-// Watch for state changes and emit
-watch([sorting, columnFilters, columnVisibility], () => {
+// Watch for state changes and emit + persist
+watch([sorting, columnFilters, columnVisibility, columnSizing, columnPinning], () => {
   emit('update:state', {
     sorting: sorting.value,
     columnFilters: columnFilters.value,
     columnVisibility: columnVisibility.value,
   })
+  
+  // Persist state if persistence is enabled
+  if (persistence) {
+    persistence.saveState({
+      sorting: sorting.value,
+      columnVisibility: columnVisibility.value,
+      columnSizing: columnSizing.value,
+      columnPinning: columnPinning.value,
+    })
+  }
 })
 
 // Expose table instance for parent components
@@ -148,12 +180,29 @@ defineExpose({
               v-for="header in headerGroup.headers"
               :key="header.id"
               :colspan="header.colSpan"
+              :style="{
+                width: `${header.getSize()}px`,
+              }"
+              class="relative"
             >
-              <FlexRender
-                v-if="!header.isPlaceholder"
-                :render="header.column.columnDef.header"
-                :props="header.getContext()"
-              />
+              <div class="flex items-center">
+                <FlexRender
+                  v-if="!header.isPlaceholder"
+                  :render="header.column.columnDef.header"
+                  :props="header.getContext()"
+                />
+              </div>
+              <div
+                v-if="header.column.getCanResize()"
+                class="absolute right-0 top-0 h-full w-1 cursor-col-resize select-none touch-none"
+                :class="{
+                  'bg-primary': header.column.getIsResizing(),
+                }"
+                @mousedown="header.getResizeHandler()($event)"
+                @touchstart="header.getResizeHandler()($event)"
+              >
+                <div class="h-full w-1 hover:bg-muted-foreground/50"/>
+              </div>
             </TableHead>
           </TableRow>
         </TableHeader>

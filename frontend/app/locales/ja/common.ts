@@ -57,6 +57,8 @@ export default {
         undo: '元に戻す',
         redo: 'やり直し',
         dateNotSet: '未設定',
+        columns: '列',
+        toggleColumns: '列の表示切替',
         placeholder: {
             enterHere: 'ここに入力してください'
         },

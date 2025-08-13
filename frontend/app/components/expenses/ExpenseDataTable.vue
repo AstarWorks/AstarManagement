@@ -1,7 +1,8 @@
 <template>
   <div class="expense-data-table w-full">
     <!-- Table Toolbar -->
-    <div v-if="selectedRows.length > 0" class="mb-4 flex items-center gap-2">
+    <div class="mb-4 flex items-center justify-between">
+      <div v-if="selectedRows.length > 0" class="flex items-center gap-2">
       <span class="text-sm text-muted-foreground">
         {{ t('expense.table.selectedCount', { count: selectedRows.length }) }}
       </span>
@@ -10,13 +11,17 @@
         {{ t('expense.actions.bulkEdit') }}
       </Button>
       <Button
-variant="outline"
-size="sm"
-class="text-destructive"
-@click="handleBulkDelete">
+        variant="outline"
+        size="sm"
+        class="text-destructive"
+        @click="handleBulkDelete">
         <Icon name="lucide:trash" class="mr-2 h-4 w-4" />
         {{ t('expense.actions.bulkDelete') }}
       </Button>
+      </div>
+      <div class="flex items-center gap-2">
+        <ColumnVisibilityDropdown v-if="tableRef?.table" :table="tableRef.table as any" />
+      </div>
     </div>
 
     <!-- DataTable -->
@@ -29,6 +34,7 @@ class="text-destructive"
       enable-sorting
       :enable-filtering="false"
       :enable-pagination="false"
+      persistence-id="expense-table"
       @update:state="handleStateUpdate"
       @row-click="handleRowClick"
     />
@@ -111,6 +117,7 @@ class="text-destructive"
 import type { IExpense } from '~/types/expense'
 import { computed, ref, watch } from 'vue'
 import DataTable from '~/components/ui/data-table/DataTable.vue'
+import ColumnVisibilityDropdown from '~/components/ui/data-table/ColumnVisibilityDropdown.vue'
 import { Button } from '~/components/ui/button'
 import { Card } from '~/components/ui/card'
 import { Badge } from '~/components/ui/badge'
@@ -151,7 +158,14 @@ const { t } = useI18n()
 const formatters = useExpenseFormatters()
 
 // Table reference  
-const tableRef = ref<{ table: { getSelectedRowModel: () => { rows: { original: IExpense }[] } } } | null>(null)
+interface TableInstance {
+  table: {
+    getSelectedRowModel: () => {
+      rows: Array<{ original: IExpense }>
+    }
+  }
+}
+const tableRef = ref<TableInstance | null>(null)
 
 // Selected rows tracking
 const selectedRows = computed(() => {
