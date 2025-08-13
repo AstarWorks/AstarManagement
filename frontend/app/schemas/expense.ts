@@ -47,8 +47,8 @@ export const createExpenseSchema = (t: (key: string, params?: Record<string, str
     // Step 3: Additional Information
     caseId: z.string().optional(),
     memo: z.string().max(1000, t('expense.form.validation.maxMemo')).optional(),
-    tagIds: z.array(z.string()).default([]),
-    attachmentIds: z.array(z.string()).default([])
+    tagIds: z.array(z.string()),
+    attachmentIds: z.array(z.string())
   }).refine((data) => data.incomeAmount > 0 || data.expenseAmount > 0, {
     message: t('expense.form.validation.amountRequired'),
     path: ['incomeAmount'],

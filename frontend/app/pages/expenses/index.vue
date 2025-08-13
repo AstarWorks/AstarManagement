@@ -25,26 +25,19 @@
 
     <!-- Filters Section -->
     <div class="filters-section mb-6">
-      <!-- Placeholder for ExpenseFilters component -->
-      <Card>
-        <CardContent class="p-4">
-          <div class="text-muted-foreground">
-            {{ t('common.loading') }}... (ExpenseFilters component)
-          </div>
-        </CardContent>
-      </Card>
+      <ExpenseFilters 
+        v-model="filters"
+        :loading="listLoading"
+        @update:model-value="handleFilterChange"
+      />
     </div>
 
     <!-- Summary Section -->
-    <div class="summary-section mb-6">
-      <!-- Placeholder for ExpenseSummary component -->
-      <Card>
-        <CardContent class="p-4">
-          <div class="text-muted-foreground">
-            {{ t('common.loading') }}... (ExpenseSummary component)
-          </div>
-        </CardContent>
-      </Card>
+    <div v-if="expenses.length > 0" class="summary-section mb-6">
+      <FilterStatistics 
+        :stats="filterStats"
+        :loading="listLoading"
+      />
     </div>
 
     <!-- Expense List -->
@@ -68,35 +61,53 @@
       </div>
 
       <!-- Expense List Content -->
+      <div v-else-if="expenses.length === 0">
+        <ExpenseEmptyState 
+          :has-filters="hasActiveFilters"
+          @create-new="router.push('/expenses/new')"
+          @clear-filters="clearFilters"
+        />
+      </div>
+      
+      <!-- Expense Data Table -->
       <div v-else>
-        <!-- Placeholder for ExpenseList component -->
-        <Card>
-          <CardContent class="p-4">
-            <div class="text-muted-foreground">
-              {{ t('common.loading') }}... (ExpenseList component)
-            </div>
-          </CardContent>
-        </Card>
+        <ExpenseDataTable
+          :expenses="expenses"
+          :loading="listLoading"
+          :selected="selectedExpenses"
+          @update:selected="selectedExpenses = $event"
+          @edit="(expense) => router.push(`/expenses/${expense.id}/edit`)"
+          @view="(expense) => router.push(`/expenses/${expense.id}`)"
+          @delete="handleDelete"
+        />
       </div>
     </div>
 
     <!-- Pagination -->
-    <div class="pagination-section">
-      <!-- Placeholder for Pagination component -->
-      <div class="flex justify-center">
-        <div class="text-muted-foreground">
-          {{ t('common.loading') }}... (Pagination component)
-        </div>
-      </div>
+    <div v-if="totalPages > 1" class="pagination-section">
+      <ExpensePagination
+        :current-page="currentPage"
+        :total-pages="totalPages"
+        :total-items="totalItems"
+        :page-size="pageSize"
+        @update:current-page="currentPage = $event"
+        @update:page-size="pageSize = $event"
+      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { IExpenseFilter, IExpenseList, IExpenseSummary } from '~/types/expense'
+import type { IExpense, IExpenseFilter, IExpenseSummary } from '~/types/expense'
 import { Card, CardContent } from '~/components/ui/card'
 import { Button } from '~/components/ui/button'
 import { Icon } from '#components'
+import ExpenseFilters from '~/components/expenses/ExpenseFilters.vue'
+import ExpenseDataTable from '~/components/expenses/ExpenseDataTable.vue'
+import ExpensePagination from '~/components/expenses/ExpensePagination.vue'
+import ExpenseEmptyState from '~/components/expenses/states/ExpenseEmptyState.vue'
+import FilterStatistics from '~/components/expenses/filters/FilterStatistics.vue'
+import { mockExpenseDataService } from '~/services/mockExpenseDataService'
 
 // Meta and SEO
 definePageMeta({
@@ -111,21 +122,33 @@ const router = useRouter()
 
 // Reactive state
 const filters = ref<IExpenseFilter>({})
-const expenses = ref<IExpenseList>({ 
-  items: [], 
-  total: 0, 
-  offset: 0, 
-  limit: 20, 
-  hasMore: false 
-})
+const expenses = ref<IExpense[]>([])
+const selectedExpenses = ref<Set<string>>(new Set())
 const expenseSummary = ref<IExpenseSummary>()
 const currentPage = ref(1)
-const perPage = ref(20)
+const pageSize = ref(20)
+const totalItems = ref(0)
+const totalPages = computed(() => Math.ceil(totalItems.value / pageSize.value))
 
 // Loading states
 const listLoading = ref(false)
 const summaryLoading = ref(false)
 const listError = ref<string>()
+
+// Computed properties
+const hasActiveFilters = computed(() => {
+  return Object.values(filters.value).some(value => 
+    value !== undefined && value !== null && value !== '' && 
+    (!Array.isArray(value) || value.length > 0)
+  )
+})
+
+const filterStats = computed(() => ({
+  totalMatched: totalItems.value,
+  totalIncome: expenses.value.reduce((sum, e) => sum + e.incomeAmount, 0),
+  totalExpense: expenses.value.reduce((sum, e) => sum + e.expenseAmount, 0),
+  netBalance: expenses.value.reduce((sum, e) => sum + e.balance, 0)
+}))
 
 // Sync filters with query parameters
 watchEffect(() => {
@@ -134,6 +157,7 @@ watchEffect(() => {
     endDate: route.query.endDate as string,
     category: route.query.category as string,
     caseId: route.query.caseId as string,
+    searchQuery: route.query.q as string,
     tagIds: Array.isArray(route.query.tagIds) 
       ? route.query.tagIds as string[]
       : route.query.tagIds 
@@ -143,10 +167,11 @@ watchEffect(() => {
     sortOrder: (route.query.sortOrder as 'ASC' | 'DESC') || 'DESC'
   }
   currentPage.value = parseInt(route.query.page as string) || 1
+  pageSize.value = parseInt(route.query.pageSize as string) || 20
 })
 
 // Event handlers
-const _handleFiltersApply = (newFilters: IExpenseFilter) => {
+const handleFilterChange = (newFilters: IExpenseFilter) => {
   // Convert filter values to strings for URL query parameters
   const query: Record<string, string> = { page: '1' }
   
@@ -163,26 +188,13 @@ const _handleFiltersApply = (newFilters: IExpenseFilter) => {
   router.push({ query })
 }
 
-const _handleFiltersReset = () => {
+const clearFilters = () => {
   router.push({ query: {} })
 }
 
-const _handleExpenseEdit = (expenseId: string) => {
-  router.push(`/expenses/${expenseId}/edit`)
-}
-
-const _handleExpenseView = (expenseId: string) => {
-  router.push(`/expenses/${expenseId}`)
-}
-
-const _handleExpenseDelete = async (expenseId: string) => {
+const handleDelete = async (expense: IExpense) => {
   // Delete logic will be implemented when we have the service
-  console.log('Delete expense:', expenseId)
-}
-
-const _handlePageChange = (page: number) => {
-  const query = { ...route.query, page: page.toString() }
-  router.push({ query })
+  console.log('Delete expense:', expense.id)
 }
 
 // Load data functions
@@ -191,17 +203,18 @@ const loadExpenses = async () => {
   listError.value = undefined
   
   try {
-    // Mock data loading - will be replaced with service calls
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 300))
     
-    // For now, just set some mock data
-    expenses.value = {
-      items: [],
-      total: 0,
-      offset: (currentPage.value - 1) * perPage.value,
-      limit: perPage.value,
-      hasMore: false
-    }
+    // Get data from mock service
+    const result = mockExpenseDataService.getExpenses({
+      ...filters.value,
+      offset: (currentPage.value - 1) * pageSize.value,
+      limit: pageSize.value
+    })
+    
+    expenses.value = result.items
+    totalItems.value = result.total
   } catch (error) {
     listError.value = t('expense.errors.loadFailed')
     console.error('Failed to load expenses:', error)
@@ -235,6 +248,14 @@ const loadSummary = async () => {
     summaryLoading.value = false
   }
 }
+
+// Initialize mock data on first load
+onMounted(async () => {
+  // Seed mock data if empty
+  if (mockExpenseDataService.getExpenses().total === 0) {
+    await mockExpenseDataService.seedDatabase(100)
+  }
+})
 
 // Load data on component mount and filter changes
 watchEffect(async () => {

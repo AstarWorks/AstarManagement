@@ -2,8 +2,16 @@
   <div class="quick-actions-section">
     <h3 class="text-lg font-semibold mb-4">{{ $t('dashboard.quickActions.title') }}</h3>
     
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <!-- Expense Quick Actions -->
+      <QuickActionCard
+        :title="$t('expense.navigation.list')"
+        :description="$t('expense.quickActions.list.description')"
+        :icon="'lucide:list'"
+        :to="'/expenses'"
+        :stats="listStats"
+      />
+      
       <QuickActionCard
         :title="$t('expense.actions.create')"
         :description="$t('expense.quickActions.create.description')"
@@ -40,6 +48,11 @@ export interface QuickActionStats {
 }
 
 // Mock stats - will be replaced with real data from stores
+const listStats = ref<QuickActionStats[]>([
+  { label: 'Total Expenses', value: 47, trend: 'up' },
+  { label: 'This Month', value: 12 }
+])
+
 const expenseStats = ref<QuickActionStats[]>([
   { label: 'This Month', value: '¥125,000', trend: 'up' },
   { label: 'Pending', value: 3 }

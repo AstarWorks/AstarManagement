@@ -4,7 +4,6 @@
  */
 
 export default {
-  navigation: {
     dashboard: 'ダッシュボード',
     matters: '案件管理',
     clients: '依頼者管理',
@@ -20,67 +19,66 @@ export default {
     feedback: 'フィードバック',
     loginPage: 'ログインページ',
     groups: {
-      matters: '案件管理',
-      clients: '依頼者管理',
-      documents: '書類管理',
-      finance: '財務管理'
+        matters: '案件管理',
+        clients: '依頼者管理',
+        documents: '書類管理',
+        finance: '財務管理'
     },
     language: {
-      switch: '言語を切り替え'
+        switch: '言語を切り替え'
     },
     breadcrumb: {
-      separator: '/',
-      home: 'ホーム'
+        separator: '/',
+        home: 'ホーム'
     },
     sidebar: {
-      toggle: 'サイドバーを切り替え',
-      collapse: 'サイドバーを閉じる',
-      expand: 'サイドバーを開く',
-      mainMenu: 'メインメニュー',
-      adminMenu: 'システム管理',
-      recentPages: '最近のページ',
-      appName: 'Astar Management',
-      tagline: '法律事務所管理システム',
-      userInfo: {
-        noRole: '未設定',
-        guest: 'ゲスト'
-      }
+        toggle: 'サイドバーを切り替え',
+        collapse: 'サイドバーを閉じる',
+        expand: 'サイドバーを開く',
+        mainMenu: 'メインメニュー',
+        adminMenu: 'システム管理',
+        recentPages: '最近のページ',
+        appName: 'Astar Management',
+        tagline: '法律事務所管理システム',
+        userInfo: {
+            noRole: '未設定',
+            guest: 'ゲスト'
+        }
     },
     menu: {
-      user: 'ユーザーメニュー',
-      matters: {
-        title: '案件管理',
-        list: '案件一覧',
-        create: '新規案件',
-        kanban: 'カンバンボード'
-      },
-      clients: {
-        title: '依頼者管理',
-        list: '依頼者一覧',
-        create: '新規依頼者'
-      },
-      documents: {
-        title: '書類管理',
-        list: '書類一覧',
-        upload: '書類アップロード',
-        create: '文書作成',
-        templates: 'テンプレート'
-      },
-      finance: {
-        title: '財務管理',
-        dashboard: '財務ダッシュボード',
-        expenses: '実費管理',
-        billing: '請求管理',
-        reports: 'レポート'
-      },
-      admin: {
-        dashboard: '管理ダッシュボード',
-        users: 'ユーザー管理',
-        settings: 'システム設定',
-        audit: '監査ログ',
-        roles: '権限管理',
-        system: 'システム設定'
-      }
+        user: 'ユーザーメニュー',
+        matters: {
+            title: '案件管理',
+            list: '案件一覧',
+            create: '新規案件',
+            kanban: 'カンバンボード'
+        },
+        clients: {
+            title: '依頼者管理',
+            list: '依頼者一覧',
+            create: '新規依頼者'
+        },
+        documents: {
+            title: '書類管理',
+            list: '書類一覧',
+            upload: '書類アップロード',
+            create: '文書作成',
+            templates: 'テンプレート'
+        },
+        finance: {
+            title: '財務管理',
+            dashboard: '財務ダッシュボード',
+            expenses: '実費管理',
+            billing: '請求管理',
+            reports: 'レポート'
+        },
+        admin: {
+            dashboard: '管理ダッシュボード',
+            users: 'ユーザー管理',
+            settings: 'システム設定',
+            audit: '監査ログ',
+            roles: '権限管理',
+            system: 'システム設定'
+        }
     }
-  }
 } as const

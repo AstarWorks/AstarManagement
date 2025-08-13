@@ -205,8 +205,8 @@ const handleQuickAction = (action: string) => {
   const actions: Record<string, () => void> = {
     newCase: () => router.push('/cases/new'),
     newClient: () => router.push('/clients/new'),
-    uploadDocument: () => router.push('/documents/upload'),
-    manageDueDates: () => router.push('/calendar')
+    createDocument: () => router.push('/documents/upload'),
+    addExpense: () => router.push('/expenses/new')
   }
   
   const handler = actions[action]

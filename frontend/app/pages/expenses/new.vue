@@ -8,7 +8,7 @@
             {{ t('expense.titlePlural') }}
           </BreadcrumbLink>
         </BreadcrumbItem>
-        <BreadcrumbSeparator />
+        <BreadcrumbSeparator/>
         <BreadcrumbItem>
           <BreadcrumbPage>
             {{ t('expense.actions.create') }}
@@ -26,11 +26,11 @@
             {{ t('expense.form.steps.basicDescription') }}
           </p>
         </div>
-        <Button 
-          variant="outline"
-          @click="handleCancel"
+        <Button
+            variant="outline"
+            @click="handleCancel"
         >
-          <Icon name="lucide:x" class="w-4 h-4 mr-2" />
+          <Icon name="lucide:x" class="w-4 h-4 mr-2"/>
           {{ t('expense.actions.cancel') }}
         </Button>
       </div>
@@ -39,14 +39,14 @@
     <!-- Loading State -->
     <div v-if="isLoading" class="flex items-center justify-center py-12">
       <div class="text-center">
-        <Icon name="lucide:loader-2" class="w-8 h-8 animate-spin mx-auto mb-4" />
+        <Icon name="lucide:loader-2" class="w-8 h-8 animate-spin mx-auto mb-4"/>
         <p class="text-muted-foreground">{{ t('expense.status.loading') }}</p>
       </div>
     </div>
 
     <!-- Error State -->
     <Alert v-else-if="error" variant="destructive" class="mb-6">
-      <Icon name="lucide:alert-circle" class="h-4 w-4" />
+      <Icon name="lucide:alert-circle" class="h-4 w-4"/>
       <AlertDescription>
         {{ error }}
       </AlertDescription>
@@ -56,10 +56,10 @@
     <Card v-else>
       <CardContent class="p-6">
         <ExpenseForm
-          :is-loading="isSaving"
-          @submit="handleFormSubmit"
-          @cancel="handleCancel"
-          @step-change="handleStepChange"
+            :is-loading="isSaving"
+            @submit="handleFormSubmit"
+            @cancel="handleCancel"
+            @step-change="handleStepChange"
         />
       </CardContent>
     </Card>
@@ -67,7 +67,7 @@
     <!-- Success Toast placeholder -->
     <div v-if="showSuccessMessage" class="fixed bottom-4 right-4 z-50">
       <Alert class="w-80">
-        <Icon name="lucide:check-circle" class="h-4 w-4" />
+        <Icon name="lucide:check-circle" class="h-4 w-4"/>
         <AlertDescription>
           {{ t('expense.status.created') }}
         </AlertDescription>
@@ -77,18 +77,18 @@
 </template>
 
 <script setup lang="ts">
-import type { ExpenseFormData } from '~/schemas/expense'
-import { 
-  Breadcrumb, 
-  BreadcrumbList, 
-  BreadcrumbItem, 
-  BreadcrumbLink, 
-  BreadcrumbPage, 
-  BreadcrumbSeparator 
+import type {ExpenseFormData} from '~/schemas/expense'
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator
 } from '~/components/ui/breadcrumb'
-import { Card, CardContent } from '~/components/ui/card'
-import { Button } from '~/components/ui/button'
-import { Alert, AlertDescription } from '~/components/ui/alert'
+import {Card, CardContent} from '~/components/ui/card'
+import {Button} from '~/components/ui/button'
+import {Alert, AlertDescription} from '~/components/ui/alert'
 import ExpenseForm from '~/components/expense/ExpenseForm.vue'
 
 defineOptions({
@@ -102,7 +102,7 @@ definePageMeta({
 })
 
 // Composables
-const { t } = useI18n()
+const {t} = useI18n()
 const router = useRouter()
 const NuxtLink = resolveComponent('NuxtLink')
 
@@ -117,27 +117,27 @@ const currentFormStep = ref(0)
 const handleFormSubmit = async (formData: ExpenseFormData) => {
   isSaving.value = true
   error.value = null
-  
+
   try {
     // TODO: Replace with actual API call to expense service
     // For now, simulate API call with mock service
     console.log('Creating expense with data:', formData)
-    
+
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 1500))
-    
+
     // Show success message
     showSuccessMessage.value = true
-    
+
     // Clear form draft from localStorage
     localStorage.removeItem('expense-form-draft')
-    
+
     // Hide success message after 3 seconds and redirect
     setTimeout(() => {
       showSuccessMessage.value = false
       router.push('/expenses')
     }, 3000)
-    
+
   } catch (err: unknown) {
     console.error('Failed to create expense:', err)
     error.value = err instanceof Error ? err.message : t('expense.errors.createFailed')
