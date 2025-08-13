@@ -42,5 +42,17 @@ Implement advanced features including tag management system, file attachment han
 - File storage configuration (local or S3)
 - Tag management API design from specs
 
+## Tasks
+- T01_S04_M002: Tag Management Implementation (5 hours)
+- T02_S04_M002: Tag Service Tests (3 hours)
+- T03_S04_M002: File Upload Service Implementation (5 hours)
+- T04_S04_M002: File Upload Service Tests (3 hours)
+- T05_S04_M002: Reporting Queries Implementation (5 hours)
+- T06_S04_M002: Reporting Service Tests (3 hours)
+- T07_S04_M002: Bulk Operations Implementation (4 hours)
+- T08_S04_M002: Bulk Operations Tests (2 hours)
+
+**Total Estimated Hours**: 30 hours
+
 ## Notes
 This sprint adds the distinguishing features that make the expense system powerful. Focus on user experience through smart tag suggestions and efficient file handling. Security is critical for file uploads.

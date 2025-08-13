@@ -39,5 +39,17 @@ Implement core business logic for expense management, including service layer, v
 - S02_M002 completion (database and repositories)
 - Business rules from PRD_EXPENSE_BACKEND.md
 
+## Tasks
+- T01_S03_M002: ExpenseService Unit Tests (4 hours)
+- T02_S03_M002: TagService Unit Tests (3 hours)
+- T03_S03_M002: AttachmentService Unit Tests (3 hours)
+- T04_S03_M002: ExpenseMapper Unit Tests (2 hours)
+- T05_S03_M002: TagMapper Unit Tests (2 hours)
+- T06_S03_M002: AttachmentMapper Unit Tests (2 hours)
+- T07_S03_M002: Business Logic Edge Case Tests (3 hours)
+- T08_S03_M002: Test Coverage Report & Gap Analysis (2 hours)
+
+**Total Estimated Hours**: 21 hours
+
 ## Notes
 This sprint is critical for ensuring data integrity and calculation accuracy. Special focus on financial precision and transaction consistency. All monetary calculations must handle edge cases properly.

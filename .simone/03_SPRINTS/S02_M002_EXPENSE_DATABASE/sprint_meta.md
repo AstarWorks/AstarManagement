@@ -49,8 +49,10 @@ Implement the complete database schema for expense management, including all tab
 - T06_S02_M002: Test Data Seeder Implementation (3 hours)
 - T07_S02_M002: Repository Implementation (5 hours)
 - T08_S02_M002: Database Integration Tests (4 hours)
+- T09_S02_M002: Tag Repository Integration Tests (3 hours)
+- T10_S02_M002: Attachment Repository Integration Tests (3 hours)
 
-**Total Estimated Hours**: 30 hours (5 days)
+**Total Estimated Hours**: 36 hours (6 days)
 
 ## Notes
 This sprint transforms the schema design into actual database implementation. Special attention to multi-tenant isolation and performance optimization through proper indexing. The implementation follows an incremental approach to ensure the build remains stable throughout development.

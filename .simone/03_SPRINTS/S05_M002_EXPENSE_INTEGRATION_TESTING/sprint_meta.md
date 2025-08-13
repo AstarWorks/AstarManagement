@@ -42,5 +42,17 @@ Complete frontend integration, comprehensive testing, performance tuning, and pr
 - Frontend components from M001
 - DevOps infrastructure for deployment
 
+## Tasks
+- T01_S05_M002: ExpenseController Integration Tests (4 hours)
+- T02_S05_M002: TagController Integration Tests (3 hours)
+- T03_S05_M002: AttachmentController Integration Tests (3 hours)
+- T04_S05_M002: End-to-End Test Suite (5 hours)
+- T05_S05_M002: Performance Testing & Optimization (5 hours)
+- T06_S05_M002: Security Testing (JWT, Multi-tenancy) (4 hours)
+- T07_S05_M002: Load Testing Implementation (3 hours)
+- T08_S05_M002: API Documentation Generation (3 hours)
+
+**Total Estimated Hours**: 30 hours
+
 ## Notes
 This final sprint ensures production readiness through comprehensive testing and integration. Focus on real-world usage patterns and edge cases. Performance and security are paramount before release.
