@@ -1,0 +1,42 @@
+/**
+ * 顧客管理翻訳ファイル - 日本語
+ * Client management translations - Japanese
+ */
+
+export default {
+    title: '顧客管理',
+    list: {
+        title: '顧客一覧',
+        empty: '顧客がありません'
+    },
+    create: {
+        title: '新規顧客登録',
+        subtitle: '新しい顧客を登録します'
+    },
+    edit: {
+        title: '顧客編集',
+        subtitle: '顧客情報を編集します'
+    },
+    fields: {
+        name: {
+            label: '顧客名',
+            placeholder: '顧客名を入力してください'
+        },
+        email: {
+            label: 'メールアドレス',
+            placeholder: 'example@example.com'
+        },
+        phone: {
+            label: '電話番号',
+            placeholder: '090-1234-5678'
+        },
+        address: {
+            label: '住所',
+            placeholder: '住所を入力してください'
+        }
+    },
+    type: {
+        individual: '個人',
+        corporate: '法人'
+    }
+} as const
