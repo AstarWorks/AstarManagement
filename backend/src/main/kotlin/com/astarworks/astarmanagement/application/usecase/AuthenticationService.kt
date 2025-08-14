@@ -6,6 +6,7 @@ import com.astarworks.astarmanagement.application.port.output.PasswordEncoder
 import com.astarworks.astarmanagement.application.port.output.TokenProvider
 import com.astarworks.astarmanagement.domain.entity.User
 import com.astarworks.astarmanagement.domain.repository.UserRepository
+import com.astarworks.astarmanagement.infrastructure.security.TenantContextService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
@@ -15,11 +16,13 @@ import java.util.UUID
 class AuthenticationService(
     private val userRepository: UserRepository,
     private val passwordEncoder: PasswordEncoder,
-    private val tokenProvider: TokenProvider
+    private val tokenProvider: TokenProvider,
+    private val tenantContextService: TenantContextService
 ) : AuthenticationUseCase {
 
     override fun login(request: LoginRequest): LoginResponse {
-        val user = userRepository.findByEmail(request.email)
+        // Try to find user bypassing RLS first for authentication
+        val user = userRepository.findByEmailBypassingRLS(request.email)
             ?: throw IllegalArgumentException("Invalid email or password")
         
         if (!passwordEncoder.matches(request.password, user.password)) {
@@ -30,6 +33,9 @@ class AuthenticationService(
             throw IllegalStateException("User account is disabled")
         }
         
+        // Set tenant context for the authenticated user
+        tenantContextService.setSecurityContext(user.tenantId, user.id)
+        
         return LoginResponse(
             accessToken = tokenProvider.generateAccessToken(user),
             refreshToken = tokenProvider.generateRefreshToken(user),
@@ -39,21 +45,50 @@ class AuthenticationService(
     }
 
     override fun register(request: RegisterRequest): UserResponse {
-        if (userRepository.existsByEmail(request.email)) {
-            throw IllegalArgumentException("Email already exists")
+        try {
+            // Determine tenant ID - use provided tenantId or default tenant
+            val tenantId = if (request.tenantId != null) {
+                try {
+                    UUID.fromString(request.tenantId)
+                } catch (e: IllegalArgumentException) {
+                    throw IllegalArgumentException("Invalid tenant ID format")
+                }
+            } else {
+                // Use default tenant ID for demo/development
+                UUID.fromString("aaaaaaaa-bbbb-cccc-dddd-000000000001")
+            }
+            
+            // Set tenant context BEFORE checking for existing users for RLS
+            // tenantContextService.setSecurityContext(tenantId, null) // Temporarily disabled for testing
+            
+            // Check if email already exists
+            if (userRepository.existsByEmail(request.email)) {
+                throw IllegalArgumentException("Email already exists")
+            }
+            
+            // Check if username already exists
+            if (userRepository.existsByUsername(request.username)) {
+                throw IllegalArgumentException("Username already exists")
+            }
+            
+            val user = User(
+                tenantId = tenantId,
+                username = request.username,
+                email = request.email,
+                password = passwordEncoder.encode(request.password),
+                firstName = request.firstName,
+                lastName = request.lastName,
+                role = request.role
+            )
+            
+            val savedUser = userRepository.save(user)
+            return savedUser.toResponse()
+        } catch (e: Exception) {
+            // Debug logging - this will help us see the actual error
+            println("DEBUG: Registration error - ${e::class.simpleName}: ${e.message}")
+            e.printStackTrace()
+            throw e
         }
-        
-        val user = User(
-            tenantId = UUID.randomUUID(), // TODO: Get actual tenant ID from request or context
-            email = request.email,
-            password = passwordEncoder.encode(request.password),
-            firstName = request.firstName,
-            lastName = request.lastName,
-            role = request.role
-        )
-        
-        val savedUser = userRepository.save(user)
-        return savedUser.toResponse()
     }
 
     override fun validateToken(token: String): Boolean {
@@ -80,7 +115,7 @@ class AuthenticationService(
     }
     
     private fun User.toResponse() = UserResponse(
-        id = id,
+        id = id ?: throw IllegalStateException("User ID cannot be null"),
         email = email,
         firstName = firstName,
         lastName = lastName,

@@ -14,7 +14,8 @@ import org.springframework.web.filter.OncePerRequestFilter
 @Component
 class JwtAuthenticationFilter(
     private val tokenProvider: TokenProvider,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val tenantContextService: TenantContextService
 ) : OncePerRequestFilter() {
     
     override fun doFilterInternal(
@@ -28,9 +29,12 @@ class JwtAuthenticationFilter(
             val userId = tokenProvider.getUserIdFromToken(token)
             
             userId?.let { id ->
-                val user = userRepository.findById(id)
+                val user = userRepository.findByIdBypassingRLS(id)
                 
                 user?.let {
+                    // Set tenant context for RLS before setting security context
+                    tenantContextService.setSecurityContext(it.tenantId, it.id)
+                    
                     val authorities = listOf(SimpleGrantedAuthority("ROLE_${it.role.name}"))
                     val authentication = UsernamePasswordAuthenticationToken(it, null, authorities)
                     SecurityContextHolder.getContext().authentication = authentication

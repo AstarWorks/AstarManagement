@@ -39,12 +39,9 @@ class SecurityContextService {
      * Gets the current authenticated user's tenant ID from the security context.
      * 
      * @return The current user's tenant ID, or null if no user is authenticated
-     * @throws IllegalStateException if User entity doesn't support multi-tenancy yet
      */
     fun getCurrentTenantId(): UUID? {
-        // TODO: User entity needs tenantId property for multi-tenant support
-        // For now, return null to indicate multi-tenancy not fully implemented
-        return null
+        return getCurrentUser()?.tenantId
     }
     
     /**
@@ -73,10 +70,10 @@ class SecurityContextService {
      * Requires the current user to be authenticated and returns their tenant ID.
      * 
      * @return The current user's tenant ID
-     * @throws IllegalStateException if no user is authenticated or multi-tenancy not implemented
+     * @throws IllegalStateException if no user is authenticated
      */
     fun requireCurrentTenantId(): UUID {
         return getCurrentTenantId() 
-            ?: throw IllegalStateException("Multi-tenancy not fully implemented - User entity needs tenantId property")
+            ?: throw IllegalStateException("No authenticated user found or user has no tenant ID")
     }
 }
