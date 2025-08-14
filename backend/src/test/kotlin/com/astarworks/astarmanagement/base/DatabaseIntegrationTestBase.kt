@@ -109,7 +109,8 @@ abstract class DatabaseIntegrationTestBase {
         // Temporarily disabled until test migration functions are available
         // cleanTestData()
         
-        // Create the default user in the database
+        // Create the default user in the database with proper tenant context
+        jdbcTemplate.execute("SELECT set_config('app.current_tenant_id', '$defaultTenantId', true)")
         createTestUserInDatabase(defaultUser)
         
         // Setup simplified security context (no RLS session variables needed)
@@ -210,8 +211,14 @@ abstract class DatabaseIntegrationTestBase {
             role = role
         )
         
+        // Set database tenant context before creating user
+        jdbcTemplate.execute("SELECT set_config('app.current_tenant_id', '$tenantId', true)")
+        
         // Create the user in the database using the simplified helper
         createTestUserInDatabase(user)
+        
+        // Restore default tenant context
+        jdbcTemplate.execute("SELECT set_config('app.current_tenant_id', '$defaultTenantId', true)")
         
         return user
     }

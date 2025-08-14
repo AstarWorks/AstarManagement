@@ -56,7 +56,7 @@ interface JpaAttachmentRepository : JpaRepository<Attachment, UUID> {
     @Query("""
         SELECT a FROM Attachment a
         WHERE a.status = :status
-        AND a.uploadedAt < :expiryDate
+        AND a.expiresAt < :expiryDate
         AND a.deletedAt IS NULL
     """)
     fun findExpiredTemporaryAttachments(
