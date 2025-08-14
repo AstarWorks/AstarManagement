@@ -8,6 +8,7 @@ import com.astarworks.astarmanagement.domain.entity.User
 import com.astarworks.astarmanagement.domain.repository.UserRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.UUID
 
 @Service
 @Transactional
@@ -43,6 +44,7 @@ class AuthenticationService(
         }
         
         val user = User(
+            tenantId = UUID.randomUUID(), // TODO: Get actual tenant ID from request or context
             email = request.email,
             password = passwordEncoder.encode(request.password),
             firstName = request.firstName,

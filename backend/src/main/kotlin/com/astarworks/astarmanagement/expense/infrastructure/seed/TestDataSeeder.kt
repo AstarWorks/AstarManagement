@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.Instant
 import java.util.UUID
 import kotlin.random.Random
@@ -23,7 +24,7 @@ import kotlin.random.Random
  * Activates only in development and test environments with proper tenant isolation.
  */
 @Component
-@Profile("dev", "test")
+@Profile("dev")
 class TestDataSeeder(
     private val expenseRepository: ExpenseRepository,
     private val tagRepository: TagRepository,
@@ -97,9 +98,22 @@ class TestDataSeeder(
      * Finds demo users for audit trail population.
      */
     private fun findDemoUsers(): List<com.astarworks.astarmanagement.domain.entity.User> {
-        // In a real scenario, we'd query users by tenant, but UserRepository doesn't have tenant filtering
-        // For now, we'll use any available users as demo users
-        return emptyList() // Will be populated once we have actual demo users
+        // For test data seeding, use a fixed demo user ID that matches existing migrations
+        // This ensures audit trails are properly populated
+        return listOf(
+            com.astarworks.astarmanagement.domain.entity.User(
+                id = UUID.fromString("aaaaaaaa-bbbb-cccc-dddd-000000000002"), // Demo user ID from migrations
+                email = "test-seeder@example.com",
+                password = "hashed-password",
+                firstName = "Test",
+                lastName = "Seeder",
+                tenantId = demoTenantId,
+                role = com.astarworks.astarmanagement.domain.entity.UserRole.USER,
+                isActive = true,
+                createdAt = java.time.LocalDateTime.now(),
+                updatedAt = java.time.LocalDateTime.now()
+            )
+        )
     }
     
     /**

@@ -1,7 +1,9 @@
 package com.astarworks.astarmanagement.expense.presentation.controller
 
+import com.astarworks.astarmanagement.expense.application.service.ExpenseService
 import com.astarworks.astarmanagement.expense.fixtures.ExpenseFixtures
 import com.astarworks.astarmanagement.expense.presentation.response.ExpenseResponse
+import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -14,10 +16,12 @@ import java.math.BigDecimal
 class ExpenseControllerTest {
     
     private lateinit var expenseController: ExpenseController
+    private lateinit var expenseService: ExpenseService
     
     @BeforeEach
     fun setup() {
-        expenseController = ExpenseController()
+        expenseService = mockk()
+        expenseController = ExpenseController(expenseService)
     }
     
     @Test

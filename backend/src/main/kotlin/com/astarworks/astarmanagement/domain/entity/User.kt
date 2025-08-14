@@ -11,6 +11,9 @@ data class User(
     @GeneratedValue(strategy = GenerationType.UUID)
     val id: UUID = UUID.randomUUID(),
     
+    @Column(name = "tenant_id", nullable = false)
+    val tenantId: UUID,
+    
     @Column(unique = true, nullable = false)
     val email: String,
     

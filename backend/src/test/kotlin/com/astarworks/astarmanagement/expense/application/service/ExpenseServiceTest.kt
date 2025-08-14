@@ -175,7 +175,8 @@ class ExpenseServiceTest {
             incomeAmount = null,
             caseId = null,
             memo = "Updated memo",
-            tagIds = listOf(testTagId)
+            tagIds = listOf(testTagId),
+            version = 0
         )
         
         val tag = createTestTag()
@@ -211,7 +212,8 @@ class ExpenseServiceTest {
             incomeAmount = null,
             caseId = null,
             memo = null,
-            tagIds = emptyList()
+            tagIds = emptyList(),
+            version = 0
         )
         
         whenever(expenseRepository.findByIdAndTenantId(testExpenseId, testTenantId))
