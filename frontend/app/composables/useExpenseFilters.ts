@@ -1,10 +1,10 @@
 import { ref, computed, watch, readonly } from 'vue'
 import { useDebounceFn } from '@vueuse/core'
-import type { IExpenseFilter, IExpense } from '~/types/expense'
+import type { IExpenseFilters, IExpense } from '~/types/expense'
 
 interface IExpenseFilterOptions {
   debounceMs?: number
-  onFiltersChange?: (filters: IExpenseFilter) => void
+  onFiltersChange?: (filters: IExpenseFilters) => void
   enableUrlSync?: boolean
   enableLocalStorage?: boolean
   storageKey?: string
@@ -13,7 +13,7 @@ interface IExpenseFilterOptions {
 interface IDatePreset {
   key: string
   label: string
-  getValue: () => { startDate: string; endDate: string }
+  getValue: () => { dateFrom: string; dateTo: string }
 }
 
 interface IFilterStats {
@@ -29,7 +29,7 @@ interface IFilterStats {
 }
 
 export function useExpenseFilters(
-  initialFilters: IExpenseFilter = {},
+  initialFilters: IExpenseFilters = {},
   options: IExpenseFilterOptions = {}
 ) {
   const {
@@ -41,9 +41,9 @@ export function useExpenseFilters(
   } = options
 
   // Core state
-  const filters = ref<IExpenseFilter>({ ...initialFilters })
+  const filters = ref<IExpenseFilters>({ ...initialFilters })
   const isLoading = ref(false)
-  const lastAppliedFilters = ref<IExpenseFilter>({})
+  const lastAppliedFilters = ref<IExpenseFilters>({})
 
   // Router and route (only if URL sync is enabled)
   const route = enableUrlSync ? useRoute() : null
@@ -56,7 +56,7 @@ export function useExpenseFilters(
       label: '今日',
       getValue: () => {
         const today = new Date().toISOString().split('T')[0]!
-        return { startDate: today, endDate: today }
+        return { dateFrom: today, dateTo: today }
       }
     },
     {
@@ -71,8 +71,8 @@ export function useExpenseFilters(
         sunday.setDate(monday.getDate() + 6)
         
         return {
-          startDate: monday.toISOString().split('T')[0]!,
-          endDate: sunday.toISOString().split('T')[0]!
+          dateFrom: monday.toISOString().split('T')[0]!,
+          dateTo: sunday.toISOString().split('T')[0]!
         }
       }
     },
@@ -82,8 +82,8 @@ export function useExpenseFilters(
       getValue: () => {
         const now = new Date()
         return {
-          startDate: new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]!,
-          endDate: new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0]!
+          dateFrom: new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]!,
+          dateTo: new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0]!
         }
       }
     },
@@ -93,8 +93,8 @@ export function useExpenseFilters(
       getValue: () => {
         const now = new Date()
         return {
-          startDate: new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().split('T')[0]!,
-          endDate: new Date(now.getFullYear(), now.getMonth(), 0).toISOString().split('T')[0]!
+          dateFrom: new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().split('T')[0]!,
+          dateTo: new Date(now.getFullYear(), now.getMonth(), 0).toISOString().split('T')[0]!
         }
       }
     },
@@ -105,8 +105,8 @@ export function useExpenseFilters(
         const now = new Date()
         const quarter = Math.floor(now.getMonth() / 3)
         return {
-          startDate: new Date(now.getFullYear(), quarter * 3, 1).toISOString().split('T')[0]!,
-          endDate: new Date(now.getFullYear(), quarter * 3 + 3, 0).toISOString().split('T')[0]!
+          dateFrom: new Date(now.getFullYear(), quarter * 3, 1).toISOString().split('T')[0]!,
+          dateTo: new Date(now.getFullYear(), quarter * 3 + 3, 0).toISOString().split('T')[0]!
         }
       }
     },
@@ -116,8 +116,8 @@ export function useExpenseFilters(
       getValue: () => {
         const now = new Date()
         return {
-          startDate: new Date(now.getFullYear(), 0, 1).toISOString().split('T')[0]!,
-          endDate: new Date(now.getFullYear(), 11, 31).toISOString().split('T')[0]!
+          dateFrom: new Date(now.getFullYear(), 0, 1).toISOString().split('T')[0]!,
+          dateTo: new Date(now.getFullYear(), 11, 31).toISOString().split('T')[0]!
         }
       }
     },
@@ -127,8 +127,8 @@ export function useExpenseFilters(
       getValue: () => {
         const now = new Date()
         return {
-          startDate: new Date(now.getFullYear() - 1, 0, 1).toISOString().split('T')[0]!,
-          endDate: new Date(now.getFullYear() - 1, 11, 31).toISOString().split('T')[0]!
+          dateFrom: new Date(now.getFullYear() - 1, 0, 1).toISOString().split('T')[0]!,
+          dateTo: new Date(now.getFullYear() - 1, 11, 31).toISOString().split('T')[0]!
         }
       }
     }
@@ -137,86 +137,80 @@ export function useExpenseFilters(
   // Computed properties
   const hasActiveFilters = computed(() => {
     return Boolean(
-      filters.value.startDate ||
-      filters.value.endDate ||
-      filters.value.category ||
-      filters.value.caseId ||
+      filters.value.dateFrom ||
+      filters.value.dateTo ||
+      filters.value.categories?.length ||
+      filters.value.caseIds?.length ||
       filters.value.tagIds?.length ||
-      filters.value.searchQuery ||
-      filters.value.minAmount ||
-      filters.value.maxAmount ||
-      (filters.value.balanceType && filters.value.balanceType !== 'all') ||
-      filters.value.hasMemo ||
-      filters.value.hasAttachments
+      filters.value.searchTerm ||
+      filters.value.amountMin ||
+      filters.value.amountMax
     )
   })
 
   const activeFilterCount = computed(() => {
     let count = 0
-    if (filters.value.startDate || filters.value.endDate) count++
-    if (filters.value.category) count++
-    if (filters.value.caseId) count++
+    if (filters.value.dateFrom || filters.value.dateTo) count++
+    if (filters.value.categories?.length) count++
+    if (filters.value.caseIds?.length) count++
     if (filters.value.tagIds?.length) count++
-    if (filters.value.searchQuery) count++
-    if (filters.value.minAmount || filters.value.maxAmount) count++
-    if (filters.value.balanceType && filters.value.balanceType !== 'all') count++
-    if (filters.value.hasMemo) count++
-    if (filters.value.hasAttachments) count++
+    if (filters.value.searchTerm) count++
+    if (filters.value.amountMin || filters.value.amountMax) count++
     return count
   })
 
   const activeFilterSummary = computed(() => {
     const summary = []
     
-    if (filters.value.startDate && filters.value.endDate) {
+    if (filters.value.dateFrom && filters.value.dateTo) {
       const preset = datePresets.find(p => {
         const range = p.getValue()
-        return range.startDate === filters.value.startDate && range.endDate === filters.value.endDate
+        return range.dateFrom === filters.value.dateFrom && range.dateTo === filters.value.dateTo
       })
       
       summary.push({
         key: 'dateRange',
-        label: preset?.label || `${formatDate(filters.value.startDate)} - ${formatDate(filters.value.endDate)}`
+        label: preset?.label || `${formatDate(filters.value.dateFrom)} - ${formatDate(filters.value.dateTo)}`
       })
-    } else if (filters.value.startDate) {
+    } else if (filters.value.dateFrom) {
       summary.push({
-        key: 'startDate',
-        label: `開始: ${formatDate(filters.value.startDate)}`
+        key: 'dateFrom',
+        label: `開始: ${formatDate(filters.value.dateFrom)}`
       })
-    } else if (filters.value.endDate) {
+    } else if (filters.value.dateTo) {
       summary.push({
-        key: 'endDate',
-        label: `終了: ${formatDate(filters.value.endDate)}`
+        key: 'dateTo',
+        label: `終了: ${formatDate(filters.value.dateTo)}`
       })
     }
     
-    if (filters.value.category) {
+    if (filters.value.categories?.length) {
       summary.push({
-        key: 'category',
-        label: `カテゴリ: ${filters.value.category}`
+        key: 'categories',
+        label: `カテゴリ: ${filters.value.categories.join(', ')}`
       })
     }
     
-    if (filters.value.searchQuery) {
+    if (filters.value.searchTerm) {
       summary.push({
-        key: 'searchQuery',
-        label: `検索: "${filters.value.searchQuery}"`
+        key: 'searchTerm',
+        label: `検索: "${filters.value.searchTerm}"`
       })
     }
     
-    if (filters.value.minAmount || filters.value.maxAmount) {
-      const min = filters.value.minAmount ? `${Number(filters.value.minAmount).toLocaleString()}円` : ''
-      const max = filters.value.maxAmount ? `${Number(filters.value.maxAmount).toLocaleString()}円` : ''
+    if (filters.value.amountMin || filters.value.amountMax) {
+      const min = filters.value.amountMin ? `${Number(filters.value.amountMin).toLocaleString()}円` : ''
+      const max = filters.value.amountMax ? `${Number(filters.value.amountMax).toLocaleString()}円` : ''
       summary.push({
         key: 'amountRange',
         label: `金額: ${min}${min && max ? ' - ' : ''}${max}`
       })
     }
     
-    if (filters.value.caseId) {
+    if (filters.value.caseIds?.length) {
       summary.push({
-        key: 'caseId',
-        label: `案件: ${filters.value.caseId}`
+        key: 'caseIds',
+        label: `案件: ${filters.value.caseIds.length}個選択`
       })
     }
     
@@ -224,32 +218,6 @@ export function useExpenseFilters(
       summary.push({
         key: 'tagIds',
         label: `タグ: ${filters.value.tagIds.length}個選択`
-      })
-    }
-    
-    if (filters.value.balanceType && filters.value.balanceType !== 'all') {
-      const typeLabels: Record<string, string> = {
-        positive: '収入',
-        negative: '支出',
-        zero: '収支0'
-      }
-      summary.push({
-        key: 'balanceType',
-        label: `収支: ${typeLabels[filters.value.balanceType] || filters.value.balanceType}`
-      })
-    }
-    
-    if (filters.value.hasMemo) {
-      summary.push({
-        key: 'hasMemo',
-        label: 'メモあり'
-      })
-    }
-    
-    if (filters.value.hasAttachments) {
-      summary.push({
-        key: 'hasAttachments',
-        label: '添付ファイルあり'
       })
     }
     
@@ -283,42 +251,35 @@ export function useExpenseFilters(
     debouncedApply()
   }
 
-  const clearFilter = (filterKey: keyof IExpenseFilter | string) => {
+  const clearFilter = (filterKey: keyof IExpenseFilters | string) => {
     switch (filterKey) {
       case 'dateRange':
-      case 'startDate':
-      case 'endDate':
-        filters.value.startDate = undefined
-        filters.value.endDate = undefined
+      case 'dateFrom':
+      case 'dateTo':
+        filters.value.dateFrom = undefined
+        filters.value.dateTo = undefined
         break
-      case 'searchQuery':
-        filters.value.searchQuery = undefined
+      case 'searchTerm':
+        filters.value.searchTerm = undefined
         break
-      case 'category':
-        filters.value.category = undefined
+      case 'categories':
+        filters.value.categories = undefined
         break
-      case 'caseId':
-        filters.value.caseId = undefined
+      case 'caseIds':
+        filters.value.caseIds = undefined
         break
       case 'tagIds':
         filters.value.tagIds = undefined
         break
       case 'amountRange':
-        filters.value.minAmount = undefined
-        filters.value.maxAmount = undefined
-        break
-      case 'balanceType':
-        filters.value.balanceType = undefined
-        break
-      case 'hasMemo':
-        filters.value.hasMemo = undefined
-        break
-      case 'hasAttachments':
-        filters.value.hasAttachments = undefined
+      case 'amountMin':
+      case 'amountMax':
+        filters.value.amountMin = undefined
+        filters.value.amountMax = undefined
         break
       default:
         if (filterKey in filters.value) {
-          const typedKey = filterKey as keyof IExpenseFilter
+          const typedKey = filterKey as keyof IExpenseFilters
           // Type-safe undefined assignment
           ;(filters.value as Record<string, unknown>)[typedKey] = undefined
         }
@@ -331,8 +292,8 @@ export function useExpenseFilters(
     const preset = datePresets.find(p => p.key === presetKey)
     if (preset) {
       const range = preset.getValue()
-      filters.value.startDate = range.startDate
-      filters.value.endDate = range.endDate
+      filters.value.dateFrom = range.dateFrom
+      filters.value.dateTo = range.dateTo
       debouncedApply()
     }
   }
@@ -342,8 +303,8 @@ export function useExpenseFilters(
     if (!preset) return false
     
     const range = preset.getValue()
-    return filters.value.startDate === range.startDate && 
-           filters.value.endDate === range.endDate
+    return filters.value.dateFrom === range.dateFrom && 
+           filters.value.dateTo === range.dateTo
   }
 
   // URL synchronization
@@ -371,20 +332,27 @@ export function useExpenseFilters(
     if (!route) return
 
     const query = route.query
-    const urlFilters: IExpenseFilter = {}
+    const urlFilters: IExpenseFilters = {}
 
-    if (query.startDate) urlFilters.startDate = String(query.startDate)
-    if (query.endDate) urlFilters.endDate = String(query.endDate)
-    if (query.category) urlFilters.category = String(query.category)
-    if (query.caseId) urlFilters.caseId = String(query.caseId)
-    if (query.searchQuery) urlFilters.searchQuery = String(query.searchQuery)
-    if (query.sortBy) urlFilters.sortBy = String(query.sortBy) as 'date' | 'category' | 'description' | 'balance' | 'amount'
-    if (query.sortOrder) urlFilters.sortOrder = String(query.sortOrder) as 'ASC' | 'DESC'
-    if (query.minAmount) urlFilters.minAmount = Number(query.minAmount)
-    if (query.maxAmount) urlFilters.maxAmount = Number(query.maxAmount)
-    if (query.balanceType) urlFilters.balanceType = String(query.balanceType)
-    if (query.hasMemo) urlFilters.hasMemo = query.hasMemo === 'true'
-    if (query.hasAttachments) urlFilters.hasAttachments = query.hasAttachments === 'true'
+    if (query.dateFrom) urlFilters.dateFrom = String(query.dateFrom)
+    if (query.dateTo) urlFilters.dateTo = String(query.dateTo)
+    if (query.searchTerm) urlFilters.searchTerm = String(query.searchTerm)
+    if (query.amountMin) urlFilters.amountMin = Number(query.amountMin)
+    if (query.amountMax) urlFilters.amountMax = Number(query.amountMax)
+    
+    if (query.categories) {
+      const categories = String(query.categories).split(',').filter(Boolean)
+      if (categories.length > 0) {
+        urlFilters.categories = categories
+      }
+    }
+    
+    if (query.caseIds) {
+      const caseIds = String(query.caseIds).split(',').filter(Boolean)
+      if (caseIds.length > 0) {
+        urlFilters.caseIds = caseIds
+      }
+    }
     
     if (query.tagIds) {
       const tagIds = String(query.tagIds).split(',').filter(Boolean)
@@ -413,7 +381,7 @@ export function useExpenseFilters(
     try {
       const stored = localStorage.getItem(storageKey)
       if (stored) {
-        const parsedFilters = JSON.parse(stored) as IExpenseFilter
+        const parsedFilters = JSON.parse(stored) as IExpenseFilters
         filters.value = { ...parsedFilters }
       }
     } catch (error) {
@@ -422,26 +390,26 @@ export function useExpenseFilters(
   }
 
   // Filter validation
-  const validateFilters = (filterValues: IExpenseFilter): string[] => {
+  const validateFilters = (filterValues: IExpenseFilters): string[] => {
     const errors: string[] = []
     
-    if (filterValues.startDate && filterValues.endDate) {
-      if (new Date(filterValues.startDate) > new Date(filterValues.endDate)) {
+    if (filterValues.dateFrom && filterValues.dateTo) {
+      if (new Date(filterValues.dateFrom) > new Date(filterValues.dateTo)) {
         errors.push('開始日は終了日より前である必要があります')
       }
     }
     
-    if (filterValues.minAmount && filterValues.maxAmount) {
-      if (filterValues.minAmount > filterValues.maxAmount) {
+    if (filterValues.amountMin && filterValues.amountMax) {
+      if (filterValues.amountMin > filterValues.amountMax) {
         errors.push('最小金額は最大金額より少ない必要があります')
       }
     }
     
-    if (filterValues.minAmount && filterValues.minAmount < 0) {
+    if (filterValues.amountMin && filterValues.amountMin < 0) {
       errors.push('最小金額は0以上である必要があります')
     }
     
-    if (filterValues.maxAmount && filterValues.maxAmount < 0) {
+    if (filterValues.amountMax && filterValues.amountMax < 0) {
       errors.push('最大金額は0以上である必要があります')
     }
     
@@ -480,57 +448,37 @@ export function useExpenseFilters(
   }
 
   // Client-side filtering (for when using mock data)
-  const filterExpensesLocally = (expenses: IExpense[], filterValues: IExpenseFilter = filters.value): IExpense[] => {
+  const filterExpensesLocally = (expenses: IExpense[], filterValues: IExpenseFilters = filters.value): IExpense[] => {
     return expenses.filter(expense => {
       // Date range filter
-      if (filterValues.startDate && expense.date < filterValues.startDate) return false
-      if (filterValues.endDate && expense.date > filterValues.endDate) return false
+      if (filterValues.dateFrom && expense.date < filterValues.dateFrom) return false
+      if (filterValues.dateTo && expense.date > filterValues.dateTo) return false
       
       // Category filter
-      if (filterValues.category && expense.category !== filterValues.category) return false
+      if (filterValues.categories?.length) {
+        if (!filterValues.categories.includes(expense.category)) return false
+      }
       
       // Case filter
-      if (filterValues.caseId && expense.caseId !== filterValues.caseId) return false
+      if (filterValues.caseIds?.length) {
+        if (!expense.caseId || !filterValues.caseIds.includes(expense.caseId)) return false
+      }
       
       // Search query filter
-      if (filterValues.searchQuery) {
-        const query = filterValues.searchQuery.toLowerCase()
+      if (filterValues.searchTerm) {
+        const query = filterValues.searchTerm.toLowerCase()
         const matchesDescription = expense.description.toLowerCase().includes(query)
         const matchesMemo = expense.memo?.toLowerCase().includes(query)
         if (!matchesDescription && !matchesMemo) return false
       }
       
       // Amount range filter
-      if (filterValues.minAmount && expense.expenseAmount < filterValues.minAmount) return false
-      if (filterValues.maxAmount && expense.expenseAmount > filterValues.maxAmount) return false
-      
-      // Balance type filter
-      if (filterValues.balanceType && filterValues.balanceType !== 'all') {
-        switch (filterValues.balanceType) {
-          case 'positive':
-            if (expense.balance <= 0) return false
-            break
-          case 'negative':
-            if (expense.balance >= 0) return false
-            break
-          case 'zero':
-            if (expense.balance !== 0) return false
-            break
-          default:
-            // Handle unknown balance types gracefully
-            break
-        }
-      }
-      
-      // Memo filter
-      if (filterValues.hasMemo && !expense.memo) return false
-      
-      // Attachments filter
-      if (filterValues.hasAttachments && (!expense.attachments || expense.attachments.length === 0)) return false
+      if (filterValues.amountMin && expense.expenseAmount < filterValues.amountMin) return false
+      if (filterValues.amountMax && expense.expenseAmount > filterValues.amountMax) return false
       
       // Tag filter
       if (filterValues.tagIds?.length) {
-        const expenseTagIds = expense.tags.map(tag => tag.id)
+        const expenseTagIds = expense.tagIds || []
         if (!filterValues.tagIds.some(tagId => expenseTagIds.includes(tagId))) return false
       }
       

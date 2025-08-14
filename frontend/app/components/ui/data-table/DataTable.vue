@@ -68,6 +68,14 @@ interface DataTableProps<TData, TValue> {
    * Unique ID for table state persistence
    */
   persistenceId?: string
+  /**
+   * Global filter value for text search across all columns
+   */
+  globalFilter?: string
+  /**
+   * Initial column filter state
+   */
+  initialColumnFilters?: ColumnFiltersState
 }
 
 const props = withDefaults(defineProps<DataTableProps<TData, TValue>>(), {
@@ -77,6 +85,8 @@ const props = withDefaults(defineProps<DataTableProps<TData, TValue>>(), {
   enableFiltering: true,
   enablePagination: true,
   pageSize: 10,
+  globalFilter: '',
+  initialColumnFilters: () => []
 })
 
 const emit = defineEmits<{
@@ -100,11 +110,12 @@ const persistedState = persistence?.loadState() || {}
 
 // Table state - initialize with persisted values if available
 const sorting = ref<SortingState>(persistedState.sorting || [])
-const columnFilters = ref<ColumnFiltersState>([])
+const columnFilters = ref<ColumnFiltersState>(props.initialColumnFilters || [])
 const columnVisibility = ref<VisibilityState>(persistedState.columnVisibility || {})
 const rowSelection = ref({})
 const columnSizing = ref<ColumnSizingState>(persistedState.columnSizing || {})
 const columnPinning = ref<ColumnPinningState>(persistedState.columnPinning || { left: [], right: [] })
+const globalFilter = ref(props.globalFilter || '')
 
 // Create table instance
 const table = useVueTable({
@@ -120,6 +131,7 @@ const table = useVueTable({
   onRowSelectionChange: updaterOrValue => valueUpdater(updaterOrValue, rowSelection),
   onColumnSizingChange: updaterOrValue => valueUpdater(updaterOrValue, columnSizing),
   onColumnPinningChange: updaterOrValue => valueUpdater(updaterOrValue, columnPinning),
+  onGlobalFilterChange: updaterOrValue => valueUpdater(updaterOrValue, globalFilter),
   state: {
     get sorting() { return sorting.value },
     get columnFilters() { return columnFilters.value },
@@ -127,6 +139,7 @@ const table = useVueTable({
     get rowSelection() { return rowSelection.value },
     get columnSizing() { return columnSizing.value },
     get columnPinning() { return columnPinning.value },
+    get globalFilter() { return globalFilter.value },
   },
   initialState: {
     pagination: {
@@ -142,8 +155,19 @@ const table = useVueTable({
   enableColumnResizing: true,
 })
 
+// Watch for prop changes to update internal state
+watch(() => props.globalFilter, (newValue) => {
+  globalFilter.value = newValue || ''
+})
+
+watch(() => props.initialColumnFilters, (newValue) => {
+  if (newValue) {
+    columnFilters.value = newValue
+  }
+}, { deep: true })
+
 // Watch for state changes and emit + persist
-watch([sorting, columnFilters, columnVisibility, columnSizing, columnPinning], () => {
+watch([sorting, columnFilters, columnVisibility, columnSizing, columnPinning, globalFilter], () => {
   emit('update:state', {
     sorting: sorting.value,
     columnFilters: columnFilters.value,

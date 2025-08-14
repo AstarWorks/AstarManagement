@@ -5,6 +5,13 @@
         <CardTitle class="flex items-center gap-2">
           <Icon name="lucide:filter" class="w-5 h-5" />
           {{ $t('expense.filters.title') }}
+          <Badge 
+            v-if="hasActiveFilters" 
+            variant="secondary" 
+            class="ml-2 bg-blue-100 text-blue-800 text-xs"
+          >
+            {{ activeFilterCount }}
+          </Badge>
         </CardTitle>
         <div class="filter-actions flex gap-2">
           <Button
@@ -34,38 +41,38 @@
     <CardContent>
       <!-- Quick Date Filters -->
       <QuickDateFilters
-        :start-date="filters.startDate"
-        :end-date="filters.endDate"
+        :start-date="filters.dateFrom"
+        :end-date="filters.dateTo"
         @apply-preset="handleDatePreset"
       />
 
       <!-- Basic Filters -->
       <BasicFilters
-        :start-date="filters.startDate"
-        :end-date="filters.endDate"
-        :category="filters.category"
-        :search-query="filters.searchQuery"
+        :start-date="filters.dateFrom"
+        :end-date="filters.dateTo"
+        :category="filters.categories?.[0]"
+        :search-query="filters.searchTerm"
         :available-categories="availableCategories"
-        @update:start-date="updateFilter('startDate', $event)"
-        @update:end-date="updateFilter('endDate', $event)"
-        @update:category="updateFilter('category', $event)"
-        @update:search-query="updateFilter('searchQuery', $event)"
+        @update:start-date="updateFilter('dateFrom', $event)"
+        @update:end-date="updateFilter('dateTo', $event)"
+        @update:category="updateFilter('categories', $event ? [$event] : undefined)"
+        @update:search-query="updateFilter('searchTerm', $event)"
       />
 
       <!-- Advanced Filters -->
       <Collapsible v-model:open="showAdvanced">
         <CollapsibleContent>
           <AdvancedFilters
-            :min-amount="filters.minAmount"
-            :max-amount="filters.maxAmount"
-            :case-id="filters.caseId"
+            :min-amount="filters.amountMin"
+            :max-amount="filters.amountMax"
+            :case-id="filters.caseIds?.[0]"
             :balance-type="filters.balanceType || 'all'"
             :has-memo="filters.hasMemo"
             :has-attachments="filters.hasAttachments"
             :available-cases="availableCases"
-            @update:min-amount="updateFilter('minAmount', $event)"
-            @update:max-amount="updateFilter('maxAmount', $event)"
-            @update:case-id="updateFilter('caseId', $event)"
+            @update:min-amount="updateFilter('amountMin', $event)"
+            @update:max-amount="updateFilter('amountMax', $event)"
+            @update:case-id="updateFilter('caseIds', $event ? [$event] : undefined)"
             @update:balance-type="updateFilter('balanceType', $event)"
             @update:has-memo="updateFilter('hasMemo', $event)"
             @update:has-attachments="updateFilter('hasAttachments', $event)"
@@ -92,7 +99,7 @@
 <script setup lang="ts">
 import { watch } from 'vue'
 import { useDebounceFn, useToggle } from '@vueuse/core'
-import type { IExpenseFilter } from '~/types/expense'
+import type { IExpenseFilters } from '~/types/expense'
 import {
   Card,
   CardContent,
@@ -104,6 +111,7 @@ import {
   CollapsibleContent,
 } from '~/components/ui/collapsible'
 import { Button } from '~/components/ui/button'
+import { Badge } from '~/components/ui/badge'
 import { useExpenseFilters } from '~/composables/useExpenseFilters'
 
 // Import child components
@@ -120,7 +128,7 @@ interface CaseOption {
 
 interface Props {
   /** Current filter values */
-  modelValue: IExpenseFilter
+  modelValue: IExpenseFilters
   /** Available category options */
   availableCategories?: string[]
   /** Available case options */
@@ -138,7 +146,7 @@ interface Props {
 
 interface Emits {
   /** Filter update and change events */
-  (event: 'update:modelValue' | 'filterChange', filters: IExpenseFilter): void
+  (event: 'update:modelValue' | 'filterChange', filters: IExpenseFilters): void
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -159,6 +167,7 @@ const emit = defineEmits<Emits>()
 const {
   filters,
   hasActiveFilters,
+  activeFilterCount,
   activeFilterSummary,
   resetFilters: resetFiltersInternal,
   clearFilter: clearFilterInternal
@@ -169,7 +178,7 @@ const [showAdvanced, toggleAdvanced] = useToggle(false)
 
 // Debounced emit for performance
 const debouncedEmit = useDebounceFn(() => {
-  const mutableFilters: IExpenseFilter = {
+  const mutableFilters: IExpenseFilters = {
     ...filters.value,
     // Ensure tagIds is mutable array
     tagIds: filters.value.tagIds ? [...filters.value.tagIds] : undefined
@@ -183,7 +192,7 @@ const debouncedEmit = useDebounceFn(() => {
  * Update a specific filter value
  * Simple over Easy: Single responsibility for filter updates
  */
-const updateFilter = (key: keyof IExpenseFilter, value: unknown) => {
+const updateFilter = (key: keyof IExpenseFilters, value: unknown) => {
   // Handle undefined/empty values appropriately
   if (value === '' || value === null) {
     value = undefined
@@ -201,8 +210,8 @@ const updateFilter = (key: keyof IExpenseFilter, value: unknown) => {
  */
 const handleDatePreset = (dateRange: { startDate: string; endDate: string }) => {
   Object.assign(filters.value, {
-    startDate: dateRange.startDate,
-    endDate: dateRange.endDate
+    dateFrom: dateRange.startDate,
+    dateTo: dateRange.endDate
   })
   debouncedEmit()
 }

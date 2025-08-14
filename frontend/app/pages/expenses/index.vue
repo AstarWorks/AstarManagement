@@ -72,9 +72,12 @@
       <!-- Expense Data Table -->
       <div v-else>
         <ExpenseDataTable
+          ref="expenseTableRef"
           :expenses="expenses"
           :loading="listLoading"
           :selected="selectedExpenses"
+          :filters="filters"
+          :global-filter="filters.searchTerm || ''"
           @update:selected="selectedExpenses = $event"
           @edit="(expense) => router.push(`/expenses/${expense.id}/edit`)"
           @view="(expense) => router.push(`/expenses/${expense.id}`)"
@@ -87,10 +90,9 @@
     <div v-if="totalPages > 1" class="pagination-section">
       <ExpensePagination
         :current-page="currentPage"
-        :total-pages="totalPages"
         :total-items="totalItems"
         :page-size="pageSize"
-        @update:current-page="currentPage = $event"
+        @update:page="currentPage = $event"
         @update:page-size="pageSize = $event"
       />
     </div>
@@ -98,7 +100,7 @@
 </template>
 
 <script setup lang="ts">
-import type { IExpense, IExpenseFilter, IExpenseSummary } from '~/types/expense'
+import type { IExpense, IExpenseFilter, IExpenseSummary, IExpenseFilters } from '~/types/expense'
 import { Card, CardContent } from '~/components/ui/card'
 import { Button } from '~/components/ui/button'
 import { Icon } from '#components'
@@ -108,6 +110,7 @@ import ExpensePagination from '~/components/expenses/ExpensePagination.vue'
 import ExpenseEmptyState from '~/components/expenses/states/ExpenseEmptyState.vue'
 import FilterStatistics from '~/components/expenses/filters/FilterStatistics.vue'
 import { mockExpenseDataService } from '~/services/mockExpenseDataService'
+import { useDebounceFn } from '@vueuse/core'
 
 // Meta and SEO
 definePageMeta({
@@ -121,7 +124,7 @@ const route = useRoute()
 const router = useRouter()
 
 // Reactive state
-const filters = ref<IExpenseFilter>({})
+const filters = ref<IExpenseFilters>({})
 const expenses = ref<IExpense[]>([])
 const selectedExpenses = ref<Set<string>>(new Set())
 const expenseSummary = ref<IExpenseSummary>()
@@ -135,6 +138,9 @@ const listLoading = ref(false)
 const summaryLoading = ref(false)
 const listError = ref<string>()
 
+// Table reference for accessing filtered results
+const expenseTableRef = ref()
+
 // Computed properties
 const hasActiveFilters = computed(() => {
   return Object.values(filters.value).some(value => 
@@ -143,53 +149,62 @@ const hasActiveFilters = computed(() => {
   )
 })
 
-const filterStats = computed(() => ({
-  totalMatched: totalItems.value,
-  totalIncome: expenses.value.reduce((sum, e) => sum + e.incomeAmount, 0),
-  totalExpense: expenses.value.reduce((sum, e) => sum + e.expenseAmount, 0),
-  netBalance: expenses.value.reduce((sum, e) => sum + e.balance, 0)
-}))
+const filterStats = computed(() => {
+  // Get filtered results from TanStackTable if available, otherwise use all expenses
+  const filteredExpenses = expenseTableRef.value?.table?.getFilteredRowModel()?.rows?.map((row: { original: IExpense }) => row.original) || expenses.value
+  
+  return {
+    totalMatched: filteredExpenses.length,
+    totalIncome: filteredExpenses.reduce((sum: number, e: IExpense) => sum + e.incomeAmount, 0),
+    totalExpense: filteredExpenses.reduce((sum: number, e: IExpense) => sum + e.expenseAmount, 0),
+    netBalance: filteredExpenses.reduce((sum: number, e: IExpense) => sum + e.balance, 0)
+  }
+})
 
 // Sync filters with query parameters
 watchEffect(() => {
   filters.value = {
-    startDate: route.query.startDate as string,
-    endDate: route.query.endDate as string,
-    category: route.query.category as string,
-    caseId: route.query.caseId as string,
-    searchQuery: route.query.q as string,
+    dateFrom: route.query.startDate as string,
+    dateTo: route.query.endDate as string,
+    categories: route.query.category ? [route.query.category as string] : undefined,
+    caseIds: route.query.caseId ? [route.query.caseId as string] : undefined,
+    searchTerm: route.query.q as string,
     tagIds: Array.isArray(route.query.tagIds) 
       ? route.query.tagIds as string[]
       : route.query.tagIds 
         ? [route.query.tagIds as string] 
         : undefined,
-    sortBy: (route.query.sortBy as 'date' | 'category' | 'description' | 'balance') || 'date',
-    sortOrder: (route.query.sortOrder as 'ASC' | 'DESC') || 'DESC'
+    amountMin: route.query.amountMin ? Number(route.query.amountMin) : undefined,
+    amountMax: route.query.amountMax ? Number(route.query.amountMax) : undefined,
   }
   currentPage.value = parseInt(route.query.page as string) || 1
   pageSize.value = parseInt(route.query.pageSize as string) || 20
 })
 
-// Event handlers
-const handleFilterChange = (newFilters: IExpenseFilter) => {
+// Event handlers - Debounced for better performance
+const handleFilterChange = useDebounceFn((newFilters: IExpenseFilter) => {
   // Convert filter values to strings for URL query parameters
   const query: Record<string, string> = { page: '1' }
   
-  Object.entries(newFilters).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && value !== '') {
-      if (Array.isArray(value)) {
-        query[key] = value.join(',')
-      } else {
-        query[key] = String(value)
-      }
-    }
-  })
+  if (newFilters.dateFrom) query.startDate = newFilters.dateFrom
+  if (newFilters.dateTo) query.endDate = newFilters.dateTo
+  if (newFilters.categories?.length) query.category = newFilters.categories[0] // Take first for simplicity
+  if (newFilters.caseIds?.length) query.caseId = newFilters.caseIds[0] // Take first for simplicity
+  if (newFilters.searchTerm) query.q = newFilters.searchTerm
+  if (newFilters.tagIds?.length) query.tagIds = newFilters.tagIds.join(',')
+  if (newFilters.amountMin !== undefined) query.amountMin = String(newFilters.amountMin)
+  if (newFilters.amountMax !== undefined) query.amountMax = String(newFilters.amountMax)
   
   router.push({ query })
-}
+}, 300)
 
 const clearFilters = () => {
+  // Reset URL parameters
   router.push({ query: {} })
+  // Reset TanStackTable filters
+  if (expenseTableRef.value?.resetTableFilters) {
+    expenseTableRef.value.resetTableFilters()
+  }
 }
 
 const handleDelete = async (expense: IExpense) => {

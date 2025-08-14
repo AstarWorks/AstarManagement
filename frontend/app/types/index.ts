@@ -16,7 +16,21 @@ export * from './expense'
 
 // Re-export all common types (but avoid conflicts)
 export * from './common/ui'
-export * from './common/validation'
+export type {
+  ValidationRule,
+  IFieldValidationRules,
+  ValidationSchema,
+  IFieldValidationResult,
+  IExpenseValidationRules,
+  ITagValidationRules,
+  ValidationErrorCode,
+  IValidationConfig,
+  AsyncValidationRule,
+  IAsyncValidationResult,
+  ICrossFieldValidationRule,
+  IConditionalValidationRule,
+  DynamicValidationSchema
+} from './common/validation'
 export type {
   HttpMethod,
   IApiRequestConfig,

@@ -18,7 +18,7 @@
 </template>
 
 <script setup lang="ts">
-import type { IExpenseFilter } from '~/types/expense'
+import type { IExpenseFilters } from '~/types/expense'
 import ExpenseFiltersContainer from './filters/ExpenseFiltersContainer.vue'
 
 interface CaseOption {
@@ -28,7 +28,7 @@ interface CaseOption {
 
 interface Props {
   /** Current filter values (v-model) */
-  modelValue: IExpenseFilter
+  modelValue: IExpenseFilters
   /** Available category options */
   availableCategories?: string[]
   /** Available case options for filtering */
@@ -46,7 +46,7 @@ interface Props {
 
 interface Emits {
   /** Filter update and change events */
-  (event: 'update:modelValue' | 'filterChange', filters: IExpenseFilter): void
+  (event: 'update:modelValue' | 'filterChange', filters: IExpenseFilters): void
 }
 
 const _props = withDefaults(defineProps<Props>(), {

@@ -1,4 +1,5 @@
-import type { ColumnDef, Column } from '@tanstack/vue-table'
+import type { ColumnDef, Column, FilterFn } from '@tanstack/vue-table'
+import { rankItem } from '@tanstack/match-sorter-utils'
 import type { IExpense } from '~/types/expense'
 import { h } from 'vue'
 import { Checkbox } from '~/components/ui/checkbox'
@@ -14,6 +15,41 @@ import {
 } from '~/components/ui/dropdown-menu'
 import { Icon } from '#components'
 import SortIndicator from '~/components/ui/data-table/SortIndicator.vue'
+
+// Custom filter functions for TanStackTable
+const dateRangeFilter: FilterFn<IExpense> = (row, columnId, filterValue) => {
+  const { from, to } = filterValue || {}
+  if (!from && !to) return true
+  
+  const rowDate = new Date(row.getValue(columnId) as string)
+  if (from && rowDate < new Date(from)) return false
+  if (to && rowDate > new Date(to)) return false
+  
+  return true
+}
+
+const amountRangeFilter: FilterFn<IExpense> = (row, columnId, filterValue) => {
+  const { min, max } = filterValue || {}
+  if (min === undefined && max === undefined) return true
+  
+  const rowValue = row.getValue(columnId) as number
+  if (min !== undefined && rowValue < min) return false
+  if (max !== undefined && rowValue > max) return false
+  
+  return true
+}
+
+const multiSelectFilter: FilterFn<IExpense> = (row, columnId, filterValue) => {
+  if (!filterValue || !Array.isArray(filterValue) || filterValue.length === 0) return true
+  
+  const rowValue = row.getValue(columnId) as string
+  return filterValue.includes(rowValue)
+}
+
+const fuzzyFilter: FilterFn<IExpense> = (row, columnId, filterValue) => {
+  const itemRank = rankItem(row.getValue(columnId), filterValue)
+  return itemRank.passed
+}
 
 // Helper function to create sortable header
 const createSortableHeader = (label: string, column: Column<IExpense, unknown>) => h(
@@ -77,6 +113,7 @@ export const createExpenseColumns = (
     enablePinning: true,
     header: ({ column }) => createSortableHeader(t('expense.fields.date'), column),
     cell: ({ row }) => formatters.formatDate(row.getValue('date')),
+    filterFn: dateRangeFilter,
   },
   {
     accessorKey: 'category',
@@ -90,6 +127,7 @@ export const createExpenseColumns = (
       },
       () => row.getValue('category')
     ),
+    filterFn: multiSelectFilter,
   },
   {
     accessorKey: 'description',
@@ -103,6 +141,8 @@ export const createExpenseColumns = (
         memo && h('div', { class: 'text-sm text-muted-foreground' }, memo)
       ])
     },
+    filterFn: fuzzyFilter,
+    enableGlobalFilter: true,
   },
   {
     id: 'amounts',
@@ -129,6 +169,7 @@ export const createExpenseColumns = (
       },
       formatters.formatCurrency(row.getValue('balance'))
     ),
+    filterFn: amountRangeFilter,
   },
   {
     id: 'actions',

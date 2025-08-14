@@ -32,8 +32,10 @@
       :loading="loading"
       :empty-message="t('expense.list.empty')"
       enable-sorting
-      :enable-filtering="false"
+      enable-filtering
       :enable-pagination="false"
+      :global-filter="globalFilter"
+      :initial-column-filters="initialColumnFilters"
       persistence-id="expense-table"
       @update:state="handleStateUpdate"
       @row-click="handleRowClick"
@@ -114,7 +116,7 @@
 </template>
 
 <script setup lang="ts">
-import type { IExpense } from '~/types/expense'
+import type { IExpense, IExpenseFilters } from '~/types/expense'
 import { computed, ref, watch } from 'vue'
 import DataTable from '~/components/ui/data-table/DataTable.vue'
 import ColumnVisibilityDropdown from '~/components/ui/data-table/ColumnVisibilityDropdown.vue'
@@ -137,6 +139,10 @@ interface Props {
   expenses: IExpense[]
   loading?: boolean
   selected?: Set<string>
+  /** External filter state for TanStackTable integration */
+  filters?: IExpenseFilters
+  /** Global search query for text filtering */
+  globalFilter?: string
 }
 
 interface Emits {
@@ -146,9 +152,11 @@ interface Emits {
   'delete': [IExpense]
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   loading: false,
-  selected: () => new Set<string>()
+  selected: () => new Set<string>(),
+  filters: () => ({}),
+  globalFilter: ''
 })
 
 const emit = defineEmits<Emits>()
@@ -163,6 +171,11 @@ interface TableInstance {
     getSelectedRowModel: () => {
       rows: Array<{ original: IExpense }>
     }
+    getFilteredRowModel: () => {
+      rows: Array<{ original: IExpense }>
+    }
+    resetColumnFilters: () => void
+    resetGlobalFilter: () => void
   }
 }
 const tableRef = ref<TableInstance | null>(null)
@@ -171,6 +184,53 @@ const tableRef = ref<TableInstance | null>(null)
 const selectedRows = computed(() => {
   if (!tableRef.value?.table) return []
   return tableRef.value.table.getSelectedRowModel().rows.map((row: { original: IExpense }) => row.original)
+})
+
+// Convert external filters to TanStackTable column filters
+const initialColumnFilters = computed(() => {
+  if (!props.filters) return []
+  
+  const columnFilters = []
+  
+  // Date range filter
+  if (props.filters.dateFrom || props.filters.dateTo) {
+    columnFilters.push({
+      id: 'date',
+      value: {
+        from: props.filters.dateFrom,
+        to: props.filters.dateTo
+      }
+    })
+  }
+  
+  // Category multi-select filter
+  if (props.filters.categories?.length) {
+    columnFilters.push({
+      id: 'category',
+      value: props.filters.categories
+    })
+  }
+  
+  // Amount range filter
+  if (props.filters.amountMin !== undefined || props.filters.amountMax !== undefined) {
+    columnFilters.push({
+      id: 'balance',
+      value: {
+        min: props.filters.amountMin,
+        max: props.filters.amountMax
+      }
+    })
+  }
+  
+  // Case IDs filter
+  if (props.filters.caseIds?.length) {
+    columnFilters.push({
+      id: 'caseId',
+      value: props.filters.caseIds
+    })
+  }
+  
+  return columnFilters
 })
 
 // Create columns
@@ -221,6 +281,21 @@ watch(() => tableRef.value?.table?.getSelectedRowModel().rows, (rows) => {
   const selectedIds = new Set<string>(rows.map((row: { original: IExpense }) => row.original.id))
   emit('update:selected', selectedIds)
 }, { deep: true })
+
+// Method to reset all table filters
+const resetTableFilters = () => {
+  if (tableRef.value?.table) {
+    // Reset column filters
+    tableRef.value.table.resetColumnFilters()
+    // Reset global filter
+    tableRef.value.table.resetGlobalFilter()
+  }
+}
+
+// Expose methods for parent components
+defineExpose({
+  resetTableFilters
+})
 </script>
 
 <!--
