@@ -11,8 +11,27 @@
  * ```
  */
 
-// Re-export all expense types
-export * from './expense'
+// Re-export core expense types only
+export type {
+  IExpense,
+  IExpenseWithRelations,
+  IExpenseCase,
+  IExpenseTag,
+  IExpenseAttachment,
+  IExpenseFilters,
+  IExpenseFormData,
+  IExpenseCategory,
+  IExpenseSummary,
+  IExpenseFieldChangeEvent,
+  ICreateExpenseRequest,
+  IUpdateExpenseRequest,
+  IExpenseStatsResponse
+} from './expense'
+
+export {
+  TagScope,
+  AttachmentStatus
+} from './expense'
 
 // Re-export all common types (but avoid conflicts)
 export * from './common/ui'

@@ -132,7 +132,7 @@
 <script setup lang="ts">
 import { toTypedSchema } from '@vee-validate/zod'
 import { createExpenseSchema } from '~/schemas/expense'
-import type { IExpense, IExpenseFormData } from '~/types/expense'
+import type { IExpense, IExpenseFormData, IExpenseFieldChangeEvent } from '~/types/expense'
 import type { IConflictResolution } from '~/composables/useFormSubmissionOptimistic'
 import { 
   Breadcrumb, 
@@ -265,17 +265,14 @@ const loadExpense = async () => {
       description: '新幹線代 東京-大阪',
       incomeAmount: 0,
       expenseAmount: 15000,
-      balance: -15000,
       caseId: 'case-123',
       memo: '出張のための交通費',
-      tags: [],
-      attachments: [],
+      tagIds: [],
+      attachmentIds: [],
       createdAt: '2025-08-04T10:00:00Z',
       updatedAt: '2025-08-04T10:00:00Z',
       createdBy: 'user-123',
-      updatedBy: 'user-123',
-      tenantId: 'tenant-123',
-      version: 1
+      tenantId: 'tenant-123'
     }
     
     // Convert to form data
@@ -287,14 +284,14 @@ const loadExpense = async () => {
       expenseAmount: expense.expenseAmount,
       caseId: expense.caseId,
       memo: expense.memo || '',
-      tagIds: expense.tags?.map(t => t.id) || [],
-      attachmentIds: expense.attachments?.map(a => a.id) || []
+      tagIds: expense.tagIds || [],
+      attachmentIds: expense.attachmentIds || []
     }
     
     // Initialize form with loaded data
     formState.value.data = { ...data }
     formState.value.originalData = { ...data }
-    formState.value.version = expense.version
+    // version property removed from IExpense interface
     originalDescription.value = expense.description
     
   } catch (err: unknown) {
@@ -322,8 +319,8 @@ const handleSubmit = async (_formData: IExpenseFormData) => {
   })
 }
 
-const handleFieldChange = (field: string, value: unknown) => {
-  updateFormData({ [field]: value })
+const handleFieldChange = (event: IExpenseFieldChangeEvent) => {
+  updateFormData({ [event.field]: event.value })
 }
 
 const handleCancel = () => {

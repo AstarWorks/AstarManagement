@@ -1,4 +1,4 @@
-import type { IExpenseFilter } from '~/types/expense'
+import type { IExpenseFilters } from '~/types/expense'
 
 export const useExpenseRouting = () => {
   const route = useRoute()
@@ -35,20 +35,28 @@ export const useExpenseRouting = () => {
     router.push({ query: {} })
   }
 
-  const getQueryFilters = (): IExpenseFilter => {
+  const getQueryFilters = (): IExpenseFilters => {
     return {
-      startDate: route.query.startDate as string,
-      endDate: route.query.endDate as string,
-      category: route.query.category as string,
-      caseId: route.query.caseId as string,
+      dateFrom: route.query.dateFrom as string,
+      dateTo: route.query.dateTo as string,
+      searchTerm: route.query.searchTerm as string,
+      amountMin: route.query.amountMin ? Number(route.query.amountMin) : undefined,
+      amountMax: route.query.amountMax ? Number(route.query.amountMax) : undefined,
+      categories: Array.isArray(route.query.categories) 
+        ? route.query.categories as string[]
+        : route.query.categories 
+          ? [route.query.categories as string] 
+          : undefined,
+      caseIds: Array.isArray(route.query.caseIds) 
+        ? route.query.caseIds as string[]
+        : route.query.caseIds 
+          ? [route.query.caseIds as string] 
+          : undefined,
       tagIds: Array.isArray(route.query.tagIds) 
         ? route.query.tagIds as string[]
         : route.query.tagIds 
           ? [route.query.tagIds as string] 
-          : undefined,
-      sortBy: (route.query.sortBy as 'date' | 'category' | 'description' | 'balance') || 'date',
-      sortOrder: (route.query.sortOrder as 'ASC' | 'DESC') || 'DESC',
-      searchQuery: route.query.searchQuery as string
+          : undefined
     }
   }
 
@@ -59,7 +67,7 @@ export const useExpenseRouting = () => {
     }
   }
 
-  const setFilters = (filters: Partial<IExpenseFilter>) => {
+  const setFilters = (filters: Partial<IExpenseFilters>) => {
     const query: Record<string, string | string[]> = {}
     
     // Copy existing query params

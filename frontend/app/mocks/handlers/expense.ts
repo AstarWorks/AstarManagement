@@ -2,8 +2,9 @@ import { http, HttpResponse } from 'msw'
 import type { 
   ICreateExpenseRequest, 
   IUpdateExpenseRequest, 
-  IExpenseFilter,
-  IBulkExpenseRequest
+  IExpenseFilters,
+  IBulkExpenseOperation,
+  IExpenseStatistics
 } from '~/types/expense'
 import { mockExpenseDataService } from '~/services/mockExpenseDataService'
 
@@ -72,7 +73,7 @@ export const expenseHandlers = [
     await simulateDelay(50, 250)
     
     const url = new URL(request.url)
-    const filter: IExpenseFilter = {
+    const filter: IExpenseFilters = {
       offset: parseInt(url.searchParams.get('offset') || '0'),
       limit: parseInt(url.searchParams.get('limit') || '20'),
       startDate: url.searchParams.get('startDate') || undefined,
@@ -80,8 +81,8 @@ export const expenseHandlers = [
       category: url.searchParams.get('category') || undefined,
       caseId: url.searchParams.get('caseId') || undefined,
       searchQuery: url.searchParams.get('searchQuery') || url.searchParams.get('q') || undefined,
-      sortBy: (url.searchParams.get('sortBy') as IExpenseFilter['sortBy']) || 'date',
-      sortOrder: (url.searchParams.get('sortOrder') as IExpenseFilter['sortOrder']) || 'DESC'
+      sortBy: (url.searchParams.get('sortBy') as IExpenseFilters['sortBy']) || 'date',
+      sortOrder: (url.searchParams.get('sortOrder') as IExpenseFilters['sortOrder']) || 'DESC'
     }
 
     // Handle tag filtering
@@ -232,20 +233,13 @@ export const expenseHandlers = [
     
     const stats = mockExpenseDataService.generateExpenseStats({ startDate, endDate })
     
-    const summary = {
-      totalIncome: stats.summary.totalIncome,
-      totalExpense: stats.summary.totalExpense,
-      balance: stats.summary.netBalance,
-      count: stats.summary.transactionCount,
-      categories: stats.categoryBreakdown.map(cat => ({
-        name: cat.category,
-        count: cat.transactionCount,
-        total: cat.totalAmount
-      })),
-      period: {
-        startDate,
-        endDate
-      }
+    const summary: IExpenseStatistics = {
+      totalIncome: stats.totalIncome || 0,
+      totalExpenses: stats.totalExpenses || 0,
+      balance: stats.balance || 0,
+      expensesByCategory: stats.expensesByCategory || {},
+      expensesByMonth: stats.expensesByMonth || {},
+      topExpenseCategories: stats.topExpenseCategories || []
     }
     
     return HttpResponse.json(summary, { 
@@ -282,7 +276,7 @@ export const expenseHandlers = [
     
     await simulateDelay(300, 400)
     
-    const body = await request.json() as IBulkExpenseRequest
+    const body = await request.json() as IBulkExpenseOperation
     
     let successCount = 0
     let failureCount = 0

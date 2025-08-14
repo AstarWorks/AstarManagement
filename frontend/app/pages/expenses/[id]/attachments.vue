@@ -193,8 +193,7 @@
 </template>
 
 <script setup lang="ts">
-import type { IExpense, IAttachment } from '~/types/expense'
-import { AttachmentStatus } from '~/types/expense'
+import type { IExpense, IExpenseAttachment } from '~/types/expense'
 import { 
   Breadcrumb, 
   BreadcrumbList, 
@@ -238,7 +237,7 @@ const NuxtLink = resolveComponent('NuxtLink')
 // @ts-expect-error - route params typing issue in Nuxt
 const expenseId = route.params.id as string
 const expense = ref<IExpense>()
-const attachments = ref<IAttachment[]>([])
+const attachments = ref<IExpenseAttachment[]>([])
 const loading = ref(true)
 const error = ref<string>()
 const uploading = ref(false)
@@ -337,15 +336,12 @@ const uploadFile = async (file: File, uploadFileItem: _IUploadFile) => {
     uploadFileItem.status = 'completed'
     
     // Add to attachments list
-    const newAttachment: IAttachment = {
+    const newAttachment: IExpenseAttachment = {
       id: `att-${Date.now()}`,
-      tenantId: 'tenant-123',
       fileName: file.name,
       originalName: file.name,
       fileSize: file.size,
       mimeType: file.type,
-      storagePath: `/attachments/${Date.now()}_${file.name}`,
-      status: AttachmentStatus.UPLOADED,
       uploadedAt: new Date().toISOString(),
       uploadedBy: 'user-123'
     }
@@ -374,7 +370,7 @@ const cancelUpload = (fileId: string) => {
   }
 }
 
-const downloadAttachment = async (attachment: IAttachment) => {
+const downloadAttachment = async (attachment: IExpenseAttachment) => {
   downloading.value[attachment.id] = true
   
   try {
@@ -390,7 +386,7 @@ const downloadAttachment = async (attachment: IAttachment) => {
   }
 }
 
-const deleteAttachment = async (attachment: IAttachment) => {
+const deleteAttachment = async (attachment: IExpenseAttachment) => {
   if (!confirm(t('expense.attachments.confirm.delete'))) {
     return
   }
@@ -402,7 +398,7 @@ const deleteAttachment = async (attachment: IAttachment) => {
     await new Promise(resolve => setTimeout(resolve, 1000))
     
     // Remove from list
-    const index = attachments.value.findIndex((a: IAttachment) => a.id === attachment.id)
+    const index = attachments.value.findIndex((a: IExpenseAttachment) => a.id === attachment.id)
     if (index !== -1) {
       attachments.value.splice(index, 1)
     }
@@ -429,40 +425,33 @@ const loadData = async () => {
       description: '新幹線代 東京-大阪',
       incomeAmount: 0,
       expenseAmount: 15000,
-      balance: -15000,
-      tags: [],
-      attachments: [],
+      tagIds: [],
+      attachmentIds: [],
+      caseId: 'case-123',
+      memo: '東京出張',
       createdAt: '2025-08-04T10:00:00Z',
       updatedAt: '2025-08-04T10:00:00Z',
       createdBy: 'user-123',
-      updatedBy: 'user-123',
-      tenantId: 'tenant-123',
-      version: 1
+      tenantId: 'tenant-123'
     }
     
     // Mock attachments
     attachments.value = [
       {
         id: 'att-1',
-        tenantId: 'tenant-123',
         fileName: '領収書_新幹線.pdf',
         originalName: '領収書_新幹線.pdf',
         fileSize: 256 * 1024,
         mimeType: 'application/pdf',
-        storagePath: '/attachments/receipt_shinkansen.pdf',
-        status: AttachmentStatus.LINKED,
         uploadedAt: '2025-08-04T10:00:00Z',
         uploadedBy: 'user-123'
       },
       {
         id: 'att-2',
-        tenantId: 'tenant-123',
         fileName: '交通費精算書.xlsx',
         originalName: '交通費精算書.xlsx',
         fileSize: 128 * 1024,
         mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        storagePath: '/attachments/expense_report.xlsx',
-        status: AttachmentStatus.LINKED,
         uploadedAt: '2025-08-04T10:05:00Z',
         uploadedBy: 'user-123'
       }

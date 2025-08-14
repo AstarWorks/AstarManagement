@@ -440,5 +440,17 @@ export default {
     },
 
     // Empty states hint
-    emptyHint: '最初の実費を追加して管理を始めましょう'
+    emptyHint: '最初の実費を追加して管理を始めましょう',
+
+    // Tags
+    tags: {
+        transportation: '交通費',
+        tokyo: '東京',
+        osaka: '大阪',
+        business_trip: '出張',
+        court: '裁判所',
+        client_meeting: 'クライアント面談',
+        urgent: '緊急',
+        office_supplies: '事務用品'
+    }
 } as const

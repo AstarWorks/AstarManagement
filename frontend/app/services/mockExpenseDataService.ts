@@ -1,13 +1,13 @@
 import type { 
   IExpense, 
-  IExpenseList, 
-  IExpenseFilter,
+  IExpenseFilters,
   ICreateExpenseRequest,
   IUpdateExpenseRequest,
-  IExpenseStatsResponse,
+  IExpenseStatistics,
   ITag,
   IAttachment
 } from '~/types/expense'
+import type { IExpenseList } from '~/types/expense/expense'
 
 /**
  * Mock Data Generation Service for Expense Management
@@ -130,7 +130,7 @@ export class MockExpenseDataService {
     )
     
     const incomeAmount = overrides.incomeAmount || 0
-    const balance = incomeAmount - expenseAmount
+    const _balance = incomeAmount - expenseAmount
 
     const id = overrides.id || `expense-${this.nextId++}`
     const now = new Date().toISOString()
@@ -143,16 +143,13 @@ export class MockExpenseDataService {
       description: overrides.description ?? this.randomChoice(categoryData.descriptions),
       incomeAmount,
       expenseAmount,
-      balance,
       caseId: overrides.caseId ?? (Math.random() > 0.7 ? `case-${Math.floor(Math.random() * 20) + 1}` : undefined),
       memo: overrides.memo ?? (Math.random() > 0.8 ? this.generateMemo() : undefined),
-      tags: overrides.tags ?? this.generateTags(),
-      attachments: overrides.attachments ?? this.generateAttachments(),
+      tagIds: overrides.tagIds ?? this.generateTags().map(t => t.id),
+      attachmentIds: overrides.attachmentIds ?? this.generateAttachments().map(a => a.id),
       createdAt: overrides.createdAt ?? now,
       updatedAt: overrides.updatedAt ?? now,
       createdBy: overrides.createdBy ?? 'user-1',
-      updatedBy: overrides.updatedBy ?? 'user-1',
-      version: overrides.version ?? 1,
       ...overrides
     }
 
@@ -162,7 +159,7 @@ export class MockExpenseDataService {
   /**
    * Generate multiple expenses with optional filtering
    */
-  public generateExpenseList(count: number, filters?: IExpenseFilter): IExpense[] {
+  public generateExpenseList(count: number, filters?: IExpenseFilters): IExpense[] {
     const expenses: IExpense[] = []
     
     for (let i = 0; i < count; i++) {
@@ -176,14 +173,14 @@ export class MockExpenseDataService {
   /**
    * Generate expense statistics for a given period
    */
-  public generateExpenseStats(period: { startDate: string; endDate: string }): IExpenseStatsResponse {
+  public generateExpenseStats(period: { startDate: string; endDate: string }): IExpenseStatistics {
     const expenses = Array.from(this.expenses.values()).filter(expense => 
       expense.date >= period.startDate && expense.date <= period.endDate
     )
 
     const totalIncome = expenses.reduce((sum, exp) => sum + exp.incomeAmount, 0)
     const totalExpense = expenses.reduce((sum, exp) => sum + exp.expenseAmount, 0)
-    const netBalance = totalIncome - totalExpense
+    const _netBalance = totalIncome - totalExpense
 
     // Generate category breakdown
     const categoryMap = new Map<string, { amount: number; count: number }>()
@@ -203,16 +200,19 @@ export class MockExpenseDataService {
     }))
 
     return {
-      period,
-      summary: {
-        totalIncome,
-        totalExpense,
-        netBalance,
-        transactionCount: expenses.length
-      },
-      categoryBreakdown,
-      tagBreakdown: [], // Simplified for now
-      monthlyTrend: []   // Simplified for now
+      totalIncome,
+      totalExpenses: totalExpense,
+      balance: totalIncome - totalExpense,
+      expensesByCategory: categoryBreakdown.reduce((acc, cat) => ({
+        ...acc,
+        [cat.category]: cat.totalAmount
+      }), {}),
+      expensesByMonth: {},
+      topExpenseCategories: categoryBreakdown.map(cat => ({
+        category: cat.category,
+        amount: cat.totalAmount,
+        count: cat.transactionCount
+      }))
     }
   }
 
@@ -266,7 +266,7 @@ export class MockExpenseDataService {
   /**
    * Get all expenses with filtering
    */
-  public getExpenses(filter: IExpenseFilter = {}): IExpenseList {
+  public getExpenses(filter: IExpenseFilters = {}): IExpenseList {
     const allExpenses = Array.from(this.expenses.values())
     const filteredExpenses = this.filterExpenses(allExpenses, filter)
     const sortedExpenses = this.sortExpenses(filteredExpenses, filter.sortBy, filter.sortOrder)
@@ -319,9 +319,7 @@ export class MockExpenseDataService {
     const updated: IExpense = {
       ...existing,
       ...data,
-      balance: (data.incomeAmount ?? existing.incomeAmount) - (data.expenseAmount ?? existing.expenseAmount),
-      updatedAt: new Date().toISOString(),
-      version: existing.version + 1
+      updatedAt: new Date().toISOString()
     }
 
     this.expenses.set(id, updated)
@@ -373,7 +371,7 @@ export class MockExpenseDataService {
     return []
   }
 
-  private filterExpenses(expenses: IExpense[], filter: IExpenseFilter): IExpense[] {
+  private filterExpenses(expenses: IExpense[], filter: IExpenseFilters): IExpense[] {
     return expenses.filter(expense => {
       if (filter.startDate && expense.date < filter.startDate) return false
       if (filter.endDate && expense.date > filter.endDate) return false
@@ -400,7 +398,7 @@ export class MockExpenseDataService {
         case 'description':
           return a.description.localeCompare(b.description) * order
         case 'balance':
-          return (a.balance - b.balance) * order
+          return ((a.incomeAmount - a.expenseAmount) - (b.incomeAmount - b.expenseAmount)) * order
         case 'amount':
           return (a.expenseAmount - b.expenseAmount) * order
         case 'date':

@@ -600,7 +600,7 @@ describe('Expense Pagination Integration Tests', () => {
     })
 
     it('should maintain selection during data updates with virtual scrolling', async () => {
-      let currentData = mockExpenseDataService.getExpenses({ limit: 200 }) as IExpenseList
+      const currentData = mockExpenseDataService.getExpenses({ limit: 200 }) as IExpenseList
       
       const wrapper = mount(ExpenseDataTable, {
         props: {
@@ -788,7 +788,7 @@ describe('Expense Pagination Integration Tests', () => {
       
       if (focusableElements.length > 0) {
         // Focus first element
-        const firstElement = focusableElements[0].element as HTMLElement
+        const firstElement = focusableElements[0]?.element as HTMLElement
         firstElement.focus()
 
         // Simulate tab navigation
@@ -1172,11 +1172,14 @@ describe('Expense Pagination Integration Tests', () => {
         category: '交通費',
         incomeAmount: 0,
         expenseAmount: Math.random() * 1000,
-        balance: Math.random() * 1000,
         memo: `Test memo ${i}`,
         caseId: 'case-1',
+        tagIds: [],
+        attachmentIds: [],
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
+        createdBy: 'user-1',
+        tenantId: 'tenant-1'
       }))
 
       const startTime = performance.now()
@@ -1216,11 +1219,14 @@ describe('Expense Pagination Integration Tests', () => {
           category: '交通費',
           incomeAmount: 100,
           expenseAmount: 0,
-          balance: 100,
           memo: 'Valid memo',
           caseId: 'case-1',
+          tagIds: [],
+          attachmentIds: [],
           createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
+          updatedAt: new Date().toISOString(),
+          createdBy: 'user-1',
+          tenantId: 'tenant-1'
         },
         {
           id: 'invalid-1',
@@ -1229,11 +1235,14 @@ describe('Expense Pagination Integration Tests', () => {
           category: '',
           incomeAmount: NaN,
           expenseAmount: undefined as any,
-          balance: null as any,
           memo: undefined as any,
           caseId: '',
+          tagIds: [],
+          attachmentIds: [],
           createdAt: '',
-          updatedAt: ''
+          updatedAt: '',
+          createdBy: '',
+          tenantId: ''
         },
         ...Array.from({ length: 150 }, (_, i) => ({
           id: `item-${i}`,
@@ -1242,11 +1251,14 @@ describe('Expense Pagination Integration Tests', () => {
           category: '会議費',
           incomeAmount: 0,
           expenseAmount: Math.random() * 500,
-          balance: Math.random() * 500,
           memo: `Memo ${i}`,
           caseId: 'case-1',
+          tagIds: [],
+          attachmentIds: [],
           createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
+          updatedAt: new Date().toISOString(),
+          createdBy: 'user-1',
+          tenantId: 'tenant-1'
         }))
       ]
 

@@ -9,6 +9,7 @@
             type="date" 
             v-bind="componentField" 
             :disabled="disabled"
+            @blur="handleFieldBlur('date', componentField.modelValue)"
           />
         </FormControl>
         <FormMessage />
@@ -19,21 +20,27 @@
     <FormField v-slot="{ componentField }" name="category">
       <FormItem>
         <FormLabel>{{ t('expense.form.fields.category') }}</FormLabel>
-        <Select v-bind="componentField" :disabled="disabled">
+        <Select v-bind="componentField" :disabled="disabled || categoriesLoading">
           <FormControl>
             <SelectTrigger>
               <SelectValue :placeholder="t('expense.form.placeholders.category')" />
             </SelectTrigger>
           </FormControl>
           <SelectContent>
-            <SelectItem value="travel">{{ t('expense.categories.travel') }}</SelectItem>
-            <SelectItem value="meal">{{ t('expense.categories.meal') }}</SelectItem>
-            <SelectItem value="office">{{ t('expense.categories.office') }}</SelectItem>
-            <SelectItem value="communication">{{ t('expense.categories.communication') }}</SelectItem>
-            <SelectItem value="other">{{ t('expense.categories.other') }}</SelectItem>
+            <SelectItem 
+              v-for="category in categoryOptions" 
+              :key="category.value"
+              :value="category.value"
+            >
+              {{ category.label }}
+            </SelectItem>
           </SelectContent>
         </Select>
         <FormMessage />
+        <!-- Loading state for categories -->
+        <div v-if="categoriesLoading" class="text-xs text-muted-foreground mt-1">
+          {{ t('common.loading') }}...
+        </div>
       </FormItem>
     </FormField>
 
@@ -67,8 +74,15 @@
               :placeholder="t('expense.form.placeholders.amount')"
               v-bind="componentField"
               :disabled="disabled"
-              @input="handleAmountInput($event, 'incomeAmount')"
+              @input="formHelpers.handleAmountInput($event, 'incomeAmount', handleAmountFieldChange)"
+              @blur="handleFieldBlur('incomeAmount', componentField.modelValue)"
             />
+            <!-- Amount display helper -->
+            <div
+v-if="componentField.modelValue && componentField.modelValue > 0" 
+                 class="text-xs text-muted-foreground mt-1">
+              {{ formHelpers.formatAmountDisplay(componentField.modelValue) }}
+            </div>
           </div>
         </FormControl>
         <FormMessage />
@@ -89,8 +103,15 @@
               :placeholder="t('expense.form.placeholders.amount')"
               v-bind="componentField"
               :disabled="disabled"
-              @input="handleAmountInput($event, 'expenseAmount')"
+              @input="formHelpers.handleAmountInput($event, 'expenseAmount', handleAmountFieldChange)"
+              @blur="handleFieldBlur('expenseAmount', componentField.modelValue)"
             />
+            <!-- Amount display helper -->
+            <div
+v-if="componentField.modelValue && componentField.modelValue > 0" 
+                 class="text-xs text-muted-foreground mt-1">
+              {{ formHelpers.formatAmountDisplay(componentField.modelValue) }}
+            </div>
           </div>
         </FormControl>
         <FormMessage />
@@ -108,8 +129,8 @@
             </SelectTrigger>
           </FormControl>
           <SelectContent>
-            <SelectItem :value="null">{{ t('common.none') }}</SelectItem>
-            <!-- Cases will be loaded dynamically -->
+            <SelectItem value="">{{ t('common.none') }}</SelectItem>
+            <!-- TODO: Cases will be loaded dynamically from API -->
           </SelectContent>
         </Select>
         <FormMessage />
@@ -121,28 +142,37 @@
       <FormItem>
         <FormLabel>{{ t('expense.form.fields.tags') }}</FormLabel>
         <FormControl>
-          <div class="flex flex-wrap gap-2">
-            <!-- Tag selection component will be added here -->
-            <Badge 
-              v-for="tagId in (value || [])" 
-              :key="tagId"
-              variant="secondary"
-              class="cursor-pointer"
-              @click="!disabled && removeTag(tagId, value, handleChange)"
-            >
-              {{ getTagName(tagId) }}
-              <Icon v-if="!disabled" name="lucide:x" class="w-3 h-3 ml-1" />
-            </Badge>
+          <div class="space-y-2">
+            <!-- Selected tags display -->
+            <div v-if="(value || []).length > 0" class="flex flex-wrap gap-2">
+              <Badge 
+                v-for="tagId in (value || [])" 
+                :key="tagId"
+                variant="secondary"
+                :style="{ backgroundColor: tagHelpers.getTagColor(tagId) + '20', borderColor: tagHelpers.getTagColor(tagId) }"
+                class="cursor-pointer hover:opacity-75 transition-opacity"
+                @click="!disabled && handleTagRemove(tagId, value, handleChange)"
+              >
+                {{ tagHelpers.getTagName(tagId) }}
+                <Icon v-if="!disabled" name="lucide:x" class="w-3 h-3 ml-1" />
+              </Badge>
+            </div>
+            <!-- Add tag button -->
             <Button
               v-if="!disabled"
               type="button"
               variant="outline"
               size="sm"
+              :disabled="tagsLoading"
               @click="emit('openTagSelector')"
             >
               <Icon name="lucide:plus" class="w-4 h-4 mr-1" />
               {{ t('expense.actions.addTag') }}
             </Button>
+            <!-- Loading state -->
+            <div v-if="tagsLoading" class="text-xs text-muted-foreground">
+              {{ t('common.loading') }}...
+            </div>
           </div>
         </FormControl>
         <FormMessage />
@@ -159,6 +189,7 @@
             rows="3"
             v-bind="componentField"
             :disabled="disabled"
+            @blur="handleFieldBlur('memo', componentField.modelValue)"
           />
         </FormControl>
         <FormMessage />
@@ -176,34 +207,63 @@
               <div 
                 v-for="attachmentId in (value || [])" 
                 :key="attachmentId"
-                class="flex items-center justify-between p-2 border rounded-md"
+                class="flex items-center justify-between p-3 border rounded-md hover:bg-muted/50 transition-colors"
               >
-                <div class="flex items-center space-x-2">
-                  <Icon name="lucide:paperclip" class="w-4 h-4 text-muted-foreground" />
-                  <span class="text-sm">{{ getAttachmentName(attachmentId) }}</span>
+                <div class="flex items-center space-x-3">
+                  <Icon 
+                    :name="getAttachmentIcon(attachmentId)" 
+                    class="w-4 h-4 text-muted-foreground" 
+                  />
+                  <div class="flex flex-col">
+                    <span class="text-sm font-medium">{{ attachmentHelpers.getAttachmentName(attachmentId) }}</span>
+                    <span class="text-xs text-muted-foreground">{{ getAttachmentSize(attachmentId) }}</span>
+                  </div>
                 </div>
-                <Button
-                  v-if="!disabled"
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  @click="removeAttachment(attachmentId, value, handleChange)"
-                >
-                  <Icon name="lucide:x" class="w-4 h-4" />
-                </Button>
+                <div class="flex items-center space-x-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    :title="t('expense.actions.downloadAttachment')"
+                    @click="handleAttachmentDownload(attachmentId)"
+                  >
+                    <Icon name="lucide:download" class="w-4 h-4" />
+                  </Button>
+                  <Button
+                    v-if="!disabled"
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    :title="t('expense.actions.removeAttachment')"
+                    @click="handleAttachmentRemove(attachmentId, value, handleChange)"
+                  >
+                    <Icon name="lucide:x" class="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
             </div>
+            
             <!-- Upload button -->
             <Button
               v-if="!disabled"
               type="button"
               variant="outline"
               size="sm"
+              :disabled="attachmentsUploading"
               @click="emit('openAttachmentUpload')"
             >
-              <Icon name="lucide:upload" class="w-4 h-4 mr-2" />
-              {{ t('expense.actions.uploadAttachment') }}
+              <Icon 
+                :name="attachmentsUploading ? 'lucide:loader-2' : 'lucide:upload'" 
+                class="w-4 h-4 mr-2"
+:class="[{ 'animate-spin': attachmentsUploading }]" 
+              />
+              {{ attachmentsUploading ? t('expense.actions.uploading') : t('expense.actions.uploadAttachment') }}
             </Button>
+            
+            <!-- Loading state -->
+            <div v-if="attachmentsLoading" class="text-xs text-muted-foreground">
+              {{ t('common.loading') }}...
+            </div>
           </div>
         </FormControl>
         <FormMessage />
@@ -213,6 +273,7 @@
 </template>
 
 <script setup lang="ts">
+import { computed, onMounted } from 'vue'
 import { 
   FormControl,
   FormField,
@@ -233,21 +294,24 @@ import { Button } from '~/components/ui/button'
 import { Badge } from '~/components/ui/badge'
 import { Icon } from '#components'
 
-export interface IExpenseFormFieldsProps {
-  disabled?: boolean
-  mode?: 'create' | 'edit'
-}
+// Composables
+import { useExpenseCategories } from '~/composables/useExpenseCategories'
+import { useExpenseTags } from '~/composables/useExpenseTags'
+import { useExpenseAttachments } from '~/composables/useExpenseAttachments'
+import { useExpenseForm } from '~/composables/useExpenseForm'
 
-interface IExpenseFormFieldsEmits {
-  (e: 'openTagSelector' | 'openAttachmentUpload'): void
-  (e: 'fieldChange', field: string, value: unknown): void
-}
+// Types
+import type { 
+  IExpenseFormFieldsProps, 
+  IExpenseFormFieldsEmits, 
+  IExpenseFieldChangeEvent 
+} from '~/types/expense'
 
 defineOptions({
   name: 'ExpenseFormFields'
 })
 
-withDefaults(defineProps<IExpenseFormFieldsProps>(), {
+const props = withDefaults(defineProps<IExpenseFormFieldsProps>(), {
   disabled: false,
   mode: 'create'
 })
@@ -257,40 +321,101 @@ const emit = defineEmits<IExpenseFormFieldsEmits>()
 // Composables
 const { t } = useI18n()
 
-// Handle numeric input for amount fields
-const handleAmountInput = (event: Event, field: string) => {
-  const target = event.target as HTMLInputElement
-  const value = parseFloat(target.value) || 0
-  emit('fieldChange', field, value)
+// Initialize all composables
+const categoryHelpers = useExpenseCategories()
+const tagHelpers = useExpenseTags()
+const attachmentHelpers = useExpenseAttachments()
+const formHelpers = useExpenseForm(props.initialData)
+
+// Computed properties for loading states
+const categoriesLoading = computed(() => categoryHelpers.isLoading.value)
+const tagsLoading = computed(() => tagHelpers.isLoading.value)
+const attachmentsLoading = computed(() => attachmentHelpers.isLoading.value)
+const attachmentsUploading = computed(() => attachmentHelpers.isUploading.value)
+
+// Computed properties for data
+const categoryOptions = computed(() => categoryHelpers.categoryOptions.value)
+
+// Form field change handler with type safety  
+const handleFieldChange = (field: keyof import('~/schemas/expense').ExpenseFormData, value: string | number | string[] | undefined): void => {
+  const changeEvent: IExpenseFieldChangeEvent = { field, value }
+  emit('fieldChange', changeEvent)
+  
+  // Emit validation state changes
+  emit('validationChange', formHelpers.canSubmit.value)
 }
 
-// Tag management
-const getTagName = (tagId: string): string => {
-  // TODO: Implement tag name lookup from store or API
-  return `Tag ${tagId}`
+// Specific handler for amount inputs with proper typing
+const handleAmountFieldChange = (field: 'incomeAmount' | 'expenseAmount', value: number): void => {
+  handleFieldChange(field, value)
 }
 
-const removeTag = (tagId: string, currentValue: string[], handleChange: (value: string[]) => void) => {
-  const newValue = currentValue.filter(id => id !== tagId)
-  handleChange(newValue)
-  emit('fieldChange', 'tagIds', newValue)
+// Field blur handler for validation
+const handleFieldBlur = (field: keyof import('~/schemas/expense').ExpenseFormData, value: unknown): void => {
+  formHelpers.markFieldAsTouched(field)
+  formHelpers.debouncedValidateField(field, value)
 }
 
-// Attachment management
-const getAttachmentName = (attachmentId: string): string => {
-  // TODO: Implement attachment name lookup from store or API
-  return `attachment_${attachmentId}.pdf`
+// Tag management handlers
+const handleTagRemove = (tagId: string, currentValue: string[], handleChange: (value: string[]) => void): void => {
+  const newValue = tagHelpers.removeTagFromList(tagId, currentValue || [], handleChange)
+  handleFieldChange('tagIds', newValue)
 }
 
-const removeAttachment = (attachmentId: string, currentValue: string[], handleChange: (value: string[]) => void) => {
-  const newValue = currentValue.filter(id => id !== attachmentId)
-  handleChange(newValue)
-  emit('fieldChange', 'attachmentIds', newValue)
+// Attachment management handlers
+const handleAttachmentRemove = (attachmentId: string, currentValue: string[], handleChange: (value: string[]) => void): void => {
+  const newValue = attachmentHelpers.removeAttachmentFromList(attachmentId, currentValue || [], handleChange)
+  handleFieldChange('attachmentIds', newValue)
 }
+
+const handleAttachmentDownload = (attachmentId: string): void => {
+  attachmentHelpers.downloadAttachment(attachmentId)
+}
+
+const getAttachmentIcon = (attachmentId: string): string => {
+  const attachment = attachmentHelpers.getAttachmentById(attachmentId)
+  return attachment ? attachmentHelpers.getFileIcon(attachment.mimeType) : 'lucide:paperclip'
+}
+
+const getAttachmentSize = (attachmentId: string): string => {
+  const attachment = attachmentHelpers.getAttachmentById(attachmentId)
+  return attachment ? attachmentHelpers.formatFileSize(attachment.fileSize) : ''
+}
+
+// Load data on component mount
+onMounted(async () => {
+  await Promise.all([
+    categoryHelpers.loadCategories(),
+    tagHelpers.loadTags(),
+    // Only load attachments if we have IDs
+    props.initialData?.attachmentIds?.length ? 
+      attachmentHelpers.loadAttachments(props.initialData.attachmentIds) : 
+      Promise.resolve()
+  ])
+})
 </script>
 
 <style scoped>
 .expense-form-fields {
   @apply w-full;
+}
+
+/* Improve visual feedback for amount fields */
+.amount-field {
+  @apply relative;
+}
+
+/* Better spacing for tag badges */
+.tag-badge {
+  @apply transition-all duration-200 ease-in-out;
+}
+
+.tag-badge:hover {
+  @apply scale-105;
+}
+
+/* Attachment item hover effects */
+.attachment-item {
+  @apply transition-colors duration-200;
 }
 </style>

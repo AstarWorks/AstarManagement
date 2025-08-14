@@ -66,8 +66,8 @@
 
     <!-- Balance Column -->
     <TableCell v-if="isColumnVisible('balance')" class="text-right font-mono">
-      <span :class="getBalanceClass(expense.balance)">
-        {{ formatCurrency(expense.balance) }}
+      <span :class="balanceClass">
+        {{ formatCurrency(balance) }}
       </span>
     </TableCell>
 
@@ -86,19 +86,19 @@
     <TableCell v-if="isColumnVisible('tags')">
       <div class="flex gap-1 flex-wrap">
         <Badge
-          v-for="tag in expense.tags.slice(0, 2)"
-          :key="tag.id"
+          v-for="tagId in expense.tagIds.slice(0, 2)"
+          :key="tagId"
           variant="secondary"
           class="text-xs"
         >
-          {{ tag.name }}
+          {{ tagId }}
         </Badge>
         <Badge
-          v-if="expense.tags.length > 2"
+          v-if="expense.tagIds.length > 2"
           variant="outline"
           class="text-xs"
         >
-          +{{ expense.tags.length - 2 }}
+          +{{ expense.tagIds.length - 2 }}
         </Badge>
       </div>
     </TableCell>
@@ -117,10 +117,10 @@
     <!-- Attachments Column -->
     <TableCell v-if="isColumnVisible('attachments')" class="text-center">
       <Icon 
-        v-if="expense.attachments && expense.attachments.length > 0"
+        v-if="expense.attachmentIds && expense.attachmentIds.length > 0"
         name="lucide:paperclip" 
         class="w-4 h-4 text-muted-foreground"
-        :title="`${expense.attachments.length}個の添付ファイル`"
+        :title="`${expense.attachmentIds.length}個の添付ファイル`"
       />
     </TableCell>
 
@@ -177,6 +177,7 @@ import { Button } from '~/components/ui/button'
 import { Checkbox } from '~/components/ui/checkbox'
 import { Badge } from '~/components/ui/badge'
 import { useExpenseFormatters } from '~/composables/useExpenseFormatters'
+import { useExpenseCalculations } from '~/composables/useExpenseCalculations'
 
 interface Props {
   /** Expense data for this row */
@@ -198,7 +199,11 @@ const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 // Use formatters composable for consistent styling
-const { formatCurrency, formatDate, getCategoryBadgeClass, getBalanceClass } = useExpenseFormatters()
+const { formatCurrency, formatDate, getCategoryBadgeClass, getBalanceClass: _getBalanceClass } = useExpenseFormatters()
+
+// Use calculations composable for balance computation
+const expenseRef = computed(() => props.expense)
+const { balance, balanceClass } = useExpenseCalculations(expenseRef)
 
 // Row styling based on selection state
 const rowClass = computed(() => {

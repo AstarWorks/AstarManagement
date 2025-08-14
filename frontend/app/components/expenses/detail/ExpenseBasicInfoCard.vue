@@ -43,7 +43,7 @@
         <div class="md:col-span-2">
           <Label class="text-muted-foreground">{{ t('expense.form.fields.balance') }}</Label>
           <p class="mt-1 text-lg font-bold" :class="balanceClass">
-            {{ formatCurrency(expense.balance) }}
+            {{ formatCurrency(balance) }}
           </p>
         </div>
       </div>
@@ -53,6 +53,7 @@
 
 <script setup lang="ts">
 import type { IExpense } from '~/types/expense'
+import { useExpenseCalculations } from '~/composables/useExpenseCalculations'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import { Label } from '~/components/ui/label'
 
@@ -63,10 +64,9 @@ interface Props {
 const props = defineProps<Props>()
 const { t } = useI18n()
 
-// Computed
-const balanceClass = computed(() => {
-  return props.expense.balance >= 0 ? 'text-green-600' : 'text-red-600'
-})
+// Use expense calculations composable
+const expenseRef = toRef(props, 'expense')
+const { balance, balanceClass } = useExpenseCalculations(expenseRef)
 
 // Formatters
 const formatDate = (date: string): string => {

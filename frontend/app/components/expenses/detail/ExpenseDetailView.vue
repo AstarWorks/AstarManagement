@@ -75,7 +75,7 @@
 </template>
 
 <script setup lang="ts">
-import type { IExpense, IAttachment } from '~/types/expense'
+import type { IExpenseWithRelations, IExpenseAttachment } from '~/types/expense'
 import { Card, CardContent } from '~/components/ui/card'
 import { Button } from '~/components/ui/button'
 import { Icon } from '#components'
@@ -91,7 +91,7 @@ import ExpenseAttachmentsCard from './ExpenseAttachmentsCard.vue'
 import ExpenseAuditInfoCard from './ExpenseAuditInfoCard.vue'
 
 interface Props {
-  expense?: IExpense | null
+  expense?: IExpenseWithRelations | null
   loading?: boolean
   error?: string | null
   deleting?: boolean
@@ -106,7 +106,7 @@ defineEmits<{
   copy: []
   back: []
   retry: []
-  preview: [attachment: IAttachment]
+  preview: [attachment: IExpenseAttachment]
 }>()
 
 const { t } = useI18n()

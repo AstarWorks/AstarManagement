@@ -5,9 +5,18 @@
  * for the Astar Management expense management system.
  */
 
-// Core expense domain types
+// Core expense domain types from main expense.ts
 export type {
   IExpense,
+  IExpenseWithRelations,
+  IExpenseCase,
+  IExpenseTag,
+  IExpenseAttachment,
+  IExpenseFilters
+} from '../expense'
+
+// Additional expense domain types from ./expense
+export type {
   IExpenseFilter,
   IExpenseList,
   IExpenseFormData,

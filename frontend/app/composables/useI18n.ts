@@ -9,7 +9,7 @@ import type { LocaleMessages } from '~/types/i18n'
  * 型安全なi18n翻訳関数
  * Type-safe i18n translation function
  */
-export function useTypedI18n() {
+export function useBasicTypedI18n() {
   const { t, locale, locales, setLocale } = useI18n<LocaleMessages>()
 
   return {
@@ -66,7 +66,7 @@ export function useDateFormat() {
  * 相対時間フォーマット用のコンポーザブル
  */
 export function useRelativeTime() {
-  const { t } = useTypedI18n()
+  const { t } = useBasicTypedI18n()
   
   const formatRelativeTime = (date: Date | string | number): string => {
     const now = new Date()
@@ -95,7 +95,7 @@ export function useRelativeTime() {
  * バリデーションメッセージ用のコンポーザブル
  */
 export function useValidationMessages() {
-  const { t } = useTypedI18n()
+  const { t } = useBasicTypedI18n()
   
   const getRequiredMessage = () => t('error.validation.required')
   
@@ -125,7 +125,7 @@ export function useValidationMessages() {
  * エラーメッセージ用のコンポーザブル
  */
 export function useErrorMessages() {
-  const { t } = useTypedI18n()
+  const { t } = useBasicTypedI18n()
   
   const getNetworkErrorMessage = (errorType: string) => {
     const errorMessages: Record<string, string> = {
@@ -158,7 +158,7 @@ export function useErrorMessages() {
  * ナビゲーション用のコンポーザブル
  */
 export function useNavigationMessages() {
-  const { t } = useTypedI18n()
+  const { t } = useBasicTypedI18n()
   
   const getNavigationLabel = (key: string) => {
     try {
@@ -186,7 +186,7 @@ export function useNavigationMessages() {
  * 通知メッセージ用のコンポーザブル
  */
 export function useNotificationMessages() {
-  const { t } = useTypedI18n()
+  const { t } = useBasicTypedI18n()
   
   const getNotificationTypeLabel = (type: string) => {
     try {

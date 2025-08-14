@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { mockExpenseDataService } from '~/services/mockExpenseDataService'
-import type { ICreateExpenseRequest, IUpdateExpenseRequest } from '~/types/expense'
+import type { ICreateExpenseRequest, IUpdateExpenseRequest, IExpense } from '~/types/expense'
+import type { IExpenseList } from '~/types/expense/expense'
 
 describe('MockExpenseDataService', () => {
   beforeEach(async () => {
@@ -19,15 +20,9 @@ describe('MockExpenseDataService', () => {
       expect(expense).toHaveProperty('description')
       expect(expense).toHaveProperty('incomeAmount')
       expect(expense).toHaveProperty('expenseAmount')
-      expect(expense).toHaveProperty('balance')
       expect(expense).toHaveProperty('createdAt')
       expect(expense).toHaveProperty('updatedAt')
       expect(expense).toHaveProperty('createdBy')
-      expect(expense).toHaveProperty('updatedBy')
-      expect(expense).toHaveProperty('version')
-      
-      // Verify balance calculation
-      expect(expense.balance).toBe(expense.incomeAmount - expense.expenseAmount)
     })
 
     it('should generate expense with custom overrides', () => {
@@ -65,7 +60,10 @@ describe('MockExpenseDataService', () => {
         date: '2025-08-04',
         category: '交通費',
         description: 'テスト交通費',
-        expenseAmount: 1000
+        incomeAmount: 0,
+        expenseAmount: 1000,
+        tagIds: [],
+        attachmentIds: []
       }
 
       const expense = mockExpenseDataService.createExpense(createRequest)
@@ -102,7 +100,6 @@ describe('MockExpenseDataService', () => {
       if (updated) {
         expect(updated.description).toBe(updateRequest.description)
         expect(updated.expenseAmount).toBe(updateRequest.expenseAmount)
-        expect(updated.version).toBe(expense.version + 1)
         expect(updated.updatedAt).not.toBe(expense.updatedAt)
       }
     })
@@ -134,7 +131,8 @@ describe('MockExpenseDataService', () => {
         category: '交通費'
       })
 
-      expect(result.items.every(expense => expense.category === '交通費')).toBe(true)
+      const expenseList = result as IExpenseList
+      expect(expenseList.items.every((expense: IExpense) => expense.category === '交通費')).toBe(true)
     })
 
     it('should filter expenses by date range', () => {
@@ -146,7 +144,8 @@ describe('MockExpenseDataService', () => {
         endDate
       })
 
-      expect(result.items.every(expense => 
+      const expenseList = result as IExpenseList
+      expect(expenseList.items.every((expense: IExpense) => 
         expense.date >= startDate && expense.date <= endDate
       )).toBe(true)
     })
@@ -157,14 +156,18 @@ describe('MockExpenseDataService', () => {
         date: '2025-08-04',
         category: '交通費',
         description: 'ユニークな検索テスト経費',
-        expenseAmount: 1000
+        incomeAmount: 0,
+        expenseAmount: 1000,
+        tagIds: [],
+        attachmentIds: []
       })
 
       const result = mockExpenseDataService.getExpenses({
-        searchQuery: 'ユニークな検索'
+        searchTerm: 'ユニークな検索'
       })
 
-      expect(result.items.some(expense => expense.id === testExpense.id)).toBe(true)
+      const expenseList = result as IExpenseList
+      expect(expenseList.items.some((expense: IExpense) => expense.id === testExpense.id)).toBe(true)
     })
 
     it('should handle pagination correctly', () => {
@@ -174,10 +177,11 @@ describe('MockExpenseDataService', () => {
         limit
       })
 
-      expect(result.items.length).toBeLessThanOrEqual(limit)
-      expect(result.limit).toBe(limit)
-      expect(result.offset).toBe(0)
-      expect(result.hasMore).toBe(result.total > limit)
+      const expenseList = result as IExpenseList
+      expect(expenseList.items.length).toBeLessThanOrEqual(limit)
+      expect(expenseList.limit).toBe(limit)
+      expect(expenseList.offset).toBe(0)
+      expect(expenseList.hasMore).toBe(result.total > limit)
     })
 
     it('should sort expenses correctly', () => {
@@ -186,9 +190,10 @@ describe('MockExpenseDataService', () => {
         sortOrder: 'ASC'
       })
 
-      for (let i = 1; i < result.items.length; i++) {
-        expect(new Date(result.items[i]!.date).getTime())
-          .toBeGreaterThanOrEqual(new Date(result.items[i-1]!.date).getTime())
+      const expenseList = result as IExpenseList
+      for (let i = 1; i < expenseList.items.length; i++) {
+        expect(new Date(expenseList.items[i]!.date).getTime())
+          .toBeGreaterThanOrEqual(new Date(expenseList.items[i-1]!.date).getTime())
       }
     })
   })
@@ -207,13 +212,13 @@ describe('MockExpenseDataService', () => {
       const stats = mockExpenseDataService.generateExpenseStats(period)
 
       expect(stats).toHaveProperty('period', period)
-      expect(stats).toHaveProperty('summary')
-      expect(stats.summary).toHaveProperty('totalIncome')
-      expect(stats.summary).toHaveProperty('totalExpense')
-      expect(stats.summary).toHaveProperty('netBalance')
-      expect(stats.summary).toHaveProperty('transactionCount')
-      expect(stats).toHaveProperty('categoryBreakdown')
-      expect(Array.isArray(stats.categoryBreakdown)).toBe(true)
+      expect(stats).toHaveProperty('totalIncome')
+      expect(stats).toHaveProperty('totalExpenses')
+      expect(stats).toHaveProperty('balance')
+      expect(stats).toHaveProperty('expensesByCategory')
+      expect(stats).toHaveProperty('expensesByMonth')
+      expect(stats).toHaveProperty('topExpenseCategories')
+      expect(Array.isArray(stats.topExpenseCategories)).toBe(true)
     })
   })
 

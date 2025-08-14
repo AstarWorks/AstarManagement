@@ -1,6 +1,6 @@
 import { http, HttpResponse } from 'msw'
-import type { ITag, ICreateTagRequest, IUpdateTagRequest } from '~/types/expense'
-import { TagScope } from '~/types/expense'
+import type { ITag, ICreateTagRequest, IUpdateTagRequest } from '~/types/expense/tag'
+import { TagScope } from '~/types/expense/tag'
 
 export const tagHandlers = [
   // Get tags

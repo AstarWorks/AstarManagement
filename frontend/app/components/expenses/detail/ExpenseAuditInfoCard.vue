@@ -26,19 +26,6 @@
           <span class="font-medium">{{ formatDateTime(expense.updatedAt) }}</span>
         </div>
         
-        <!-- Updated by -->
-        <div v-if="expense.updatedBy && expense.updatedAt !== expense.createdAt" class="flex items-center gap-2">
-          <Icon name="lucide:user-check" class="w-4 h-4 text-muted-foreground" />
-          <span class="text-muted-foreground">{{ t('common.updatedBy') }}:</span>
-          <span class="font-medium">{{ expense.updatedBy }}</span>
-        </div>
-
-        <!-- Version -->
-        <div v-if="expense.version" class="flex items-center gap-2">
-          <Icon name="lucide:git-branch" class="w-4 h-4 text-muted-foreground" />
-          <span class="text-muted-foreground">{{ t('common.version') }}:</span>
-          <span class="font-medium">v{{ expense.version }}</span>
-        </div>
       </div>
     </CardContent>
   </Card>

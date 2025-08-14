@@ -4,38 +4,38 @@
     <div class="step-progress mb-8">
       <div class="flex items-center justify-between">
         <div 
-          v-for="(step, index) in steps" 
+          v-for="(step, index) in steps.steps" 
           :key="step.id"
           class="flex items-center"
-          :class="{ 'flex-1': index < steps.length - 1 }"
+          :class="{ 'flex-1': index < steps.steps.length - 1 }"
         >
           <div 
             class="flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors"
-            :class="getStepClass(index)"
+            :class="steps.getStepClass(index)"
           >
             <Icon 
-              v-if="currentStep > index" 
+              v-if="steps.currentStep.value > index" 
               name="lucide:check" 
               class="w-5 h-5"
             />
             <span v-else>{{ index + 1 }}</span>
           </div>
           <div 
-            v-if="index < steps.length - 1" 
+            v-if="index < steps.steps.length - 1" 
             class="flex-1 h-0.5 mx-4 transition-colors"
-            :class="currentStep > index ? 'bg-primary' : 'bg-muted'"
+            :class="steps.currentStep.value > index ? 'bg-primary' : 'bg-muted'"
           />
         </div>
       </div>
       <div class="flex justify-between mt-2">
         <div 
-          v-for="(step, index) in steps" 
+          v-for="(step, index) in steps.steps" 
           :key="`label-${step.id}`"
           class="text-center flex-1"
         >
           <p 
             class="text-sm transition-colors"
-            :class="currentStep >= index ? 'text-foreground' : 'text-muted-foreground'"
+            :class="steps.currentStep.value >= index ? 'text-foreground' : 'text-muted-foreground'"
           >
             {{ t(step.label) }}
           </p>
@@ -47,17 +47,17 @@
     <Form v-slot="{ handleSubmit: formHandleSubmit }" :validation-schema="validationSchema">
       <form class="space-y-6" @submit="formHandleSubmit(onSubmit)">
         <!-- Step 1: Basic Information -->
-        <div v-if="currentStep === 0" class="step-content">
+        <div v-if="steps.currentStep.value === 0" class="step-content">
           <ExpenseBasicInfoStep />
         </div>
 
         <!-- Step 2: Amount Information -->
-        <div v-else-if="currentStep === 1" class="step-content">
+        <div v-else-if="steps.currentStep.value === 1" class="step-content">
           <ExpenseAmountStep />
         </div>
 
         <!-- Step 3: Additional Information -->
-        <div v-else-if="currentStep === 2" class="step-content">
+        <div v-else-if="steps.currentStep.value === 2" class="step-content">
           <ExpenseAdditionalInfoStep />
         </div>
 
@@ -66,8 +66,8 @@
           <Button 
             type="button"
             variant="outline"
-            :disabled="currentStep === 0 || isSubmitting"
-            @click="previousStep"
+            :disabled="steps.isFirstStep || isSubmitting"
+            @click="steps.previousStep"
           >
             {{ t('common.previous') }}
           </Button>
@@ -84,12 +84,12 @@
             </Button>
             
             <Button 
-              :type="currentStep === steps.length - 1 ? 'submit' : 'button'"
-              :disabled="!canProceed || isSubmitting"
-              @click="currentStep < steps.length - 1 && nextStep()"
+              :type="steps.isLastStep ? 'submit' : 'button'"
+              :disabled="!steps.stepValidation.value.canProceed || isSubmitting"
+              @click="!steps.isLastStep && steps.nextStep()"
             >
               <Icon v-if="isSubmitting" name="lucide:loader-2" class="w-4 h-4 mr-2 animate-spin" />
-              {{ currentStep === steps.length - 1 
+              {{ steps.isLastStep 
                 ? (isEdit ? t('expense.actions.update') : t('expense.actions.save')) 
                 : t('common.next') 
               }}
@@ -108,14 +108,58 @@
         </AlertDescription>
       </Alert>
     </div>
+
+    <!-- Draft Error Display -->
+    <div v-if="draft.draftError" class="mt-4">
+      <Alert variant="destructive">
+        <Icon name="lucide:alert-circle" class="h-4 w-4" />
+        <AlertDescription>
+          {{ t('expense.errors.draftSaveFailed') }}: {{ draft.draftError }}
+        </AlertDescription>
+      </Alert>
+    </div>
+
+    <!-- Comprehensive Error Display -->
+    <div v-if="errorHandling.hasError.value && errorHandling.currentError.value" class="mt-4">
+      <Alert :variant="errorHandling.currentError.value.type === 'validation' ? 'default' : 'destructive'">
+        <Icon 
+          :name="errorHandling.currentError.value.type === 'validation' ? 'lucide:alert-triangle' : 'lucide:alert-circle'" 
+          class="h-4 w-4" 
+        />
+        <AlertDescription class="flex flex-col gap-2">
+          <span>{{ errorHandling.currentError.value.message }}</span>
+          
+          <!-- Recovery Actions -->
+          <div v-if="errorHandling.getRecoveryActions().length > 0" class="flex gap-2">
+            <Button
+              v-for="action in errorHandling.getRecoveryActions()"
+              :key="action.label"
+              :variant="action.variant || 'secondary'"
+              size="sm"
+              :disabled="errorHandling.isRecovering"
+              @click="action.action"
+            >
+              <Icon
+v-if="errorHandling.isRecovering.value && action.variant === 'default'" 
+                name="lucide:loader-2" 
+                class="w-3 h-3 mr-1 animate-spin" 
+              />
+              {{ action.label }}
+            </Button>
+          </div>
+        </AlertDescription>
+      </Alert>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed, onMounted } from 'vue'
 import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
-import { createExpenseSchema, type ExpenseFormData } from '~/schemas/expense'
+import type { ExpenseFormData } from '~/schemas/expense'
 import type { IExpenseFormData } from '~/types/expense'
+import { useExpenseForm } from '~/composables/useExpenseForm'
 import { Form } from '~/components/ui/form'
 import { Button } from '~/components/ui/button'
 import { Alert, AlertDescription } from '~/components/ui/alert'
@@ -145,142 +189,72 @@ const emit = defineEmits<Emits>()
 // Composables
 const { t } = useI18n()
 
-// Form steps configuration
-const steps = [
-  { id: 'basic', label: 'expense.form.steps.basic' },
-  { id: 'amount', label: 'expense.form.steps.amount' },
-  { id: 'additional', label: 'expense.form.steps.additional' }
-]
-
-// Form state
-const currentStep = ref(0)
-const isSubmitting = ref(false)
-const hasUnsavedChanges = ref(false)
-
-// Validation schema
-const validationSchema = toTypedSchema(createExpenseSchema(t))
-
-// Form management
-const { meta, setFieldValue, values, resetForm: resetVeeValidateForm } = useForm({
-  validationSchema,
-  initialValues: {
-    date: new Date().toISOString().split('T')[0],
-    category: '',
-    description: '',
-    incomeAmount: 0,
-    expenseAmount: 0,
-    caseId: undefined,
-    memo: '',
-    tagIds: [],
-    attachmentIds: [],
-    ...props.initialData
+// Initialize the enhanced form composable
+const expenseForm = useExpenseForm(props.initialData, (event: string, ...args: unknown[]) => {
+  if (event === 'stepChange') {
+    emit('stepChange', args[0] as number)
+  } else if (event === 'submit') {
+    emit('submit', args[0] as ExpenseFormData)
+  } else if (event === 'cancel') {
+    emit('cancel')
   }
 })
 
-// Step validation and navigation
-const canProceed = computed(() => {
-  if (!meta.value.valid && currentStep.value === steps.length - 1) return false
-  
-  switch (currentStep.value) {
-    case 0:
-      return Boolean(values.date && values.category && values.description)
-    case 1:
-      return Boolean((values.incomeAmount as number) > 0 || (values.expenseAmount as number) > 0)
-    case 2:
-      return true
-    default:
-      return false
-  }
+// Extract commonly used properties for easier template access
+const { 
+  formValues: _formValues, 
+  validationSchema, 
+  isSubmitting: _isSubmitting,
+  steps,
+  draft,
+  errorHandling
+} = expenseForm
+
+// Form management with vee-validate integration
+const { meta: _meta, resetForm: resetVeeValidateForm } = useForm({
+  validationSchema: toTypedSchema(validationSchema.value)
 })
 
-const getStepClass = (index: number) => {
-  if (currentStep.value > index) {
-    return 'bg-primary border-primary text-primary-foreground'
-  } else if (currentStep.value === index) {
-    return 'bg-background border-primary text-primary'
-  } else {
-    return 'bg-background border-muted text-muted-foreground'
-  }
-}
+// Computed properties for template
+const isSubmitting = computed(() => _isSubmitting.value || props.isLoading)
+const hasUnsavedChanges = computed(() => expenseForm.isDirty.value || draft.hasDraft.value)
 
-const nextStep = () => {
-  if (currentStep.value < steps.length - 1) {
-    currentStep.value++
-    emit('stepChange', currentStep.value)
-  }
-}
-
-const previousStep = () => {
-  if (currentStep.value > 0) {
-    currentStep.value--
-    emit('stepChange', currentStep.value)
-  }
-}
-
-const resetForm = () => {
-  resetVeeValidateForm()
-  currentStep.value = 0
-  hasUnsavedChanges.value = false
-  emit('stepChange', currentStep.value)
-}
-
+// Form submission handler
 const onSubmit = async (data: Record<string, unknown>) => {
-  isSubmitting.value = true
   try {
+    await expenseForm.validateForm(data as Partial<ExpenseFormData>)
     emit('submit', data as ExpenseFormData)
-    hasUnsavedChanges.value = false
-  } finally {
-    isSubmitting.value = false
+    
+    // Clear draft on successful submission
+    if (!props.isEdit) {
+      await draft.clearDraft()
+    }
+  } catch (error) {
+    console.error('Form submission validation failed:', error)
   }
 }
 
-// Track unsaved changes
-watch(values, () => {
-  hasUnsavedChanges.value = true
-}, { deep: true })
+// Form reset handler
+const resetForm = () => {
+  expenseForm.resetForm()
+  resetVeeValidateForm()
+}
 
-// Auto-save to localStorage for draft functionality
-const STORAGE_KEY = 'expense-form-draft'
-
-watch(values, (newValues) => {
-  if (Object.keys(newValues).length > 0 && !props.isEdit) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(newValues))
-  }
-}, { deep: true })
-
-// Restore from localStorage on mount
-onMounted(() => {
+// Auto-restore draft on mount for new forms
+onMounted(async () => {
   if (!props.isEdit && !props.initialData) {
-    const draft = localStorage.getItem(STORAGE_KEY)
-    if (draft) {
-      try {
-        const parsedDraft = JSON.parse(draft)
-        Object.keys(parsedDraft).forEach(key => {
-          if (parsedDraft[key] !== undefined && parsedDraft[key] !== null) {
-            setFieldValue(key as keyof ExpenseFormData, parsedDraft[key])
-          }
-        })
-      } catch (error) {
-        console.warn('Failed to restore expense form draft:', error)
-      }
+    try {
+      await draft.restoreDraft(expenseForm.setFieldValue)
+    } catch (error) {
+      console.warn('Failed to restore draft:', error)
     }
   }
 })
 
-// Clear draft when form is submitted successfully
-const clearDraft = () => {
-  localStorage.removeItem(STORAGE_KEY)
-}
-
-// Expose methods to parent
+// Expose methods to parent component
 defineExpose({
   resetForm,
-  clearDraft,
-  goToStep: (step: number) => {
-    if (step >= 0 && step < steps.length) {
-      currentStep.value = step
-      emit('stepChange', step)
-    }
-  }
+  clearDraft: draft.clearDraft,
+  goToStep: steps.goToStep
 })
 </script>

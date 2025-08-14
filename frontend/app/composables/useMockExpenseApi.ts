@@ -2,7 +2,7 @@ import { mockExpenseDataService } from '~/services/mockExpenseDataService'
 import type { 
   IExpense, 
   IExpenseList, 
-  IExpenseFilter,
+  IExpenseFilters,
   ICreateExpenseRequest,
   IUpdateExpenseRequest,
   IExpenseSummary,
@@ -15,7 +15,7 @@ import type {
  */
 export const useMockExpenseApi = () => {
   // Standard API methods that work with both mock and real APIs
-  const fetchExpenses = async (filter: IExpenseFilter = {}): Promise<IExpenseList> => {
+  const fetchExpenses = async (filter: IExpenseFilters = {}): Promise<IExpenseList> => {
     console.log('[useMockExpenseApi] Fetching expenses with filter:', filter)
     
     const params = new URLSearchParams()

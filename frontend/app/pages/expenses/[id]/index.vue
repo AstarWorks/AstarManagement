@@ -24,7 +24,7 @@
 
 <script setup lang="ts">
 import type { IExpense, IAttachment } from '~/types/expense'
-import { TagScope, AttachmentStatus } from '~/types/expense'
+import { TagScope as _TagScope, AttachmentStatus as _AttachmentStatus } from '~/types/expense'
 import ExpenseDetailView from '~/components/expenses/detail/ExpenseDetailView.vue'
 import ExpenseDeleteDialog from '~/components/expense/ExpenseDeleteDialog.vue'
 import { useExpenseActions } from '~/composables/useExpenseActions'
@@ -72,51 +72,14 @@ const loadExpense = async () => {
       description: '新幹線代 東京-大阪',
       incomeAmount: 0,
       expenseAmount: 15000,
-      balance: -15000,
       caseId: 'case-123',
       memo: '出張のための交通費',
-      tags: [
-        { 
-          id: 'tag-1', 
-          tenantId: 'tenant-123',
-          name: '交通費',
-          color: '#10B981',
-          scope: TagScope.TENANT,
-          usageCount: 42,
-          createdAt: '2025-01-01T00:00:00Z',
-          createdBy: 'user-123'
-        },
-        { 
-          id: 'tag-2', 
-          tenantId: 'tenant-123',
-          name: '出張',
-          color: '#3B82F6',
-          scope: TagScope.TENANT,
-          usageCount: 28,
-          createdAt: '2025-01-01T00:00:00Z',
-          createdBy: 'user-123'
-        }
-      ],
-      attachments: [
-        { 
-          id: 'att-1',
-          tenantId: 'tenant-123',
-          fileName: '領収書.pdf',
-          originalName: '領収書.pdf',
-          fileSize: 1024 * 250,
-          mimeType: 'application/pdf',
-          storagePath: '/attachments/receipt.pdf',
-          status: AttachmentStatus.LINKED,
-          uploadedAt: '2025-08-04T10:00:00Z',
-          uploadedBy: 'user-123'
-        }
-      ],
+      tagIds: ['tag-1', 'tag-2'],
+      attachmentIds: ['att-1'],
       createdAt: '2025-08-04T10:00:00Z',
       updatedAt: '2025-08-04T10:00:00Z',
       createdBy: 'user-123',
-      updatedBy: 'user-123',
-      tenantId: 'tenant-123',
-      version: 1
+      tenantId: 'tenant-123'
     }
   } catch (err) {
     error.value = t('expense.errors.loadFailed')

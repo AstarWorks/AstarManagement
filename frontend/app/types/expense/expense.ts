@@ -1,46 +1,8 @@
-import type { ITag } from './tag'
-import type { IAttachment } from './attachment'
+import type { ITag as _ITag } from './tag'
+import type { IAttachment as _IAttachment } from './attachment'
+import type { IExpense } from '~/types/expense'
 
-/**
- * Core expense entity representing a financial transaction
- * Maps to backend Expense entity from M002 API specifications
- */
-export interface IExpense {
-  /** Unique identifier for the expense */
-  id: string
-  /** Tenant ID for multi-tenancy isolation */
-  tenantId: string
-  /** Date of the expense transaction */
-  date: string
-  /** Category of the expense (e.g., Transportation, Office Supplies) */
-  category: string
-  /** Human-readable description of the expense */
-  description: string
-  /** Income amount in the transaction (positive value) */
-  incomeAmount: number
-  /** Expense amount in the transaction (positive value) */
-  expenseAmount: number
-  /** Running balance after this transaction */
-  balance: number
-  /** Optional case ID this expense is associated with */
-  caseId?: string
-  /** Optional memo or additional notes */
-  memo?: string
-  /** Tags associated with this expense */
-  tags: ITag[]
-  /** File attachments associated with this expense */
-  attachments: IAttachment[]
-  /** Timestamp when the expense was created */
-  createdAt: string
-  /** Timestamp when the expense was last updated */
-  updatedAt: string
-  /** User ID who created the expense */
-  createdBy: string
-  /** User ID who last updated the expense */
-  updatedBy: string
-  /** Version for optimistic locking */
-  version: number
-}
+// IExpense is defined in ~/types/expense.ts to avoid conflicts
 
 /**
  * Filter criteria for expense queries

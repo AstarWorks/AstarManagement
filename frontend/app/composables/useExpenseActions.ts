@@ -27,7 +27,7 @@ export const useExpenseActions = () => {
       `${t('expense.form.fields.description')}: ${expense.description}`,
       `${t('expense.form.fields.incomeAmount')}: ${formatCurrency(expense.incomeAmount)}`,
       `${t('expense.form.fields.expenseAmount')}: ${formatCurrency(expense.expenseAmount)}`,
-      `${t('expense.form.fields.balance')}: ${formatCurrency(expense.balance)}`
+      `${t('expense.form.fields.balance')}: ${formatCurrency(expense.incomeAmount - expense.expenseAmount)}`
     ]
     
     if (expense.caseId) {
@@ -38,9 +38,8 @@ export const useExpenseActions = () => {
       lines.push(`${t('expense.form.fields.memo')}: ${expense.memo}`)
     }
     
-    if (expense.tags && expense.tags.length > 0) {
-      const tagNames = expense.tags.map(tag => tag.name).join(', ')
-      lines.push(`${t('expense.form.fields.tags')}: ${tagNames}`)
+    if (expense.tagIds && expense.tagIds.length > 0) {
+      lines.push(`${t('expense.form.fields.tags')}: ${expense.tagIds.join(', ')}`)
     }
     
     return lines.join('\n')

@@ -2,6 +2,16 @@
  * Expense formatters composable
  * Provides currency and date formatting utilities following Simple over Easy principle
  */
+
+// Category mapping for consistent key usage
+const CATEGORY_KEY_MAP: Record<string, string> = {
+  '交通費': 'transportation',
+  '印紙代': 'stampFees',
+  'コピー代': 'copyFees',
+  '郵送料': 'postage',
+  'その他': 'other'
+}
+
 export function useExpenseFormatters() {
   /**
    * Format currency amount in Japanese Yen
@@ -49,13 +59,15 @@ export function useExpenseFormatters() {
    */
   const getCategoryIndicatorClass = (category: string): string => {
     const categoryClasses: Record<string, string> = {
-      '交通費': 'bg-blue-500 border-blue-500',
-      '印紙代': 'bg-red-500 border-red-500',
-      'コピー代': 'bg-green-500 border-green-500',
-      '郵送料': 'bg-yellow-500 border-yellow-500',
-      'その他': 'bg-purple-500 border-purple-500'
+      'transportation': 'bg-blue-500 border-blue-500',
+      'stampFees': 'bg-red-500 border-red-500',
+      'copyFees': 'bg-green-500 border-green-500',
+      'postage': 'bg-yellow-500 border-yellow-500',
+      'other': 'bg-purple-500 border-purple-500'
     }
-    return categoryClasses[category] || 'bg-gray-500 border-gray-500'
+    
+    const categoryKey = CATEGORY_KEY_MAP[category] || 'other'
+    return categoryClasses[categoryKey] || 'bg-gray-500 border-gray-500'
   }
 
   /**
@@ -70,13 +82,15 @@ export function useExpenseFormatters() {
    */
   const getCategoryBadgeClass = (category: string): string => {
     const categoryClasses: Record<string, string> = {
-      '交通費': 'bg-blue-100 text-blue-800 border-blue-200',
-      '印紙代': 'bg-red-100 text-red-800 border-red-200',
-      'コピー代': 'bg-green-100 text-green-800 border-green-200',
-      '郵送料': 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      'その他': 'bg-purple-100 text-purple-800 border-purple-200'
+      'transportation': 'bg-blue-100 text-blue-800 border-blue-200',
+      'stampFees': 'bg-red-100 text-red-800 border-red-200',
+      'copyFees': 'bg-green-100 text-green-800 border-green-200',
+      'postage': 'bg-yellow-100 text-yellow-800 border-yellow-200',
+      'other': 'bg-purple-100 text-purple-800 border-purple-200'
     }
-    return categoryClasses[category] || 'bg-gray-100 text-gray-800 border-gray-200'
+    
+    const categoryKey = CATEGORY_KEY_MAP[category] || 'other'
+    return categoryClasses[categoryKey] || 'bg-gray-100 text-gray-800 border-gray-200'
   }
 
   return {

@@ -160,15 +160,15 @@ describe('Expense Filtering Integration Tests', () => {
       )).toBe(true)
 
       // Test balance type filter
-      const positiveBalanceFilter: IExpenseFilters = { balanceType: 'positive' }
+      const positiveBalanceFilter: IExpenseFilters = { amountMin: 0 }
       const positiveFiltered = filterExpensesLocally(testExpenses, positiveBalanceFilter)
       expect(positiveFiltered.every(expense => (expense.incomeAmount - expense.expenseAmount) > 0)).toBe(true)
 
-      const negativeBalanceFilter: IExpenseFilters = { balanceType: 'negative' }
+      const negativeBalanceFilter: IExpenseFilters = { amountMax: 0 }
       const negativeFiltered = filterExpensesLocally(testExpenses, negativeBalanceFilter)
       expect(negativeFiltered.every(expense => (expense.incomeAmount - expense.expenseAmount) < 0)).toBe(true)
 
-      const zeroBalanceFilter: IExpenseFilters = { balanceType: 'zero' }
+      const zeroBalanceFilter: IExpenseFilters = { amountMin: 0, amountMax: 0 }
       const zeroFiltered = filterExpensesLocally(testExpenses, zeroBalanceFilter)
       expect(zeroFiltered.every(expense => (expense.incomeAmount - expense.expenseAmount) === 0)).toBe(true)
     })
@@ -426,8 +426,7 @@ describe('Expense Filtering Integration Tests', () => {
         dateTo: '2024-12-31',
         category: '交通費',
         amountMin: 500,
-        amountMax: 2000,
-        balanceType: 'negative'
+        amountMax: 2000
       }
 
       const filtered = filterExpensesLocally(testExpenses, complexFilter)

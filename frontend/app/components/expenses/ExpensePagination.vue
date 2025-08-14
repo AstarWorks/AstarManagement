@@ -5,18 +5,30 @@
     :page-size="pageSize"
     :page-size-options="pageSizeOptions"
     :show-summary-bar="showSummaryBar"
-    @update:page="handlePageChange"
-    @update:page-size="handlePageSizeChange"
+    @update:page="$emit('update:page', $event)"
+    @update:page-size="$emit('update:pageSize', $event)"
   />
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue'
+/**
+ * ExpensePagination - 経費一覧のページネーションコンポーネント
+ * ExpensePaginationContainerへのシンプルなラッパーとして機能
+ * 
+ * @component
+ * @example
+ * <ExpensePagination
+ *   :current-page="1"
+ *   :total-items="100"
+ *   :page-size="20"
+ *   @update:page="handlePageChange"
+ *   @update:pageSize="handlePageSizeChange"
+ * />
+ */
 import ExpensePaginationContainer from './pagination/ExpensePaginationContainer.vue'
 
 interface Props {
   currentPage: number
-  totalPages: number
   totalItems: number
   pageSize: number
   pageSizeOptions?: number[]
@@ -28,48 +40,8 @@ withDefaults(defineProps<Props>(), {
   showSummaryBar: false
 })
 
-const emit = defineEmits<{
-  'pageChange': [number]
-  'pageSizeChange': [number]
+defineEmits<{
+  'update:page': [page: number]
+  'update:pageSize': [pageSize: number]
 }>()
-
-// Navigation handlers
-const handlePageChange = (page: number) => {
-  emit('pageChange', page)
-}
-
-const handlePageSizeChange = (pageSize: number) => {
-  emit('pageSizeChange', pageSize)
-}
-
-// Keyboard navigation support
-const handleKeydown = (event: KeyboardEvent) => {
-  if (event.target === document.body) {
-    switch (event.key) {
-      case 'ArrowLeft':
-        if (event.ctrlKey || event.metaKey) {
-          event.preventDefault()
-          // Previous page logic is handled internally by the container
-        }
-        break
-      case 'ArrowRight':
-        if (event.ctrlKey || event.metaKey) {
-          event.preventDefault()
-          // Next page logic is handled internally by the container
-        }
-        break
-      default:
-        break
-    }
-  }
-}
-
-// Lifecycle
-onMounted(() => {
-  document.addEventListener('keydown', handleKeydown)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('keydown', handleKeydown)
-})
 </script>

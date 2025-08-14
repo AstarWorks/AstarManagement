@@ -250,8 +250,8 @@ const handleFilterChange = useDebounceFn((newFilters: IExpenseFilters) => {
   
   if (newFilters.dateFrom) query.startDate = newFilters.dateFrom
   if (newFilters.dateTo) query.endDate = newFilters.dateTo
-  if (newFilters.categories?.length) query.category = newFilters.categories[0] // Take first for simplicity
-  if (newFilters.caseIds?.length) query.caseId = newFilters.caseIds[0] // Take first for simplicity
+  if (newFilters.categories?.length && newFilters.categories[0]) query.category = newFilters.categories[0] // Take first for simplicity
+  if (newFilters.caseIds?.length && newFilters.caseIds[0]) query.caseId = newFilters.caseIds[0] // Take first for simplicity
   if (newFilters.searchTerm) query.q = newFilters.searchTerm
   if (newFilters.tagIds?.length) query.tagIds = newFilters.tagIds.join(',')
   if (newFilters.amountMin !== undefined) query.amountMin = String(newFilters.amountMin)
@@ -313,12 +313,9 @@ const loadSummary = async () => {
       totalIncome: 0,
       totalExpenses: 0,
       balance: 0,
-      count: 0,
-      categories: [],
-      period: {
-        startDate: filters.value.dateFrom || '',
-        endDate: filters.value.dateTo || ''
-      }
+      expensesByCategory: {},
+      expensesByMonth: {},
+      topExpenseCategories: []
     }
   } catch (error) {
     console.error('Failed to load summary:', error)

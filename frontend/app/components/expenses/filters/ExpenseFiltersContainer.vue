@@ -66,16 +66,10 @@
             :min-amount="filters.amountMin"
             :max-amount="filters.amountMax"
             :case-id="filters.caseIds?.[0]"
-            :balance-type="filters.balanceType || 'all'"
-            :has-memo="filters.hasMemo"
-            :has-attachments="filters.hasAttachments"
             :available-cases="availableCases"
             @update:min-amount="updateFilter('amountMin', $event)"
             @update:max-amount="updateFilter('amountMax', $event)"
             @update:case-id="updateFilter('caseIds', $event ? [$event] : undefined)"
-            @update:balance-type="updateFilter('balanceType', $event)"
-            @update:has-memo="updateFilter('hasMemo', $event)"
-            @update:has-attachments="updateFilter('hasAttachments', $event)"
           />
         </CollapsibleContent>
       </Collapsible>
@@ -180,8 +174,10 @@ const [showAdvanced, toggleAdvanced] = useToggle(false)
 const debouncedEmit = useDebounceFn(() => {
   const mutableFilters: IExpenseFilters = {
     ...filters.value,
-    // Ensure tagIds is mutable array
-    tagIds: filters.value.tagIds ? [...filters.value.tagIds] : undefined
+    // Ensure arrays are mutable
+    tagIds: filters.value.tagIds ? [...filters.value.tagIds] : undefined,
+    categories: filters.value.categories ? [...filters.value.categories] : undefined,
+    caseIds: filters.value.caseIds ? [...filters.value.caseIds] : undefined
   }
   
   emit('update:modelValue', mutableFilters)
