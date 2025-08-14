@@ -50,7 +50,7 @@ class Tag(
     val expenses: MutableSet<Expense> = mutableSetOf(),
     
     @Embedded
-    val auditInfo: AuditInfo = AuditInfo()
+    var auditInfo: AuditInfo = AuditInfo()
 ) {
     init {
         require(name.isNotBlank()) { "Tag name cannot be blank" }
@@ -102,6 +102,14 @@ class Tag(
      * @param userId The ID of the user performing the deletion
      */
     fun markDeleted(userId: UUID) = auditInfo.markDeleted(userId)
+    
+    /**
+     * Marks this tag as updated for audit trail.
+     * @param userId The ID of the user performing the update
+     */
+    fun markUpdated(userId: UUID) {
+        auditInfo.markUpdated(userId)
+    }
     
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

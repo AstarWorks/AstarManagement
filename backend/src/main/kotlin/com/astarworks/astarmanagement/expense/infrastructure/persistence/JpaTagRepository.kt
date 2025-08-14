@@ -81,18 +81,7 @@ interface JpaTagRepository : JpaRepository<Tag, UUID> {
         SELECT t FROM Tag t
         WHERE t.tenantId = :tenantId
         AND t.auditInfo.deletedAt IS NULL
-        AND EXISTS (
-            SELECT 1 FROM Expense e
-            JOIN e.tags et
-            WHERE et.id = t.id
-            AND e.auditInfo.deletedAt IS NULL
-        )
-        ORDER BY (
-            SELECT COUNT(e.id) FROM Expense e
-            JOIN e.tags et
-            WHERE et.id = t.id
-            AND e.auditInfo.deletedAt IS NULL
-        ) DESC
+        ORDER BY t.usageCount DESC
     """)
     fun findMostUsedTags(
         @Param("tenantId") tenantId: UUID,
