@@ -45,7 +45,7 @@ const { t } = useI18n()
         :checked="column.getIsVisible()"
         @update:checked="(value: boolean) => column.toggleVisibility(value)"
       >
-        {{ (column.columnDef.meta as any)?.label || column.id }}
+        {{ (column.columnDef.meta as { label?: string })?.label || column.id }}
       </DropdownMenuCheckboxItem>
     </DropdownMenuContent>
   </DropdownMenu>
