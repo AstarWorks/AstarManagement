@@ -69,7 +69,7 @@
         />
       </div>
       
-      <!-- Expense Data Table -->
+      <!-- Expense Data Table with integrated pagination -->
       <div v-else>
         <ExpenseDataTable
           ref="expenseTableRef"
@@ -83,34 +83,84 @@
           @view="(expense) => router.push(`/expenses/${expense.id}`)"
           @delete="handleDelete"
         />
+        
+        <!-- Manual Pagination Controls -->
+        <div v-if="totalItems > 0" class="mt-4 border-t pt-4">
+          <div class="flex items-center justify-between px-2">
+            <div class="flex-1 text-sm text-muted-foreground">
+              {{ getPaginationInfo(totalItems).startItem }}-{{ getPaginationInfo(totalItems).endItem }} of {{ totalItems }} items
+            </div>
+            <div class="flex items-center space-x-6 lg:space-x-8">
+              <div class="flex items-center space-x-2">
+                <p class="text-sm font-medium">Rows per page</p>
+                <select
+                  :value="currentPageSize"
+                  class="h-8 w-[70px] rounded border border-input bg-background px-3 py-1 text-sm"
+                  @change="onPaginationChange({ ...pagination, pageSize: Number(($event.target as HTMLSelectElement)?.value), pageIndex: 0 })"
+                >
+                  <option v-for="size in [10, 20, 30, 50, 100]" :key="size" :value="size">
+                    {{ size }}
+                  </option>
+                </select>
+              </div>
+              <div class="flex w-[100px] items-center justify-center text-sm font-medium">
+                Page {{ currentPage }} of {{ totalPages }}
+              </div>
+              <div class="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  class="h-8 w-8 p-0"
+                  :disabled="!getPaginationInfo(totalItems).hasPreviousPage"
+                  @click="onPaginationChange({ ...pagination, pageIndex: 0 })"
+                >
+                  <Icon name="lucide:chevrons-left" class="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  class="h-8 w-8 p-0"
+                  :disabled="!getPaginationInfo(totalItems).hasPreviousPage"
+                  @click="onPaginationChange({ ...pagination, pageIndex: pagination.pageIndex - 1 })"
+                >
+                  <Icon name="lucide:chevron-left" class="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  class="h-8 w-8 p-0"
+                  :disabled="!getPaginationInfo(totalItems).hasNextPage"
+                  @click="onPaginationChange({ ...pagination, pageIndex: pagination.pageIndex + 1 })"
+                >
+                  <Icon name="lucide:chevron-right" class="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  class="h-8 w-8 p-0"
+                  :disabled="!getPaginationInfo(totalItems).hasNextPage"
+                  @click="onPaginationChange({ ...pagination, pageIndex: totalPages - 1 })"
+                >
+                  <Icon name="lucide:chevrons-right" class="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-
-    <!-- Pagination -->
-    <div v-if="totalPages > 1" class="pagination-section">
-      <ExpensePagination
-        :current-page="currentPage"
-        :total-items="totalItems"
-        :page-size="pageSize"
-        @update:page="currentPage = $event"
-        @update:page-size="pageSize = $event"
-      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { IExpense, IExpenseFilter, IExpenseSummary, IExpenseFilters } from '~/types/expense'
+import type { IExpense, IExpenseSummary, IExpenseFilters } from '~/types/expense'
 import { Card, CardContent } from '~/components/ui/card'
 import { Button } from '~/components/ui/button'
 import { Icon } from '#components'
 import ExpenseFilters from '~/components/expenses/ExpenseFilters.vue'
 import ExpenseDataTable from '~/components/expenses/ExpenseDataTable.vue'
-import ExpensePagination from '~/components/expenses/ExpensePagination.vue'
 import ExpenseEmptyState from '~/components/expenses/states/ExpenseEmptyState.vue'
 import FilterStatistics from '~/components/expenses/filters/FilterStatistics.vue'
+
 import { mockExpenseDataService } from '~/services/mockExpenseDataService'
 import { useDebounceFn } from '@vueuse/core'
+import { useTablePagination } from '~/composables/useTablePagination'
 
 // Meta and SEO
 definePageMeta({
@@ -123,15 +173,29 @@ const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 
+// Pagination state management
+const {
+  pagination,
+  currentPage,
+  currentPageSize,
+  onPaginationChange,
+  getPaginationInfo
+} = useTablePagination({
+  pageSize: 20,
+  syncWithUrl: true,
+  manualPagination: true
+})
+
 // Reactive state
 const filters = ref<IExpenseFilters>({})
 const expenses = ref<IExpense[]>([])
 const selectedExpenses = ref<Set<string>>(new Set())
 const expenseSummary = ref<IExpenseSummary>()
-const currentPage = ref(1)
-const pageSize = ref(20)
 const totalItems = ref(0)
-const totalPages = computed(() => Math.ceil(totalItems.value / pageSize.value))
+const totalPages = computed(() => Math.ceil(totalItems.value / currentPageSize.value))
+
+// Handle pagination changes from TanStackTable
+const _handlePaginationChange = onPaginationChange
 
 // Loading states
 const listLoading = ref(false)
@@ -157,7 +221,7 @@ const filterStats = computed(() => {
     totalMatched: filteredExpenses.length,
     totalIncome: filteredExpenses.reduce((sum: number, e: IExpense) => sum + e.incomeAmount, 0),
     totalExpense: filteredExpenses.reduce((sum: number, e: IExpense) => sum + e.expenseAmount, 0),
-    netBalance: filteredExpenses.reduce((sum: number, e: IExpense) => sum + e.balance, 0)
+    netBalance: filteredExpenses.reduce((sum: number, e: IExpense) => sum + (e.incomeAmount - e.expenseAmount), 0)
   }
 })
 
@@ -177,12 +241,10 @@ watchEffect(() => {
     amountMin: route.query.amountMin ? Number(route.query.amountMin) : undefined,
     amountMax: route.query.amountMax ? Number(route.query.amountMax) : undefined,
   }
-  currentPage.value = parseInt(route.query.page as string) || 1
-  pageSize.value = parseInt(route.query.pageSize as string) || 20
 })
 
 // Event handlers - Debounced for better performance
-const handleFilterChange = useDebounceFn((newFilters: IExpenseFilter) => {
+const handleFilterChange = useDebounceFn((newFilters: IExpenseFilters) => {
   // Convert filter values to strings for URL query parameters
   const query: Record<string, string> = { page: '1' }
   
@@ -194,6 +256,7 @@ const handleFilterChange = useDebounceFn((newFilters: IExpenseFilter) => {
   if (newFilters.tagIds?.length) query.tagIds = newFilters.tagIds.join(',')
   if (newFilters.amountMin !== undefined) query.amountMin = String(newFilters.amountMin)
   if (newFilters.amountMax !== undefined) query.amountMax = String(newFilters.amountMax)
+  query.pageSize = String(currentPageSize.value) // Preserve page size
   
   router.push({ query })
 }, 300)
@@ -224,8 +287,8 @@ const loadExpenses = async () => {
     // Get data from mock service
     const result = mockExpenseDataService.getExpenses({
       ...filters.value,
-      offset: (currentPage.value - 1) * pageSize.value,
-      limit: pageSize.value
+      offset: pagination.value.pageIndex * pagination.value.pageSize,
+      limit: pagination.value.pageSize
     })
     
     expenses.value = result.items
@@ -248,13 +311,13 @@ const loadSummary = async () => {
     // For now, just set some mock data
     expenseSummary.value = {
       totalIncome: 0,
-      totalExpense: 0,
+      totalExpenses: 0,
       balance: 0,
       count: 0,
       categories: [],
       period: {
-        startDate: filters.value.startDate || '',
-        endDate: filters.value.endDate || ''
+        startDate: filters.value.dateFrom || '',
+        endDate: filters.value.dateTo || ''
       }
     }
   } catch (error) {

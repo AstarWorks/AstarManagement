@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useExpenseFilters } from '~/composables/useExpenseFilters'
 import { mockExpenseDataService } from '~/services/mockExpenseDataService'
-import type { IExpense, IExpenseFilter } from '~/types/expense'
+import type { IExpense, IExpenseFilters } from '~/types/expense'
 
 // Mock the router composables
 const mockRouter = {
@@ -67,12 +67,12 @@ describe('Expense Filtering Integration Tests', () => {
 
       applyDatePreset('thisMonth')
 
-      expect(filters.value.startDate).toBeDefined()
-      expect(filters.value.endDate).toBeDefined()
+      expect(filters.value.dateFrom).toBeDefined()
+      expect(filters.value.dateTo).toBeDefined()
       expect(onFiltersChange).toHaveBeenCalledWith(
         expect.objectContaining({
-          startDate: expect.any(String),
-          endDate: expect.any(String)
+          dateFrom: expect.any(String),
+          dateTo: expect.any(String)
         })
       )
     })
@@ -81,33 +81,33 @@ describe('Expense Filtering Integration Tests', () => {
       const { validateFilters } = useExpenseFilters()
 
       // Test valid filters
-      const validFilters: IExpenseFilter = {
-        startDate: '2024-01-01',
-        endDate: '2024-12-31',
-        minAmount: 100,
-        maxAmount: 1000
+      const validFilters: IExpenseFilters= {
+        dateFrom: '2024-01-01',
+        dateTo: '2024-12-31',
+        amountMin: 100,
+        amountMax: 1000
       }
       expect(validateFilters(validFilters)).toEqual([])
 
       // Test invalid date range
-      const invalidDateFilters: IExpenseFilter = {
-        startDate: '2024-12-31',
-        endDate: '2024-01-01'
+      const invalidDateFilters: IExpenseFilters= {
+        dateFrom: '2024-12-31',
+        dateTo: '2024-01-01'
       }
       const dateErrors = validateFilters(invalidDateFilters)
       expect(dateErrors).toContain('開始日は終了日より前である必要があります')
 
       // Test invalid amount range
-      const invalidAmountFilters: IExpenseFilter = {
-        minAmount: 1000,
-        maxAmount: 100
+      const invalidAmountFilters: IExpenseFilters= {
+        amountMin: 1000,
+        amountMax: 100
       }
       const amountErrors = validateFilters(invalidAmountFilters)
       expect(amountErrors).toContain('最小金額は最大金額より少ない必要があります')
 
       // Test negative amounts
-      const negativeAmountFilters: IExpenseFilter = {
-        minAmount: -100
+      const negativeAmountFilters: IExpenseFilters= {
+        amountMin: -100
       }
       const negativeErrors = validateFilters(negativeAmountFilters)
       expect(negativeErrors).toContain('最小金額は0以上である必要があります')
@@ -130,14 +130,14 @@ describe('Expense Filtering Integration Tests', () => {
       const { filterExpensesLocally } = useExpenseFilters()
 
       // Test category filter
-      const categoryFilter: IExpenseFilter = { category: '交通費' }
+      const categoryFilter: IExpenseFilters= { category: '交通費' }
       const categoryFiltered = filterExpensesLocally(testExpenses, categoryFilter)
       expect(categoryFiltered.every(expense => expense.category === '交通費')).toBe(true)
 
       // Test date range filter
-      const dateFilter: IExpenseFilter = {
-        startDate: '2024-06-01',
-        endDate: '2024-06-30'
+      const dateFilter: IExpenseFilters= {
+        dateFrom: '2024-06-01',
+        dateTo: '2024-06-30'
       }
       const dateFiltered = filterExpensesLocally(testExpenses, dateFilter)
       expect(dateFiltered.every(expense => 
@@ -145,7 +145,7 @@ describe('Expense Filtering Integration Tests', () => {
       )).toBe(true)
 
       // Test search filter
-      const searchFilter: IExpenseFilter = { searchQuery: '移動' }
+      const searchFilter: IExpenseFilters= { searchQuery: '移動' }
       const searchFiltered = filterExpensesLocally(testExpenses, searchFilter)
       expect(searchFiltered.every(expense => 
         expense.description.includes('移動') || 
@@ -153,32 +153,32 @@ describe('Expense Filtering Integration Tests', () => {
       )).toBe(true)
 
       // Test amount range filter
-      const amountFilter: IExpenseFilter = { minAmount: 1000, maxAmount: 2000 }
+      const amountFilter: IExpenseFilters= { amountMin: 1000, amountMax: 2000 }
       const amountFiltered = filterExpensesLocally(testExpenses, amountFilter)
       expect(amountFiltered.every(expense => 
         expense.expenseAmount >= 1000 && expense.expenseAmount <= 2000
       )).toBe(true)
 
       // Test balance type filter
-      const positiveBalanceFilter: IExpenseFilter = { balanceType: 'positive' }
+      const positiveBalanceFilter: IExpenseFilters = { balanceType: 'positive' }
       const positiveFiltered = filterExpensesLocally(testExpenses, positiveBalanceFilter)
-      expect(positiveFiltered.every(expense => expense.balance > 0)).toBe(true)
+      expect(positiveFiltered.every(expense => (expense.incomeAmount - expense.expenseAmount) > 0)).toBe(true)
 
-      const negativeBalanceFilter: IExpenseFilter = { balanceType: 'negative' }
+      const negativeBalanceFilter: IExpenseFilters = { balanceType: 'negative' }
       const negativeFiltered = filterExpensesLocally(testExpenses, negativeBalanceFilter)
-      expect(negativeFiltered.every(expense => expense.balance < 0)).toBe(true)
+      expect(negativeFiltered.every(expense => (expense.incomeAmount - expense.expenseAmount) < 0)).toBe(true)
 
-      const zeroBalanceFilter: IExpenseFilter = { balanceType: 'zero' }
+      const zeroBalanceFilter: IExpenseFilters = { balanceType: 'zero' }
       const zeroFiltered = filterExpensesLocally(testExpenses, zeroBalanceFilter)
-      expect(zeroFiltered.every(expense => expense.balance === 0)).toBe(true)
+      expect(zeroFiltered.every(expense => (expense.incomeAmount - expense.expenseAmount) === 0)).toBe(true)
     })
 
     it('should clear individual filters correctly', () => {
       const onFiltersChange = vi.fn()
       const { filters, clearFilter, hasActiveFilters } = useExpenseFilters(
         {
-          startDate: '2024-01-01',
-          endDate: '2024-12-31',
+          dateFrom: '2024-01-01',
+          dateTo: '2024-12-31',
           category: '交通費',
           searchQuery: 'test'
         },
@@ -189,8 +189,8 @@ describe('Expense Filtering Integration Tests', () => {
 
       // Clear date range
       clearFilter('dateRange')
-      expect(filters.value.startDate).toBeUndefined()
-      expect(filters.value.endDate).toBeUndefined()
+      expect(filters.value.dateFrom).toBeUndefined()
+      expect(filters.value.dateTo).toBeUndefined()
 
       // Clear category
       clearFilter('category')
@@ -205,12 +205,12 @@ describe('Expense Filtering Integration Tests', () => {
 
     it('should generate active filter summary correctly', () => {
       const { activeFilterSummary } = useExpenseFilters({
-        startDate: '2024-01-01',
-        endDate: '2024-01-31',
+        dateFrom: '2024-01-01',
+        dateTo: '2024-01-31',
         category: '交通費',
         searchQuery: 'テスト',
-        minAmount: 100,
-        maxAmount: 1000
+        amountMin: 100,
+        amountMax: 1000
       })
 
       const summary = activeFilterSummary.value
@@ -230,8 +230,8 @@ describe('Expense Filtering Integration Tests', () => {
 
     it('should handle URL synchronization', () => {
       mockRoute.query = {
-        startDate: '2024-01-01',
-        endDate: '2024-01-31',
+        dateFrom: '2024-01-01',
+        dateTo: '2024-01-31',
         category: '交通費'
       }
 
@@ -241,8 +241,8 @@ describe('Expense Filtering Integration Tests', () => {
       )
 
       // Test loading from URL
-      expect(filters.value.startDate).toBe('2024-01-01')
-      expect(filters.value.endDate).toBe('2024-01-31')
+      expect(filters.value.dateFrom).toBe('2024-01-01')
+      expect(filters.value.dateTo).toBe('2024-01-31')
       expect(filters.value.category).toBe('交通費')
 
       // Test syncing to URL (need to modify through internal ref)
@@ -253,8 +253,8 @@ describe('Expense Filtering Integration Tests', () => {
       expect(mockRouter.push).toHaveBeenCalledWith({
         path: '/expenses',
         query: expect.objectContaining({
-          startDate: '2024-01-01',
-          endDate: '2024-01-31',
+          dateFrom: '2024-01-01',
+          dateTo: '2024-01-31',
           category: '交通費',
           searchQuery: 'テスト'
         })
@@ -303,8 +303,8 @@ describe('Expense Filtering Integration Tests', () => {
       const expectedEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0)
         .toISOString().split('T')[0]
 
-      expect(thisMonthRange.startDate).toBe(expectedStart)
-      expect(thisMonthRange.endDate).toBe(expectedEnd)
+      expect(thisMonthRange.dateFrom).toBe(expectedStart)
+      expect(thisMonthRange.dateTo).toBe(expectedEnd)
 
       // Test thisYear preset
       const thisYear = datePresets.find(p => p.key === 'thisYear')
@@ -316,8 +316,8 @@ describe('Expense Filtering Integration Tests', () => {
       const expectedYearEnd = new Date(now.getFullYear(), 11, 31)
         .toISOString().split('T')[0]
 
-      expect(thisYearRange.startDate).toBe(expectedYearStart)
-      expect(thisYearRange.endDate).toBe(expectedYearEnd)
+      expect(thisYearRange.dateFrom).toBe(expectedYearStart)
+      expect(thisYearRange.dateTo).toBe(expectedYearEnd)
     })
 
     it('should correctly identify active presets', () => {
@@ -368,13 +368,13 @@ describe('Expense Filtering Integration Tests', () => {
       const { filterExpensesLocally } = useExpenseFilters()
 
       // Test with undefined/null values
-      const invalidFilters: IExpenseFilter = {
-        startDate: undefined,
-        endDate: null as any,
+      const invalidFilters: IExpenseFilters= {
+        dateFrom: undefined,
+        dateTo: null as any,
         category: '',
         searchQuery: undefined,
-        minAmount: NaN,
-        maxAmount: undefined
+        amountMin: NaN,
+        amountMax: undefined
       }
 
       const filtered = filterExpensesLocally(testExpenses, invalidFilters)
@@ -395,7 +395,7 @@ describe('Expense Filtering Integration Tests', () => {
         debouncedApply()
         internalFilters.value.searchQuery = 'テスト'
         debouncedApply()
-        internalFilters.value.minAmount = 100
+        internalFilters.value.amountMin = 100
         debouncedApply()
 
         // Should not be called immediately
@@ -408,7 +408,7 @@ describe('Expense Filtering Integration Tests', () => {
             expect.objectContaining({
               category: '交通費',
               searchQuery: 'テスト',
-              minAmount: 100
+              amountMin: 100
             })
           )
           done()
@@ -421,12 +421,12 @@ describe('Expense Filtering Integration Tests', () => {
     it('should handle multiple filters simultaneously', () => {
       const { filterExpensesLocally } = useExpenseFilters()
 
-      const complexFilter: IExpenseFilter = {
-        startDate: '2024-01-01',
-        endDate: '2024-12-31',
+      const complexFilter: IExpenseFilters= {
+        dateFrom: '2024-01-01',
+        dateTo: '2024-12-31',
         category: '交通費',
-        minAmount: 500,
-        maxAmount: 2000,
+        amountMin: 500,
+        amountMax: 2000,
         balanceType: 'negative'
       }
 
@@ -438,7 +438,7 @@ describe('Expense Filtering Integration Tests', () => {
         expense.category === '交通費' &&
         expense.expenseAmount >= 500 &&
         expense.expenseAmount <= 2000 &&
-        expense.balance < 0
+        (expense.incomeAmount - expense.expenseAmount) < 0
       )).toBe(true)
     })
 
@@ -449,13 +449,13 @@ describe('Expense Filtering Integration Tests', () => {
       applyDatePreset('thisMonth')
       const internalFilters = filters as any
       internalFilters.value.category = '交通費'
-      internalFilters.value.searchQuery = 'テスト'
+      internalFilters.value.searchTerm = 'テスト'
 
       // Clear one filter
       clearFilter('category')
       expect(filters.value.category).toBeUndefined()
-      expect(filters.value.startDate).toBeDefined()
-      expect(filters.value.searchQuery).toBe('テスト')
+      expect(filters.value.dateFrom).toBeDefined()
+      expect(filters.value.searchTerm).toBe('テスト')
 
       // Reset all filters
       resetFilters()

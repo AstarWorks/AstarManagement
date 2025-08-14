@@ -36,7 +36,17 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { IExpense } from '~/types/expense'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '~/components/ui/dialog'
+import { Button } from '~/components/ui/button'
 
 interface ExpenseDeleteDialogProps {
   open?: boolean
