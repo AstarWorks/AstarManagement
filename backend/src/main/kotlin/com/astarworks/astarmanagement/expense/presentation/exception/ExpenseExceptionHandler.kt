@@ -22,8 +22,9 @@ import jakarta.servlet.http.HttpServletRequest
  * Exception handler specifically for expense-related operations.
  * Has higher precedence than the global exception handler.
  */
-@RestControllerAdvice
-@Order(Ordered.HIGHEST_PRECEDENCE)
+// Temporarily disabled for debugging authentication issues
+// @RestControllerAdvice(basePackages = ["com.astarworks.astarmanagement.expense"])
+// @Order(Ordered.HIGHEST_PRECEDENCE)
 class ExpenseExceptionHandler(
     private val messageSource: MessageSource
 ) {
@@ -169,6 +170,8 @@ class ExpenseExceptionHandler(
             ))
     }
     
+    // Temporarily disable to allow GlobalExceptionHandler to work
+    /*
     @ExceptionHandler(Exception::class)
     fun handleGenericError(
         ex: Exception,
@@ -180,10 +183,11 @@ class ExpenseExceptionHandler(
             .body(createErrorResponse(
                 ExpenseErrorCodes.INTERNAL_ERROR,
                 HttpStatus.INTERNAL_SERVER_ERROR,
-                "An unexpected error occurred",
+                "DEBUG: ${ex::class.simpleName}: ${ex.message}", // Show actual error for debugging
                 request
             ))
     }
+    */
     
     private fun createErrorResponse(
         code: String,

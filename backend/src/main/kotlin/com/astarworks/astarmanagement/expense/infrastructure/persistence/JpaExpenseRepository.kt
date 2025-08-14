@@ -113,12 +113,16 @@ interface JpaExpenseRepository : JpaRepository<Expense, UUID> {
     /**
      * Finds an expense by ID including soft-deleted records.
      * Used for restore operations.
+     * Using native query to bypass Hibernate's @Where filter.
      */
-    @Query("""
-        SELECT e FROM Expense e 
-        WHERE e.id = :id 
-        AND e.tenantId = :tenantId
-    """)
+    @Query(
+        value = """
+        SELECT * FROM expenses 
+        WHERE id = :id 
+        AND tenant_id = :tenantId
+    """,
+        nativeQuery = true
+    )
     fun findByIdAndTenantIdIncludingDeleted(
         @Param("id") id: UUID,
         @Param("tenantId") tenantId: UUID
@@ -126,13 +130,17 @@ interface JpaExpenseRepository : JpaRepository<Expense, UUID> {
     
     /**
      * Finds all soft-deleted expenses for a tenant.
+     * Using native query to bypass Hibernate's @Where filter.
      */
-    @Query("""
-        SELECT e FROM Expense e 
-        WHERE e.tenantId = :tenantId 
-        AND e.auditInfo.deletedAt IS NOT NULL
-        ORDER BY e.auditInfo.deletedAt DESC
-    """)
+    @Query(
+        value = """
+        SELECT * FROM expenses 
+        WHERE tenant_id = :tenantId 
+        AND deleted_at IS NOT NULL
+        ORDER BY deleted_at DESC
+    """,
+        nativeQuery = true
+    )
     fun findDeletedByTenantId(
         @Param("tenantId") tenantId: UUID,
         pageable: Pageable

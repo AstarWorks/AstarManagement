@@ -52,11 +52,14 @@ class GlobalExceptionHandler {
     
     @ExceptionHandler(Exception::class)
     fun handleGenericException(e: Exception): ResponseEntity<ErrorResponse> {
+        // Log the actual exception for debugging
+        e.printStackTrace()
+        
         val error = ErrorResponse(
             timestamp = LocalDateTime.now(),
             status = HttpStatus.INTERNAL_SERVER_ERROR.value(),
             error = "Internal Server Error",
-            message = "An unexpected error occurred",
+            message = "DEBUG: ${e::class.simpleName}: ${e.message}", // Show actual error in development
             path = null
         )
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error)

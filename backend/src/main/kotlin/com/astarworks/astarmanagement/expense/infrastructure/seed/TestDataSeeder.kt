@@ -100,20 +100,23 @@ class TestDataSeeder(
     private fun findDemoUsers(): List<com.astarworks.astarmanagement.domain.entity.User> {
         // For test data seeding, use a fixed demo user ID that matches existing migrations
         // This ensures audit trails are properly populated
-        return listOf(
-            com.astarworks.astarmanagement.domain.entity.User(
-                id = UUID.fromString("aaaaaaaa-bbbb-cccc-dddd-000000000002"), // Demo user ID from migrations
-                email = "test-seeder@example.com",
-                password = "hashed-password",
-                firstName = "Test",
-                lastName = "Seeder",
-                tenantId = demoTenantId,
-                role = com.astarworks.astarmanagement.domain.entity.UserRole.USER,
-                isActive = true,
-                createdAt = java.time.LocalDateTime.now(),
-                updatedAt = java.time.LocalDateTime.now()
-            )
+        val user = com.astarworks.astarmanagement.domain.entity.User(
+            tenantId = demoTenantId,
+            username = "testseeder",
+            email = "test-seeder@example.com",
+            password = "hashed-password",
+            firstName = "Test",
+            lastName = "Seeder",
+            role = com.astarworks.astarmanagement.domain.entity.UserRole.USER,
+            isActive = true,
+            createdAt = java.time.LocalDateTime.now(),
+            updatedAt = java.time.LocalDateTime.now(),
+            createdBy = null,
+            updatedBy = null,
+            lastLoginAt = null
         )
+        user.id = UUID.fromString("aaaaaaaa-bbbb-cccc-dddd-000000000002") // Demo user ID from migrations
+        return listOf(user)
     }
     
     /**

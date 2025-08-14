@@ -71,7 +71,15 @@ export default {
             inactive: '非アクティブ',
             role: '役職',
             joinDate: '入社日',
-            actions: '操作'
+            actions: '操作',
+            rowsPerPage: '表示件数',
+            showing: '{from}～{to}件 / 全{total}件',
+            page: 'ページ',
+            of: '/',
+            firstPage: '最初のページ',
+            previousPage: '前のページ',
+            nextPage: '次のページ',
+            lastPage: '最後のページ'
         }
     },
 

@@ -72,6 +72,7 @@
 import type {ICase} from '~/types/case'
 import ClientTypeBadge from "~/components/cases/ui/ClientTypeBadge.vue";
 import DueDateAlert from "~/components/cases/ui/DueDateAlert.vue";
+import CaseTag from "~/components/cases/ui/CaseTag.vue";
 
 interface Props {
   caseData: ICase
