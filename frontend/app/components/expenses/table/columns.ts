@@ -1,7 +1,7 @@
 import type { ColumnDef, Column, FilterFn } from '@tanstack/vue-table'
 import { rankItem } from '@tanstack/match-sorter-utils'
 import type { IExpense } from '~/types/expense'
-import { h } from 'vue'
+import { h, markRaw } from 'vue'
 import { Checkbox } from '~/components/ui/checkbox'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
@@ -113,7 +113,7 @@ export const createExpenseColumns = (
     enablePinning: true,
     header: ({ column }) => createSortableHeader(t('expense.fields.date'), column),
     cell: ({ row }) => formatters.formatDate(row.getValue('date')),
-    filterFn: dateRangeFilter,
+    filterFn: markRaw(dateRangeFilter),
   },
   {
     accessorKey: 'category',
@@ -127,7 +127,7 @@ export const createExpenseColumns = (
       },
       () => row.getValue('category')
     ),
-    filterFn: multiSelectFilter,
+    filterFn: markRaw(multiSelectFilter),
   },
   {
     accessorKey: 'description',
@@ -141,7 +141,7 @@ export const createExpenseColumns = (
         memo && h('div', { class: 'text-sm text-muted-foreground' }, memo)
       ])
     },
-    filterFn: fuzzyFilter,
+    filterFn: markRaw(fuzzyFilter),
     enableGlobalFilter: true,
   },
   {
@@ -169,7 +169,7 @@ export const createExpenseColumns = (
       },
       formatters.formatCurrency(row.getValue('balance'))
     ),
-    filterFn: amountRangeFilter,
+    filterFn: markRaw(amountRangeFilter),
   },
   {
     id: 'actions',

@@ -34,6 +34,10 @@
       enable-sorting
       enable-filtering
       :enable-pagination="false"
+      :enable-virtual-scrolling="expenses.length > 100"
+      :virtual-scroll-threshold="100"
+      :row-height="60"
+      :container-height="400"
       :global-filter="globalFilter"
       :initial-column-filters="initialColumnFilters"
       persistence-id="expense-table"
@@ -247,11 +251,11 @@ const columns = computed(() =>
 )
 
 // Virtual Scrolling Configuration
-// To enable virtual scrolling for large datasets (1000+ rows):
-// 1. Install @tanstack/vue-virtual
-// 2. Update DataTable component to use useVirtualizer
-// 3. Set enableVirtualization prop on DataTable
-// Currently using pagination which provides good performance
+// ✅ Virtual scrolling is now enabled for datasets > 100 rows
+// - Automatic threshold detection (100 rows)
+// - Fixed row height of 60px for consistent rendering
+// - Container height of 400px for optimal viewport
+// - Performance metrics available in development mode
 
 // Handle row click for navigation
 const handleRowClick = (expense: IExpense) => {
@@ -294,6 +298,7 @@ const resetTableFilters = () => {
 
 // Expose methods for parent components
 defineExpose({
+  table: computed(() => tableRef.value?.table),
   resetTableFilters
 })
 </script>
