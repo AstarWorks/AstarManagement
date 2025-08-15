@@ -97,3 +97,17 @@ temp/
 *.db-shm
 *.db-wal
 /backend/.env
+
+# Serena cache and temporary files
+.serena/cache/
+
+# Simone database files
+.simone/*.db-shm
+.simone/*.db-wal
+
+# Upload directories
+backend/uploads/
+
+# Backup files
+*.backup
+*.bak
