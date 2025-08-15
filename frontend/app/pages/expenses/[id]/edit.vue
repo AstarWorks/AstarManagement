@@ -132,8 +132,10 @@
 <script setup lang="ts">
 import { toTypedSchema } from '@vee-validate/zod'
 import { createExpenseSchema } from '~/schemas/expense'
-import type { IExpense, IExpenseFormData, IExpenseFieldChangeEvent } from '~/types/expense'
-import type { IConflictResolution } from '~/composables/useFormSubmissionOptimistic'
+import type { IExpense, IExpenseFormData, IExpenseFieldChangeEvent } from '@expense/types/expense'
+import type { IConflictResolution } from '@shared/composables/form/useFormSubmissionOptimistic'
+import { useFormSubmissionOptimistic } from '@shared/composables/form/useFormSubmissionOptimistic'
+import { useFormNavigationGuards } from '@shared/composables/form/useFormNavigationGuards'
 import { 
   Breadcrumb, 
   BreadcrumbList, 
@@ -141,15 +143,16 @@ import {
   BreadcrumbLink, 
   BreadcrumbPage, 
   BreadcrumbSeparator 
-} from '~/components/ui/breadcrumb'
-import { Card, CardContent } from '~/components/ui/card'
-import { Button } from '~/components/ui/button'
-import { Badge } from '~/components/ui/badge'
-import { Alert, AlertDescription } from '~/components/ui/alert'
-import { Form } from '~/components/ui/form'
+} from '@ui/breadcrumb'
+import { Card, CardContent } from '@ui/card'
+import { Button } from '@ui/button/index'
+import { Badge } from '@ui/badge'
+import { Alert, AlertDescription } from '@ui/alert'
+import { Form } from '@ui/form'
 import { Icon } from '#components'
-import ExpenseFormFields from '~/components/expenses/ExpenseFormFields.vue'
-import ConflictResolutionDialog from '~/components/expenses/ConflictResolutionDialog.vue'
+import ExpenseFormFields from '@expense/components/list/ExpenseFormFields.vue'
+import ConflictResolutionDialog from '@expense/components/list/ConflictResolutionDialog.vue'
+import authMiddleware from '~/infrastructure/middleware/auth'
 
 defineOptions({
   name: 'ExpenseEdit'
@@ -158,7 +161,7 @@ defineOptions({
 // Meta
 definePageMeta({
   title: 'expense.form.title.edit',
-  middleware: ['auth'],
+  middleware: [authMiddleware],
   validate: ({ params }: { params: Record<string, unknown> }) => {
     return typeof params.id === 'string' && params.id.length > 0
   }

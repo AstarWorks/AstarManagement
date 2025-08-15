@@ -102,11 +102,15 @@
 </template>
 
 <script setup lang="ts">
-import type { ICase, CaseStatus } from '~/types/case'
-import { Skeleton } from "~/components/ui/skeleton"
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "~/components/ui/sheet"
-import { ScrollArea } from "~/components/ui/scroll-area"
-import { useKanbanStatusConfig } from '~/config/kanbanStatusConfig'
+import type { ICase, CaseStatus } from '@case/types/case'
+import { Skeleton } from '@ui/skeleton'
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@ui/sheet/index'
+import { ScrollArea } from '@ui/scroll-area'
+import { useKanbanStatusConfig } from '@infrastructure/config/kanbanStatusConfig'
+import { useCaseData } from '@case/composables/useCaseData'
+import { useCaseFilters } from '@case/composables/useCaseFilters'
+import { useCaseModal } from '@case/composables/useCaseModal'
+import { useCaseDragDrop } from '@case/composables/useCaseDragDrop'
 
 // Page metadata with i18n
 definePageMeta({

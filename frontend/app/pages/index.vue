@@ -8,9 +8,11 @@
 </template>
 
 <script setup lang="ts">
+import redirectMiddleware from '~/infrastructure/middleware/redirect'
+
 // リダイレクトミドルウェアを使用
 definePageMeta({
-  middleware: 'redirect',
+  middleware: redirectMiddleware,
   layout: false
 })
 
@@ -20,9 +22,9 @@ definePageMeta({
 // ページタイトル設定
 const { t } = useI18n()
 useHead({
-  title: t('app.title'),
+  title: t('common.app.title'),
   meta: [
-    { name: 'description', content: t('app.description') }
+    { name: 'description', content: t('common.app.description') }
   ]
 })
 </script>

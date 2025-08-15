@@ -269,18 +269,18 @@ import {
   BreadcrumbLink, 
   BreadcrumbPage, 
   BreadcrumbSeparator 
-} from '~/components/ui/breadcrumb'
-import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
-import { Button } from '~/components/ui/button'
-import { Input } from '~/components/ui/input'
-import { Label } from '~/components/ui/label'
+} from '@ui/breadcrumb'
+import { Card, CardContent, CardHeader, CardTitle } from '@ui/card'
+import { Button } from '@ui/button/index'
+import { Input } from '@ui/input/index'
+import { Label } from '@ui/label'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '~/components/ui/select'
+} from '@ui/select'
 import {
   Table,
   TableBody,
@@ -288,8 +288,10 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '~/components/ui/table'
+} from '@ui/table'
 import { Icon } from '#components'
+
+import authMiddleware from '~/infrastructure/middleware/auth'
 
 defineOptions({
   name: 'ExpenseReports'
@@ -298,7 +300,7 @@ defineOptions({
 // Meta
 definePageMeta({
   title: 'expense.reports.title',
-  middleware: ['auth']
+  middleware: [authMiddleware]
 })
 
 // Composables

@@ -99,11 +99,13 @@
 <script setup lang="ts">
 import { formatRelative } from 'date-fns'
 import { ja } from 'date-fns/locale'
-import { Skeleton } from '~/components/ui/skeleton'
+import { Skeleton } from '@ui/skeleton'
+import { useDashboardData } from '@shared/composables/common/useDashboardData'
+import authMiddleware from '~/infrastructure/middleware/auth'
 
 // Page metadata
 definePageMeta({
-  middleware: 'auth',
+  middleware: authMiddleware,
   title: 'dashboard.title'
 })
 

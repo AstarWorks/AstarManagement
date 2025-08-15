@@ -92,6 +92,8 @@
 </template>
 
 <script setup lang="ts">
+import { useCurrencyFormat, useDateFormat, useRelativeTime } from '@shared/composables/common/useI18n'
+
 // ページメタデータ
 definePageMeta({
   layout: false

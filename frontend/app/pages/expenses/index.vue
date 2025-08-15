@@ -149,23 +149,24 @@
 </template>
 
 <script setup lang="ts">
-import type { IExpense, IExpenseSummary, IExpenseFilters } from '~/types/expense'
-import { Card, CardContent } from '~/components/ui/card'
-import { Button } from '~/components/ui/button'
+import type { IExpense, IExpenseSummary, IExpenseFilters } from '@expense/types/expense'
+import { Card, CardContent } from '@ui/card'
+import { Button } from '@ui/button/index'
 import { Icon } from '#components'
-import ExpenseFilters from '~/components/expenses/ExpenseFilters.vue'
-import ExpenseDataTable from '~/components/expenses/ExpenseDataTable.vue'
-import ExpenseEmptyState from '~/components/expenses/states/ExpenseEmptyState.vue'
-import FilterStatistics from '~/components/expenses/filters/FilterStatistics.vue'
+import ExpenseFilters from '@expense/components/list/ExpenseFilters.vue'
+import ExpenseDataTable from '@expense/components/list/ExpenseDataTable.vue'
+import ExpenseEmptyState from '@expense/components/shared/states/ExpenseEmptyState.vue'
+import FilterStatistics from '@expense/components/list/FilterStatistics.vue'
 
 import { mockExpenseDataService } from '~/services/mockExpenseDataService'
 import { useDebounceFn } from '@vueuse/core'
-import { useTablePagination } from '~/composables/useTablePagination'
+import { useTablePagination } from '@shared/composables/table/useTablePagination'
+import authMiddleware from '~/infrastructure/middleware/auth'
 
 // Meta and SEO
 definePageMeta({
   title: 'expense.navigation.title',
-  middleware: ['auth']
+  middleware: [authMiddleware]
 })
 
 // Composables
@@ -311,11 +312,14 @@ const loadSummary = async () => {
     // For now, just set some mock data
     expenseSummary.value = {
       totalIncome: 0,
-      totalExpenses: 0,
+      totalExpense: 0,
       balance: 0,
-      expensesByCategory: {},
-      expensesByMonth: {},
-      topExpenseCategories: []
+      count: 0,
+      categories: [],
+      period: {
+        startDate: new Date().toISOString().split('T')[0] || '',
+        endDate: new Date().toISOString().split('T')[0] || ''
+      }
     }
   } catch (error) {
     console.error('Failed to load summary:', error)

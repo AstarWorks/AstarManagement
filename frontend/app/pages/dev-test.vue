@@ -107,9 +107,9 @@ definePageMeta({
 // ページタイトル設定
 const { t } = useI18n()
 useHead({
-  title: `開発テスト - ${t('app.title')}`,
+  title: `開発テスト - ${t('common.app.title')}`,
   meta: [
-    { name: 'description', content: t('meta.devTest.description') }
+    { name: 'description', content: t('auth.meta.devTest.description') }
   ]
 })
 </script>

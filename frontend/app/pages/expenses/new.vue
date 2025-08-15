@@ -85,11 +85,13 @@ import {
   BreadcrumbLink,
   BreadcrumbPage,
   BreadcrumbSeparator
-} from '~/components/ui/breadcrumb'
-import {Card, CardContent} from '~/components/ui/card'
-import {Button} from '~/components/ui/button'
-import {Alert, AlertDescription} from '~/components/ui/alert'
-import ExpenseForm from '~/components/expense/ExpenseForm.vue'
+} from '@ui/breadcrumb'
+import {Card, CardContent} from '@ui/card'
+import {Button} from '@ui/button/index'
+import {Alert, AlertDescription} from '@ui/alert'
+import ExpenseForm from '@expense/components/form/ExpenseForm.vue'
+
+import authMiddleware from '~/infrastructure/middleware/auth'
 
 defineOptions({
   name: 'ExpenseNewPage'
@@ -98,7 +100,7 @@ defineOptions({
 // Meta
 definePageMeta({
   title: 'expense.actions.create',
-  middleware: ['auth']
+  middleware: [authMiddleware]
 })
 
 // Composables

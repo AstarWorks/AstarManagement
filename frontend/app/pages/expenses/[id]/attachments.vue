@@ -193,7 +193,8 @@
 </template>
 
 <script setup lang="ts">
-import type { IExpense, IExpenseAttachment } from '~/types/expense'
+import type { IExpense, IAttachment } from '@expense/types/expense'
+import { AttachmentStatus } from '@expense/types/expense'
 import { 
   Breadcrumb, 
   BreadcrumbList, 
@@ -201,10 +202,11 @@ import {
   BreadcrumbLink, 
   BreadcrumbPage, 
   BreadcrumbSeparator 
-} from '~/components/ui/breadcrumb'
-import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
-import { Button } from '~/components/ui/button'
+} from '@ui/breadcrumb'
+import { Card, CardContent, CardHeader, CardTitle } from '@ui/card'
+import { Button } from '@ui/button/index'
 import { Icon } from '#components'
+import authMiddleware from '~/infrastructure/middleware/auth'
 
 defineOptions({
   name: 'ExpenseAttachments'
@@ -213,7 +215,7 @@ defineOptions({
 // Meta
 definePageMeta({
   title: 'expense.attachments.title',
-  middleware: ['auth'],
+  middleware: [authMiddleware],
   validate: ({ params }: { params: Record<string, unknown> }) => {
     return typeof params.id === 'string' && params.id.length > 0
   }
@@ -237,7 +239,7 @@ const NuxtLink = resolveComponent('NuxtLink')
 // @ts-expect-error - route params typing issue in Nuxt
 const expenseId = route.params.id as string
 const expense = ref<IExpense>()
-const attachments = ref<IExpenseAttachment[]>([])
+const attachments = ref<IAttachment[]>([])
 const loading = ref(true)
 const error = ref<string>()
 const uploading = ref(false)
@@ -336,12 +338,15 @@ const uploadFile = async (file: File, uploadFileItem: _IUploadFile) => {
     uploadFileItem.status = 'completed'
     
     // Add to attachments list
-    const newAttachment: IExpenseAttachment = {
+    const newAttachment: IAttachment = {
       id: `att-${Date.now()}`,
+      tenantId: 'tenant-123',
       fileName: file.name,
       originalName: file.name,
       fileSize: file.size,
       mimeType: file.type,
+      storagePath: `/uploads/${file.name}`,
+      status: AttachmentStatus.UPLOADED,
       uploadedAt: new Date().toISOString(),
       uploadedBy: 'user-123'
     }
@@ -370,7 +375,7 @@ const cancelUpload = (fileId: string) => {
   }
 }
 
-const downloadAttachment = async (attachment: IExpenseAttachment) => {
+const downloadAttachment = async (attachment: IAttachment) => {
   downloading.value[attachment.id] = true
   
   try {
@@ -386,7 +391,7 @@ const downloadAttachment = async (attachment: IExpenseAttachment) => {
   }
 }
 
-const deleteAttachment = async (attachment: IExpenseAttachment) => {
+const deleteAttachment = async (attachment: IAttachment) => {
   if (!confirm(t('expense.attachments.confirm.delete'))) {
     return
   }
@@ -398,7 +403,7 @@ const deleteAttachment = async (attachment: IExpenseAttachment) => {
     await new Promise(resolve => setTimeout(resolve, 1000))
     
     // Remove from list
-    const index = attachments.value.findIndex((a: IExpenseAttachment) => a.id === attachment.id)
+    const index = attachments.value.findIndex((a: IAttachment) => a.id === attachment.id)
     if (index !== -1) {
       attachments.value.splice(index, 1)
     }
@@ -439,19 +444,25 @@ const loadData = async () => {
     attachments.value = [
       {
         id: 'att-1',
+        tenantId: 'tenant-123',
         fileName: '領収書_新幹線.pdf',
         originalName: '領収書_新幹線.pdf',
         fileSize: 256 * 1024,
         mimeType: 'application/pdf',
+        storagePath: '/uploads/領収書_新幹線.pdf',
+        status: AttachmentStatus.UPLOADED,
         uploadedAt: '2025-08-04T10:00:00Z',
         uploadedBy: 'user-123'
       },
       {
         id: 'att-2',
+        tenantId: 'tenant-123',
         fileName: '交通費精算書.xlsx',
         originalName: '交通費精算書.xlsx',
         fileSize: 128 * 1024,
         mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        storagePath: '/uploads/交通費精算書.xlsx',
+        status: AttachmentStatus.UPLOADED,
         uploadedAt: '2025-08-04T10:05:00Z',
         uploadedBy: 'user-123'
       }

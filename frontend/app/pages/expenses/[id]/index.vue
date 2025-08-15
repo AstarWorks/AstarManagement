@@ -23,18 +23,19 @@
 </template>
 
 <script setup lang="ts">
-import type { IExpense, IAttachment } from '~/types/expense'
-import { TagScope as _TagScope, AttachmentStatus as _AttachmentStatus } from '~/types/expense'
-import ExpenseDetailView from '~/components/expenses/detail/ExpenseDetailView.vue'
-import ExpenseDeleteDialog from '~/components/expense/ExpenseDeleteDialog.vue'
-import { useExpenseActions } from '~/composables/useExpenseActions'
-import { useExpenseDelete } from '~/composables/useExpenseDelete'
+import type { IExpense, IAttachment } from '@expense/types/expense'
+import { TagScope as _TagScope, AttachmentStatus as _AttachmentStatus } from '@expense/types/expense'
+import ExpenseDetailView from '@expense/components/detail/ExpenseDetailView.vue'
+import ExpenseDeleteDialog from '@expense/components/form/ExpenseDeleteDialog.vue'
+import { useExpenseActions } from '@expense/composables/actions/useExpenseActions'
+import { useExpenseDelete } from '@expense/composables/actions/useExpenseDelete'
 import { toast } from 'vue-sonner'
+import authMiddleware from '~/infrastructure/middleware/auth'
 
 // Meta
 definePageMeta({
   title: 'expense.form.title.view',
-  middleware: ['auth'],
+  middleware: [authMiddleware],
   validate: ({ params }: { params: Record<string, unknown> }) => {
     return typeof params.id === 'string' && params.id.length > 0
   }

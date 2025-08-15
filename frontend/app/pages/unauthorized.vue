@@ -92,7 +92,7 @@
 </template>
 
 <script setup lang="ts">
-import { Alert, AlertTitle, AlertDescription } from '~/components/ui/alert'
+import { Alert, AlertTitle, AlertDescription } from '@ui/alert'
 
 // Page metadata
 definePageMeta({
@@ -117,12 +117,12 @@ const route = useRoute()
 const authStore = useAuthStore()
 const config = useRuntimeConfig()
 
-// Parse URL parameters using composable
-const { errorDetails } = useUnauthorizedError({
-  reason: route.query.reason as string,
+// Parse URL parameters
+const errorDetails = computed(() => ({
+  reason: route.query.reason as string || 'no_permission',
   originalPath: route.query.path as string,
-  requiredString: route.query.required as string
-})
+  required: route.query.required ? JSON.parse(route.query.required as string) : undefined
+}))
 
 // Auth state
 const authUser = computed(() => authStore.user)
@@ -154,16 +154,15 @@ const goToLogin = () => {
 
 // SEO and security
 useHead({
-  title: computed(() => `${t('error.unauthorized.title')} - ${t('app.name')}`),
+  title: computed(() => `${t('error.unauthorized.title')} - ${t('common.app.name')}`),
   meta: [
     { name: 'description', content: computed(() => t('error.unauthorized.meta.description')) }
   ]
 })
 
 // Security audit logging
-const { logUnauthorizedAccess } = useSecurityAudit()
 onMounted(() => {
-  logUnauthorizedAccess({
+  console.warn('Unauthorized access attempt:', {
     user: authUser.value?.email || 'anonymous',
     reason: errorDetails.value.reason,
     originalPath: errorDetails.value.originalPath,
