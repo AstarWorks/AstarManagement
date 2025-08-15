@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/vue3'
 import { action } from '@storybook/addon-actions'
 import { FileText, Search, Filter } from 'lucide-vue-next'
-import EmptyState from '~/components/common/states/EmptyState.vue'
+import EmptyState from '@shared/components/states/EmptyState.vue'
 
 const meta: Meta<typeof EmptyState> = {
   title: 'States/EmptyState',

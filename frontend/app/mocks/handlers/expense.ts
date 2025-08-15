@@ -5,7 +5,7 @@ import type {
   IExpenseFilters,
   IBulkExpenseOperation,
   IExpenseStatistics
-} from '~/types/expense'
+} from '@expense/types/expense'
 import { mockExpenseDataService } from '~/services/mockExpenseDataService'
 
 // Error simulation configuration

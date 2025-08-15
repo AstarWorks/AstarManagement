@@ -1,5 +1,6 @@
 import { http, HttpResponse } from 'msw'
-import type { IExpenseAttachment } from '~/types/expense'
+import type { IAttachment } from '@expense/types/expense'
+import { AttachmentStatus } from '@expense/types/expense'
 
 export const attachmentHandlers = [
   // Upload attachment
@@ -14,12 +15,15 @@ export const attachmentHandlers = [
       )
     }
     
-    const attachment: IExpenseAttachment = {
+    const attachment: IAttachment = {
       id: `att-${Date.now()}`,
+      tenantId: 'tenant-1',
       fileName: file.name,
       originalName: file.name,
       fileSize: file.size,
       mimeType: file.type,
+      storagePath: `/uploads/${file.name}`,
+      status: AttachmentStatus.UPLOADED,
       uploadedAt: new Date().toISOString(),
       uploadedBy: 'user-1'
     }
@@ -33,12 +37,15 @@ export const attachmentHandlers = [
 
   // Get attachment metadata
   http.get('/api/v1/attachments/:id', async ({ params }) => {
-    const attachment: IExpenseAttachment = {
+    const attachment: IAttachment = {
       id: params.id as string,
+      tenantId: 'tenant-1',
       fileName: 'document.pdf',
       originalName: 'document.pdf',
       fileSize: 1024 * 1024,
       mimeType: 'application/pdf',
+      storagePath: '/uploads/document.pdf',
+      status: AttachmentStatus.UPLOADED,
       uploadedAt: new Date().toISOString(),
       uploadedBy: 'user-1'
     }
@@ -77,7 +84,7 @@ export const attachmentHandlers = [
 
   // Get attachments for an expense
   http.get('/api/v1/expenses/:expenseId/attachments', async () => {
-    const attachments: IExpenseAttachment[] = []
+    const attachments: IAttachment[] = []
     
     await new Promise(resolve => setTimeout(resolve, Math.random() * 200 + 50))
     

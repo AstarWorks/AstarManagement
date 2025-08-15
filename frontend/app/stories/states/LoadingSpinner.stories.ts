@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3'
-import LoadingSpinner from '~/components/common/states/LoadingSpinner.vue'
+import LoadingSpinner from '@shared/components/states/LoadingSpinner.vue'
 
 const meta: Meta<typeof LoadingSpinner> = {
   title: 'States/LoadingSpinner',

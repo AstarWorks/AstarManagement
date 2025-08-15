@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw'
-import type { LoginResponse, RefreshTokenResponse, User, AuthTokens } from '~/types/auth'
+import type { LoginResponse, RefreshTokenResponse, User, AuthTokens } from '@auth/types/auth'
 
 // モックユーザーデータ
 const mockUsers: User[] = [

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/vue3'
 import { ref } from 'vue'
-import ErrorBoundary from '~/components/common/states/ErrorBoundary.vue'
+import ErrorBoundary from '@shared/components/states/ErrorBoundary.vue'
 
 const meta: Meta<typeof ErrorBoundary> = {
   title: 'States/ErrorBoundary',

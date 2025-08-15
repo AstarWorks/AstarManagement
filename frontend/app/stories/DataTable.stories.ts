@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/vue3'
 import type { ColumnDef } from '@tanstack/vue-table'
 import { h } from 'vue'
-import { DataTable, createColumnHelper } from '~/components/ui/data-table'
-import { Button } from '~/components/ui/button'
-import { Badge } from '~/components/ui/badge'
+import { DataTable, createColumnHelper } from '@ui/data-table'
+import { Button } from '@ui/button/index'
+import { Badge } from '@ui/badge'
 
 // Sample data type
 interface IPerson {
@@ -153,7 +153,7 @@ A powerful data table component powered by TanStackTable v8.
 
 ## Usage
 \`\`\`typescript
-import { DataTable, createColumnHelper } from '~/components/ui/data-table'
+import { DataTable, createColumnHelper } from '@ui/data-table'
 
 const columnHelper = createColumnHelper<YourDataType>()
 const columns = [

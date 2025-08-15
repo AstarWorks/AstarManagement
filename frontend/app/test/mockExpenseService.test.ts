@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { mockExpenseDataService } from '~/services/mockExpenseDataService'
-import type { ICreateExpenseRequest, IUpdateExpenseRequest, IExpense } from '~/types/expense'
-import type { IExpenseList } from '~/types/expense/expense'
+import type { ICreateExpenseRequest, IUpdateExpenseRequest, IExpense, IExpenseList  } from '@expense/types/expense'
 
 describe('MockExpenseDataService', () => {
   beforeEach(async () => {
