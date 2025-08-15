@@ -1,0 +1,620 @@
+{ "expense": 
+{
+  "title": "経費管理",
+  "titlePlural": "経費",
+  "navigation": {
+    "title": "実費管理",
+    "badge": "新着",
+    "list": "実費一覧",
+    "new": "新規実費",
+    "import": "CSVインポート",
+    "reports": "集計レポート"
+  },
+  "actions": {
+    "create": "経費を作成",
+    "edit": "編集",
+    "update": "更新",
+    "view": "詳細表示",
+    "delete": "削除",
+    "duplicate": "複製",
+    "bulkEdit": "一括編集",
+    "bulkDelete": "一括削除",
+    "export": "エクスポート",
+    "import": "インポート",
+    "save": "保存",
+    "cancel": "キャンセル",
+    "reset": "リセット",
+    "apply": "適用",
+    "clear": "クリア",
+    "print": "印刷",
+    "copy": "コピー",
+    "copySuccess": "クリップボードにコピーしました",
+    "copySuccessDescription": "経費情報をクリップボードにコピーしました",
+    "copyFailed": "コピーに失敗しました",
+    "copyFailedDescription": "クリップボードへのアクセスが拒否されました",
+    "manageAttachments": "添付ファイル管理",
+    "saveDraft": "下書きを保存",
+    "addTag": "タグを追加",
+    "downloadAttachment": "添付ファイルをダウンロード",
+    "removeAttachment": "添付ファイルを削除",
+    "uploading": "アップロード中...",
+    "uploadAttachment": "添付ファイルをアップロード",
+    "menu": "アクションメニュー"
+  },
+  "list": {
+    "title": "経費一覧",
+    "description": "経費の記録と管理を行います",
+    "loading": "読み込み中...",
+    "loadingMore": "さらに読み込み中...",
+    "empty": {
+      "title": "経費がありません",
+      "description": "まだ経費が登録されていません。",
+      "tips": {
+        "title": "ヒント",
+        "tip1": "右上の「新規作成」ボタンから経費を追加できます",
+        "tip2": "CSVファイルからインポートすることも可能です",
+        "tip3": "フィルターを解除して全データを表示してみてください"
+      }
+    },
+    "error": {
+      "title": "エラーが発生しました",
+      "description": "経費データの読み込み中にエラーが発生しました。"
+    },
+    "selected": {
+      "one": "{count}件選択",
+      "other": "{count}件選択"
+    }
+  },
+  "quickActions": {
+    "create": {
+      "description": "新しい経費を登録"
+    },
+    "import": {
+      "description": "CSVファイルから一括登録"
+    },
+    "list": {
+      "description": "経費一覧を表示"
+    },
+    "reports": {
+      "description": "レポートを表示"
+    }
+  },
+  "indicators": {
+    "hasAttachments": "添付ファイルあり"
+  },
+  "table": {
+    "columns": "表示列",
+    "actions": "操作",
+    "date": "日付",
+    "case": "案件",
+    "category": "カテゴリ",
+    "description": "説明",
+    "amount": "金額",
+    "balance": "残高",
+    "tags": "タグ",
+    "memo": "メモ",
+    "attachments": "添付ファイル",
+    "createdAt": "作成日時",
+    "updatedAt": "更新日時",
+    "createdBy": "作成者",
+    "updatedBy": "更新者",
+    "selectedCount": "{count}件選択中",
+    "ariaLabel": "経費データテーブル",
+    "description": "{count}件中{total}件の経費を表示",
+    "empty": "経費データがありません"
+  },
+  "filters": {
+    "title": "フィルター",
+    "clear": "クリア",
+    "advanced": "詳細",
+    "quickFilters": "クイックフィルター",
+    "dateRange": "期間",
+    "startDate": "開始日",
+    "endDate": "終了日",
+    "category": "カテゴリ",
+    "categoryPlaceholder": "カテゴリを選択",
+    "allCategories": "すべてのカテゴリ",
+    "search": "検索",
+    "searchPlaceholder": "説明やメモを検索...",
+    "amountRange": "金額範囲",
+    "minAmount": "最小金額",
+    "maxAmount": "最大金額",
+    "case": "案件",
+    "casePlaceholder": "案件を選択",
+    "allCases": "すべての案件",
+    "balanceType": "収支タイプ",
+    "hasMemo": "メモあり",
+    "hasAttachments": "添付ファイルあり",
+    "activeFilters": "適用中のフィルター",
+    "stats": {
+      "matched": "該当件数",
+      "income": "収入合計",
+      "expense": "支出合計",
+      "balance": "収支"
+    }
+  },
+  "categories": {
+    "transportation": "交通費",
+    "stampFees": "印紙代",
+    "copyFees": "コピー代",
+    "postage": "郵送料",
+    "other": "その他",
+    "all": "すべて"
+  },
+  "balanceTypes": {
+    "all": "すべて",
+    "positive": "収入",
+    "negative": "支出",
+    "zero": "収支0"
+  },
+  "datePresets": {
+    "today": "今日",
+    "thisWeek": "今週",
+    "thisMonth": "今月",
+    "lastMonth": "前月",
+    "thisQuarter": "今四半期",
+    "thisYear": "今年",
+    "lastYear": "昨年",
+    "custom": "カスタム"
+  },
+  "pagination": {
+    "itemsPerPage": "表示件数",
+    "goToPage": "ページ",
+    "previous": "前へ",
+    "next": "次へ",
+    "first": "最初",
+    "last": "最後",
+    "totalItems": "全 {count} 件",
+    "totalPages": "全 {count} ページ",
+    "currentPage": "{current} / {total} ページ",
+    "of": "/",
+    "showing": "表示中",
+    "to": "〜",
+    "results": "件",
+    "noResults": "結果がありません",
+    "summary": "{start}-{end} / {total} 件",
+    "info": "{start}-{end} / {total} 件"
+  },
+  "form": {
+    "title": {
+      "create": "経費を作成",
+      "edit": "経費を編集",
+      "view": "経費詳細"
+    },
+    "stepProgress": "ステップの進行状況",
+    "goToStep": "ステップ {step} に移動",
+    "currentStep": "ステップ {current} / {total}",
+    "navigation": {
+      "previousStep": "前のステップに戻る",
+      "nextStep": "次のステップに進む",
+      "updateExpense": "経費を更新",
+      "saveExpense": "経費を保存",
+      "resetForm": "フォームをリセット",
+      "saveDraft": "下書きを保存"
+    },
+    "description": {
+      "edit": "経費情報を編集します"
+    },
+    "fields": {
+      "date": "日付",
+      "category": "分類",
+      "description": "説明",
+      "incomeAmount": "収入金額",
+      "expenseAmount": "支出金額",
+      "case": "案件",
+      "memo": "メモ",
+      "tags": "タグ",
+      "attachments": "添付ファイル",
+      "balance": "収支"
+    },
+    "placeholders": {
+      "date": "日付を選択",
+      "category": "分類を選択してください",
+      "description": "経費の詳細を入力してください",
+      "amount": "金額を入力",
+      "incomeAmount": "収入金額を入力",
+      "expenseAmount": "支出金額を入力",
+      "case": "案件を選択（任意）",
+      "memo": "追加情報やメモを入力",
+      "tags": "タグを選択"
+    },
+    "descriptions": {
+      "date": "経費が発生した日付を選択してください",
+      "category": "経費のカテゴリを選択してください",
+      "description": "経費の詳細な説明を入力してください（最大500文字）",
+      "incomeAmount": "収入として受け取った金額を入力してください",
+      "expenseAmount": "支出として支払った金額を入力してください",
+      "case": "関連する案件があれば選択してください",
+      "memo": "追加の説明やメモがあれば入力してください（最大1000文字）",
+      "tags": "分類用のタグを選択してください"
+    },
+    "steps": {
+      "basic": "基本情報",
+      "basicDescription": "経費の基本的な情報を入力してください",
+      "amount": "金額情報",
+      "amountDescription": "収入または支出の金額を入力してください",
+      "additional": "追加情報",
+      "additionalDescription": "案件やタグなどの追加情報を入力してください"
+    },
+    "validation": {
+      "required": "{field}は必須です",
+      "futureDate": "未来の日付は入力できません",
+      "invalidCategory": "無効なカテゴリです",
+      "invalidDescription": "説明は500文字以内で入力してください",
+      "minAmount": "金額は0以上である必要があります",
+      "maxAmount": "金額が上限を超えています",
+      "maxMemo": "メモは1000文字以内で入力してください",
+      "amountRequired": "収入金額または支出金額のいずれかを入力してください"
+    },
+    "amountType": "取引種別",
+    "amountTypes": {
+      "expense": "支出",
+      "income": "収入"
+    },
+    "balanceCalculation": "収支計算",
+    "balanceTypes": {
+      "positive": "収入超過",
+      "negative": "支出超過",
+      "zero": "収支0"
+    },
+    "commonAmounts": "よく使う金額",
+    "quickTemplates": "よく使う説明",
+    "templates": {
+      "court": "裁判所",
+      "client": "クライアント",
+      "copying": "コピー",
+      "postage": "郵送",
+      "stamp": "印紙",
+      "supplies": "用品",
+      "materials": "資料",
+      "other": "その他"
+    },
+    "quickTags": "よく使うタグ",
+    "noCase": "案件なし",
+    "noTags": "タグなし",
+    "characters": "文字",
+    "summary": "入力内容確認",
+    "attachmentPlaceholder": "添付ファイル",
+    "attachmentComingSoon": "添付ファイル機能は次のバージョンで実装予定です",
+    "actions": {
+      "clearStorage": "ストレージをクリア",
+      "refreshPage": "ページを更新"
+    },
+    "confirmDiscardChanges": "変更を破棄してもよろしいですか？",
+    "errors": {
+      "field": "フィールド: {field}",
+      "validationSummary": "入力内容にエラーがあります",
+      "fieldValidation": "{field}: {message}",
+      "validation": "検証エラー: {message}",
+      "network": "ネットワークエラー: {message}",
+      "storage": "ストレージエラー: {message}",
+      "permission": "権限エラー: {message}",
+      "unknown": "不明なエラー: {message}"
+    }
+  },
+  "virtual": {
+    "loading": "読み込み中...",
+    "scrollToTop": "トップに戻る",
+    "scrollToBottom": "最下部に移動",
+    "performanceMode": "パフォーマンスモード",
+    "itemsVisible": "表示アイテム",
+    "totalItems": "総アイテム数"
+  },
+  "status": {
+    "creating": "作成中...",
+    "updating": "更新中...",
+    "deleting": "削除中...",
+    "loading": "読み込み中...",
+    "saving": "保存中...",
+    "created": "経費を作成しました",
+    "updated": "経費を更新しました",
+    "deleted": "経費を削除しました",
+    "bulkDeleted": "{count}件の経費を削除しました",
+    "bulkUpdated": "{count}件の経費を更新しました",
+    "exported": "経費データをエクスポートしました",
+    "imported": "経費データをインポートしました",
+    "optimistic": "楽観的更新中",
+    "optimisticUpdate": "変更を適用中...",
+    "unsavedChanges": "未保存の変更があります"
+  },
+  "errors": {
+    "field": "フィールド: {field}",
+    "validationSummary": "入力内容にエラーがあります",
+    "draftSaveFailed": "下書きの保存に失敗しました",
+    "loadFailed": "経費の読み込みに失敗しました",
+    "createFailed": "経費の作成に失敗しました",
+    "updateFailed": "経費の更新に失敗しました",
+    "deleteFailed": "経費の削除に失敗しました",
+    "bulkDeleteFailed": "経費の一括削除に失敗しました",
+    "exportFailed": "エクスポートに失敗しました",
+    "importFailed": "インポートに失敗しました",
+    "networkError": "ネットワークエラーが発生しました",
+    "serverError": "サーバーエラーが発生しました",
+    "validationError": "入力データに不備があります",
+    "notFound": "指定された経費が見つかりません",
+    "unauthorized": "この操作を実行する権限がありません",
+    "forbidden": "アクセスが拒否されました",
+    "noItemsSelected": "項目が選択されていません"
+  },
+  "confirmations": {
+    "delete": "この経費を削除してもよろしいですか？",
+    "bulkDelete": "{count}件の経費を削除してもよろしいですか？",
+    "unsavedChanges": "未保存の変更があります。本当にページを離れますか？",
+    "reset": "すべての変更をリセットしてもよろしいですか？",
+    "resetForm": "フォームをリセットしてもよろしいですか？"
+  },
+  "detail": {
+    "basicInfo": "基本情報",
+    "caseInfo": "案件情報",
+    "caseTitle": "案件名",
+    "caseStatus": "案件ステータス",
+    "auditInfo": "監査情報",
+    "tagCount": "タグ数: {count}",
+    "notFound": {
+      "title": "経費が見つかりません",
+      "message": "指定された経費が見つかりませんでした。"
+    },
+    "actions": {
+      "backToList": "経費一覧に戻る"
+    }
+  },
+  "preview": {
+    "notImplemented": "プレビュー機能は未実装です",
+    "comingSoon": "この機能は今後実装予定です"
+  },
+  "delete": {
+    "title": "実費を削除",
+    "message": "「{{title}}」を削除してもよろしいですか？",
+    "warning": "この操作は30日間元に戻すことができます",
+    "confirm": "削除する",
+    "success": "実費を削除しました",
+    "successDescription": "30日以内であれば復元できます",
+    "error": "削除に失敗しました",
+    "undo": "元に戻す"
+  },
+  "restore": {
+    "success": "実費を復元しました",
+    "successDescription": "削除が取り消されました",
+    "error": "復元に失敗しました"
+  },
+  "confirm": {
+    "delete": "この経費を削除してもよろしいですか？"
+  },
+  "tooltips": {
+    "date": "経費が発生した日付",
+    "category": "経費のカテゴリ分類",
+    "description": "経費の詳細説明",
+    "amount": "経費の金額（日本円）",
+    "balance": "収入 - 支出の差額",
+    "case": "関連する案件（任意）",
+    "memo": "追加の説明やメモ",
+    "tags": "分類用のタグ",
+    "attachments": "レシートや証明書などの添付ファイル",
+    "bulkSelect": "複数の経費を選択して一括操作",
+    "sortColumn": "この列でソート",
+    "filterActive": "フィルターが適用されています",
+    "virtualScrolling": "パフォーマンス向上のため仮想スクロールを使用",
+    "export": "CSV形式でエクスポート",
+    "import": "CSV形式でインポート"
+  },
+  "shortcuts": {
+    "title": "キーボードショートカット",
+    "create": "Ctrl+N : 新規作成",
+    "save": "Ctrl+S : 保存",
+    "delete": "Delete : 削除",
+    "edit": "Enter : 編集",
+    "selectAll": "Ctrl+A : 全選択",
+    "copy": "Ctrl+C : コピー",
+    "paste": "Ctrl+V : 貼り付け",
+    "undo": "Ctrl+Z : 元に戻す",
+    "redo": "Ctrl+Y : やり直し",
+    "search": "Ctrl+F : 検索",
+    "filter": "Ctrl+Shift+F : フィルター",
+    "nextPage": "Ctrl+→ : 次のページ",
+    "prevPage": "Ctrl+← : 前のページ",
+    "firstPage": "Ctrl+Home : 最初のページ",
+    "lastPage": "Ctrl+End : 最後のページ"
+  },
+  "export": {
+    "title": "エクスポート",
+    "format": "フォーマット",
+    "csv": "CSV",
+    "excel": "Excel",
+    "pdf": "PDF",
+    "dateRange": "エクスポート期間",
+    "allData": "すべてのデータ",
+    "filteredData": "フィルター適用データ",
+    "selectedData": "選択されたデータ",
+    "includeHeaders": "ヘッダーを含める",
+    "filename": "ファイル名",
+    "downloading": "ダウンロード中...",
+    "success": "エクスポートが完了しました",
+    "failed": "エクスポートに失敗しました"
+  },
+  "import": {
+    "title": "インポート",
+    "description": "CSVまたはExcelファイルから経費データをインポート",
+    "selectFile": "ファイルを選択",
+    "dragDrop": "ファイルをドラッグ&ドロップ",
+    "supportedFormats": "サポート形式: CSV, Excel",
+    "maxFileSize": "最大ファイルサイズ: 10MB",
+    "hasHeaders": "ヘッダー行あり",
+    "preview": "プレビュー",
+    "mapping": "フィールドマッピング",
+    "validate": "検証",
+    "importing": "インポート中...",
+    "success": "{count}件の経費をインポートしました",
+    "failed": "インポートに失敗しました",
+    "errors": {
+      "importFailed": "インポートに失敗しました"
+    },
+    "skipErrors": "エラーをスキップして続行",
+    "fixErrors": "エラーを修正",
+    "actions": {
+      "importAnother": "別のファイルをインポート",
+      "viewExpenses": "経費一覧を表示"
+    },
+    "steps": {
+      "upload": {
+        "title": "ファイルアップロード",
+        "description": "インポートするファイルを選択",
+        "dropzone": "ファイルをドロップまたはクリックして選択",
+        "fileType": "CSV/Excelファイルのみ"
+      },
+      "mapping": {
+        "title": "フィールドマッピング",
+        "description": "列とフィールドの対応を設定",
+        "selectColumn": "列を選択"
+      },
+      "preview": {
+        "title": "プレビュー",
+        "summary": "{total}件中{valid}件が有効"
+      },
+      "result": {
+        "success": "成功",
+        "error": "エラー",
+        "successMessage": "{count}件の経費をインポートしました"
+      }
+    }
+  },
+  "emptyHint": "最初の実費を追加して管理を始めましょう",
+  "tags": {
+    "transportation": "交通費",
+    "tokyo": "東京",
+    "osaka": "大阪",
+    "business_trip": "出張",
+    "court": "裁判所",
+    "client_meeting": "クライアント面談",
+    "urgent": "緊急",
+    "office_supplies": "事務用品"
+  },
+  "attachments": {
+    "title": "添付ファイル",
+    "description": "関連ファイルを添付",
+    "files": "ファイル",
+    "list": {
+      "title": "添付ファイル一覧",
+      "empty": "添付ファイルがありません"
+    },
+    "upload": {
+      "title": "ファイルアップロード",
+      "dropzone": "ファイルをドロップまたはクリックして選択",
+      "formats": "サポート形式: PDF, 画像, 文書",
+      "maxSize": "最大サイズ: 10MB"
+    },
+    "confirm": {
+      "delete": "この添付ファイルを削除してもよろしいですか？"
+    },
+    "errors": {
+      "fileTooLarge": "ファイルサイズが大きすぎます",
+      "invalidType": "無効なファイル形式です"
+    }
+  },
+  "conflicts": {
+    "title": "競合の解決",
+    "description": "他のユーザーによる変更と競合が発生しました",
+    "detectedMessage": "{type}が検出されました（ローカル: v{localVersion}, サーバー: v{serverVersion}）",
+    "types": {
+      "versionMismatch": "バージョンの不一致",
+      "concurrentEdit": "同時編集"
+    },
+    "resolutionOptions": "解決方法を選択",
+    "keepLocal": {
+      "title": "ローカルの変更を保持",
+      "description": "あなたの変更を優先します"
+    },
+    "useServer": {
+      "title": "サーバーの変更を使用",
+      "description": "他のユーザーの変更を優先します"
+    },
+    "merge": {
+      "title": "手動でマージ",
+      "description": "変更を選択的に結合します"
+    },
+    "recommended": "推奨",
+    "fieldComparison": "フィールド比較",
+    "yourVersion": "あなたのバージョン",
+    "serverVersion": "サーバーバージョン",
+    "selectValues": "使用する値を選択",
+    "useYours": "あなたの値",
+    "useTheirs": "他の値",
+    "resolve": "解決"
+  },
+  "reports": {
+    "title": "レポート",
+    "description": "経費の分析とレポート",
+    "filters": {
+      "title": "フィルター",
+      "startDate": "開始日",
+      "endDate": "終了日",
+      "period": "期間",
+      "groupBy": "グループ化"
+    },
+    "periods": {
+      "month": "月次",
+      "quarter": "四半期",
+      "year": "年次",
+      "custom": "カスタム"
+    },
+    "groupBy": {
+      "category": "カテゴリ別",
+      "case": "案件別",
+      "user": "ユーザー別"
+    },
+    "summary": {
+      "totalIncome": "総収入",
+      "totalExpense": "総支出",
+      "balance": "収支",
+      "netAmount": "純額",
+      "transactionCount": "取引件数",
+      "transactions": "取引",
+      "fromLastPeriod": "前期比"
+    },
+    "charts": {
+      "trend": "トレンド",
+      "breakdown": "内訳",
+      "pieChart": "円グラフ",
+      "barChart": "棒グラフ"
+    },
+    "table": {
+      "title": "レポートテーブル",
+      "category": "カテゴリ",
+      "case": "案件",
+      "user": "ユーザー",
+      "income": "収入",
+      "expense": "支出",
+      "balance": "収支",
+      "count": "件数",
+      "total": "合計",
+      "noData": "データがありません"
+    },
+    "actions": {
+      "export": "エクスポート"
+    }
+  },
+  "loading": "読み込み中...",
+  "income": "収入",
+  "expense": "支出",
+  "select": "選択",
+  "category": "カテゴリ",
+  "card": {
+    "ariaLabel": "{description}の経費カード"
+  },
+  "row": {
+    "ariaLabel": "{description} - {amount} {type}"
+  },
+  "accessibility": {
+    "select": "選択",
+    "income": "収入",
+    "expense": "支出",
+    "card": {
+      "ariaLabel": "{description}の経費カード"
+    },
+    "row": {
+      "ariaLabel": "{description} - {amount} {type}"
+    },
+    "loading": {
+      "row": "読み込み中の行 {index}"
+    }
+  }
+}}

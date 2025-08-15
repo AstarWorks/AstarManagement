@@ -1,0 +1,68 @@
+{ "states": 
+{
+  "loading": {
+    "default": "読み込み中...",
+    "data": "データを読み込んでいます...",
+    "saving": "保存中...",
+    "deleting": "削除中...",
+    "uploading": "アップロード中...",
+    "processing": "処理中..."
+  },
+  "error": {
+    "boundary": {
+      "title": "問題が発生しました",
+      "description": "アプリケーションでエラーが発生しました。",
+      "retry": "再試行",
+      "reload": "ページを再読み込み",
+      "support": "サポートに連絡"
+    },
+    "network": {
+      "title": "ネットワークエラー",
+      "description": "インターネット接続を確認してください。",
+      "retry": "再試行"
+    },
+    "validation": {
+      "title": "入力エラー",
+      "description": "入力内容を確認してください。"
+    }
+  },
+  "empty": {
+    "expenses": {
+      "title": "実費データがありません",
+      "description": "最初の実費を記録して、支出管理を始めましょう。",
+      "primaryAction": "実費を追加",
+      "secondaryAction": "サンプルデータを読み込む"
+    },
+    "search": {
+      "title": "検索結果がありません",
+      "description": "検索条件を変更してお試しください。",
+      "primaryAction": "検索条件をクリア"
+    },
+    "filter": {
+      "title": "フィルター結果がありません",
+      "description": "フィルター条件に一致するデータがありません。",
+      "primaryAction": "フィルターをクリア"
+    }
+  },
+  "search": {
+    "suggestions": "検索候補",
+    "tips": {
+      "title": "検索のヒント",
+      "spelling": "スペルや入力内容を確認してください",
+      "keywords": "異なるキーワードを試してください",
+      "filters": "フィルターを調整してください"
+    }
+  },
+  "filters": {
+    "active": "アクティブなフィルター",
+    "remove": "削除",
+    "modify": "フィルターを変更",
+    "suggestions": {
+      "title": "フィルターのコツ",
+      "broaden": "より広い条件に変更してみてください",
+      "different": "異なるフィルター条件を試してください",
+      "dateRange": "日付範囲を調整してください",
+      "categories": "カテゴリ条件を見直してください"
+    }
+  }
+}}

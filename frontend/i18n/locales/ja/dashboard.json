@@ -1,0 +1,54 @@
+{ "dashboard": 
+{
+  "title": "ダッシュボード",
+  "subtitle": "システムの概要と重要な情報を確認できます",
+  "stats": {
+    "activeMatter": "進行中の案件",
+    "activeCases": "進行中の案件",
+    "totalClients": "総顧客数",
+    "documentsThisMonth": "今月の文書数",
+    "revenueThisMonth": "今月の売上",
+    "tasksToday": "今日のタスク",
+    "unreadMessages": "未読メッセージ"
+  },
+  "sections": {
+    "recentMatters": {
+      "title": "最近の案件",
+      "viewAll": "すべての案件を表示"
+    },
+    "upcomingTasks": {
+      "title": "期限の近いタスク",
+      "viewAll": "すべてのタスクを表示",
+      "dueDate": "期限",
+      "status": {
+        "overdue": "期限切れ",
+        "tomorrow": "明日",
+        "urgent": "緊急",
+        "normal": "通常"
+      }
+    },
+    "quickActions": {
+      "title": "クイックアクション",
+      "newMatter": "新規案件",
+      "newClient": "新規顧客",
+      "createDocument": "文書作成",
+      "addExpense": "実費入力"
+    }
+  },
+  "debug": {
+    "title": "デバッグ情報",
+    "userInfo": "ユーザー情報",
+    "permissions": "権限",
+    "roles": "ロール"
+  },
+  "quickActions": {
+    "title": "クイックアクション",
+    "newCase": "新規案件",
+    "newClient": "新規顧客",
+    "createDocument": "文書作成",
+    "addExpense": "実費入力"
+  },
+  "recentActivity": {
+    "empty": "最近のアクティビティはありません"
+  }
+}}

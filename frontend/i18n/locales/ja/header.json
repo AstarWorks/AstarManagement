@@ -1,0 +1,34 @@
+{ "header": 
+{
+  "notifications": {
+    "count": "{count}件の通知",
+    "label": "通知",
+    "empty": "新しい通知はありません",
+    "viewAll": "すべて表示",
+    "markAsRead": "既読にする",
+    "markAllAsRead": "すべて既読にする"
+  },
+  "search": {
+    "label": "検索",
+    "placeholder": "検索...",
+    "shortcut": "Cmd+K",
+    "noResults": "検索結果がありません",
+    "searching": "検索中..."
+  },
+  "sidebar": {
+    "toggle": "サイドバーの表示/非表示",
+    "openMobileMenu": "メニューを開く",
+    "closeMobileMenu": "メニューを閉じる"
+  },
+  "breadcrumb": {
+    "home": "ホーム",
+    "separator": "/"
+  },
+  "userMenu": {
+    "profile": "プロフィール",
+    "settings": "設定",
+    "logout": "ログアウト",
+    "theme": "テーマ",
+    "language": "言語"
+  }
+}}
