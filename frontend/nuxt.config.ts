@@ -1,4 +1,5 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import { fileURLToPath } from 'url'
 import tailwindcss from "@tailwindcss/vite";
 import tailwindAutoReference from 'vite-plugin-vue-tailwind-auto-reference';
 
@@ -22,7 +23,14 @@ export default defineNuxtConfig({
 
     // Auto imports
     imports: {
-        dirs: ['stores/**'],
+        dirs: [
+            'stores/**',
+            'features/*/composables',
+            'features/*/composables/**',
+            'shared/composables',
+            'shared/composables/**',
+            'shared/utils'
+        ],
     },
     devtools: {enabled: process.env.NODE_ENV !== 'production'},
 
@@ -64,6 +72,17 @@ export default defineNuxtConfig({
 
     // Source directory
     srcDir: './app/',
+
+    // Alias configuration
+    alias: {
+        '@features': fileURLToPath(new URL('./app/features', import.meta.url)),
+        '@shared': fileURLToPath(new URL('./app/shared', import.meta.url)),
+        '@infrastructure': fileURLToPath(new URL('./app/infrastructure', import.meta.url)),
+        '@ui': fileURLToPath(new URL('./app/infrastructure/ui', import.meta.url)),
+        '@expense': fileURLToPath(new URL('./app/features/expense', import.meta.url)),
+        '@case': fileURLToPath(new URL('./app/features/case', import.meta.url)),
+        '@auth': fileURLToPath(new URL('./app/features/auth', import.meta.url))
+    },
 
 
     // Build
@@ -144,10 +163,12 @@ export default defineNuxtConfig({
 
     // i18n configuration
     i18n: {
+        vueI18n: '~/config/i18n.config.ts',
         defaultLocale: 'ja',
-        locales: ['ja'],
-        strategy: 'no_prefix',
-        vueI18n: '~/i18n.config.ts'
+        locales: [
+            { code: 'ja', name: '日本語', file: 'ja/index.ts' },
+        ],
+        detectBrowserLanguage: false,
     },
 
     // Pinia
@@ -158,7 +179,7 @@ export default defineNuxtConfig({
     // shadcn configuration
     shadcn: {
         prefix: '',
-        componentDir: '~/components/ui'
+        componentDir: '~/infrastructure/ui'
     },
 
 })
