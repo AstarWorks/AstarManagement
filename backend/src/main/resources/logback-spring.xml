@@ -48,10 +48,10 @@
     </appender>
 
     <!-- Specific logger for expense exception handler -->
-    <logger name="com.astarworks.astarmanagement.expense.presentation.exception" level="INFO"/>
+    <logger name="com.astarworks.astarmanagement.modules.financial.expense.presentation.exception" level="INFO"/>
     
     <!-- Request filter logger -->
-    <logger name="com.astarworks.astarmanagement.infrastructure.config.RequestIdFilter" level="DEBUG"/>
+    <logger name="com.astarworks.astarmanagement.modules.shared.infrastructure.config.RequestIdFilter" level="DEBUG"/>
 
     <!-- Root logger configuration -->
     <springProfile name="local,dev">
