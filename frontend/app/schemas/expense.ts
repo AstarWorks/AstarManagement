@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { createI18nValidation } from '~/utils/validationHelpers'
+import { createI18nValidation } from '@shared/utils/validationHelpers'
 
 /**
  * 経費フォームのバリデーションスキーマ

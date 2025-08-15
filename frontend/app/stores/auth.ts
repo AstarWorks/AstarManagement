@@ -13,7 +13,7 @@ import type {
   ILoginCredentials,
   AuthState,
   IAuthError
-} from '~/types/auth'
+} from '@auth/types/auth'
 import {
   isAuthenticatedState,
   isLoadingState,
@@ -21,9 +21,9 @@ import {
   createAuthError,
   createSuccess,
   createFailure
-} from '~/types/auth'
-import { mockAuthService } from '~/services/mockAuth'
-import { AUTH_CONFIG } from '~/config/authConfig'
+} from '@auth/types/auth'
+import { mockAuthService } from '@auth/services/mockAuth'
+import { AUTH_CONFIG } from '@infrastructure/config/authConfig'
 
 /**
  * 永続化される認証データのスキーマ（型安全）
