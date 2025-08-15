@@ -1,6 +1,6 @@
 package com.astarworks.astarmanagement.expense.presentation.request
 
-import com.astarworks.astarmanagement.expense.fixtures.ExpenseFixtures
+import com.astarworks.astarmanagement.modules.financial.expense.fixtures.ExpenseFixtures
 import jakarta.validation.Validation
 import jakarta.validation.Validator
 import org.assertj.core.api.Assertions.assertThat

@@ -1,10 +1,10 @@
 package com.astarworks.astarmanagement.expense.infrastructure.persistence
 
 import com.astarworks.astarmanagement.base.DatabaseIntegrationTestBase
-import com.astarworks.astarmanagement.expense.domain.model.AuditInfo
-import com.astarworks.astarmanagement.expense.domain.model.Tag
-import com.astarworks.astarmanagement.expense.domain.model.TagScope
-import com.astarworks.astarmanagement.expense.domain.repository.TagRepository
+import com.astarworks.astarmanagement.modules.financial.expense.domain.model.AuditInfo
+import com.astarworks.astarmanagement.modules.financial.expense.domain.model.Tag
+import com.astarworks.astarmanagement.modules.financial.expense.domain.model.TagScope
+import com.astarworks.astarmanagement.modules.financial.expense.domain.repository.TagRepository
 import org.assertj.core.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.AfterEach

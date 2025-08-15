@@ -1,8 +1,8 @@
 package com.astarworks.astarmanagement.expense.presentation.exception
 
-import com.astarworks.astarmanagement.expense.domain.model.*
-import com.astarworks.astarmanagement.expense.presentation.response.ErrorResponse
-import com.astarworks.astarmanagement.expense.presentation.response.ValidationErrorDetail
+import com.astarworks.astarmanagement.modules.financial.expense.domain.model.*
+import com.astarworks.astarmanagement.modules.financial.expense.presentation.response.ErrorResponse
+import com.astarworks.astarmanagement.modules.financial.expense.presentation.response.ValidationErrorDetail
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith

@@ -1,9 +1,9 @@
 package com.astarworks.astarmanagement.expense.fixtures
 
-import com.astarworks.astarmanagement.expense.domain.model.Expense
-import com.astarworks.astarmanagement.expense.domain.model.Tag
-import com.astarworks.astarmanagement.expense.domain.model.TagScope
-import com.astarworks.astarmanagement.expense.presentation.request.CreateExpenseRequest
+import com.astarworks.astarmanagement.modules.financial.expense.domain.model.Expense
+import com.astarworks.astarmanagement.modules.financial.expense.domain.model.Tag
+import com.astarworks.astarmanagement.modules.financial.expense.domain.model.TagScope
+import com.astarworks.astarmanagement.modules.financial.expense.presentation.request.CreateExpenseRequest
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.UUID

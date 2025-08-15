@@ -1,8 +1,8 @@
 package com.astarworks.astarmanagement.base
 
-import com.astarworks.astarmanagement.domain.entity.User
-import com.astarworks.astarmanagement.domain.entity.UserRole
-import com.astarworks.astarmanagement.infrastructure.security.SecurityContextService
+import com.astarworks.astarmanagement.modules.shared.domain.entity.User
+import com.astarworks.astarmanagement.modules.shared.domain.entity.UserRole
+import com.astarworks.astarmanagement.modules.shared.infrastructure.security.SecurityContextService
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever

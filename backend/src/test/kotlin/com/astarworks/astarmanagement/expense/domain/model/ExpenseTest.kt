@@ -1,7 +1,7 @@
 package com.astarworks.astarmanagement.expense.domain.model
 
-import com.astarworks.astarmanagement.expense.fixtures.ExpenseFixtures
-import com.astarworks.astarmanagement.expense.fixtures.TagFixtures
+import com.astarworks.astarmanagement.modules.financial.expense.fixtures.ExpenseFixtures
+import com.astarworks.astarmanagement.modules.financial.expense.fixtures.TagFixtures
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test

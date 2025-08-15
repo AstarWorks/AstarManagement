@@ -1,7 +1,7 @@
 package com.astarworks.astarmanagement.expense.fixtures
 
-import com.astarworks.astarmanagement.expense.domain.model.Tag
-import com.astarworks.astarmanagement.expense.domain.model.TagScope
+import com.astarworks.astarmanagement.modules.financial.expense.domain.model.Tag
+import com.astarworks.astarmanagement.modules.financial.expense.domain.model.TagScope
 import java.util.UUID
 
 /**

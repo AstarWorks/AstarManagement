@@ -1,8 +1,8 @@
 package com.astarworks.astarmanagement.expense.presentation.controller
 
-import com.astarworks.astarmanagement.expense.application.service.ExpenseService
-import com.astarworks.astarmanagement.expense.fixtures.ExpenseFixtures
-import com.astarworks.astarmanagement.expense.presentation.response.ExpenseResponse
+import com.astarworks.astarmanagement.modules.financial.expense.application.service.ExpenseService
+import com.astarworks.astarmanagement.modules.financial.expense.fixtures.ExpenseFixtures
+import com.astarworks.astarmanagement.modules.financial.expense.presentation.response.ExpenseResponse
 import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
