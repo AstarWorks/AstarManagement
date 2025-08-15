@@ -3,6 +3,8 @@
  * Single Source of Truth: 全ナビゲーション型をここに集約
  */
 
+import type { LocaleKey } from './locale-messages'
+
 /**
  * ナビゲーション項目（表示用）
  */
@@ -29,16 +31,16 @@ export interface INavigationItem {
  */
 export interface INavigationItemConfig {
   id: string
-  labelKey: string
+  labelKey: LocaleKey
   path: string
   icon: string
-  descriptionKey?: string
+  descriptionKey?: LocaleKey
   requiredPermissions?: string[]
   requiredRoles?: string[]
   requireAny?: boolean
   children?: INavigationItemConfig[]
   badge?: {
-    textKey: string
+    textKey: LocaleKey
     variant: 'default' | 'destructive' | 'outline' | 'secondary'
   }
   isExternal?: boolean

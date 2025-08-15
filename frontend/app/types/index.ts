@@ -34,7 +34,7 @@ export {
 } from './expense'
 
 // Re-export all common types (but avoid conflicts)
-export * from './common/ui'
+export * from '@shared/types/common/ui'
 export type {
   ValidationRule,
   IFieldValidationRules,
@@ -49,7 +49,7 @@ export type {
   ICrossFieldValidationRule,
   IConditionalValidationRule,
   DynamicValidationSchema
-} from './common/validation'
+} from '@shared/types/common/validation'
 export type {
   HttpMethod,
   IApiRequestConfig,
@@ -71,11 +71,11 @@ export type {
   RouteParams,
   QueryParams,
   IApiHookResult
-} from './common/api'
+} from '@shared/types/common/api'
 
 export {
   HttpStatusCode
-} from './common/api'
+} from '@shared/types/common/api'
 
 // Re-export existing types (maintain compatibility)
 export type {
@@ -93,14 +93,14 @@ export type {
   SessionInfo,
   LoginResponse,
   AuthStatus
-} from './auth'
+} from '@auth/types/auth'
 
 export type {
   ICase,
   CaseStatus,
   CasePriority,
   ICaseActivity
-} from './case'
+} from '@case/types/case'
 
 export type {
   ICommonMessages,

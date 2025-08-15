@@ -4,6 +4,25 @@
  */
 
 // 共通UI要素
+// Import actual locale types
+import type commonMessages from '~~/i18n/locales/ja/common.json'
+import type authMessages from '~~/i18n/locales/ja/auth.json'
+import type navigationMessages from '~~/i18n/locales/ja/navigation.json'
+import type expenseMessages from '~~/i18n/locales/ja/expense.json'
+import type statesMessages from '~~/i18n/locales/ja/states.json'
+import type matterMessages from '~~/i18n/locales/ja/matter.json'
+import type casesMessages from '~~/i18n/locales/ja/cases.json'
+import type clientMessages from '~~/i18n/locales/ja/client.json'
+import type documentMessages from '~~/i18n/locales/ja/document.json'
+import type financeMessages from '~~/i18n/locales/ja/finance.json'
+import type adminMessages from '~~/i18n/locales/ja/admin.json'
+import type notificationMessages from '~~/i18n/locales/ja/notification.json'
+import type dashboardMessages from '~~/i18n/locales/ja/dashboard.json'
+import type settingsMessages from '~~/i18n/locales/ja/settings.json'
+import type errorMessages from '~~/i18n/locales/ja/error.json'
+import type headerMessages from '~~/i18n/locales/ja/header.json'
+import type languageMessages from '~~/i18n/locales/ja/language.json'
+
 export interface ICommonMessages {
   confirm: string
   cancel: string
@@ -497,19 +516,25 @@ export interface IFooterMessages {
 
 // メインメッセージ型を更新
 export interface ILocaleMessages {
-  common: ICommonMessages
-  navigation: INavigationMessages
-  auth: IAuthMessages
-  dashboard: IDashboardMessages
-  matter: IMatterMessages
-  client: IClientMessages
-  document: IDocumentMessages
-  finance: IFinanceMessages
-  admin: IAdminMessages
-  error: IErrorMessages
-  notification: INotificationMessages
-  access: IAccessMessages
-  footer: IFooterMessages
+  common: typeof commonMessages
+  auth: typeof authMessages
+  navigation: typeof navigationMessages
+  expense: typeof expenseMessages
+  states: typeof statesMessages
+  matter: typeof matterMessages
+  cases: typeof casesMessages
+  client: typeof clientMessages
+  document: typeof documentMessages
+  finance: typeof financeMessages
+  admin: typeof adminMessages
+  notification: typeof notificationMessages
+  dashboard: typeof dashboardMessages
+  settings: typeof settingsMessages
+  error: typeof errorMessages
+  header: typeof headerMessages
+  language: typeof languageMessages
+  access?: IAccessMessages
+  footer?: IFooterMessages
 }
 
 // 後方互換性のためのエイリアス

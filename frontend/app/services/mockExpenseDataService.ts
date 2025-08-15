@@ -5,9 +5,8 @@ import type {
   IUpdateExpenseRequest,
   IExpenseStatistics,
   ITag,
-  IAttachment
-} from '~/types/expense'
-import type { IExpenseList } from '~/types/expense/expense'
+  IAttachment, IExpenseList 
+} from '@expense/types/expense'
 
 /**
  * Mock Data Generation Service for Expense Management
