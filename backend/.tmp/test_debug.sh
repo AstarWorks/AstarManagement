@@ -1,0 +1,2 @@
+#!/bin/bash
+./gradlew test --tests "*should enforce unique normalized names within tenant and scope*" 2>&1 | grep -E "(Database constraints|Created first tag|Attempting to save|Saved duplicate|Flushed duplicate|AssertionFailedError|Exception)"
