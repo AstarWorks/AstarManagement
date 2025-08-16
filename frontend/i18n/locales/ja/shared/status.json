@@ -1,0 +1,35 @@
+{
+  "shared": {
+    "status": {
+      "active": "有効",
+      "inactive": "無効",
+      "pending": "保留中",
+      "processing": "処理中",
+      "completed": "完了",
+      "failed": "失敗",
+      "success": "成功",
+      "error": "エラー",
+      "warning": "警告",
+      "info": "情報",
+      "draft": "下書き",
+      "published": "公開済み",
+      "archived": "アーカイブ済み",
+      "deleted": "削除済み",
+      "online": "オンライン",
+      "offline": "オフライン",
+      "available": "利用可能",
+      "unavailable": "利用不可",
+      "enabled": "有効",
+      "disabled": "無効",
+      "locked": "ロック中",
+      "unlocked": "ロック解除",
+      "approved": "承認済み",
+      "rejected": "却下",
+      "reviewing": "レビュー中",
+      "inProgress": "進行中",
+      "scheduled": "予定済み",
+      "cancelled": "キャンセル済み",
+      "expired": "期限切れ"
+    }
+  }
+}

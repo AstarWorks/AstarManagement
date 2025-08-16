@@ -1,6 +1,46 @@
 { "cases": 
 {
+  "data": {
+    "loading": "データを読み込み中...",
+    "error": "データの読み込みに失敗しました",
+    "empty": "データがありません",
+    "noResults": "検索結果がありません",
+    "loadSuccess": "データを読み込みました",
+    "loadError": "データの読み込みに失敗しました",
+    "statusUpdateSuccess": "ステータスを更新しました",
+    "statusUpdateError": "ステータスの更新に失敗しました",
+    "createSuccess": "案件を作成しました",
+    "createError": "案件の作成に失敗しました",
+    "deleteSuccess": "案件を削除しました",
+    "deleteError": "案件の削除に失敗しました"
+  },
+  "dueDate": {
+    "overdue": "期限超過",
+    "today": "本日期限",
+    "tomorrow": "明日期限",
+    "soon": "期限間近",
+    "days": "{days}日後",
+    "noDueDate": "期限なし",
+    "alert": {
+      "overdue": "期限を過ぎています",
+      "today": "本日が期限です",
+      "tomorrow": "明日が期限です",
+      "soon": "まもなく期限です",
+      "daysLate": "{days}日遅れています",
+      "dueToday": "本日が期限です",
+      "urgent": "至急対応が必要です",
+      "daysRemaining": "あと{days}日です",
+      "warning": "期限が近づいています"
+    }
+  },
   "card": {
+    "dueDate": {
+      "label": "期限",
+      "today": "本日期限",
+      "tomorrow": "明日期限",
+      "overdue": "期限超過",
+      "daysLeft": "{days}日後"
+    },
     "progress": "進捗",
     "ariaLabel": "案件: {title} - 依頼者: {client}"
   },

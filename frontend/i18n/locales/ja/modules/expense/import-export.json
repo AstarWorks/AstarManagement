@@ -1,0 +1,94 @@
+{
+  "expense": {
+    "importExport": {
+      "import": {
+        "title": "経費のインポート",
+        "subtitle": "CSVファイルから経費データをインポート",
+        "selectFile": "ファイルを選択",
+        "dragDrop": "またはここにドラッグ＆ドロップ",
+        "template": "テンプレートをダウンロード",
+        "preview": "プレビュー",
+        "mapping": {
+          "title": "フィールドマッピング",
+          "auto": "自動マッピング",
+          "manual": "手動マッピング",
+          "csvColumn": "CSVカラム",
+          "systemField": "システムフィールド",
+          "ignore": "無視"
+        },
+        "validation": {
+          "title": "検証結果",
+          "valid": "有効",
+          "invalid": "無効",
+          "warning": "警告",
+          "errors": "エラー",
+          "fixed": "修正済み"
+        },
+        "options": {
+          "skipDuplicates": "重複をスキップ",
+          "updateExisting": "既存データを更新",
+          "dryRun": "テスト実行"
+        },
+        "progress": {
+          "uploading": "アップロード中",
+          "parsing": "解析中",
+          "validating": "検証中",
+          "importing": "インポート中",
+          "complete": "完了"
+        },
+        "results": {
+          "success": "{count}件をインポートしました",
+          "partial": "{success}件成功、{failed}件失敗",
+          "failed": "インポートに失敗しました",
+          "skipped": "{count}件をスキップしました"
+        }
+      },
+      "export": {
+        "title": "経費のエクスポート",
+        "subtitle": "経費データをファイルにエクスポート",
+        "format": {
+          "title": "形式を選択",
+          "csv": "CSV",
+          "excel": "Excel",
+          "pdf": "PDF",
+          "json": "JSON"
+        },
+        "range": {
+          "title": "範囲を選択",
+          "all": "すべて",
+          "filtered": "フィルター適用済み",
+          "selected": "選択した項目",
+          "dateRange": "期間指定"
+        },
+        "fields": {
+          "title": "フィールドを選択",
+          "all": "すべてのフィールド",
+          "basic": "基本フィールド",
+          "custom": "カスタム選択"
+        },
+        "options": {
+          "includeHeaders": "ヘッダーを含める",
+          "includeAttachments": "添付ファイルを含める",
+          "includeSummary": "集計を含める",
+          "formatDates": "日付をフォーマット",
+          "formatCurrency": "通貨をフォーマット"
+        },
+        "filename": {
+          "label": "ファイル名",
+          "placeholder": "expenses_{date}",
+          "preview": "プレビュー"
+        },
+        "progress": {
+          "preparing": "準備中",
+          "generating": "生成中",
+          "downloading": "ダウンロード中",
+          "complete": "完了"
+        },
+        "results": {
+          "success": "エクスポートが完了しました",
+          "failed": "エクスポートに失敗しました"
+        }
+      }
+    }
+  }
+}

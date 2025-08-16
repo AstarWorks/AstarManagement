@@ -1,0 +1,77 @@
+{
+  "expense": {
+    "statistics": {
+      "title": "経費統計",
+      "subtitle": "経費の分析とレポート",
+      "overview": {
+        "title": "概要",
+        "totalExpenses": "総経費",
+        "monthlyAverage": "月平均",
+        "yearToDate": "年初来累計",
+        "lastMonth": "先月",
+        "thisMonth": "今月",
+        "growth": "成長率",
+        "trend": "トレンド"
+      },
+      "byCategory": {
+        "title": "カテゴリ別",
+        "chart": "カテゴリ別グラフ",
+        "table": "カテゴリ別集計",
+        "top": "上位カテゴリ",
+        "other": "その他"
+      },
+      "byPeriod": {
+        "title": "期間別",
+        "daily": "日別",
+        "weekly": "週別",
+        "monthly": "月別",
+        "quarterly": "四半期別",
+        "yearly": "年別"
+      },
+      "byProject": {
+        "title": "プロジェクト別",
+        "active": "アクティブプロジェクト",
+        "completed": "完了プロジェクト",
+        "budget": "予算",
+        "actual": "実績",
+        "variance": "差異"
+      },
+      "byMatter": {
+        "title": "案件別",
+        "billable": "請求可能",
+        "nonBillable": "請求不可",
+        "reimbursable": "精算可能"
+      },
+      "byUser": {
+        "title": "ユーザー別",
+        "submitter": "申請者",
+        "approver": "承認者",
+        "department": "部門"
+      },
+      "metrics": {
+        "total": "合計",
+        "count": "件数",
+        "average": "平均",
+        "median": "中央値",
+        "min": "最小",
+        "max": "最大",
+        "standardDeviation": "標準偏差"
+      },
+      "comparison": {
+        "title": "比較",
+        "previousPeriod": "前期比",
+        "yearOverYear": "前年同期比",
+        "budget": "予算比",
+        "forecast": "予測比"
+      },
+      "export": {
+        "title": "エクスポート",
+        "format": "形式",
+        "pdf": "PDFレポート",
+        "excel": "Excelファイル",
+        "csv": "CSVファイル",
+        "customize": "カスタマイズ"
+      }
+    }
+  }
+}

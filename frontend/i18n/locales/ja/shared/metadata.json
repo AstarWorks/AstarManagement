@@ -1,0 +1,18 @@
+{
+  "shared": {
+    "metadata": {
+      "createdAt": "作成日時",
+      "createdBy": "作成者",
+      "updatedAt": "更新日時",
+      "updatedBy": "更新者",
+      "deletedAt": "削除日時",
+      "deletedBy": "削除者",
+      "lastModified": "最終更新",
+      "version": "バージョン",
+      "revision": "リビジョン",
+      "owner": "所有者",
+      "author": "作成者",
+      "editor": "編集者"
+    }
+  }
+}

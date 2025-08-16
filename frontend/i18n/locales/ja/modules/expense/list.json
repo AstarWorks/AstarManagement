@@ -1,0 +1,81 @@
+{
+  "expense": {
+    "list": {
+      "title": "経費一覧",
+      "subtitle": "経費の記録と管理",
+      "description": "経費の記録と管理を行います",
+      "navigation": {
+        "title": "実費管理",
+        "badge": "新着",
+        "list": "実費一覧",
+        "new": "新規実費",
+        "import": "CSVインポート",
+        "reports": "集計レポート"
+      },
+      "quickActions": {
+        "create": {
+          "label": "新規作成",
+          "description": "新しい経費を登録"
+        },
+        "import": {
+          "label": "インポート",
+          "description": "CSVファイルから一括登録"
+        },
+        "export": {
+          "label": "エクスポート",
+          "description": "データをエクスポート"
+        },
+        "reports": {
+          "label": "レポート",
+          "description": "レポートを表示"
+        }
+      },
+      "filters": {
+        "dateRange": "期間",
+        "category": "カテゴリ",
+        "status": "ステータス",
+        "amount": "金額範囲",
+        "paymentMethod": "支払方法",
+        "project": "プロジェクト",
+        "client": "クライアント",
+        "tags": "タグ"
+      },
+      "sort": {
+        "date": "日付",
+        "amount": "金額",
+        "category": "カテゴリ",
+        "status": "ステータス",
+        "vendor": "支払先"
+      },
+      "bulk": {
+        "selected": "{count}件を選択中",
+        "approve": "一括承認",
+        "reject": "一括却下",
+        "delete": "一括削除",
+        "export": "選択した項目をエクスポート"
+      },
+      "empty": {
+        "title": "経費がありません",
+        "description": "まだ経費が登録されていません。",
+        "action": "最初の経費を登録",
+        "tips": {
+          "title": "ヒント",
+          "tip1": "右上の「新規作成」ボタンから経費を追加できます",
+          "tip2": "CSVファイルからインポートすることも可能です",
+          "tip3": "フィルターを解除して全データを表示してみてください"
+        }
+      },
+      "summary": {
+        "total": "合計金額",
+        "count": "件数",
+        "average": "平均金額",
+        "pending": "承認待ち",
+        "approved": "承認済み"
+      },
+      "table": {
+        "selectAll": "すべて選択",
+        "selectRow": "行を選択"
+      }
+    }
+  }
+}

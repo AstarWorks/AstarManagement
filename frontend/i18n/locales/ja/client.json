@@ -20,7 +20,7 @@
     },
     "email": {
       "label": "メールアドレス",
-      "placeholder": "example@example.com"
+      "placeholder": "メールアドレスを入力"
     },
     "phone": {
       "label": "電話番号",

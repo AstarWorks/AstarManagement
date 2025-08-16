@@ -1,0 +1,50 @@
+{
+  "shared": {
+    "ui": {
+      "loading": "読み込み中...",
+      "processing": "処理中...",
+      "saving": "保存中...",
+      "deleting": "削除中...",
+      "uploading": "アップロード中...",
+      "downloading": "ダウンロード中...",
+      "loadingMore": "さらに読み込み中...",
+      "noData": "データがありません",
+      "noResults": "結果がありません",
+      "none": "なし",
+      "all": "すべて",
+      "unknown": "不明",
+      "unknownUser": "不明なユーザー",
+      "user": "ユーザー",
+      "guest": "ゲスト",
+      "yes": "はい",
+      "no": "いいえ",
+      "ok": "OK",
+      "on": "オン",
+      "off": "オフ",
+      "enabled": "有効",
+      "disabled": "無効",
+      "required": "必須",
+      "optional": "任意",
+      "placeholder": {
+        "default": "入力してください",
+        "enterHere": "ここに入力",
+        "select": "選択してください",
+        "search": "検索..."
+      },
+      "tooltip": {
+        "info": "情報",
+        "warning": "警告",
+        "error": "エラー",
+        "success": "成功",
+        "help": "ヘルプ"
+      },
+      "badge": {
+        "new": "新着",
+        "hot": "人気",
+        "beta": "ベータ",
+        "pro": "プロ",
+        "free": "無料"
+      }
+    }
+  }
+}

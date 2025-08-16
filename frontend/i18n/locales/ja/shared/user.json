@@ -1,0 +1,28 @@
+{
+  "shared": {
+    "user": {
+      "profile": "プロフィール",
+      "settings": "設定",
+      "account": "アカウント",
+      "preferences": "環境設定",
+      "notifications": "通知",
+      "security": "セキュリティ",
+      "privacy": "プライバシー",
+      "login": "ログイン",
+      "logout": "ログアウト",
+      "register": "登録",
+      "forgotPassword": "パスワードを忘れた方",
+      "resetPassword": "パスワードリセット",
+      "changePassword": "パスワード変更",
+      "user": "ユーザー",
+      "users": "ユーザー",
+      "guest": "ゲスト",
+      "admin": "管理者",
+      "member": "メンバー",
+      "owner": "オーナー",
+      "unknown": "不明なユーザー",
+      "anonymous": "匿名",
+      "system": "システム"
+    }
+  }
+}

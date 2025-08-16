@@ -52,6 +52,18 @@
         "title": "完了",
         "description": "案件終了",
         "empty": "完了した案件がありません"
+      },
+      "mediation": {
+        "title": "調停",
+        "description": "調停手続き"
+      },
+      "court": {
+        "title": "法廷",
+        "description": "法廷手続き"
+      },
+      "resolved": {
+        "title": "解決",
+        "description": "案件解決"
       }
     },
     "dragDrop": {
@@ -130,7 +142,8 @@
       "clientType": "種別: {type}",
       "priority": "優先度: {priority}",
       "assignedLawyer": "担当弁護士: {lawyer}",
-      "dateRange": "期間: {range}"
+      "dateRange": "期間: {range}",
+      "tags": "タグ: {tags}"
     }
   },
   "create": {
@@ -204,6 +217,9 @@
     "negotiation": "交渉",
     "trial": "裁判",
     "completed": "完了",
+    "mediation": "調停",
+    "court": "法廷",
+    "resolved": "解決",
     "active": "進行中",
     "pending": "保留",
     "cancelled": "キャンセル"

@@ -1,0 +1,29 @@
+{
+  "shared": {
+    "filters": {
+      "title": "フィルター",
+      "apply": "適用",
+      "clear": "クリア",
+      "reset": "リセット",
+      "active": "適用中のフィルター",
+      "available": "利用可能なフィルター",
+      "modify": "フィルターを変更",
+      "remove": "削除",
+      "add": "フィルターを追加",
+      "noFilters": "フィルターなし",
+      "custom": "カスタムフィルター",
+      "preset": "プリセット",
+      "dateRange": "期間",
+      "status": "ステータス",
+      "category": "カテゴリ",
+      "tags": "タグ",
+      "suggestions": {
+        "title": "フィルターの提案",
+        "broaden": "条件を広げてみてください",
+        "different": "異なる条件を試してください",
+        "dateRange": "日付範囲を調整してください",
+        "categories": "カテゴリを変更してください"
+      }
+    }
+  }
+}
