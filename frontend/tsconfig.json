@@ -14,19 +14,5 @@
     {
       "path": "./.nuxt/tsconfig.node.json"
     }
-  ],
-  "compilerOptions": {
-    "resolveJsonModule": true,
-    "paths": {
-      "@/*": ["./*"],
-      "~/*": ["./app/*"],
-      "@features/*": ["./app/features/*"],
-      "@shared/*": ["./app/shared/*"],
-      "@infrastructure/*": ["./app/infrastructure/*"],
-      "@ui/*": ["./app/infrastructure/ui/*"],
-      "@expense/*": ["./app/features/expense/*"],
-      "@case/*": ["./app/features/case/*"],
-      "@auth/*": ["./app/features/auth/*"]
-    }
-  }
+  ]
 }

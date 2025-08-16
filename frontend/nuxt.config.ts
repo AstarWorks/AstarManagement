@@ -18,18 +18,17 @@ export default defineNuxtConfig({
         '@nuxtjs/i18n',
     ],
 
-    // Server-side rendering
-    ssr: true,
+    // Client-side rendering only (SPA mode)
+    ssr: false,
 
     // Auto imports
     imports: {
         dirs: [
-            'stores/**',
-            'features/*/composables',
-            'features/*/composables/**',
-            'shared/composables',
-            'shared/composables/**',
-            'shared/utils'
+            'modules/*/stores/**',
+            'modules/*/composables/**',
+            'foundation/stores/**',
+            'foundation/composables/**',
+            'foundation/utils'
         ],
     },
     devtools: {enabled: process.env.NODE_ENV !== 'production'},
@@ -75,13 +74,9 @@ export default defineNuxtConfig({
 
     // Alias configuration
     alias: {
-        '@features': fileURLToPath(new URL('./app/features', import.meta.url)),
-        '@shared': fileURLToPath(new URL('./app/shared', import.meta.url)),
-        '@infrastructure': fileURLToPath(new URL('./app/infrastructure', import.meta.url)),
-        '@ui': fileURLToPath(new URL('./app/infrastructure/ui', import.meta.url)),
-        '@expense': fileURLToPath(new URL('./app/features/expense', import.meta.url)),
-        '@case': fileURLToPath(new URL('./app/features/case', import.meta.url)),
-        '@auth': fileURLToPath(new URL('./app/features/auth', import.meta.url))
+        '@modules': fileURLToPath(new URL('./app/modules', import.meta.url)),
+        '@foundation': fileURLToPath(new URL('./app/foundation', import.meta.url)),
+        '@ui': fileURLToPath(new URL('./app/foundation/components/ui', import.meta.url))
     },
 
 
@@ -99,6 +94,7 @@ export default defineNuxtConfig({
 
     // Generate
     nitro: {
+        preset: 'static',  // For SPA mode with static hosting
         esbuild: {
             options: {
                 target: ['chrome91', 'firefox90', 'safari15'],
@@ -163,12 +159,10 @@ export default defineNuxtConfig({
 
     // i18n configuration
     i18n: {
-        vueI18n: '~/config/i18n.config.ts',
+        vueI18n: '~/i18n.config.ts',
         defaultLocale: 'ja',
-        locales: [
-            { code: 'ja', name: '日本語', file: 'ja/index.ts' },
-        ],
         detectBrowserLanguage: false,
+        strategy: 'no_prefix',
     },
 
     // Pinia
@@ -179,7 +173,7 @@ export default defineNuxtConfig({
     // shadcn configuration
     shadcn: {
         prefix: '',
-        componentDir: '~/infrastructure/ui'
+        componentDir: '~/foundation/components/ui'
     },
 
 })

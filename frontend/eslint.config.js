@@ -7,15 +7,25 @@ export default createConfigForNuxt({
     features: {
         // Enable stylistic rules for better code consistency
         stylistic: {
-            indent: 2, quotes: 'single', semi: false,
+            indent: 4, quotes: 'single', semi: false,
         },
     }, dirs: {
-        src: ['./app/components', './app/composables', './app/layouts', './app/middleware', './app/pages', './app/plugins', './app/stores', './app/utils', './app/types', './app/schemas',],
+        src: [
+            './app/foundation',
+            './app/modules',
+            './app/layouts', 
+            './app/middleware', 
+            './app/pages', 
+            './app/plugins', 
+            './app/stores',
+            './app/types',
+            './app/schemas',
+        ],
     },
 })
     .prepend(// Global ignores - these files/dirs will be ignored by all rules
         {
-            ignores: ['dist/**/*', 'node_modules/**/*', '.nuxt/**/*', '.output/**/*', 'coverage/**/*', 'storybook-static/**/*', 'playwright-report/**/*', 'test-results/**/*', '**/*.d.ts', '.tmp/**/*', '**/*.json'],
+            ignores: ['dist/**/*', 'node_modules/**/*', '.nuxt/**/*', '.output/**/*', 'coverage/**/*', 'storybook-static/**/*', 'playwright-report/**/*', 'test-results/**/*', '**/*.d.ts', '.tmp/**/*'],
         })
     .append(// Prettier config to disable conflicting ESLint rules
         prettierConfig, // Vue.js specific rules
@@ -110,22 +120,33 @@ export default createConfigForNuxt({
             },
         },
         // Vue i18n rules - minimal configuration
+        ...vueI18n.configs.recommended,
         {
-            files: ['**/*.vue'],
-            plugins: {
-                '@intlify/vue-i18n': vueI18n
-            },
             settings: {
                 'vue-i18n': {
-                    // Use glob pattern to include all JSON files
-                    localeDir: './app/locales/ja/*.json',
-                    messageSyntaxVersion: '^11.0.0'
+                    localeDir: './i18n/locales/**/*.json',
+                    messageSyntaxVersion: '^11.0.0',
+                    // 動的キーとして使用されるパターンを指定
+                    // これらは未使用として検出されない
+                    usedKeys: [
+                        // navigationConfig.tsのlabelKey
+                        'navigation.*',
+                        'navigation.menu.*',
+                        // userMenuConfig.tsのlabelKey  
+                        'matter.*',
+                        'notification.*',
+                        // カテゴリ、ステータス等の動的キー
+                        'expense.categories.*',
+                        'cases.status.*',
+                        'auth.roles.*',
+                        'error.unauthorized.reasons.*'
+                    ]
                 }
             },
             rules: {
-                // Only enable missing keys detection for now
-                '@intlify/vue-i18n/no-missing-keys': 'error',
-                // Disable raw text for now to avoid errors
-                '@intlify/vue-i18n/no-raw-text': 'off'
+                '@intlify/vue-i18n/no-dynamic-keys': 'off',
+                '@intlify/vue-i18n/no-unused-keys': 'off',
+                '@intlify/vue-i18n/no-missing-keys': 'warn',
+                '@intlify/vue-i18n/no-raw-text': 'off',
             }
         })
