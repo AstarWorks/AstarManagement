@@ -92,7 +92,7 @@
 </template>
 
 <script setup lang="ts">
-import { Alert, AlertTitle, AlertDescription } from '@ui/alert'
+import { Alert, AlertTitle, AlertDescription } from '~/foundation/components/ui/alert'
 
 // Page metadata
 definePageMeta({

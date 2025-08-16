@@ -193,8 +193,8 @@
 </template>
 
 <script setup lang="ts">
-import type { IExpense, IAttachment } from '@expense/types/expense'
-import { AttachmentStatus } from '@expense/types/expense'
+import type { IExpense, IAttachment } from '~/modules/expense/types'
+import { AttachmentStatus } from '~/modules/expense/types'
 import { 
   Breadcrumb, 
   BreadcrumbList, 
@@ -202,11 +202,11 @@ import {
   BreadcrumbLink, 
   BreadcrumbPage, 
   BreadcrumbSeparator 
-} from '@ui/breadcrumb'
-import { Card, CardContent, CardHeader, CardTitle } from '@ui/card'
-import { Button } from '@ui/button/index'
+} from '~/foundation/components/ui/breadcrumb'
+import { Card, CardContent, CardHeader, CardTitle } from '~/foundation/components/ui/card'
+import { Button } from '~/foundation/components/ui/button/index'
 import { Icon } from '#components'
-import authMiddleware from '~/infrastructure/middleware/auth'
+import authMiddleware from '~/middleware/auth'
 
 defineOptions({
   name: 'ExpenseAttachments'

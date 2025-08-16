@@ -8,7 +8,7 @@
 </template>
 
 <script setup lang="ts">
-import redirectMiddleware from '~/infrastructure/middleware/redirect'
+import redirectMiddleware from '~/middleware/redirect'
 
 // リダイレクトミドルウェアを使用
 definePageMeta({

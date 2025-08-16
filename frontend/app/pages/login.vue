@@ -8,9 +8,9 @@
 </template>
 
 <script setup lang="ts">
-import type { LoginCredentials } from '@auth/types/auth'
-import LoginForm from '@auth/components/LoginForm.vue'
-import guestMiddleware from '~/infrastructure/middleware/guest'
+import type { LoginCredentials } from '~/modules/auth/types/auth'
+import LoginForm from '~/modules/auth/components/LoginForm.vue'
+import guestMiddleware from '~/middleware/guest'
 
 // ゲスト専用ページ（認証済みユーザーはリダイレクト）
 definePageMeta({

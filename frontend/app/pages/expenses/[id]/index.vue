@@ -23,14 +23,14 @@
 </template>
 
 <script setup lang="ts">
-import type { IExpense, IAttachment } from '@expense/types/expense'
-import { TagScope as _TagScope, AttachmentStatus as _AttachmentStatus } from '@expense/types/expense'
-import ExpenseDetailView from '@expense/components/detail/ExpenseDetailView.vue'
-import ExpenseDeleteDialog from '@expense/components/form/ExpenseDeleteDialog.vue'
-import { useExpenseActions } from '@expense/composables/actions/useExpenseActions'
-import { useExpenseDelete } from '@expense/composables/actions/useExpenseDelete'
+import type { IExpense, IAttachment } from '~/modules/expense/types'
+import { TagScope as _TagScope, AttachmentStatus as _AttachmentStatus } from '~/modules/expense/types'
+import ExpenseDetailView from '~/modules/expense/components/detail/ExpenseDetailView.vue'
+import ExpenseDeleteDialog from '~/modules/expense/components/form/ExpenseDeleteDialog.vue'
+import { useExpenseActions } from '~/modules/expense/composables/actions/useExpenseActions'
+import { useExpenseDelete } from '~/modules/expense/composables/actions/useExpenseDelete'
 import { toast } from 'vue-sonner'
-import authMiddleware from '~/infrastructure/middleware/auth'
+import authMiddleware from '~/middleware/auth'
 
 // Meta
 definePageMeta({

@@ -269,18 +269,18 @@ import {
   BreadcrumbLink, 
   BreadcrumbPage, 
   BreadcrumbSeparator 
-} from '@ui/breadcrumb'
-import { Card, CardContent, CardHeader, CardTitle } from '@ui/card'
-import { Button } from '@ui/button/index'
-import { Input } from '@ui/input/index'
-import { Label } from '@ui/label'
+} from '~/foundation/components/ui/breadcrumb'
+import { Card, CardContent, CardHeader, CardTitle } from '~/foundation/components/ui/card'
+import { Button } from '~/foundation/components/ui/button/index'
+import { Input } from '~/foundation/components/ui/input/index'
+import { Label } from '~/foundation/components/ui/label'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@ui/select'
+} from '~/foundation/components/ui/select'
 import {
   Table,
   TableBody,
@@ -288,10 +288,10 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@ui/table'
+} from '~/foundation/components/ui/table'
 import { Icon } from '#components'
 
-import authMiddleware from '~/infrastructure/middleware/auth'
+import authMiddleware from '~/middleware/auth'
 
 defineOptions({
   name: 'ExpenseReports'

@@ -77,7 +77,7 @@
 </template>
 
 <script setup lang="ts">
-import type {ExpenseFormData} from '~/schemas/expense'
+import type {ExpenseFormData} from '~/modules/expense/schemas/expense'
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -85,13 +85,13 @@ import {
   BreadcrumbLink,
   BreadcrumbPage,
   BreadcrumbSeparator
-} from '@ui/breadcrumb'
-import {Card, CardContent} from '@ui/card'
-import {Button} from '@ui/button/index'
-import {Alert, AlertDescription} from '@ui/alert'
-import ExpenseForm from '@expense/components/form/ExpenseForm.vue'
+} from '~/foundation/components/ui/breadcrumb'
+import {Card, CardContent} from '~/foundation/components/ui/card'
+import {Button} from '~/foundation/components/ui/button/index'
+import {Alert, AlertDescription} from '~/foundation/components/ui/alert'
+import ExpenseForm from '~/modules/expense/components/form/ExpenseForm.vue'
 
-import authMiddleware from '~/infrastructure/middleware/auth'
+import authMiddleware from '~/middleware/auth'
 
 defineOptions({
   name: 'ExpenseNewPage'

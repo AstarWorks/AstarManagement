@@ -131,11 +131,11 @@
 
 <script setup lang="ts">
 import { toTypedSchema } from '@vee-validate/zod'
-import { createExpenseSchema } from '~/schemas/expense'
-import type { IExpense, IExpenseFormData, IExpenseFieldChangeEvent } from '@expense/types/expense'
-import type { IConflictResolution } from '@shared/composables/form/useFormSubmissionOptimistic'
-import { useFormSubmissionOptimistic } from '@shared/composables/form/useFormSubmissionOptimistic'
-import { useFormNavigationGuards } from '@shared/composables/form/useFormNavigationGuards'
+import { createExpenseSchema } from '~/modules/expense/schemas/expense'
+import type { IExpense, IExpenseFormData, IExpenseFieldChangeEvent } from '~/modules/expense/types'
+import type { IConflictResolution } from '~/foundation/composables/form/useFormSubmissionOptimistic'
+import { useFormSubmissionOptimistic } from '~/foundation/composables/form/useFormSubmissionOptimistic'
+import { useFormNavigationGuards } from '~/foundation/composables/form/useFormNavigationGuards'
 import { 
   Breadcrumb, 
   BreadcrumbList, 
@@ -143,16 +143,16 @@ import {
   BreadcrumbLink, 
   BreadcrumbPage, 
   BreadcrumbSeparator 
-} from '@ui/breadcrumb'
-import { Card, CardContent } from '@ui/card'
-import { Button } from '@ui/button/index'
-import { Badge } from '@ui/badge'
-import { Alert, AlertDescription } from '@ui/alert'
-import { Form } from '@ui/form'
+} from '~/foundation/components/ui/breadcrumb'
+import { Card, CardContent } from '~/foundation/components/ui/card'
+import { Button } from '~/foundation/components/ui/button/index'
+import { Badge } from '~/foundation/components/ui/badge'
+import { Alert, AlertDescription } from '~/foundation/components/ui/alert'
+import { Form } from '~/foundation/components/ui/form'
 import { Icon } from '#components'
-import ExpenseFormFields from '@expense/components/list/ExpenseFormFields.vue'
-import ConflictResolutionDialog from '@expense/components/list/ConflictResolutionDialog.vue'
-import authMiddleware from '~/infrastructure/middleware/auth'
+import ExpenseFormFields from '~/modules/expense/components/list/ExpenseFormFields.vue'
+import ConflictResolutionDialog from '~/modules/expense/components/list/ConflictResolutionDialog.vue'
+import authMiddleware from '~/middleware/auth'
 
 defineOptions({
   name: 'ExpenseEdit'

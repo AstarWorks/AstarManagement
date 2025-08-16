@@ -9,7 +9,6 @@
 </template>
 
 <script setup>
-import { Sonner } from '@ui/sonner'
 
 // Global app setup
 </script>

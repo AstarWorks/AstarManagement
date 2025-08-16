@@ -7,7 +7,7 @@
         <p class="text-muted-foreground mt-1">{{ $t('dashboard.subtitle') }}</p>
       </div>
       <Button @click="createNewCase">
-        <Icon name="lucide:plus" class="w-4 h-4 mr-2" />
+        <Icon name="lucide:plus" class="w-4 h-4 mr-2"/>
         {{ $t('dashboard.sections.quickActions.newMatter') }}
       </Button>
     </div>
@@ -15,18 +15,19 @@
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <Card
-        v-for="stat in dashboardStats"
-        :key="stat.key"
-        class="transition-all duration-200 hover:shadow-md"
+          v-for="stat in dashboardStats"
+          :key="stat.key"
+          class="transition-all duration-200 hover:shadow-md"
       >
         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle class="text-sm font-medium">{{ $t(stat.labelKey) }}</CardTitle>
-          <Icon :name="stat.icon" class="w-4 h-4 text-muted-foreground" />
+          <Icon :name="stat.icon" class="w-4 h-4 text-muted-foreground"/>
         </CardHeader>
         <CardContent>
           <div class="text-2xl font-bold">{{ formatStatValue(stat) }}</div>
           <p class="text-xs text-muted-foreground">
-            <span :class="stat.change.startsWith('+') ? 'text-green-600' : stat.change.startsWith('-') ? 'text-red-600' : 'text-gray-600'">
+            <span
+                :class="stat.change.startsWith('+') ? 'text-green-600' : stat.change.startsWith('-') ? 'text-red-600' : 'text-gray-600'">
             {{ stat.change }}
           </span>
           </p>
@@ -43,13 +44,13 @@
         </CardHeader>
         <CardContent class="grid grid-cols-2 gap-4">
           <Button
-            v-for="action in quickActions"
-            :key="action.key"
-            variant="outline"
-            class="h-20 flex-col transition-all duration-200 hover:bg-muted/50"
-            @click="handleQuickAction(action.action)"
+              v-for="action in quickActions"
+              :key="action.key"
+              variant="outline"
+              class="h-20 flex-col transition-all duration-200 hover:bg-muted/50"
+              @click="handleQuickAction(action.action)"
           >
-            <Icon :name="action.icon" class="w-6 h-6 mb-2" />
+            <Icon :name="action.icon" class="w-6 h-6 mb-2"/>
             {{ $t(action.labelKey) }}
           </Button>
         </CardContent>
@@ -63,24 +64,24 @@
         <CardContent>
           <div v-if="isLoadingActivity" class="space-y-4">
             <Skeleton
-              v-for="i in 3"
-              :key="i"
-              class="h-12 w-full"
+                v-for="i in 3"
+                :key="i"
+                class="h-12 w-full"
             />
           </div>
           <div v-else-if="recentActivities.length === 0" class="text-center py-8">
-            <Icon name="lucide:inbox" class="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+            <Icon name="lucide:inbox" class="h-8 w-8 text-muted-foreground mx-auto mb-2"/>
             <p class="text-sm text-muted-foreground">{{ $t('dashboard.recentActivity.empty') }}</p>
           </div>
           <div v-else class="space-y-4">
             <div
-              v-for="activity in recentActivities"
-              :key="activity.id"
-              class="flex items-start gap-3"
+                v-for="activity in recentActivities"
+                :key="activity.id"
+                class="flex items-start gap-3"
             >
-              <div 
-                class="w-2 h-2 rounded-full mt-2"
-                :class="getActivityColor(activity.type)"
+              <div
+                  class="w-2 h-2 rounded-full mt-2"
+                  :class="getActivityColor(activity.type)"
               />
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium truncate">{{ activity.title }}</p>
@@ -97,15 +98,16 @@
 </template>
 
 <script setup lang="ts">
-import { formatRelative } from 'date-fns'
-import { ja } from 'date-fns/locale'
-import { Skeleton } from '@ui/skeleton'
-import { useDashboardData } from '@shared/composables/common/useDashboardData'
-import authMiddleware from '~/infrastructure/middleware/auth'
+import {formatRelative} from 'date-fns'
+import {ja} from 'date-fns/locale'
+import {Skeleton} from '~/foundation/components/ui/skeleton'
+import {useDashboardData} from '~/modules/dashboard/composables/useDashboardData'
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "~/foundation/components/ui/card";
+import {Button} from "~/foundation/components/ui/button";
 
 // Page metadata
 definePageMeta({
-  middleware: authMiddleware,
+  middleware: 'auth',
   title: 'dashboard.title'
 })
 
@@ -138,11 +140,11 @@ interface IActivity {
 const router = useRouter()
 
 // Dashboard data composable
-const { 
-  dashboardStats, 
-  recentActivities, 
+const {
+  dashboardStats,
+  recentActivities,
   isLoadingActivity,
-  refreshDashboard 
+  refreshDashboard
 } = useDashboardData()
 
 // Configuration for quick actions
@@ -185,7 +187,7 @@ const formatStatValue = (stat: IDashboardStat): string => {
 }
 
 const formatRelativeTime = (timestamp: Date): string => {
-  return formatRelative(timestamp, new Date(), { locale: ja })
+  return formatRelative(timestamp, new Date(), {locale: ja})
 }
 
 const getActivityColor = (type: IActivity['type']): string => {
@@ -210,7 +212,7 @@ const handleQuickAction = (action: string) => {
     createDocument: () => router.push('/documents/upload'),
     addExpense: () => router.push('/expenses/new')
   }
-  
+
   const handler = actions[action]
   if (handler) {
     handler()

@@ -29,11 +29,7 @@
               </SheetDescription>
             </SheetHeader>
             <div class="mt-6">
-              <KanbanFilters 
-                v-model:filters="caseFilters.filters.value"
-                @apply="caseFilters.applyFilters"
-                @reset="caseFilters.resetFilters"
-              />
+              <KanbanFilters />
             </div>
           </SheetContent>
         </Sheet>
@@ -48,10 +44,7 @@
     <!-- Desktop Filters Panel -->
     <KanbanFilters 
       v-if="showFilters"
-      v-model:filters="caseFilters.filters.value"
       class="mb-6 hidden md:block"
-      @apply="caseFilters.applyFilters"
-      @reset="caseFilters.resetFilters"
     />
 
     <!-- Kanban Board -->
@@ -59,7 +52,7 @@
       <ScrollArea class="kanban-container" style="max-height: calc(100vh - 200px);">
         <div class="kanban-columns flex gap-4 min-w-max pb-4">
           <!-- Loading Skeleton -->
-          <template v-if="caseData.isLoading.value">
+          <template v-if="caseStore.isLoading">
             <div 
               v-for="n in 7" 
               :key="`skeleton-${n}`"
@@ -80,8 +73,8 @@
               v-for="status in statusConfig.statusColumns.value"
               :key="status.key"
               :status="status"
-              :cases="caseFilters.getCasesByStatus(status.key)"
-              :is-loading="caseData.isLoading.value"
+              :cases="getCasesByStatus(status.key)"
+              :is-loading="caseStore.isLoading"
               @case-moved="handleCaseMove"
               @case-clicked="caseModal.openModal"
             />
@@ -96,21 +89,21 @@
       :case-data="modalCaseData"
       :is-open="caseModal.isOpen.value"
       @close="caseModal.closeModal"
-      @updated="caseData.updateCase"
+      @updated="caseStore.updateCase"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import type { ICase, CaseStatus } from '@case/types/case'
-import { Skeleton } from '@ui/skeleton'
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@ui/sheet/index'
-import { ScrollArea } from '@ui/scroll-area'
-import { useKanbanStatusConfig } from '@infrastructure/config/kanbanStatusConfig'
-import { useCaseData } from '@case/composables/useCaseData'
-import { useCaseFilters } from '@case/composables/useCaseFilters'
-import { useCaseModal } from '@case/composables/useCaseModal'
-import { useCaseDragDrop } from '@case/composables/useCaseDragDrop'
+import type { ICase, CaseStatus } from '~/modules/case/types/case'
+import { Skeleton } from '~/foundation/components/ui/skeleton'
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '~/foundation/components/ui/sheet/index'
+import { ScrollArea } from '~/foundation/components/ui/scroll-area'
+import { useKanbanStatusConfig } from '~/modules/case/config/kanbanStatusConfig'
+import { useCaseStore } from '~/modules/case/stores/case'
+import { useFilteredCases } from '~/modules/case/composables/useFilteredCases'
+import { useCaseModal } from '~/modules/case/composables/useCaseModal'
+import { useCaseDragDrop } from '~/modules/case/composables/useCaseDragDrop'
 
 // Page metadata with i18n
 definePageMeta({
@@ -122,10 +115,10 @@ definePageMeta({
 // VueUse composables for clean state management
 const [showFilters, toggleFilters] = useToggle(false)
 
-// Business logic composables
-const caseData = useCaseData()
+// Business logic with stores and composables
+const caseStore = useCaseStore()
+const { getCasesByStatus } = useFilteredCases()
 const statusConfig = useKanbanStatusConfig()
-const caseFilters = useCaseFilters(caseData.cases)
 const caseModal = useCaseModal()
 const _dragDrop = useCaseDragDrop()
 
@@ -144,16 +137,16 @@ const modalCaseData = computed(() => {
 // Case movement handler with enhanced error handling
 const handleCaseMove = async (caseId: string, newStatus: CaseStatus, oldStatus: CaseStatus) => {
   try {
-    await caseData.updateCaseStatus(caseId, newStatus, oldStatus)
+    await caseStore.updateCaseStatus(caseId, newStatus, oldStatus)
   } catch (error) {
     console.error('Failed to move case:', error)
-    // Error handling is managed in the composable
+    // Error handling is managed in the store
   }
 }
 
 // Load initial data
 onMounted(() => {
-  caseData.loadCases()
+  caseStore.loadCases()
 })
 </script>
 

@@ -149,19 +149,19 @@
 </template>
 
 <script setup lang="ts">
-import type { IExpense, IExpenseSummary, IExpenseFilters } from '@expense/types/expense'
-import { Card, CardContent } from '@ui/card'
-import { Button } from '@ui/button/index'
+import type { IExpense, IExpenseSummary, IExpenseFilters } from '~/modules/expense/types'
+import { Card, CardContent } from '~/foundation/components/ui/card'
+import { Button } from '~/foundation/components/ui/button/index'
 import { Icon } from '#components'
-import ExpenseFilters from '@expense/components/list/ExpenseFilters.vue'
-import ExpenseDataTable from '@expense/components/list/ExpenseDataTable.vue'
-import ExpenseEmptyState from '@expense/components/shared/states/ExpenseEmptyState.vue'
-import FilterStatistics from '@expense/components/list/FilterStatistics.vue'
+import ExpenseFilters from '~/modules/expense/components/list/filters/ExpenseFilters.vue'
+import ExpenseDataTable from '~/modules/expense/components/list/table/ExpenseDataTable.vue'
+import ExpenseEmptyState from '~/modules/expense/components/shared/states/ExpenseEmptyState.vue'
+import FilterStatistics from '~/modules/expense/components/list/filters/FilterStatistics.vue'
 
-import { mockExpenseDataService } from '~/services/mockExpenseDataService'
+import { mockExpenseDataService } from '~/modules/expense/__mocks__/mockExpenseDataService'
 import { useDebounceFn } from '@vueuse/core'
-import { useTablePagination } from '@shared/composables/table/useTablePagination'
-import authMiddleware from '~/infrastructure/middleware/auth'
+import { useTablePagination } from '~/foundation/composables/table/useTablePagination'
+import authMiddleware from '~/middleware/auth'
 
 // Meta and SEO
 definePageMeta({
