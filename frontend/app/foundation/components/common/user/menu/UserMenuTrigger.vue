@@ -5,7 +5,7 @@
     class="flex items-center space-x-2 h-10 hover:bg-gray-50"
     :aria-expanded="isOpen"
     aria-haspopup="true"
-    :aria-label="$t('navigation.menu.user', { name: user?.name || $t('common.user') })"
+    :aria-label="$t('modules.navigation.menu.user', { name: user?.name || $t('foundation.common.general.user') })"
     @click="emit('toggle')"
   >
     <!-- User Avatar -->
@@ -14,7 +14,7 @@
     <!-- User Name (Hidden on mobile) -->
     <div class="hidden sm:block text-left">
       <p class="text-sm font-medium text-gray-900 truncate max-w-24">
-        {{ user?.name || $t('common.user') }}
+        {{ user?.name || $t('foundation.common.general.user') }}
       </p>
       <p class="text-xs text-gray-500 truncate max-w-24">
         {{ getPrimaryRoleDisplay(user?.roles) }}
@@ -31,10 +31,10 @@
 </template>
 
 <script setup lang="ts">
-import type { IUser, IRole } from '~/modules/auth/types/auth'
+import type { IBusinessProfile, IBusinessRole } from '@modules/auth/types/business-profile'
 
 interface Props {
-  user: IUser | null
+  user: IBusinessProfile | null
   isOpen: boolean
 }
 
@@ -46,21 +46,24 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const getPrimaryRoleDisplay = (roles?: IRole[]): string => {
+const getPrimaryRoleDisplay = (roles?: readonly IBusinessRole[]): string => {
   if (!roles || roles.length === 0) {
-    return t('common.guest')
+    return t('foundation.common.general.guest')
   }
   
-  // 重要度順でロールを検索
-  const roleHierarchy = ['admin', 'lawyer', 'senior_paralegal', 'paralegal', 'secretary', 'client']
+  // Convert readonly array to mutable for processing
+  const mutableRoles = [...roles]
+  
+  // Industry-standard role hierarchy
+  const roleHierarchy = ['ADMIN', 'MANAGER', 'USER', 'GUEST']
   
   for (const roleName of roleHierarchy) {
-    const role = roles.find(r => r.name === roleName)
+    const role = mutableRoles.find(r => r.name === roleName)
     if (role) {
       return role.displayName
     }
   }
   
-  return roles[0]?.displayName || t('common.guest')
+  return mutableRoles[0]?.displayName || t('foundation.common.general.guest')
 }
 </script>

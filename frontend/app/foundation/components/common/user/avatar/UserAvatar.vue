@@ -8,10 +8,10 @@
 </template>
 
 <script setup lang="ts">
-import type { IUser } from '~/modules/auth/types/auth'
+import type { IUserProfile } from '@modules/auth/types/user-profile'
 
 interface Props {
-  user: IUser | null
+  user: IUserProfile | null
   size?: 'sm' | 'md' | 'lg'
 }
 
@@ -38,7 +38,7 @@ const fallbackClass = computed(() => {
   return `${baseClasses} ${sizeClasses[props.size]}`
 })
 
-const getUserInitials = (name?: string): string => {
+const getUserInitials = (name?: string | null): string => {
   if (!name) return '?'
   
   const parts = name.trim().split(/\s+/).filter(Boolean)

@@ -19,7 +19,7 @@
       @click="$emit('prev')"
     >
       <Icon name="lucide:chevron-left" class="w-4 h-4" />
-      <span v-if="showLabels" class="ml-1">{{ $t('expense.pagination.previous') }}</span>
+      <span v-if="showLabels" class="ml-1">{{ $t('foundation.table.pagination.previousPage') }}</span>
     </Button>
 
     <!-- Page numbers -->
@@ -45,7 +45,7 @@
       :disabled="isLastPage"
       @click="$emit('next')"
     >
-      <span v-if="showLabels" class="mr-1">{{ $t('expense.pagination.next') }}</span>
+      <span v-if="showLabels" class="mr-1">{{ $t('foundation.table.pagination.nextPage') }}</span>
       <Icon name="lucide:chevron-right" class="w-4 h-4" />
     </Button>
 

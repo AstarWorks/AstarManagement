@@ -16,7 +16,7 @@
       variant="destructive"
       class="ml-2 text-xs min-w-[1.25rem] h-5"
     >
-      {{ notificationCount > 99 ? '99+' : notificationCount }}
+      {{ formatNotificationCount(notificationCount) }}
     </Badge>
     
     <!-- External Link Indicator -->
@@ -37,6 +37,8 @@ interface Props {
   notificationCount?: number
 }
 
+const { t } = useI18n()
+
 const props = withDefaults(defineProps<Props>(), {
   notificationCount: 0
 })
@@ -44,6 +46,10 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   click: [item: IMenuItemConfig]
 }>()
+
+const formatNotificationCount = (count: number): string => {
+  return count > 99 ? t('foundation.common.notifications.maxCount') : count.toString()
+}
 
 
 const itemClasses = computed(() => {

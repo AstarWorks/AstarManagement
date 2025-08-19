@@ -13,16 +13,16 @@
         variant="ghost" 
         size="sm" 
         class="w-9 px-0"
-        :aria-label="$t('language.switcher.ariaLabel')"
+        :aria-label="$t('modules.language.switcher.ariaLabel')"
       >
         <Icon name="lucide:globe" class="h-4 w-4" />
-        <span class="sr-only">{{ $t('language.switcher.currentLanguage', { language: currentLanguage.name }) }}</span>
+        <span class="sr-only">{{ $t('modules.language.switcher.currentLanguage', { language: currentLanguage.name }) }}</span>
       </Button>
     </DropdownMenuTrigger>
 
     <DropdownMenuContent align="end" class="w-40">
       <DropdownMenuLabel class="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-        {{ $t('language.switcher.title') }}
+        {{ $t('modules.language.switcher.title') }}
       </DropdownMenuLabel>
       
       <DropdownMenuItem

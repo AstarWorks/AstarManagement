@@ -1,7 +1,7 @@
 <template>
   <div class="flex items-center gap-2">
     <Label class="text-sm whitespace-nowrap">
-      {{ $t('expense.pagination.goToPage') }}
+      {{ $t('foundation.table.pagination.goToPage') }}
     </Label>
     <Input
       v-model="localValue"

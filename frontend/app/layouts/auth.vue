@@ -7,23 +7,23 @@
           <Icon name="lucide:scale" class="h-12 w-12 text-blue-600" />
         </div>
         <h1 class="mt-4 text-3xl font-bold text-gray-900">
-          Astar Management
+          {{ t('modules.auth.login.appTitle') }}
         </h1>
         <p class="mt-2 text-sm text-gray-600">
-          法律事務所業務管理システム
+          {{ t('modules.auth.login.appSubtitle') }}
         </p>
         <div class="mt-4 flex justify-center space-x-6 text-xs text-gray-500">
           <div class="flex items-center space-x-1">
             <Icon name="lucide:shield-check" class="h-3 w-3" />
-            <span>セキュア</span>
+            <span>{{ t('foundation.common.app.features.secure') }}</span>
           </div>
           <div class="flex items-center space-x-1">
             <Icon name="lucide:lock" class="h-3 w-3" />
-            <span>暗号化</span>
+            <span>{{ t('foundation.common.app.features.encrypted') }}</span>
           </div>
           <div class="flex items-center space-x-1">
             <Icon name="lucide:users" class="h-3 w-3" />
-            <span>多事務所対応</span>
+            <span>{{ t('foundation.common.app.features.multiOffice') }}</span>
           </div>
         </div>
       </div>
@@ -36,8 +36,8 @@
       <!-- フッター -->
       <div class="mt-8 text-center">
         <div class="text-xs text-gray-500 space-y-1">
-          <p>&copy; 2025 Astar Management. All rights reserved.</p>
-          <p>弁護士・依頼者間の秘匿特権を保護します</p>
+          <p>{{ t('foundation.common.app.copyright') }}</p>
+          <p>{{ t('foundation.common.app.features.confidentialityNotice') }}</p>
         </div>
         
         <!-- 言語切り替え -->
@@ -61,9 +61,9 @@
 // SEO and meta setup for authentication pages
 const { t } = useI18n()
 useHead({
-  title: t('auth.meta.login.title'),
+  title: `${t('modules.auth.login.title')} - Astar Management`,
   meta: [
-    { name: 'description', content: t('auth.meta.devTest.description') },
+    { name: 'description', content: t('modules.auth.login.subtitle') },
     { name: 'robots', content: 'noindex,nofollow' }, // Authentication pages should not be indexed
   ],
   bodyAttrs: {

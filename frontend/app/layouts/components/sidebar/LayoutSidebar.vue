@@ -27,7 +27,6 @@
 import SidebarUserInfo from './SidebarUserInfo.vue'
 import SidebarNavigation from './SidebarNavigation.vue'
 import SidebarHeader from './SidebarHeader.vue'
-import { useAuthStore } from '~/modules/auth/stores/auth'
 
 interface Props {
   collapsed?: boolean
@@ -39,7 +38,7 @@ defineEmits<{
   close: []
 }>()
 
-// Authentication store
-const authStore = useAuthStore()
-const user = computed(() => authStore.user)
+// Authentication - using standard useAuth composable
+const { profile } = useUserProfile()
+const user = computed(() => profile.value)
 </script>

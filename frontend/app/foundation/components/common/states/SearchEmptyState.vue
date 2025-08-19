@@ -34,7 +34,7 @@ const handleSuggestionClick = (suggestion: string) => {
 }
 
 const primaryAction = {
-  label: t('states.empty.search.primaryAction'),
+  label: t('foundation.actions.system.clearSearch'),
   onClick: handleClearSearch,
   variant: 'outline' as const
 }
@@ -46,8 +46,8 @@ const truncatedQuery = computed(() => {
 
 <template>
   <EmptyState
-    :title="t('states.empty.search.title')"
-    :description="`「${truncatedQuery}」${t('states.empty.search.description')}`"
+    :title="t('foundation.search.noResults')"
+    :description="`「${truncatedQuery}」${t('foundation.search.tips.keywords')}`"
     :icon="Search"
     :primary-action="primaryAction"
     :compact="compact"
@@ -55,7 +55,7 @@ const truncatedQuery = computed(() => {
     <!-- Search suggestions -->
     <div v-if="suggestions.length > 0" class="mt-6 w-full max-w-md">
       <h4 class="text-sm font-medium text-foreground mb-3">
-        {{ t('common.search.suggestions') }}
+        {{ t('foundation.search.suggestions') }}
       </h4>
       <div class="flex flex-wrap gap-2">
         <button
@@ -72,12 +72,12 @@ const truncatedQuery = computed(() => {
     <!-- Search tips -->
     <div class="mt-6 p-4 bg-muted/50 rounded-lg text-left max-w-md">
       <h4 class="text-sm font-medium text-foreground mb-2">
-        {{ t('common.search.tips.title') }}
+        {{ t('foundation.search.tips.title') }}
       </h4>
-      <ul class="text-xs text-muted-foreground space-y-1">
-        <li>• {{ t('common.search.tips.spelling') }}</li>
-        <li>• {{ t('common.search.tips.keywords') }}</li>
-        <li>• {{ t('common.search.tips.filters') }}</li>
+      <ul class="text-xs text-muted-foreground space-y-1 list-disc list-inside">
+        <li>{{ t('foundation.search.tips.spelling') }}</li>
+        <li>{{ t('foundation.search.tips.keywords') }}</li>
+        <li>{{ t('foundation.search.tips.filters') }}</li>
       </ul>
     </div>
   </EmptyState>

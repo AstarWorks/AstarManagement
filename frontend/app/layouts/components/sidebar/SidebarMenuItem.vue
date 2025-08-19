@@ -92,8 +92,7 @@
 
 <script setup lang="ts">
   import type {INavigationItem, NavigationItem} from '~/foundation/types/navigation'
-  import { useAuthStore } from '~/modules/auth/stores/auth'
-  import { usePermissions } from '~/modules/auth/composables/usePermissions'
+  import { useUserProfile } from '@modules/auth/composables/auth/useUserProfile'
 
   // Props
   interface Props {
@@ -114,10 +113,17 @@
     itemClick: [item: NavigationItem]
   }>()
 
-  // ストア & コンポーザブル
-  const authStore = useAuthStore()
+  // コンポーザブル - 業界標準のuseAuthを使用
+  const { hasPermission, hasRole } = useUserProfile()
   const route = useRoute()
-  const {hasAccess} = usePermissions()
+  
+  // 権限チェック関数
+  const hasAccess = (requiredPermissions?: string[], requiredRoles?: string[]) => {
+    if (!requiredPermissions?.length && !requiredRoles?.length) return true
+    if (requiredPermissions?.length && requiredPermissions.some(p => hasPermission(p))) return true
+    if (requiredRoles?.length && requiredRoles.some(r => hasRole(r))) return true
+    return false
+  }
 
   // リアクティブ状態
   const isExpanded = ref(false)
@@ -131,11 +137,7 @@
     if (!props.item.children) return []
 
     return props.item.children.filter(child =>
-        hasAccess(authStore.user, {
-          permissions: child.requiredPermissions,
-          roles: child.requiredRoles,
-          requireAny: child.requireAny
-        })
+        hasAccess(child.requiredPermissions, child.requiredRoles)
     )
   })
 

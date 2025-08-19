@@ -4,6 +4,8 @@ import { WifiOff, RefreshCw } from 'lucide-vue-next'
 import { Alert, AlertDescription, AlertTitle } from '~/foundation/components/ui/alert'
 import LoadingButton from './LoadingButton.vue'
 
+const { t } = useI18n()
+
 interface NetworkErrorProps {
   error?: Error | string
   onRetry?: () => void | Promise<void>
@@ -42,7 +44,7 @@ onUnmounted(() => {
 
 const errorMessage = computed(() => {
   if (!isOnline.value) {
-    return 'インターネット接続が切断されています。接続を確認してください。'
+    return t('foundation.messages.error.network.disconnected')
   }
   
   if (typeof props.error === 'string') {
@@ -53,15 +55,15 @@ const errorMessage = computed(() => {
     // Check for common network error patterns
     const message = props.error.message.toLowerCase()
     if (message.includes('network') || message.includes('fetch')) {
-      return 'ネットワークエラーが発生しました。接続を確認してください。'
+      return t('foundation.messages.error.network.checkConnection')
     }
     if (message.includes('timeout')) {
-      return 'リクエストがタイムアウトしました。しばらく待ってから再試行してください。'
+      return t('foundation.messages.error.timeout.retry')
     }
     return props.error.message
   }
   
-  return 'ネットワークエラーが発生しました。'
+  return t('foundation.messages.error.network.default')
 })
 
 const canRetry = computed(() => {
@@ -107,12 +109,12 @@ watch(isOnline, (online) => {
 <template>
   <Alert variant="destructive" :class="props.class">
     <WifiOff class="h-4 w-4" />
-    <AlertTitle>ネットワークエラー</AlertTitle>
+    <AlertTitle>{{ t('foundation.messages.error.network.default') }}</AlertTitle>
     <AlertDescription class="mt-2">
       <p class="mb-4">{{ errorMessage }}</p>
       
       <div v-if="!isOnline" class="mb-4 text-sm text-muted-foreground">
-        <p>オフライン状態です。インターネット接続が復旧すると自動的に再試行します。</p>
+        <p>{{ t('foundation.messages.error.network.offlineAutoRetry') }}</p>
       </div>
       
       <div class="flex flex-wrap gap-2 items-center">
@@ -121,25 +123,25 @@ watch(isOnline, (online) => {
           :loading="isRetrying"
           variant="outline"
           size="sm"
-          :loading-text="'再試行中...'"
+          :loading-text="t('foundation.messages.info.retrying')"
           @click="handleRetry"
         >
           <RefreshCw class="mr-2 h-4 w-4" />
-          再試行 ({{ retryCount }}/{{ maxRetries }})
+          {{ t('foundation.actions.system.retry') }} {{ `(${retryCount}/${maxRetries})` }}
         </LoadingButton>
         
         <span v-else-if="retryCount >= maxRetries" class="text-sm text-muted-foreground">
-          最大再試行回数に達しました
+          {{ t('foundation.messages.error.network.maxRetriesReached') }}
         </span>
         
         <div v-if="!isOnline" class="flex items-center gap-1 text-sm text-muted-foreground">
           <div class="h-2 w-2 rounded-full bg-red-500" />
-          オフライン
+          {{ t('foundation.common.status.offline') }}
         </div>
         
         <div v-else class="flex items-center gap-1 text-sm text-muted-foreground">
           <div class="h-2 w-2 rounded-full bg-green-500" />
-          オンライン
+          {{ t('foundation.common.status.online') }}
         </div>
       </div>
     </AlertDescription>

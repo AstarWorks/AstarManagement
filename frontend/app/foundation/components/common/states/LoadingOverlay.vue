@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { cn } from '~/foundation/utils/cn'
+import { cn } from '@foundation/lib/utils/cn'
 import LoadingSpinner from './LoadingSpinner.vue'
 
 interface LoadingOverlayProps {

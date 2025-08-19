@@ -33,22 +33,28 @@
 </template>
 
 <script setup lang="ts">
-import type { IUser } from '~/modules/auth/types/auth'
+import type { IUserProfile } from '@modules/auth/types/user-profile'
 import { MAIN_NAVIGATION_CONFIG, type NavigationItemConfig } from '~/foundation/config/navigationConfig'
-import { useNavigation } from '~/foundation/composables/navigation/useNavigation'
-import { usePermissions } from '~/modules/auth/composables/usePermissions'
+import { useUserProfile } from '@modules/auth/composables/auth/useUserProfile'
+import NavigationItem from "~/layouts/components/sidebar/NavigationItem.vue";
+import NavigationGroup from "~/layouts/components/sidebar/NavigationGroup.vue";
 
 interface Props {
   collapsed?: boolean
   isMobile?: boolean
-  user?: IUser | null
+  user?: IUserProfile | null
 }
 
 const props = defineProps<Props>()
+const route = useRoute()
 
-// Use navigation composable for utilities
-const { isCurrentSection } = useNavigation()
-const { filterByAccess } = usePermissions()
+// Use user profile for permissions
+const { hasPermission, hasRole } = useUserProfile()
+
+// Check if current route is in section
+const isCurrentSection = (path: string) => {
+  return route.path.startsWith(path)
+}
 
 // Use regular useI18n for dynamic keys
 // const { t } = useI18n() // Temporarily unused
@@ -62,6 +68,12 @@ const filteredNavigation = computed((): NavigationItemConfig[] => {
     )
   }
   
-  return filterByAccess(MAIN_NAVIGATION_CONFIG, props.user)
+  // Filter items based on permissions
+  return MAIN_NAVIGATION_CONFIG.filter(item => {
+    if (!item.requiredPermissions?.length && !item.requiredRoles?.length) return true
+    if (item.requiredPermissions?.some(p => hasPermission(p))) return true
+    if (item.requiredRoles?.some(r => hasRole(r))) return true
+    return false
+  })
 })
 </script>

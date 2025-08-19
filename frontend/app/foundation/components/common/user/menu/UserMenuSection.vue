@@ -10,11 +10,11 @@
 
 <script setup lang="ts">
 import type { IMenuItemConfig } from '~/foundation/config/userMenuConfig'
-import type { IUser } from '~/modules/auth/types/auth'
+import type { IUserProfile } from '@modules/auth/types/user-profile'
 
 interface Props {
   items: IMenuItemConfig[]
-  user: IUser | null
+  user: IUserProfile | null
   notificationCounts?: Record<string, number>
 }
 

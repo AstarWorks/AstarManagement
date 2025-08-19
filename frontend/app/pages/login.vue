@@ -8,18 +8,18 @@
 </template>
 
 <script setup lang="ts">
-import type { LoginCredentials } from '~/modules/auth/types/auth'
 import LoginForm from '~/modules/auth/components/LoginForm.vue'
-import guestMiddleware from '~/middleware/guest'
+import {useI18n} from "vue-i18n";
 
 // ゲスト専用ページ（認証済みユーザーはリダイレクト）
 definePageMeta({
-  middleware: guestMiddleware,
+  middleware: 'guest',
   layout: 'auth'
 })
 
-// 状態管理
-const authStore = useAuthStore()
+// 状態管理 - 業界標準のuseAuth composableを使用
+const { signIn } = useAuth()
+const { fetchProfile } = useUserProfile()
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
@@ -34,40 +34,37 @@ const redirectTo = computed(() => {
 })
 
 // メソッド
-const handleLogin = async (credentials: LoginCredentials) => {
-  console.log('🔐 Login attempt started', { email: credentials.email, hasPassword: Boolean(credentials.password) })
+const handleLogin = async (credentials: { email: string; password: string; rememberMe?: boolean }) => {
+  console.log('🔐 Login attempt started', { email: credentials.email })
   isLoading.value = true
   authError.value = ''
 
   try {
-    console.log('🔐 Calling authStore.login...')
-    const result = await authStore.login(credentials)
-    console.log('🔐 Login result:', result)
-    console.log('🔐 Auth store state after login:', {
-      isAuthenticated: authStore.isAuthenticated,
-      requiresTwoFactor: authStore.requiresTwoFactor,
-      user: authStore.user
-    })
+    // Use @sidebase/nuxt-auth signIn
+    const result = await signIn(credentials)
 
-    if (authStore.requiresTwoFactor) {
-      // 2要素認証が必要な場合
-      console.log('🔐 Redirecting to 2FA')
-      await router.push({
-        path: '/auth/two-factor',
-        query: {
-          redirect: redirectTo.value
-        }
-      })
-    } else if (authStore.isAuthenticated) {
-      // ログイン成功
+    console.log('🔐 Login result:', result)
+
+    if (result?.error) {
+      authError.value = t('foundation.messages.error.validation')
+    } else if (result?.ok) {
+      // Fetch user profile after successful authentication
+      await fetchProfile()
+      
+      // 2FA check should be handled by security middleware
+      // This is now separated from business profile
+      console.log('✅ Login successful, checking for 2FA via security middleware')
+      
+      // 2FA check is now handled by security middleware
+      // Direct 2FA check removed - middleware handles this flow
+      
+      // Login successful
       console.log('🔐 Login successful, redirecting to:', redirectTo.value)
       await router.push(redirectTo.value)
-    } else {
-      console.log('🔐 Login completed but user not authenticated')
     }
   } catch (error) {
     console.error('🔐 Login error:', error)
-    authError.value = error instanceof Error ? error.message : t('auth.errors.loginFailed')
+    authError.value = t('foundation.messages.error.default')
   } finally {
     isLoading.value = false
   }
@@ -82,9 +79,9 @@ const handleForgotPassword = () => {
 onMounted(() => {
   const reason = route.query.reason as string
   if (reason === 'session_expired') {
-    authError.value = t('auth.errors.sessionExpiredDetail')
+    authError.value = t('modules.error.unauthorized.sessionExpired')
   } else if (reason === 'unauthenticated') {
-    authError.value = t('auth.errors.loginRequired')
+    authError.value = t('modules.error.unauthorized.reasons.unauthenticated')
   }
 })
 </script>

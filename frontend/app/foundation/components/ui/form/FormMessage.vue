@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { ErrorMessage } from 'vee-validate'
 import { type HTMLAttributes, toValue } from 'vue'
-import { cn } from '~/foundation/utils/cn'
+import { cn } from '@foundation/lib/utils/cn'
 import { useFormField } from './useFormField'
 
 const props = defineProps<{

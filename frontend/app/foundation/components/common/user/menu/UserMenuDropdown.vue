@@ -44,11 +44,11 @@
       <div class="px-4 py-3 bg-gray-50 border-t border-gray-100 rounded-b-lg">
         <div class="flex items-center justify-between text-xs text-gray-500">
           <span>
-            {{ $t('auth.lastLogin.label') }}: {{ formatLastLogin(user?.lastLoginAt) }}
+            {{ formatLastLoginLabel() }}
           </span>
           <div class="flex items-center space-x-2">
             <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"/>
-            <span>{{ $t('auth.status.online') }}</span>
+            <span>{{ $t('modules.auth.status.online') }}</span>
           </div>
         </div>
       </div>
@@ -62,7 +62,7 @@ import { BASE_MENU_SECTIONS, ADMIN_MENU_SECTION } from '~/foundation/config/user
 import UserInfo from '~/foundation/components/common/user/profile/UserInfo.vue'
 import UserQuickStats from '~/foundation/components/common/user/profile/UserQuickStats.vue'
 import UserMenuSection from "~/foundation/components/common/user/menu/UserMenuSection.vue";
-import type {IUser} from "~/modules/auth/types/auth";
+import type {IUserProfile} from "@modules/auth/types/user-profile";
 
 interface UserStats {
   activeCases: number
@@ -71,7 +71,7 @@ interface UserStats {
 }
 
 interface Props {
-  user: IUser | null
+  user: IUserProfile | null
   isOpen: boolean
   stats?: UserStats
   notificationCounts?: Record<string, number>
@@ -112,9 +112,10 @@ const menuSections = computed((): IMenuSectionConfig[] => {
   return sections
 })
 
+const { t } = useI18n()
+
 const formatLastLogin = (lastLogin?: Date): string => {
-  const { t } = useI18n()
-  if (!lastLogin) return t('auth.lastLogin.never')
+  if (!lastLogin) return t('modules.auth.lastLogin.never')
   
   const now = new Date()
   const diff = now.getTime() - lastLogin.getTime()
@@ -123,14 +124,18 @@ const formatLastLogin = (lastLogin?: Date): string => {
   const days = Math.floor(diff / 86400000)
   
   if (minutes < 60) {
-    return t('auth.lastLogin.minutesAgo', { minutes })
+    return t('modules.auth.lastLogin.minutesAgo', { minutes })
   }
   
   if (hours < 24) {
-    return t('auth.lastLogin.hoursAgo', { hours })
+    return t('modules.auth.lastLogin.hoursAgo', { hours })
   }
   
-  return t('auth.lastLogin.daysAgo', { days })
+  return t('modules.auth.lastLogin.daysAgo', { days })
+}
+
+const formatLastLoginLabel = (): string => {
+  return `${t('modules.auth.lastLogin.label')}: ${formatLastLogin(props.user?.lastLoginAt)}`
 }
 
 // Expose menu ref for external use (e.g., click outside)

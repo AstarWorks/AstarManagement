@@ -13,7 +13,7 @@
         </Button>
       </TooltipTrigger>
       <TooltipContent>
-        {{ $t('header.sidebar.openMobileMenu') }}
+        {{ $t('modules.header.sidebar.openMobileMenu') }}
       </TooltipContent>
     </Tooltip>
   </TooltipProvider>
@@ -35,7 +35,7 @@
         </Button>
       </TooltipTrigger>
       <TooltipContent>
-        {{ $t('header.sidebar.toggle') }}
+        {{ $t('modules.header.sidebar.toggle') }}
       </TooltipContent>
     </Tooltip>
   </TooltipProvider>

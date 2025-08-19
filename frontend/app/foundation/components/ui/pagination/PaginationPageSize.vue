@@ -1,7 +1,7 @@
 <template>
   <div class="flex items-center gap-2">
     <Label class="text-sm whitespace-nowrap">
-      {{ $t('expense.pagination.itemsPerPage') }}
+      {{ $t('foundation.table.pagination.rowsPerPage') }}
     </Label>
     <Select
       :model-value="String(pageSize)"

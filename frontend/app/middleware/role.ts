@@ -11,7 +11,8 @@ import { useAuthStore } from "~/modules/auth/stores/auth"
  */
 export const requireRole = (allowedRoles: string | string[], redirectTo = '/unauthorized') => {
   return defineNuxtRouteMiddleware((to, _from) => {
-    const authStore = useAuthStore()
+    const { status } = useAuth()
+  const { profile, hasRole } = useUserProfile()
 
     // サーバーサイドではロールチェックをスキップ
     if (import.meta.server) {
@@ -19,7 +20,7 @@ export const requireRole = (allowedRoles: string | string[], redirectTo = '/unau
     }
 
     // 認証チェック
-    if (!authStore.isAuthenticated) {
+    if (status.value !== 'authenticated') {
       return navigateTo({
         path: '/login',
         query: {
@@ -33,14 +34,14 @@ export const requireRole = (allowedRoles: string | string[], redirectTo = '/unau
     const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles]
 
     // ロールチェック
-    const hasRequiredRole = roles.some(role => authStore.hasRole(role))
+    const hasRequiredRole = roles.some(role => hasRole(role))
 
     if (!hasRequiredRole) {
       // アクセス拒否をログに記録
       console.warn('Role-based access denied:', {
-        user: authStore.user?.email,
+        user: profile.value?.email,
         requiredRoles: roles,
-        userRoles: authStore.roles,
+        userRoles: profile.value?.roles?.map((r) => r.name),
         path: to.fullPath
       })
 
@@ -61,14 +62,14 @@ export const requireRole = (allowedRoles: string | string[], redirectTo = '/unau
 // 一般的なロール用のプリセットミドルウェア
 
 /**
- * 弁護士専用アクセス
+ * プロフェッショナル専用アクセス（専門職向け）
  */
-export const lawyerOnly = requireRole('LAWYER')
+export const professionalOnly = requireRole('PROFESSIONAL')
 
 /**
- * 事務員専用アクセス
+ * スタッフ専用アクセス（一般スタッフ向け）
  */
-export const clerkOnly = requireRole('CLERK')
+export const staffOnly = requireRole('STAFF')
 
 /**
  * 管理者専用アクセス
@@ -76,14 +77,14 @@ export const clerkOnly = requireRole('CLERK')
 export const adminOnly = requireRole('ADMIN')
 
 /**
- * スタッフアクセス（弁護士または事務員）
+ * 組織メンバーアクセス（プロフェッショナルまたはスタッフ）
  */
-export const staffOnly = requireRole(['LAWYER', 'CLERK'])
+export const memberOnly = requireRole(['PROFESSIONAL', 'STAFF'])
 
 /**
- * 高権限アクセス（弁護士または管理者）
+ * 高権限アクセス（プロフェッショナルまたは管理者）
  */
-export const highPrivilegeOnly = requireRole(['LAWYER', 'ADMIN'])
+export const highPrivilegeOnly = requireRole(['PROFESSIONAL', 'ADMIN'])
 
 /**
  * システム管理者専用アクセス
@@ -96,9 +97,9 @@ export const systemAdminOnly = requireRole('SYSTEM_ADMIN')
 export const financeOnly = requireRole(['LAWYER', 'FINANCE_MANAGER'])
 
 /**
- * パートナー弁護士専用アクセス
+ * パートナー専用アクセス
  */
-export const partnerOnly = requireRole('PARTNER_LAWYER')
+export const partnerOnly = requireRole('PARTNER')
 
 /**
  * 複数ロールチェック用のヘルパー関数
@@ -106,7 +107,8 @@ export const partnerOnly = requireRole('PARTNER_LAWYER')
 export const requireAnyRole = (roles: string[]) => requireRole(roles)
 export const requireAllRoles = (roles: string[]) => {
   return defineNuxtRouteMiddleware((to, _from) => {
-    const authStore = useAuthStore()
+    const { status } = useAuth()
+  const { profile, hasRole } = useUserProfile()
 
     // サーバーサイドではロールチェックをスキップ
     if (import.meta.server) {
@@ -114,7 +116,7 @@ export const requireAllRoles = (roles: string[]) => {
     }
 
     // 認証チェック
-    if (!authStore.isAuthenticated) {
+    if (status.value !== 'authenticated') {
       return navigateTo({
         path: '/login',
         query: {
@@ -125,13 +127,13 @@ export const requireAllRoles = (roles: string[]) => {
     }
 
     // すべてのロールが必要
-    const hasAllRoles = roles.every(role => authStore.hasRole(role))
+    const hasAllRoles = roles.every(role => hasRole(role))
 
     if (!hasAllRoles) {
       console.warn('All roles required access denied:', {
-        user: authStore.user?.email,
+        user: profile.value?.email,
         requiredRoles: roles,
-        userRoles: authStore.roles,
+        userRoles: profile.value?.roles?.map((r) => r.name),
         path: to.fullPath
       })
 

@@ -1,13 +1,13 @@
 /**
-import { useAuthStore } from "~/modules/auth/stores/auth"
  * リダイレクト処理ミドルウェア
  * 
  * ログイン後のリダイレクト処理や、条件によるページリダイレクトを管理
  */
-import type { RouteLocationNormalized } from 'vue-router'
+import { useUserProfile } from '@modules/auth/composables/auth/useUserProfile'
 
 export default defineNuxtRouteMiddleware((to, _from) => {
-  const authStore = useAuthStore()
+  const { status } = useAuth()
+  const { hasRole } = useUserProfile()
 
   // サーバーサイドではリダイレクトをスキップ
   if (import.meta.server) {
@@ -19,7 +19,7 @@ export default defineNuxtRouteMiddleware((to, _from) => {
   // ルートページへのアクセス処理
   if (to.path === '/') {
     // 認証状態をチェックして適切にリダイレクト
-    if (authStore.status === 'authenticated' && authStore.isAuthenticated) {
+    if (status.value === 'authenticated') {
       // 認証済みの場合はダッシュボードへ
       return navigateTo('/dashboard')
     } else {
@@ -29,43 +29,17 @@ export default defineNuxtRouteMiddleware((to, _from) => {
   }
 
   // ログインページからのリダイレクト処理
-  if (to.path === '/login' && authStore.isAuthenticated) {
+  if (to.path === '/login' && status.value === 'authenticated') {
     const redirectTo = (to.query.redirect as string) || '/dashboard'
     return navigateTo(redirectTo)
-  }
-
-  // 2要素認証完了後のリダイレクト処理
-  if (to.path === '/auth/two-factor' && authStore.isAuthenticated && !authStore.requiresTwoFactor) {
-    const redirectTo = (to.query.redirect as string) || '/dashboard'
-    return navigateTo(redirectTo)
-  }
-
-  // 認証状態に基づく自動リダイレクト
-  handleAuthStateRedirect(to, authStore)
-})
-
-/**
- * 認証状態に基づく自動リダイレクト処理
- */
-function handleAuthStateRedirect(to: RouteLocationNormalized, authStore: ReturnType<typeof useAuthStore>) {
-  // セッション期限切れの検出とリダイレクト
-  if (authStore.tokens && authStore.isTokenExpired && to.path !== '/login') {
-    return navigateTo({
-      path: '/login',
-      query: {
-        redirect: to.fullPath,
-        reason: 'session_expired',
-        message: 'セッションの有効期限が切れました。再度ログインしてください。'
-      }
-    })
   }
 
   // アクセス禁止ページの検出
   const restrictedPaths = ['/admin', '/system']
   const isRestrictedPath = restrictedPaths.some(path => to.path.startsWith(path))
   
-  if (isRestrictedPath && authStore.isAuthenticated) {
-    const hasAdminAccess = authStore.hasRole('ADMIN') || authStore.hasRole('LAWYER')
+  if (isRestrictedPath && status.value === 'authenticated') {
+    const hasAdminAccess = hasRole('ADMIN') || hasRole('LAWYER')
     
     if (!hasAdminAccess) {
       return navigateTo({
@@ -77,7 +51,8 @@ function handleAuthStateRedirect(to: RouteLocationNormalized, authStore: ReturnT
       })
     }
   }
-}
+})
+
 
 /**
  * ログイン成功後のリダイレクト先を決定

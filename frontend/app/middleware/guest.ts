@@ -1,22 +1,19 @@
 /**
-import { useAuthStore } from "~/modules/auth/stores/auth"
- * ゲスト専用ミドルウェア
- * 
- * ログインページなど、認証済みユーザーがアクセスしてはいけないページで使用
- * 認証済みの場合はダッシュボードにリダイレクトする
+ * ゲスト専用ミドルウェア - 業界標準実装
+ * 認証済みユーザーをダッシュボードにリダイレクト
  */
-export default defineNuxtRouteMiddleware((to, from) => {
-  const authStore = useAuthStore()
+// useAuth is auto-imported by sidebase/nuxt-auth
 
-  // サーバーサイドでは認証チェックをスキップ
+export default defineNuxtRouteMiddleware((_to, from) => {
+  const { status } = useAuth()
+
+  // サーバーサイドでは認証チェックをスキップ（SPAモード）
   if (import.meta.server) {
     return
   }
 
-  // @pinia-plugin-persistedstate が自動で状態を復元
-
   // 認証済みの場合の処理
-  if (authStore.isAuthenticated && !authStore.requiresTwoFactor) {
+  if (status.value === 'authenticated') {
     // リダイレクト先を決定
     const redirectTo = from?.query?.redirect as string || '/dashboard'
     
@@ -25,19 +22,6 @@ export default defineNuxtRouteMiddleware((to, from) => {
       query: {
         message: 'already_authenticated'
       }
-    })
-  }
-
-  // トークンが存在する場合、有効性をチェック
-  if (authStore.tokens && !authStore.isTokenExpired) {
-    // 有効なトークンがある場合はユーザー情報を取得してリダイレクト
-    return authStore.fetchUser().then(async () => {
-      if (authStore.isAuthenticated && !authStore.requiresTwoFactor) {
-        const redirectTo = from?.query?.redirect as string || '/dashboard'
-        return await navigateTo(redirectTo)
-      }
-    }).catch(() => {
-      // ユーザー情報取得に失敗した場合は続行（ログインページ表示）
     })
   }
 

@@ -3,9 +3,9 @@
     <div class="flex flex-col md:flex-row justify-between items-center text-sm text-muted-foreground gap-4">
       <!-- Copyright -->
       <div class="flex items-center gap-4">
-        <p>&copy; 2025 Astar Management. All rights reserved.</p>
+        <p>{{ t('foundation.common.app.copyright') }}</p>
         <div class="hidden md:block w-px h-4 bg-border" />
-        <p class="hidden md:block">法律事務所業務管理システム</p>
+        <p class="hidden md:block">{{ t('modules.auth.login.appSubtitle') }}</p>
       </div>
       
       <!-- Legal Links -->
@@ -14,21 +14,21 @@
           to="/privacy" 
           class="hover:text-foreground transition-colors"
         >
-          プライバシーポリシー
+          {{ t('foundation.common.app.privacyPolicy') }}
         </NuxtLink>
         <div class="w-px h-4 bg-border" />
         <NuxtLink 
           to="/terms" 
           class="hover:text-foreground transition-colors"
         >
-          利用規約
+          {{ t('foundation.common.app.termsOfService') }}
         </NuxtLink>
         <div class="w-px h-4 bg-border" />
         <NuxtLink 
           to="/security" 
           class="hover:text-foreground transition-colors"
         >
-          セキュリティ
+          {{ t('foundation.common.app.features.security') }}
         </NuxtLink>
       </div>
     </div>
@@ -36,6 +36,6 @@
 </template>
 
 <script setup lang="ts">
-// Footer component - no additional logic needed
+const { t } = useI18n()
 </script>
 

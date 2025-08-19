@@ -18,12 +18,12 @@
 <script setup lang="ts">
 
 import {Avatar} from "~/foundation/components/ui/avatar";
-import type {IRole, IUser} from "~/modules/auth/types/auth";
+import type {IBusinessRole, IBusinessProfile} from "@modules/auth/types/business-profile";
 
 interface Props {
   collapsed?: boolean
   isMobile?: boolean
-  user?: IUser | null
+  user?: IBusinessProfile | null
 }
 
 defineProps<Props>()
@@ -35,18 +35,26 @@ const getInitials = (name: string) => {
   return name.split(' ').map(n => n[0]).join('').toUpperCase()
 }
 
-const getRoleLabel = (roles?: IRole[] | null): string => {
+const getRoleLabel = (roles?: readonly IBusinessRole[] | null): string => {
   if (!roles || roles.length === 0) {
-    return t('auth.roles.unknown')
+    return t('foundation.common.general.unknown')
   }
   
-  const primaryRole = roles[0]?.name
+  // Convert readonly array to mutable for processing
+  const mutableRoles = [...roles]
+  const primaryRole = mutableRoles[0]?.name
   if (!primaryRole) {
-    return t('auth.roles.guest')
+    return t('foundation.common.general.guest')
+  }
+  
+  // Use display name if available, otherwise try translation
+  const displayName = mutableRoles[0]?.displayName
+  if (displayName) {
+    return displayName
   }
   
   // Try to get translated role label, fallback to role name
-  const roleKey = `auth.roles.${primaryRole}`
+  const roleKey = `common.general.${primaryRole.toLowerCase()}`
   const translatedRole = t(roleKey)
   
   // If translation doesn't exist, return the original role name

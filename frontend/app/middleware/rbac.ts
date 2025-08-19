@@ -1,8 +1,8 @@
 /**
-import { useAuthStore } from "~/modules/auth/stores/auth"
  * RBAC（Role-Based Access Control）ミドルウェア
  * 
  * 特定の権限やロールが必要なページで使用
+ * nuxt-authの認証機能を使用
  */
 
 interface IRBACOptions {
@@ -17,7 +17,9 @@ interface IRBACOptions {
  */
 export const createRBACMiddleware = (options: IRBACOptions) => {
   return defineNuxtRouteMiddleware((to, _from) => {
-    const authStore = useAuthStore()
+    const { status } = useAuth()
+    const userProfile = typeof useUserProfile !== 'undefined' ? useUserProfile() : { profile: ref(null), hasPermission: () => false, hasRole: () => false }
+    const { profile, hasPermission, hasRole } = userProfile
     const {
       permissions = [],
       roles = [],
@@ -31,7 +33,7 @@ export const createRBACMiddleware = (options: IRBACOptions) => {
     }
 
     // 認証チェック（認証されていない場合は auth ミドルウェアに委ねる）
-    if (!authStore.isAuthenticated) {
+    if (status.value !== 'authenticated') {
       return navigateTo({
         path: '/login',
         query: {
@@ -42,8 +44,8 @@ export const createRBACMiddleware = (options: IRBACOptions) => {
     }
 
     // 権限チェック
-    const hasRequiredPermissions = checkPermissions(authStore, permissions, require)
-    const hasRequiredRoles = checkRoles(authStore, roles, require)
+    const hasRequiredPermissions = checkPermissions({ hasPermission }, permissions, require)
+    const hasRequiredRoles = checkRoles({ hasRole }, roles, require)
 
     // 権限・ロールチェックの結果を評価
     let hasAccess = true
@@ -67,11 +69,11 @@ export const createRBACMiddleware = (options: IRBACOptions) => {
     if (!hasAccess) {
       // アクセス拒否をログに記録
       console.warn('Access denied:', {
-        user: authStore.user?.email,
+        user: profile.value?.email,
         requiredPermissions: permissions,
         requiredRoles: roles,
-        userPermissions: authStore.permissions,
-        userRoles: authStore.roles,
+        userPermissions: profile.value?.permissions,
+        userRoles: profile.value?.roles?.map((r) => r.name),
         path: to.fullPath
       })
 
@@ -92,26 +94,26 @@ export const createRBACMiddleware = (options: IRBACOptions) => {
 /**
  * 権限チェック関数
  */
-function checkPermissions(authStore: ReturnType<typeof useAuthStore>, permissions: string[], require: 'all' | 'any'): boolean {
+function checkPermissions(auth: { hasPermission: (p: string) => boolean }, permissions: string[], require: 'all' | 'any'): boolean {
   if (permissions.length === 0) return true
 
   if (require === 'all') {
-    return permissions.every(permission => authStore.hasPermission(permission))
+    return permissions.every(permission => auth.hasPermission(permission))
   } else {
-    return permissions.some(permission => authStore.hasPermission(permission))
+    return permissions.some(permission => auth.hasPermission(permission))
   }
 }
 
 /**
  * ロールチェック関数
  */
-function checkRoles(authStore: ReturnType<typeof useAuthStore>, roles: string[], require: 'all' | 'any'): boolean {
+function checkRoles(auth: { hasRole: (r: string) => boolean }, roles: string[], require: 'all' | 'any'): boolean {
   if (roles.length === 0) return true
 
   if (require === 'all') {
-    return roles.every(role => authStore.hasRole(role))
+    return roles.every(role => auth.hasRole(role))
   } else {
-    return roles.some(role => authStore.hasRole(role))
+    return roles.some(role => auth.hasRole(role))
   }
 }
 
@@ -168,10 +170,10 @@ export const canManageFinance = createRBACMiddleware({
 })
 
 /**
- * システム管理権限チェック（弁護士または管理者）
+ * システム管理権限チェック（プロフェッショナルまたは管理者）
  */
 export const canManageSystem = createRBACMiddleware({
-  roles: ['LAWYER', 'ADMIN'],
+  roles: ['PROFESSIONAL', 'ADMIN'],
   require: 'any',
   redirectTo: '/unauthorized'
 })

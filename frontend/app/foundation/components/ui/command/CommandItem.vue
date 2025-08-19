@@ -3,7 +3,7 @@ import type { ListboxItemEmits, ListboxItemProps } from 'reka-ui'
 import { reactiveOmit, useCurrentElement } from '@vueuse/core'
 import { ListboxItem, useForwardPropsEmits, useId } from 'reka-ui'
 import { computed, type HTMLAttributes, onMounted, onUnmounted, ref } from 'vue'
-import { cn } from '~/foundation/utils/cn'
+import { cn } from '@foundation/lib/utils/cn'
 import { useCommand, useCommandGroup } from './index'
 
 const props = defineProps<ListboxItemProps & { class?: HTMLAttributes['class'] }>()

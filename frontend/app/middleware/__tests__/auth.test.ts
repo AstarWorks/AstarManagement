@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import type { IUser, AuthState } from '~/modules/auth/types/auth'
+import type { IUserProfile } from '@modules/auth/types/user-profile'
 
 // ミドルウェアのインポート（モック設定後に行う）
 import authMiddleware from '../auth'
@@ -8,19 +8,19 @@ import authMiddleware from '../auth'
  * モック用の型安全なAuthStore定義（テスト用にmutable）
  */
 interface IMockAuthStore {
-  status: AuthState['status']
+  status: 'idle' | 'loading' | 'authenticated' | 'unauthenticated'
   isAuthenticated: boolean
   tokens: { accessToken: string; refreshToken: string; expiresIn: number } | null
   isTokenExpired: boolean
   requiresTwoFactor: boolean
-  user: IUser | null
+  user: IUserProfile | null
   refreshTokens: ReturnType<typeof vi.fn>
   initialize: ReturnType<typeof vi.fn>
 }
 
 // AuthStore のモック（型安全）
 const mockAuthStore: IMockAuthStore = {
-  status: 'idle',
+  status: 'unauthenticated',
   isAuthenticated: false,
   tokens: null,
   isTokenExpired: false,
@@ -71,7 +71,7 @@ Object.defineProperty(globalThis, 'import', {
 describe('Auth Middleware', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockAuthStore.status = 'idle'
+    mockAuthStore.status = 'unauthenticated'
     mockAuthStore.isAuthenticated = false
     mockAuthStore.tokens = null
     mockAuthStore.isTokenExpired = false
@@ -82,7 +82,7 @@ describe('Auth Middleware', () => {
   it('should skip authentication check on server side', () => {
     // Clear any previous calls and reset mock state
     vi.clearAllMocks()
-    mockAuthStore.status = 'idle'
+    mockAuthStore.status = 'unauthenticated'
     mockAuthStore.isAuthenticated = false
     
     // Create a mock middleware that simulates server side behavior
@@ -101,8 +101,8 @@ describe('Auth Middleware', () => {
     expect(mockAuthStore.initialize).not.toHaveBeenCalled()
   })
 
-  it('should initialize auth store when status is idle', () => {
-    mockAuthStore.status = 'idle'
+  it('should initialize auth store when status is unauthenticated', () => {
+    mockAuthStore.status = 'unauthenticated'
     mockAuthStore.isAuthenticated = false
     
     const to = { fullPath: '/dashboard' }

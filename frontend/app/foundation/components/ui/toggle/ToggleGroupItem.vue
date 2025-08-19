@@ -9,7 +9,7 @@ import type { ToggleGroupItemProps } from 'reka-ui'
 import { ToggleGroupItem, useForwardPropsEmits } from 'reka-ui'
 import { type HTMLAttributes, computed } from 'vue'
 import { toggleVariants, type ToggleVariants } from './index'
-import { cn } from '~/foundation/utils/cn'
+import { cn } from '@foundation/lib/utils/cn'
 
 interface ToggleGroupItemPropsExtended extends ToggleGroupItemProps, ToggleVariants {
   class?: HTMLAttributes['class']

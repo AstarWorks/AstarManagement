@@ -8,7 +8,7 @@
 import type { ToggleGroupRootEmits, ToggleGroupRootProps } from 'reka-ui'
 import { ToggleGroupRoot, useForwardPropsEmits } from 'reka-ui'
 import { type HTMLAttributes, computed } from 'vue'
-import { cn } from '~/foundation/utils/cn'
+import { cn } from '@foundation/lib/utils/cn'
 
 interface ToggleGroupProps extends ToggleGroupRootProps {
   class?: HTMLAttributes['class']

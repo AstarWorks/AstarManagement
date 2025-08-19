@@ -24,7 +24,7 @@
               class="h-4 w-4"
             />
             <span class="sr-only">
-              {{ showPassword ? $t('auth.password.hide') : $t('auth.password.show') }}
+              {{ showPassword ? $t('modules.auth.login.fields.password.hide') : $t('modules.auth.login.fields.password.show') }}
             </span>
           </Button>
         </div>

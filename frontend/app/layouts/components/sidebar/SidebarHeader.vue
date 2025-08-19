@@ -5,8 +5,8 @@
         <Icon name="lucide:scale" class="w-5 h-5 text-primary-foreground" />
       </div>
       <div v-if="!collapsed || isMobile" class="flex-1">
-        <h1 class="font-bold text-lg">{{ $t('navigation.sidebar.appName') }}</h1>
-        <p class="text-xs text-muted-foreground">{{ $t('navigation.sidebar.tagline') }}</p>
+        <h1 class="font-bold text-lg">{{ $t('modules.navigation.sidebar.appName') }}</h1>
+        <p class="text-xs text-muted-foreground">{{ $t('modules.navigation.sidebar.tagline') }}</p>
       </div>
       <Button
         v-if="isMobile"

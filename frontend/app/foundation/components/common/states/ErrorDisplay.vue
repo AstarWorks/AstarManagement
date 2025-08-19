@@ -5,6 +5,8 @@ import { Button } from '~/foundation/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '~/foundation/components/ui/alert'
 import LoadingButton from './LoadingButton.vue'
 
+const { t } = useI18n()
+
 interface ErrorDisplayProps {
   error: Error | string
   title?: string
@@ -17,10 +19,8 @@ interface ErrorDisplayProps {
 }
 
 const props = withDefaults(defineProps<ErrorDisplayProps>(), {
-  title: 'エラーが発生しました',
   showRetry: true,
-  showSupport: false,
-  retryLabel: '再試行'
+  showSupport: false
 })
 
 const emit = defineEmits<{
@@ -29,11 +29,19 @@ const emit = defineEmits<{
 
 const isRetrying = ref(false)
 
+const displayTitle = computed(() => {
+  return props.title || t('foundation.messages.error.default')
+})
+
+const displayRetryLabel = computed(() => {
+  return props.retryLabel || t('foundation.actions.system.retry')
+})
+
 const errorMessage = computed(() => {
   if (typeof props.error === 'string') {
     return props.error
   }
-  return props.error?.message || 'Unknown error occurred'
+  return props.error?.message || t('foundation.messages.info.unknownError')
 })
 
 const handleRetry = async () => {
@@ -66,7 +74,7 @@ const handleReload = () => {
 <template>
   <Alert variant="destructive" :class="props.class">
     <AlertTriangle class="h-4 w-4" />
-    <AlertTitle>{{ title }}</AlertTitle>
+    <AlertTitle>{{ displayTitle }}</AlertTitle>
     <AlertDescription class="mt-2">
       <p class="mb-4">{{ errorMessage }}</p>
       
@@ -76,11 +84,11 @@ const handleReload = () => {
           :loading="isRetrying"
           variant="outline"
           size="sm"
-          :loading-text="'再試行中...'"
+          :loading-text="t('foundation.messages.info.retrying')"
           @click="handleRetry"
         >
           <RefreshCw class="mr-2 h-4 w-4" />
-          {{ retryLabel }}
+          {{ displayRetryLabel }}
         </LoadingButton>
         
         <Button
@@ -89,7 +97,7 @@ const handleReload = () => {
           @click="handleReload"
         >
           <RefreshCw class="mr-2 h-4 w-4" />
-          ページを再読み込み
+          {{ t('foundation.actions.system.reload') }}
         </Button>
         
         <Button
@@ -99,7 +107,7 @@ const handleReload = () => {
           @click="handleSupport"
         >
           <Mail class="mr-2 h-4 w-4" />
-          サポートに連絡
+          {{ t('foundation.common.app.support') }}
         </Button>
       </div>
     </AlertDescription>

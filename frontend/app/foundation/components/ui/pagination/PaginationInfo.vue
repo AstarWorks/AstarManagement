@@ -1,10 +1,10 @@
 <template>
   <div class="text-sm text-muted-foreground">
     <template v-if="isEmpty">
-      {{ $t('expense.pagination.noResults') }}
+      {{ $t('foundation.table.states.empty.title') }}
     </template>
     <template v-else>
-      {{ $t('expense.pagination.summary', { start, end, total }) }}
+      {{ $t('foundation.table.pagination.summary', { start, end, total }) }}
     </template>
   </div>
 </template>

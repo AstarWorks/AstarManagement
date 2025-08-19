@@ -3,12 +3,12 @@
     <!-- Page Header -->
     <div class="flex items-center justify-between">
       <div>
-        <h1 class="text-3xl font-bold text-foreground">{{ $t('dashboard.title') }}</h1>
-        <p class="text-muted-foreground mt-1">{{ $t('dashboard.subtitle') }}</p>
+        <h1 class="text-3xl font-bold text-foreground">{{ $t('modules.dashboard.title') }}</h1>
+        <p class="text-muted-foreground mt-1">{{ $t('modules.dashboard.subtitle') }}</p>
       </div>
       <Button @click="createNewCase">
         <Icon name="lucide:plus" class="w-4 h-4 mr-2"/>
-        {{ $t('dashboard.sections.quickActions.newMatter') }}
+        {{ $t('modules.dashboard.sections.quickActions.newMatter') }}
       </Button>
     </div>
 
@@ -39,8 +39,8 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <Card>
         <CardHeader>
-          <CardTitle>{{ $t('dashboard.sections.quickActions.title') }}</CardTitle>
-          <CardDescription>{{ $t('common.select') }}</CardDescription>
+          <CardTitle>{{ $t('modules.dashboard.sections.quickActions.title') }}</CardTitle>
+          <CardDescription>{{ $t('foundation.actions.selection.select') }}</CardDescription>
         </CardHeader>
         <CardContent class="grid grid-cols-2 gap-4">
           <Button
@@ -58,8 +58,8 @@
 
       <Card>
         <CardHeader>
-          <CardTitle>{{ $t('dashboard.sections.recentMatters.title') }}</CardTitle>
-          <CardDescription>{{ $t('dashboard.sections.recentMatters.viewAll') }}</CardDescription>
+          <CardTitle>{{ $t('modules.dashboard.sections.recentMatters.title') }}</CardTitle>
+          <CardDescription>{{ $t('foundation.actions.ui.more') }}</CardDescription>
         </CardHeader>
         <CardContent>
           <div v-if="isLoadingActivity" class="space-y-4">
@@ -71,7 +71,7 @@
           </div>
           <div v-else-if="recentActivities.length === 0" class="text-center py-8">
             <Icon name="lucide:inbox" class="h-8 w-8 text-muted-foreground mx-auto mb-2"/>
-            <p class="text-sm text-muted-foreground">{{ $t('dashboard.recentActivity.empty') }}</p>
+            <p class="text-sm text-muted-foreground">{{ $t('foundation.table.states.empty.description') }}</p>
           </div>
           <div v-else class="space-y-4">
             <div
@@ -86,7 +86,7 @@
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium truncate">{{ activity.title }}</p>
                 <p class="text-xs text-muted-foreground">
-                  {{ activity.subtitle }} - {{ formatRelativeTime(activity.timestamp) }}
+                  {{ formatActivityInfo(activity) }}
                 </p>
               </div>
             </div>
@@ -151,43 +151,46 @@ const {
 const quickActions: IQuickAction[] = [
   {
     key: 'newCase',
-    labelKey: 'dashboard.sections.quickActions.newMatter',
+    labelKey: 'modules.dashboard.sections.quickActions.newMatter',
     icon: 'lucide:plus',
     action: 'newCase'
   },
   {
     key: 'newClient',
-    labelKey: 'dashboard.sections.quickActions.newClient',
+    labelKey: 'modules.dashboard.sections.quickActions.newClient',
     icon: 'lucide:user-plus',
     action: 'newClient'
   },
   {
     key: 'createDocument',
-    labelKey: 'dashboard.sections.quickActions.createDocument',
+    labelKey: 'modules.dashboard.sections.quickActions.createDocument',
     icon: 'lucide:file-plus',
     action: 'createDocument'
   },
   {
     key: 'addExpense',
-    labelKey: 'dashboard.sections.quickActions.addExpense',
+    labelKey: 'modules.dashboard.sections.quickActions.addExpense',
     icon: 'lucide:receipt',
     action: 'addExpense'
   }
 ]
 
 // Utility functions
+const { locale, n } = useI18n()
+
 const formatStatValue = (stat: IDashboardStat): string => {
   if (stat.format === 'currency') {
-    return new Intl.NumberFormat('ja-JP', {
-      style: 'currency',
-      currency: 'JPY'
-    }).format(stat.value)
+    return n(stat.value, 'currency')
   }
-  return new Intl.NumberFormat('ja-JP').format(stat.value)
+  return new Intl.NumberFormat(locale.value).format(stat.value)
 }
 
 const formatRelativeTime = (timestamp: Date): string => {
   return formatRelative(timestamp, new Date(), {locale: ja})
+}
+
+const formatActivityInfo = (activity: IActivity): string => {
+  return `${activity.subtitle} - ${formatRelativeTime(activity.timestamp)}`
 }
 
 const getActivityColor = (type: IActivity['type']): string => {

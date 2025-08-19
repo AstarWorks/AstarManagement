@@ -4,6 +4,8 @@ import { AlertCircle, X } from 'lucide-vue-next'
 import { Alert, AlertDescription, AlertTitle } from '~/foundation/components/ui/alert'
 import { Button } from '~/foundation/components/ui/button'
 
+const { t } = useI18n()
+
 interface ValidationError {
   field?: string
   message: string
@@ -19,7 +21,6 @@ interface ValidationErrorProps {
 }
 
 const props = withDefaults(defineProps<ValidationErrorProps>(), {
-  title: '入力エラー',
   dismissible: false,
   showFieldNames: true
 })
@@ -27,6 +28,10 @@ const props = withDefaults(defineProps<ValidationErrorProps>(), {
 const emit = defineEmits<{
   dismiss: []
 }>()
+
+const displayTitle = computed(() => {
+  return props.title || t('foundation.messages.error.validation')
+})
 
 const normalizedErrors = computed<ValidationError[]>(() => {
   if (typeof props.errors === 'string') {
@@ -46,22 +51,27 @@ const normalizedErrors = computed<ValidationError[]>(() => {
 })
 
 const fieldNameMap: Record<string, string> = {
-  email: 'メールアドレス',
-  password: 'パスワード',
-  name: '名前',
-  title: 'タイトル',
-  description: '説明',
-  amount: '金額',
-  date: '日付',
-  category: 'カテゴリ',
-  memo: 'メモ',
-  tags: 'タグ',
-  file: 'ファイル'
+  email: t('foundation.common.fields.email'),
+  password: t('foundation.common.fields.password'),
+  name: t('foundation.common.fields.name'),
+  title: t('foundation.common.fields.title'),
+  description: t('foundation.common.fields.description'),
+  amount: t('foundation.common.fields.amount'),
+  date: t('foundation.common.fields.date'),
+  category: t('foundation.common.fields.category'),
+  memo: t('foundation.common.fields.memo'),
+  tags: t('foundation.common.fields.tags'),
+  file: t('foundation.common.fields.file')
 }
 
 const getFieldDisplayName = (field?: string): string => {
   if (!field) return ''
   return fieldNameMap[field] || field
+}
+
+const formatFieldError = (field: string | undefined, message: string): string => {
+  const fieldName = getFieldDisplayName(field)
+  return fieldName ? `${fieldName}: ${message}` : message
 }
 
 const handleDismiss = () => {
@@ -75,7 +85,7 @@ const handleDismiss = () => {
     
     <div class="flex-1">
       <div class="flex items-center justify-between">
-        <AlertTitle>{{ title }}</AlertTitle>
+        <AlertTitle>{{ displayTitle }}</AlertTitle>
         <Button
           v-if="dismissible"
           variant="ghost" 
@@ -84,16 +94,13 @@ const handleDismiss = () => {
           @click="handleDismiss"
         >
           <X class="h-4 w-4" />
-          <span class="sr-only">閉じる</span>
+          <span class="sr-only">{{ t('foundation.actions.basic.close') }}</span>
         </Button>
       </div>
       
       <AlertDescription class="mt-2">
         <div v-if="normalizedErrors.length === 1" class="text-sm">
-          <span v-if="showFieldNames && normalizedErrors[0]?.field" class="font-medium">
-            {{ getFieldDisplayName(normalizedErrors[0].field) }}:
-          </span>
-          {{ normalizedErrors[0]?.message }}
+          {{ formatFieldError(showFieldNames ? normalizedErrors[0]?.field : undefined, normalizedErrors[0]?.message || '') }}
         </div>
         
         <ul v-else class="text-sm space-y-1">
@@ -104,10 +111,7 @@ const handleDismiss = () => {
           >
             <span class="inline-block w-1 h-1 rounded-full bg-current mt-2 flex-shrink-0" />
             <span>
-              <span v-if="showFieldNames && error?.field" class="font-medium">
-                {{ getFieldDisplayName(error.field) }}:
-              </span>
-              {{ error?.message }}
+              {{ formatFieldError(showFieldNames ? error?.field : undefined, error?.message || '') }}
             </span>
           </li>
         </ul>

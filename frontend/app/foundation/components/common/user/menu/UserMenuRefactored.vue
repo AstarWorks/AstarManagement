@@ -28,7 +28,6 @@
 </template>
 
 <script setup lang="ts">
-import { useAuthStore } from "~/modules/auth/stores/auth"
 import type { IMenuItemConfig } from '~/foundation/config/userMenuConfig'
 
 interface Props {
@@ -39,8 +38,9 @@ withDefaults(defineProps<Props>(), {
   showQuickStats: true
 })
 
-// Composables
-const authStore = useAuthStore()
+// Composables - 業界標準のuseAuthを使用
+const { signOut } = useAuth()
+const { profile } = useUserProfile()
 const router = useRouter()
 
 // State
@@ -48,7 +48,7 @@ const isOpen = ref(false)
 const dropdown = ref()
 
 // Computed
-const user = computed(() => authStore.user)
+const user = computed(() => profile.value)
 
 // Mock stats for demonstration
 const mockStats = ref({
@@ -83,7 +83,7 @@ const handleMenuItemClick = async (item: IMenuItemConfig) => {
 
 const handleLogout = async () => {
   try {
-    await authStore.logout()
+    await signOut({ redirect: false })
     await router.push('/login')
   } catch (error) {
     console.error('Logout failed:', error)

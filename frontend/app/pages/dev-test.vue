@@ -64,7 +64,7 @@
         <div class="max-w-md space-y-4">
           <div>
             <Label for="test-input">テスト入力フィールド</Label>
-            <Input id="test-input" :placeholder="$t('common.placeholder.enterHere')" class="mt-1" />
+            <Input id="test-input" :placeholder="$t('foundation.search.placeholder')" class="mt-1" />
           </div>
           <div>
             <Label for="test-textarea">テストテキストエリア</Label>
@@ -90,7 +90,7 @@
     <section class="mt-8">
       <h2 class="text-xl font-semibold mb-4 text-foreground">ナビゲーションテスト</h2>
       <div class="flex gap-4 flex-wrap">
-        <Button as="nuxt-link" to="/login" variant="outline">{{ $t('navigation.loginPage') }}</Button>
+        <Button as="nuxt-link" to="/login" variant="outline">{{ $t('modules.navigation.loginPage') }}</Button>
         <Button as="nuxt-link" to="/dashboard" variant="outline">ダッシュボード</Button>
         <Button as="nuxt-link" to="/cases/kanban" variant="outline">案件管理</Button>
       </div>
@@ -107,9 +107,9 @@ definePageMeta({
 // ページタイトル設定
 const { t } = useI18n()
 useHead({
-  title: `開発テスト - ${t('common.app.title')}`,
+  title: `開発テスト - ${t('foundation.common.app.title')}`,
   meta: [
-    { name: 'description', content: t('auth.meta.devTest.description') }
+    { name: 'description', content: '開発環境テストページ' }
   ]
 })
 </script>

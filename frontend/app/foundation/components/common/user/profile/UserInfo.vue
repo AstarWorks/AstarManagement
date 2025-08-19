@@ -4,7 +4,7 @@
     
     <div class="flex-1 min-w-0">
       <p class="text-sm font-semibold text-gray-900 truncate">
-        {{ user?.name || $t('common.unknownUser') }}
+        {{ user?.name || $t('foundation.common.general.unknown') }}
       </p>
       <p class="text-xs text-gray-500 truncate">
         {{ user?.email || '' }}
@@ -28,10 +28,10 @@
 <script setup lang="ts">
 import UserAvatar from "~/foundation/components/common/user/avatar/UserAvatar.vue";
 import {Badge} from "~/foundation/components/ui/badge";
-import type {IUser} from "~/modules/auth/types/auth";
+import type {IUserProfile} from "@modules/auth/types/user-profile";
 
 interface Props {
-  user: IUser | null
+  user: IUserProfile | null
 }
 
 defineProps<Props>()

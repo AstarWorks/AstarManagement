@@ -16,7 +16,7 @@
           </Button>
         </TooltipTrigger>
         <TooltipContent>
-          {{ notificationCount > 0 ? $t('header.notifications.count', { count: notificationCount }) : $t('header.notifications.label') }}
+          {{ notificationCount > 0 ? $t('modules.header.notifications.count', { count: notificationCount }) : $t('modules.header.notifications.label') }}
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
@@ -30,6 +30,7 @@
 import { Button } from '~/foundation/components/ui/button/index'
 import { Badge } from '~/foundation/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/foundation/components/ui/tooltip'
+import UserMenu from "@foundation/components/common/user/menu/UserMenu.vue";
 
 interface Props {
   notificationCount?: number

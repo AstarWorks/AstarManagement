@@ -1,35 +1,35 @@
 <template>
   <div class="quick-actions-section">
-    <h3 class="text-lg font-semibold mb-4">{{ $t('dashboard.quickActions.title') }}</h3>
+    <h3 class="text-lg font-semibold mb-4">{{ $t('modules.dashboard.sections.quickActions.title') }}</h3>
     
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <!-- Expense Quick Actions -->
       <QuickActionCard
-        :title="$t('expense.navigation.list')"
-        :description="$t('expense.quickActions.list.description')"
+        :title="$t('modules.expense.titlePlural')"
+        :description="$t('foundation.messages.info.default')"
         :icon="'lucide:list'"
         :to="'/expenses'"
         :stats="listStats"
       />
       
       <QuickActionCard
-        :title="$t('expense.actions.create')"
-        :description="$t('expense.quickActions.create.description')"
+        :title="$t('modules.expense.form.actions.create')"
+        :description="$t('foundation.messages.info.default')"
         :icon="'lucide:receipt-text'"
         :to="'/expenses/new'"
         :stats="expenseStats"
       />
       
       <QuickActionCard
-        :title="$t('expense.actions.import')"
-        :description="$t('expense.quickActions.import.description')"
+        :title="$t('modules.expense.form.actions.import')"
+        :description="$t('foundation.messages.info.default')"
         :icon="'lucide:upload'"
         :to="'/expenses/import'"
       />
       
       <QuickActionCard
-        :title="$t('expense.navigation.reports')"
-        :description="$t('expense.quickActions.reports.description')"
+        :title="$t('foundation.actions.data.export')"
+        :description="$t('foundation.messages.info.default')"
         :icon="'lucide:bar-chart-3'"
         :to="'/expenses/reports'"
         :stats="reportStats"
