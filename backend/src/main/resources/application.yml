@@ -1,0 +1,341 @@
+# Astar Management Application Configuration
+spring:
+  application:
+    name: AstarManagement
+  
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+  
+  # Common Database Configuration
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      maximum-pool-size: 10
+      minimum-idle: 2
+      validation-timeout: 5000
+      leak-detection-threshold: 60000
+      connection-test-query: SELECT 1
+  
+  # JPA Configuration
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        # Performance Optimization
+        jdbc:
+          batch_size: 25
+          batch_versioned_data: true
+          fetch_size: 100
+        order_inserts: true
+        order_updates: true
+        query:
+          in_clause_parameter_padding: true
+        connection:
+          provider_disables_autocommit: true
+        generate_statistics: true
+        # Auditing
+        envers:
+          audit_table_suffix: _audit
+          revision_field_name: rev
+          revision_type_field_name: revtype
+    show-sql: false
+  
+  # Flyway Configuration
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    validate-on-migrate: false
+    out-of-order: true
+  
+  # Cache Configuration
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=100,expireAfterWrite=5m
+    cache-names: jwks
+  
+  # Security Configuration
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://${auth0.domain}/
+          jwk-set-uri: https://${auth0.domain}/.well-known/jwks.json
+
+# Server Configuration
+server:
+  port: 8080
+
+# Auth0 Configuration
+auth0:
+  domain: ${AUTH0_DOMAIN:}
+  audience: ${AUTH0_AUDIENCE:}
+
+# OpenAPI Configuration
+springdoc:
+  api-docs:
+    enabled: true
+    path: /api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui
+    try-it-out-enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+    persist-authorization: true
+  packages-to-scan: com.astarworks.astarmanagement.modules.financial.expense,com.astarworks.astarmanagement.modules.auth.presentation,com.astarworks.astarmanagement.modules.shared.presentation
+  default-produces-media-type: application/json
+
+# Resilience4j Configuration
+resilience4j:
+  circuitbreaker:
+    instances:
+      jwks-endpoint:
+        failure-rate-threshold: 50
+        slow-call-rate-threshold: 90
+        slow-call-duration-threshold: 2s
+        wait-duration-in-open-state: 30s
+        permitted-number-of-calls-in-half-open-state: 3
+        sliding-window-size: 10
+        sliding-window-type: COUNT_BASED
+        minimum-number-of-calls: 5
+        automatic-transition-from-open-to-half-open-enabled: true
+
+# Logging Configuration
+logging:
+  level:
+    com.astarworks.astarmanagement: INFO
+    org.flywaydb: WARN
+    org.springframework.jdbc: WARN
+    org.springframework.security: INFO
+
+---
+# Default Profile (Production-like)
+spring:
+  config:
+    activate:
+      on-profile: default
+  
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://172.17.0.1:5433/astarmanagement_dev}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+
+---
+# Local Development Profile
+spring:
+  config:
+    activate:
+      on-profile: local
+  
+  datasource:
+    url: jdbc:postgresql://172.17.0.1:5433/astarmanagement_dev
+    username: postgres
+    password: postgres
+  
+  jpa:
+    show-sql: true
+  
+  flyway:
+    baseline-on-migrate: true
+  
+  # DevTools
+  devtools:
+    restart:
+      enabled: false
+  
+  # Override security for local development with mock auth
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # When mock auth is enabled, these will use localhost
+          issuer-uri: http://${auth0.domain}/mock-auth
+          jwk-set-uri: http://${auth0.domain}/mock-auth/.well-known/jwks.json
+
+# Local Auth0 Configuration (overridden when mock auth is enabled)
+auth0:
+  domain: ${AUTH0_DOMAIN:localhost:8080}
+  audience: ${AUTH0_AUDIENCE:local-dev-api}
+
+# Enable mock authentication for local development
+auth:
+  mock:
+    enabled: true
+
+logging:
+  level:
+    com.astarworks.astarmanagement: INFO
+    # Disable OAuth2 debugging in local
+    org.springframework.security: WARN
+
+---
+# Development Profile (Devcontainer)
+spring:
+  config:
+    activate:
+      on-profile: dev
+  
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:172.17.0.1}:${DB_PORT:5433}/astarmanagement_dev
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+  
+  jpa:
+    show-sql: true
+  
+  flyway:
+    baseline-on-migrate: true
+  
+  # Redis Configuration for Devcontainer
+  data:
+    redis:
+      host: ${REDIS_HOST:host.docker.internal}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2000ms
+      connect-timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 10
+          max-idle: 10
+          min-idle: 1
+  
+  cache:
+    type: redis
+    redis:
+      time-to-live: 600000
+      cache-null-values: false
+      use-key-prefix: true
+      key-prefix: "Astarmanagement:"
+  
+  # Disable Docker Compose integration
+  docker:
+    compose:
+      enabled: false
+
+# JWT Configuration for Development
+app:
+  jwt:
+    expiration: 7200
+    refresh-expiration: 172800
+    issuer: Astarmanagement-dev-api
+
+logging:
+  level:
+    org.springframework.jdbc.core: DEBUG
+    org.hibernate.SQL: DEBUG
+
+---
+# Test Profile
+spring:
+  config:
+    activate:
+      on-profile: test
+  
+  application:
+    name: AstarManagement-Test
+  
+  # H2 Database for unit tests
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+  
+  flyway:
+    enabled: false
+  
+  # Disable Redis for testing
+  data:
+    redis:
+      repositories:
+        enabled: false
+  
+  cache:
+    type: none
+  
+  # Allow bean definition overriding for tests
+  main:
+    allow-bean-definition-overriding: true
+  
+  # Disable OAuth2 for tests
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: disabled
+            client-secret: disabled
+
+# Test-specific settings
+  test:
+    database:
+      rls:
+        enabled: false
+
+# Security for tests
+security:
+  jwt:
+    secret-key: test-secret-key-for-development-only-change-in-production
+    expiration: 86400000
+    refresh:
+      expiration: 2592000000
+
+logging:
+  level:
+    com.astarworks.astarmanagement: DEBUG
+    org.springframework.security: DEBUG
+
+---
+# Integration Test Profile (PostgreSQL with Testcontainers)
+spring:
+  config:
+    activate:
+      on-profile: integration-test
+  
+  application:
+    name: AstarManagement-Test
+  
+  datasource:
+    url: jdbc:postgresql://localhost:5432/astarmanagement_test
+    username: test
+    password: test
+  
+  jpa:
+    show-sql: true
+  
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    clean-disabled: false
+    locations: classpath:db/migration,classpath:db/test-migration
+  
+  # Allow bean definition overriding for tests
+  main:
+    allow-bean-definition-overriding: true
+  
+  # Test-specific database settings
+  test:
+    database:
+      rls:
+        enabled: false
+
+logging:
+  level:
+    org.hibernate.SQL: INFO
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+    org.flywaydb: INFO
+    com.astarworks.astarmanagement: INFO

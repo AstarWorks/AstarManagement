@@ -34,6 +34,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
     implementation("org.springframework.boot:spring-boot-starter-aop")
     
     // Kotlin
@@ -47,10 +48,22 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql")
     runtimeOnly("com.h2database:h2")
     
-    // JWT
+    // JWT & Auth0 OAuth2
     implementation("io.jsonwebtoken:jjwt-api:0.12.6")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
+    implementation("org.springframework.security:spring-security-oauth2-jose")
+    
+    // Nimbus JOSE + JWT for mock auth
+    implementation("com.nimbusds:nimbus-jose-jwt:9.40")
+    
+    // Caching for JWKS
+    implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
+    implementation("org.springframework.boot:spring-boot-starter-cache")
+    
+    // Circuit Breaker for Resilience
+    implementation("io.github.resilience4j:resilience4j-spring-boot3:2.2.0")
+    implementation("io.github.resilience4j:resilience4j-circuitbreaker:2.2.0")
     
     // OpenAPI/Swagger Documentation
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9")

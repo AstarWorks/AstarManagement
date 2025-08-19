@@ -1,0 +1,47 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:15
+    container_name: astar-test-db
+    environment:
+      POSTGRES_DB: astarmanagement_test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: astar-backend-test
+    environment:
+      SPRING_PROFILES_ACTIVE: test
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/astarmanagement_test
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      # Auth0設定（実際の値に置換）
+      AUTH0_DOMAIN: ${AUTH0_DOMAIN:-test.auth0.com}
+      AUTH0_AUDIENCE: ${AUTH0_AUDIENCE:-https://api.test.com}
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: https://${AUTH0_DOMAIN:-test.auth0.com}/
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: https://${AUTH0_DOMAIN:-test.auth0.com}/.well-known/jwks.json
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  postgres_test_data:
