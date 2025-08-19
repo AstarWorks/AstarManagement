@@ -9,13 +9,13 @@
         <!-- メールアドレス -->
         <FormField v-slot="{ componentField }" name="email">
           <FormItem>
-            <FormLabel for="email">{{ $t('auth.login.email.label') }}</FormLabel>
+            <FormLabel for="email">{{ $t('modules.auth.login.fields.email.label') }}</FormLabel>
             <FormControl>
               <Input
                 id="email"
                 v-bind="componentField"
                 type="email"
-                :placeholder="$t('auth.login.email.placeholder')"
+                :placeholder="$t('modules.auth.login.fields.email.placeholder')"
                 autocomplete="email"
                 :disabled="isLoading"
                 class="w-full"
@@ -28,8 +28,8 @@
         <!-- パスワード -->
         <PasswordInputField
           name="password"
-          :label="$t('auth.login.password.label')"
-          :placeholder="$t('auth.login.password.placeholder')"
+          :label="$t('modules.auth.login.fields.password.label')"
+          :placeholder="$t('modules.auth.login.fields.password.placeholder')"
           :disabled="isLoading"
         />
 
@@ -45,7 +45,7 @@
                 />
               </FormControl>
               <FormLabel for="rememberMe" class="text-sm font-normal">
-                {{ $t('auth.login.rememberMe') }}
+                {{ $t('modules.auth.login.fields.rememberMe.label') }}
               </FormLabel>
             </div>
           </FormItem>
@@ -68,7 +68,7 @@
             name="lucide:loader-2"
             class="mr-2 h-4 w-4 animate-spin"
           />
-          {{ isLoading ? $t('auth.login.loading') : $t('auth.login.submit') }}
+          {{ isLoading ? $t('modules.auth.login.actions.loading') : $t('modules.auth.login.actions.submit') }}
         </Button>
 
         <!-- デバッグ用自動フィル（開発環境のみ） -->
@@ -86,7 +86,7 @@
             :disabled="isLoading"
             @click="$emit('forgotPassword')"
           >
-            {{ $t('auth.login.forgotPassword') }}
+            {{ $t('modules.auth.login.actions.forgotPassword') }}
           </Button>
         </div>
       </form>
@@ -109,8 +109,7 @@ import { Alert, AlertDescription } from '~/foundation/components/ui/alert'
 import AuthFormFooter from "~/modules/auth/components/AuthFormFooter.vue";
 import DevelopmentDebugPanel from "~/modules/auth/components/DevelopmentDebugPanel.vue";
 import {PasswordInputField} from "~/foundation/components/ui/password-input";
-import {createLoginSchema} from "~/modules/auth/schemas/auth";
-import type {ILoginCredentials} from "~/modules/auth/types/auth";
+import {createLoginSchema} from "~/utils/auth-validation";
 import AuthFormHeader from "~/modules/auth/components/AuthFormHeader.vue";
 
 // Props
@@ -126,7 +125,7 @@ withDefaults(defineProps<Props>(), {
 
 // Emits
 interface Emits {
-  (e: 'submit', credentials: ILoginCredentials): void
+  (e: 'submit', credentials: { email: string; password: string; rememberMe?: boolean }): void
   (e: 'forgotPassword' | 'privacyClick' | 'termsClick'): void
 }
 
@@ -150,7 +149,7 @@ const isValid = ref(false)
 
 // Form submission handler
 const onSubmit = handleSubmit((values: { email: string; password: string; rememberMe?: boolean }) => {
-  const credentials: ILoginCredentials = {
+  const credentials = {
     email: values.email,
     password: values.password,
     rememberMe: values.rememberMe || false
@@ -159,7 +158,7 @@ const onSubmit = handleSubmit((values: { email: string; password: string; rememb
 })
 
 // Debug credentials handler
-const handleFillCredentials = (credentials: ILoginCredentials) => {
+const handleFillCredentials = (credentials: { email: string; password: string; rememberMe?: boolean }) => {
   // This would typically set form values, but keeping it simple for demo
   emit('submit', credentials)
 }

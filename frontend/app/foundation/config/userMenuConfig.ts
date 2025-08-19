@@ -51,7 +51,7 @@ export const BASE_MENU_SECTIONS: IMenuSectionConfig[] = [
     items: [
       {
         id: 'new-case',
-        labelKey: 'matter.create.title',
+        labelKey: 'modules.matter.create.title',
         icon: 'lucide:plus-circle',
         path: '/cases/new'
       },

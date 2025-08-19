@@ -30,8 +30,8 @@ const props = withDefaults(defineProps<Props>(), {
 
 const { t } = useI18n()
 
-const displayTitle = computed(() => props.title || t('auth.login.appTitle'))
-const displaySubtitle = computed(() => props.subtitle || t('auth.login.appSubtitle'))
+const displayTitle = computed(() => props.title || t('modules.auth.login.appTitle'))
+const displaySubtitle = computed(() => props.subtitle || t('modules.auth.login.appSubtitle'))
 </script>
 
 <style scoped>

@@ -42,7 +42,7 @@ export const MAIN_NAVIGATION_CONFIG: INavigationItemConfig[] = [
     labelKey: 'navigation.menu.matters.title',
     path: '/cases',
     icon: 'lucide:file-text',
-    descriptionKey: 'matter.title',
+    descriptionKey: 'modules.matter.title',
     requiredRoles: ['LAWYER', 'CLERK'],
     requireAny: true,
     children: [
@@ -129,7 +129,7 @@ export const MAIN_NAVIGATION_CONFIG: INavigationItemConfig[] = [
         path: '/expenses',
         icon: 'lucide:receipt-text',
         badge: {
-          textKey: 'expense.navigation.badge',
+          textKey: 'expense.domain.navigation.badge',
           variant: 'default'
         }
       },
@@ -165,7 +165,7 @@ export interface IQuickActionConfig {
 export const QUICK_ACTIONS_CONFIG: IQuickActionConfig[] = [
   {
     id: 'new-expense',
-    labelKey: 'expense.actions.create',
+    labelKey: 'expense.domain.actions.create',
     path: '/expenses/new',
     icon: 'lucide:plus-circle',
     variant: 'default',
@@ -173,7 +173,7 @@ export const QUICK_ACTIONS_CONFIG: IQuickActionConfig[] = [
   },
   {
     id: 'import-expenses',
-    labelKey: 'expense.actions.import',
+    labelKey: 'expense.domain.actions.import',
     path: '/expenses/import',
     icon: 'lucide:upload',
     variant: 'outline',

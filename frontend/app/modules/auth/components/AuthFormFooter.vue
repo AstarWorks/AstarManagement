@@ -5,7 +5,7 @@
 <template>
   <div class="text-center space-y-2">
     <div class="text-xs text-muted-foreground">
-      <p>{{ $t('auth.footer.copyright') }}</p>
+      <p>{{ $t('modules.auth.login.footer.copyright') }}</p>
     </div>
     
     <!-- Optional footer links -->
@@ -16,7 +16,7 @@
         class="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
         @click="$emit('privacyClick')"
       >
-        {{ $t('auth.footer.privacy') }}
+        {{ $t('modules.auth.login.footer.privacy') }}
       </Button>
       
       <Separator orientation="vertical" class="h-3" />
@@ -27,7 +27,7 @@
         class="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
         @click="$emit('termsClick')"
       >
-        {{ $t('auth.footer.terms') }}
+        {{ $t('modules.auth.login.footer.terms') }}
       </Button>
     </div>
   </div>

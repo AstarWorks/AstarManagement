@@ -9,13 +9,13 @@
     <div class="p-3 bg-muted/50 rounded-lg border border-dashed">
       <div class="flex items-center gap-2 mb-3">
         <Badge variant="secondary" class="text-xs">
-          {{ $t('auth.debug.environmentLabel') }}
+          {{ $t('modules.auth.login.debug.environmentLabel') }}
         </Badge>
         <Icon name="lucide:code" class="h-3 w-3 text-muted-foreground" />
       </div>
       
       <p class="text-xs text-muted-foreground mb-3">
-        {{ $t('auth.debug.description') }}
+        {{ $t('modules.auth.login.debug.description') }}
       </p>
       
       <div class="flex flex-wrap gap-2">
@@ -39,14 +39,14 @@
         <CollapsibleTrigger as-child>
           <Button variant="ghost" size="sm" class="text-xs mt-2 h-6 p-1">
             <Icon name="lucide:chevron-down" class="h-3 w-3 mr-1" />
-            {{ $t('auth.debug.advancedOptions') }}
+            {{ $t('modules.auth.login.debug.advancedOptions') }}
           </Button>
         </CollapsibleTrigger>
         <CollapsibleContent class="mt-2 p-2 bg-background rounded border text-xs">
           <div class="space-y-1 text-muted-foreground">
-            <p>{{ $t('auth.debug.environment') }}: {{ currentEnvironment }}</p>
-            <p>{{ $t('auth.debug.apiEndpoint') }}: {{ apiEndpoint }}</p>
-            <p>{{ $t('auth.debug.buildTime') }}: {{ buildTime }}</p>
+            <p>{{ $t('modules.auth.login.debug.environment') }}: {{ currentEnvironment }}</p>
+            <p>{{ $t('modules.auth.login.debug.apiEndpoint') }}: {{ apiEndpoint }}</p>
+            <p>{{ $t('modules.auth.login.debug.buildTime') }}: {{ buildTime }}</p>
           </div>
         </CollapsibleContent>
       </Collapsible>
@@ -56,8 +56,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { ILoginCredentials } from '~/modules/auth/types/auth'
-import { getAuthFormConfig } from '~/modules/auth/config/authFormConfig'
+// Types and config are now handled in the component directly
 import { Badge } from '~/foundation/components/ui/badge'
 import { Button } from '~/foundation/components/ui/button/index'
 import { Separator } from '~/foundation/components/ui/separator'
@@ -66,6 +65,11 @@ import {
   CollapsibleContent, 
   CollapsibleTrigger 
 } from '~/foundation/components/ui/collapsible'
+
+interface ILoginCredentials {
+  email: string
+  password: string
+}
 
 interface DebugCredential {
   key: string
@@ -97,14 +101,27 @@ const isDevelopment = computed(() => {
          import.meta.env.MODE === 'development'
 })
 
-// Debug credentials configuration (from external config)
-const config = getAuthFormConfig()
-const debugCredentials = computed<DebugCredential[]>(() => config.debug.credentials)
+// Debug credentials configuration
+const debugCredentials = computed<DebugCredential[]>(() => [
+  {
+    key: 'admin',
+    labelKey: 'modules.auth.login.debug.adminUser',
+    icon: 'lucide:shield',
+    credentials: { email: 'admin@example.com', password: 'admin123' }
+  },
+  {
+    key: 'user',
+    labelKey: 'modules.auth.login.debug.demoUser',
+    icon: 'lucide:user',
+    credentials: { email: 'test@example.com', password: 'password123' }
+  }
+])
 
 // Environment information for advanced debug
 const currentEnvironment = computed(() => import.meta.env.MODE || 'development')
 const apiEndpoint = computed(() => useRuntimeConfig().public.apiBaseUrl)
-const buildTime = computed(() => new Date().toLocaleString('ja-JP'))
+const { locale } = useI18n()
+const buildTime = computed(() => new Date().toLocaleString(locale.value))
 
 // Fill credentials handler
 const fillCredentials = (credential: DebugCredential) => {
