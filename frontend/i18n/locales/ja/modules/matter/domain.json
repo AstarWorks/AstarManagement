@@ -1,0 +1,205 @@
+{
+  "modules": {
+    "matter": {
+      "kanban": {
+        "title": "案件管理カンバンボード",
+        "subtitle": "案件の進捗状況を可視化し、効率的な案件管理を実現",
+        "columns": {
+          "new": {
+            "title": "新規",
+            "description": "案件受付"
+          },
+          "accepted": {
+            "title": "受任",
+            "description": "正式受任"
+          },
+          "investigation": {
+            "title": "調査",
+            "description": "証拠収集"
+          },
+          "preparation": {
+            "title": "準備",
+            "description": "案件準備"
+          },
+          "negotiation": {
+            "title": "交渉",
+            "description": "和解交渉"
+          },
+          "trial": {
+            "title": "裁判",
+            "description": "法廷手続"
+          },
+          "completed": {
+            "title": "完了",
+            "description": "案件終了"
+          },
+          "mediation": {
+            "title": "調停",
+            "description": "調停手続き"
+          },
+          "court": {
+            "title": "法廷",
+            "description": "法廷手続き"
+          },
+          "resolved": {
+            "title": "解決",
+            "description": "案件解決"
+          }
+        },
+        "dragDrop": {
+          "dropHere": "ここにドロップして「{status}」に移動"
+        },
+        "actions": {
+          "newCase": "新規案件",
+          "filter": "フィルター",
+          "sort": "並び替え",
+          "refresh": "更新"
+        },
+        "filters": {
+          "description": "案件をフィルタリングして表示します",
+          "actions": {
+            "apply": "適用",
+            "clear": "クリア",
+            "reset": "リセット"
+          },
+          "title": "フィルター",
+          "activeFilters": "適用中のフィルター",
+          "dateRange": "期間",
+          "priority": "優先度",
+          "search": "検索",
+          "sort": "並び替え",
+          "tags": "タグ"
+        }
+      },
+      "title": "案件管理",
+      "create": {
+        "title": "新規案件作成"
+      },
+      "cases": {
+        "card": {
+          "ariaLabel": "案件カード",
+          "progress": "進捗",
+          "dueDate": {
+            "daysLeft": "あと{days}日",
+            "overdue": "期限超過",
+            "today": "本日期限",
+            "tomorrow": "明日期限"
+          }
+        },
+        "data": {
+          "createError": "案件の作成に失敗しました",
+          "createSuccess": "案件が作成されました",
+          "deleteError": "案件の削除に失敗しました",
+          "deleteSuccess": "案件が削除されました",
+          "loadError": "案件の読み込みに失敗しました",
+          "loadSuccess": "案件が読み込まれました",
+          "statusUpdateError": "ステータスの更新に失敗しました",
+          "statusUpdateSuccess": "ステータスが更新されました"
+        },
+        "detail": {
+          "basicInfo": {
+            "title": "基本情報",
+            "assignedLawyer": "担当弁護士",
+            "client": "依頼者",
+            "dueDate": "期限",
+            "tags": "タグ"
+          },
+          "description": {
+            "title": "案件詳細",
+            "subtitle": "案件の詳細情報",
+            "noDescription": "詳細情報がありません"
+          },
+          "progress": {
+            "title": "進捗状況",
+            "currentStatus": "現在のステータス",
+            "createdAt": "作成日時",
+            "updatedAt": "更新日時",
+            "actions": {
+              "changeStatus": "ステータス変更",
+              "edit": "編集"
+            }
+          }
+        },
+        "dragDrop": {
+          "moveSuccess": "案件を移動しました"
+        },
+        "dueDate": {
+          "alert": {
+            "daysLate": "{days}日遅れ",
+            "overdue": "期限超過",
+            "today": "本日期限",
+            "tomorrow": "明日期限"
+          }
+        }
+      },
+      "detail": {
+        "title": "案件詳細",
+        "sections": {
+          "overview": "概要",
+          "documents": "文書",
+          "timeline": "タイムライン",
+          "notes": "メモ"
+        }
+      },
+      "status": {
+        "new": "新規",
+        "accepted": "受任",
+        "investigation": "調査",
+        "preparation": "準備",
+        "negotiation": "交渉",
+        "trial": "裁判",
+        "completed": "完了",
+        "mediation": "調停",
+        "court": "法廷",
+        "resolved": "解決",
+        "active": "進行中",
+        "pending": "保留",
+        "cancelled": "キャンセル"
+      },
+      "priority": {
+        "high": "高",
+        "medium": "中",
+        "low": "低"
+      },
+      "filters": {
+        "assignedLawyer": {
+          "label": "担当弁護士"
+        },
+        "clientType": {
+          "label": "依頼者種別",
+          "options": {
+            "individual": "個人",
+            "corporate": "法人"
+          }
+        }
+      },
+      "dueDate": {
+        "overdue": "期限超過",
+        "today": "本日期限",
+        "tomorrow": "明日期限",
+        "soon": "期限間近",
+        "days": "{days}日後",
+        "noDueDate": "期限なし",
+        "alert": {
+          "overdue": "期限を過ぎています",
+          "today": "本日が期限です",
+          "tomorrow": "明日が期限です",
+          "soon": "まもなく期限です",
+          "daysLate": "{days}日遅れています",
+          "urgent": "至急対応が必要です",
+          "daysRemaining": "あと{days}日です",
+          "warning": "期限が近づいています"
+        }
+      },
+      "dragDrop": {
+        "dragStarted": "案件 {caseId} のドラッグを開始しました（ステータス: {status}）",
+        "dragEnded": "ドラッグを終了しました",
+        "invalidTransition": "{from} から {to} への移行は許可されていません",
+        "sameColumn": "同じカラムへの移動です",
+        "transitionNotAllowed": "{from} から {to} への移行は許可されていません",
+        "moveSuccess": "案件を {from} から {to} に移動しました",
+        "moveError": "案件の移動中にエラーが発生しました"
+      }
+    }
+  }
+}

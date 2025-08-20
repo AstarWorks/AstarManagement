@@ -1,0 +1,78 @@
+{
+  "foundation": {
+    "messages": {
+      "success": {
+        "default": "操作が正常に完了しました",
+        "saved": "保存しました",
+        "created": "作成しました",
+        "updated": "更新しました",
+        "deleted": "削除しました",
+        "copied": "コピーしました",
+        "sent": "送信しました",
+        "uploaded": "アップロードしました",
+        "downloaded": "ダウンロードしました",
+        "imported": "インポートしました",
+        "exported": "エクスポートしました",
+        "copySuccess": "コピーしました",
+        "copySuccessDescription": "クリップボードにコピーしました"
+      },
+      "error": {
+        "title": "エラー",
+        "default": "エラーが発生しました",
+        "generic": {
+          "somethingWentWrong": "問題が発生しました",
+          "tryAgain": "もう一度お試しください"
+        },
+        "network": {
+          "default": "ネットワークエラーが発生しました",
+          "disconnected": "インターネット接続が切断されています。接続を確認してください。",
+          "checkConnection": "ネットワークエラーが発生しました。接続を確認してください。",
+          "offlineAutoRetry": "オフライン状態です。インターネット接続が復旧すると自動的に再試行します。",
+          "maxRetriesReached": "最大再試行回数に達しました"
+        },
+        "server": "サーバーエラーが発生しました",
+        "validation": "入力内容に誤りがあります",
+        "notFound": "データが見つかりません",
+        "unauthorized": "権限がありません",
+        "forbidden": "アクセスが禁止されています",
+        "timeout": {
+          "default": "タイムアウトしました",
+          "retry": "リクエストがタイムアウトしました。しばらく待ってから再試行してください。"
+        },
+        "conflict": "データの競合が発生しました",
+        "retry": "再試行",
+        "copyFailed": "コピーに失敗しました",
+        "copyFailedDescription": "クリップボードへのコピーに失敗しました"
+      },
+      "info": {
+        "default": "お知らせ",
+        "loading": "読み込み中です",
+        "processing": "処理中です",
+        "noData": "データがありません",
+        "noResults": "検索結果がありません",
+        "retrying": "再試行中...",
+        "unknownError": "不明なエラーが発生しました",
+        "redirecting": "リダイレクト中...",
+        "unknownEmail": "unknown{'@'}example.com",
+        "tip": "",
+        "hint": "",
+        "help": "",
+        "notice": ""
+      },
+      "warning": {
+        "default": "注意が必要です",
+        "unsavedChanges": "未保存の変更があります",
+        "dataLoss": "データが失われる可能性があります",
+        "irreversible": "この操作は取り消せません"
+      },
+      "confirmation": {
+        "default": "よろしいですか？",
+        "delete": "削除してもよろしいですか？",
+        "save": "保存してもよろしいですか？",
+        "discard": "変更を破棄してもよろしいですか？",
+        "discardChanges": "保存されていない変更があります。破棄してもよろしいですか？",
+        "logout": "ログアウトしてもよろしいですか？"
+      }
+    }
+  }
+}

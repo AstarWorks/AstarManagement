@@ -1,0 +1,59 @@
+{
+  "modules": {
+    "error": {
+      "unauthorized": {
+        "title": "アクセス権限がありません",
+        "generic": "認証エラーが発生しました",
+        "noPermission": "アクセス権限がありません",
+        "insufficientRole": "権限が不足しています",
+        "sessionExpired": "セッションの有効期限が切れました",
+        "accessDenied": "アクセスが拒否されました",
+        "reasons": {
+          "insufficientPermissions": "必要な権限がありません",
+          "insufficientRole": "必要なロールがありません",
+          "insufficientRolesAll": "すべての必要なロールがありません",
+          "alreadyAuthenticated": "既にログイン済みです",
+          "unauthenticated": "認証が必要です",
+          "sessionExpired": "セッションが期限切れです",
+          "twoFactorRequired": "2要素認証が必要です",
+          "accountDisabled": "アカウントが無効です",
+          "maintenanceMode": "メンテナンス中です"
+        },
+        "details": {
+          "title": "詳細情報",
+          "reason": "アクセス拒否の理由",
+          "path": "アクセスパス",
+          "required": "必要な権限"
+        },
+        "currentUser": {
+          "title": "現在のユーザー情報",
+          "roles": "役割",
+          "permissions": "権限"
+        },
+        "actions": {
+          "goBack": "戻る",
+          "dashboard": "ダッシュボードへ",
+          "login": "ログイン"
+        },
+        "support": {
+          "text": "問題が解決しない場合は",
+          "contact": "サポートにお問い合わせ",
+          "suffix": "ください"
+        }
+      },
+      "notFound": {
+        "title": "ページが見つかりません",
+        "message": "お探しのページは存在しないか、移動した可能性があります。"
+      },
+      "serverError": {
+        "title": "サーバーエラー",
+        "message": "サーバーでエラーが発生しました。しばらく時間をおいてから再度お試しください。"
+      },
+      "maintenance": {
+        "title": "メンテナンス中",
+        "message": "システムメンテナンスを実施しています。ご不便をおかけしますが、しばらくお待ちください。",
+        "estimatedTime": "予定終了時刻: {time}"
+      }
+    }
+  }
+}

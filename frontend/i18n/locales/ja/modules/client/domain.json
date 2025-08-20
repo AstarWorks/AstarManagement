@@ -1,0 +1,10 @@
+{
+  "modules": {
+    "client": {
+      "type": {
+        "individual": "個人",
+        "corporate": "法人"
+      }
+    }
+  }
+}

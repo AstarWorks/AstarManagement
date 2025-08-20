@@ -1,0 +1,91 @@
+{
+  "modules": {
+    "auth": {
+      "domain": {
+        "entities": {
+          "session": "セッション",
+          "authentication": "認証",
+          "authorization": "認可",
+          "credentials": "認証情報",
+          "twoFactor": "2要素認証"
+        },
+        "roles": {
+          "LAWYER": "弁護士",
+          "ADMIN": "管理者",
+          "USER": "一般ユーザー",
+          "ASSISTANT": "事務員",
+          "PARALEGAL": "パラリーガル"
+        },
+        "permissions": {
+          "admin": "管理者権限"
+        },
+        "status": {
+          "suspended": "停止中"
+        }
+      },
+      "lastLogin": {
+        "label": "最終ログイン",
+        "never": "未ログイン",
+        "minutesAgo": "{minutes}分前",
+        "hoursAgo": "{hours}時間前",
+        "daysAgo": "{days}日前"
+      },
+      "status": {
+        "online": "オンライン",
+        "offline": "オフライン",
+        "active": "アクティブ",
+        "inactive": "非アクティブ",
+        "away": "離席中",
+        "busy": "取り込み中"
+      },
+      "login": {
+        "title": "ログイン",
+        "subtitle": "アカウントにサインインしてください",
+        "appTitle": "Astar Management",
+        "appSubtitle": "法律事務所業務管理システム",
+        "fields": {
+          "email": {
+            "label": "メールアドレス",
+            "placeholder": "メールアドレスを入力してください"
+          },
+          "password": {
+            "label": "パスワード",
+            "placeholder": "パスワードを入力",
+            "show": "パスワードを表示",
+            "hide": "パスワードを隠す"
+          },
+          "rememberMe": {
+            "label": "ログイン状態を保持する"
+          }
+        },
+        "actions": {
+          "submit": "ログイン",
+          "forgotPassword": "パスワードをお忘れですか？",
+          "loading": "ログイン中..."
+        },
+        "header": {
+          "title": "アカウントにログイン",
+          "subtitle": "メールアドレスとパスワードを入力してください"
+        },
+        "footer": {
+          "copyright": "© 2024 Astar Management. All rights reserved.",
+          "privacy": "プライバシーポリシー",
+          "terms": "利用規約"
+        },
+        "debug": {
+          "title": "開発用デバッグ機能",
+          "demoLogin": "デモログイン",
+          "twoFactorUser": "2FA有効ユーザー",
+          "environmentLabel": "開発環境",
+          "description": "開発用の認証情報を自動入力できます",
+          "advancedOptions": "詳細オプション",
+          "environment": "環境",
+          "apiEndpoint": "APIエンドポイント",
+          "buildTime": "ビルド時刻",
+          "demoUser": "デモユーザー",
+          "adminUser": "管理者"
+        }
+      }
+    }
+  }
+}

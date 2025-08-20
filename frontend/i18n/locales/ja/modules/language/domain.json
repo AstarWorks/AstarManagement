@@ -1,0 +1,18 @@
+{
+  "modules": {
+    "language": {
+      "switcher": {
+        "title": "言語を選択",
+        "currentLanguage": "現在の言語",
+        "ariaLabel": "言語を切り替える",
+        "tooltip": "言語を変更"
+      },
+      "languages": {
+        "ja": "日本語",
+        "en": "English",
+        "ja-JP": "日本語",
+        "en-US": "英語（米国）"
+      }
+    }
+  }
+}

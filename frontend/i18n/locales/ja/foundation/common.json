@@ -1,0 +1,168 @@
+{
+  "foundation": {
+    "common": {
+      "fields": {
+        "date": "日付",
+        "time": "時刻",
+        "datetime": "日時",
+        "amount": "金額",
+        "quantity": "数量",
+        "price": "価格",
+        "total": "合計",
+        "title": "タイトル",
+        "name": "名前",
+        "description": "説明",
+        "category": "カテゴリ",
+        "type": "タイプ",
+        "status": "ステータス",
+        "priority": "優先度",
+        "id": "ID",
+        "code": "コード",
+        "income": "収入",
+        "expense": "支出",
+        "balance": "残高",
+        "average": "平均",
+        "count": "件数",
+        "categories": "カテゴリ",
+        "email": "メールアドレス",
+        "password": "パスワード",
+        "memo": "メモ",
+        "tags": "タグ",
+        "file": "ファイル"
+      },
+      "time": {
+        "created": "",
+        "updated": "",
+        "deleted": "",
+        "modified": "",
+        "published": "",
+        "expired": ""
+      },
+      "audit": {
+        "createdAt": "作成日時",
+        "createdBy": "作成者",
+        "updatedAt": "更新日時",
+        "updatedBy": "更新者",
+        "deletedAt": "削除日時",
+        "deletedBy": "削除者",
+        "lastModified": "最終更新",
+        "modifiedBy": "更新者",
+        "version": "バージョン",
+        "revision": "リビジョン",
+        "owner": "所有者",
+        "author": "作成者",
+        "editor": "編集者"
+      },
+      "units": {
+        "count": "",
+        "items": "",
+        "records": "",
+        "entries": "",
+        "results": "",
+        "total": "",
+        "selected": ""
+      },
+      "general": {
+        "yes": "はい",
+        "no": "いいえ",
+        "unknown": "不明",
+        "none": "なし",
+        "all": "すべて",
+        "other": "その他",
+        "more": "もっと見る",
+        "less": "簡略表示",
+        "empty": "空",
+        "loading": "読み込み中...",
+        "ok": "OK",
+        "on": "オン",
+        "off": "オフ",
+        "unknownUser": "不明なユーザー",
+        "user": "ユーザー",
+        "guest": "ゲスト",
+        "users": "ユーザー",
+        "admin": "管理者",
+        "member": "メンバー",
+        "owner": "オーナー",
+        "anonymous": "匿名",
+        "system": "システム",
+        "preset": "プリセット"
+      },
+      "format": {
+        "percentage": {
+          "positive": "+{value}%",
+          "negative": "{value}%"
+        },
+        "pagination": {
+          "showing": "{from}-{to} / {total}件"
+        }
+      },
+      "app": {
+        "name": "Astar Management",
+        "title": "Astar Management",
+        "description": "法律事務所向け業務管理システム",
+        "version": "バージョン",
+        "copyright": "© 2025 Astar Management. All rights reserved.",
+        "privacyPolicy": "プライバシーポリシー",
+        "termsOfService": "利用規約",
+        "contactUs": "お問い合わせ",
+        "about": "このアプリについて",
+        "support": "サポート",
+        "documentation": "ドキュメント",
+        "help": "ヘルプ",
+        "common": "共通",
+        "features": {
+          "secure": "セキュア",
+          "encrypted": "暗号化",
+          "multiOffice": "多事務所対応",
+          "security": "セキュリティ",
+          "confidentialityNotice": "弁護士・依頼者間の秘匿特権を保護します"
+        }
+      },
+      "status": {
+        "active": "有効",
+        "inactive": "無効",
+        "pending": "保留中",
+        "processing": "処理中",
+        "completed": "完了",
+        "failed": "失敗",
+        "success": "成功",
+        "error": "エラー",
+        "warning": "警告",
+        "info": "情報",
+        "draft": "下書き",
+        "published": "公開済み",
+        "archived": "アーカイブ済み",
+        "deleted": "削除済み",
+        "online": "オンライン",
+        "offline": "オフライン",
+        "available": "利用可能",
+        "unavailable": "利用不可",
+        "enabled": "有効",
+        "disabled": "無効",
+        "locked": "ロック中",
+        "unlocked": "ロック解除",
+        "approved": "承認済み",
+        "rejected": "却下",
+        "reviewing": "レビュー中",
+        "inProgress": "進行中",
+        "scheduled": "予定済み",
+        "cancelled": "キャンセル済み",
+        "expired": "期限切れ"
+      },
+      "notifications": {
+        "maxCount": "99+"
+      },
+      "actions": {
+        "view": "表示",
+        "edit": "編集",
+        "delete": "削除",
+        "duplicate": "複製",
+        "dismiss": "閉じる",
+        "retry": "再試行"
+      },
+      "ui": {
+        "actions": "操作"
+      }
+    }
+  }
+}

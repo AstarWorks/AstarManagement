@@ -1,91 +1,67 @@
 /**
  * 日本語翻訳ファイル - メインエクスポート
  * Japanese Language Messages - Main Export
- * 
- * 新しい構造：
- * - shared/: 共通翻訳（旧common）
+ *
+ * Clean Architecture構造：
+ * - foundation/: 基盤層共通翻訳
  * - modules/: 機能別翻訳
  */
 
-// Shared translations
-import sharedApp from './shared/app.json'
-import sharedActions from './shared/actions.json'
-import sharedMetadata from './shared/metadata.json'
-import sharedValidation from './shared/validation.json'
-import sharedUI from './shared/ui.json'
-import sharedTable from './shared/table.json'
-import sharedForm from './shared/form.json'
-import sharedDateTime from './shared/date-time.json'
-import sharedStatus from './shared/status.json'
-import sharedMessages from './shared/messages.json'
-import sharedSearch from './shared/search.json'
-import sharedFilters from './shared/filters.json'
-import sharedPagination from './shared/pagination.json'
-import sharedUser from './shared/user.json'
+// Foundation translations
+import foundationActions from './foundation/actions.json'
+import foundationCommon from './foundation/common.json'
+import foundationDatetime from './foundation/datetime.json'
+import foundationForm from './foundation/form.json'
+import foundationMessages from './foundation/messages.json'
+import foundationNavigation from './foundation/navigation.json'
+import foundationSearch from './foundation/search.json'
+import foundationTable from './foundation/table.json'
 
-// Module translations - Expense
+// Module translations
+import adminDomain from './modules/admin/domain.json'
+import authDomain from './modules/auth/domain.json'
+import clientDomain from './modules/client/domain.json'
+import dashboardDomain from './modules/dashboard/domain.json'
+import documentDomain from './modules/document/domain.json'
+import errorDomain from './modules/error/domain.json'
 import expenseDomain from './modules/expense/domain.json'
-import expenseList from './modules/expense/list.json'
-import expenseForm from './modules/expense/form.json'
-import expenseStatistics from './modules/expense/statistics.json'
-import expenseImportExport from './modules/expense/import-export.json'
+import headerDomain from './modules/header/domain.json'
+import languageDomain from './modules/language/domain.json'
+import matterDomain from './modules/matter/domain.json'
+import moduleNavigationDomain from './modules/navigation/domain.json'
+import notificationDomain from './modules/notification/domain.json'
+import settingsDomain from './modules/settings/domain.json'
+import moduleStatesDomain from './modules/states/domain.json'
 
-// Other module translations (keeping original structure for now)
-import authData from './auth.json'
-import navigationData from './navigation.json'
-import statesData from './states.json'
-import matterData from './matter.json'
-import casesData from './cases.json'
-import clientData from './client.json'
-import documentData from './document.json'
-import financeData from './finance.json'
-import adminData from './admin.json'
-import notificationData from './notification.json'
-import dashboardData from './dashboard.json'
-import settingsData from './settings.json'
-import errorData from './error.json'
-import headerData from './header.json'
-import languageData from './language.json'
-
-// Merge all translations
+// Merge with deep nesting support - JSON structure is guaranteed
 export default {
-  // Shared translations
-  ...sharedApp,
-  ...sharedActions,
-  ...sharedMetadata,
-  ...sharedValidation,
-  ...sharedUI,
-  ...sharedTable,
-  ...sharedForm,
-  ...sharedDateTime,
-  ...sharedStatus,
-  ...sharedMessages,
-  ...sharedSearch,
-  ...sharedFilters,
-  ...sharedPagination,
-  ...sharedUser,
-  
-  // Expense module (merged)
-  ...expenseDomain,
-  ...expenseList,
-  ...expenseForm,
-  ...expenseStatistics,
-  ...expenseImportExport,
-  
-  // Other modules (keeping original structure)
-  ...authData,
-  ...navigationData,
-  ...statesData,
-  ...matterData,
-  ...casesData,
-  ...clientData,
-  ...documentData,
-  ...financeData,
-  ...adminData,
-  ...notificationData,
-  ...dashboardData,
-  ...settingsData,
-  ...errorData,
-  ...headerData,
-  ...languageData
+    // Foundation layer - extract nested keys from JSON files
+    foundation: {
+        actions: foundationActions.foundation.actions,
+        common: foundationCommon.foundation.common,
+        datetime: foundationDatetime.foundation.datetime,
+        form: foundationForm.foundation.form,
+        messages: foundationMessages.foundation.messages,
+        navigation: foundationNavigation.foundation.navigation,
+        search: foundationSearch.foundation.search,
+        table: foundationTable.foundation.table
+    },
+    
+    // Modules layer - extract nested keys from JSON files
+    modules: {
+        admin: adminDomain.modules.admin,
+        auth: authDomain.modules.auth,
+        client: clientDomain.modules.client,
+        dashboard: dashboardDomain.modules.dashboard,
+        document: documentDomain.modules.document,
+        error: errorDomain.modules.error,
+        expense: expenseDomain.modules.expense,
+        header: headerDomain.modules.header,
+        language: languageDomain.modules.language,
+        matter: matterDomain.modules.matter,
+        navigation: moduleNavigationDomain.modules.navigation,
+        notification: notificationDomain.modules.notification,
+        settings: settingsDomain.modules.settings,
+        states: moduleStatesDomain.modules.states
+    }
 }

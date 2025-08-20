@@ -1,0 +1,19 @@
+{
+  "foundation": {
+    "search": {
+      "title": "検索",
+      "placeholder": "検索...",
+      "suggestions": "検索候補",
+      "recent": "最近の検索",
+      "popular": "人気の検索",
+      "noResults": "検索結果がありません",
+      "results": "{count}件の検索結果",
+      "tips": {
+        "title": "検索のヒント",
+        "spelling": "スペルをご確認ください",
+        "keywords": "異なるキーワードで検索してみてください",
+        "filters": "フィルターを解除してみてください"
+      }
+    }
+  }
+}

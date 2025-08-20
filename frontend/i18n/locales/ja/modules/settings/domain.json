@@ -1,0 +1,12 @@
+{
+  "modules": {
+    "settings": {
+      "sections": {
+        "profile": "プロフィール設定",
+        "preferences": "環境設定",
+        "security": "セキュリティ設定",
+        "notifications": "通知設定"
+      }
+    }
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "foundation": {
+    "form": {
+      "actions": {
+        "submit": "",
+        "reset": "",
+        "save": "",
+        "cancel": "",
+        "saveDraft": "",
+        "clear": ""
+      },
+      "validation": {
+        "required": "このフィールドは必須です",
+        "email": "有効なメールアドレスを入力してください",
+        "min": "最小{min}文字以上で入力してください",
+        "max": "最大{max}文字以内で入力してください",
+        "minValue": "{min}以上の値を入力してください",
+        "maxValue": "{max}以下の値を入力してください",
+        "pattern": "正しい形式で入力してください",
+        "numeric": "数値を入力してください",
+        "integer": "整数を入力してください",
+        "decimal": "小数を入力してください",
+        "alpha": "アルファベットのみ入力可能です",
+        "alphanumeric": "英数字のみ入力可能です",
+        "alphaNumeric": "英数字のみ入力可能です",
+        "url": "有効なURLを入力してください",
+        "date": "有効な日付を入力してください",
+        "time": "有効な時刻を入力してください",
+        "dateTime": "有効な日時を入力してください",
+        "phone": "有効な電話番号を入力してください",
+        "postalCode": "有効な郵便番号を入力してください",
+        "unique": "この値は既に使用されています",
+        "confirmed": "確認用の値と一致しません",
+        "accepted": "承認が必要です",
+        "minLength": "最小{min}文字以上で入力してください",
+        "maxLength": "最大{max}文字以内で入力してください",
+        "between": "{min}から{max}の間で入力してください",
+        "fileSize": "ファイルサイズは{max}MB以下にしてください",
+        "fileType": "許可されていないファイル形式です",
+        "password": "有効なパスワードを入力してください",
+        "number": "{field}には数値を入力してください",
+        "select": "{field}を選択してください",
+        "invalid": "入力値が正しくありません",
+        "positive": "正の値を入力してください",
+        "future": "未来の日付を入力してください",
+        "past": "過去の日付を入力してください"
+      },
+      "states": {
+        "loading": "",
+        "saving": "",
+        "saved": "",
+        "error": "",
+        "dirty": "編集済み",
+        "pristine": "未編集",
+        "valid": "有効",
+        "invalid": "無効",
+        "submitted": "送信済み",
+        "submitting": "送信中"
+      },
+      "messages": {
+        "saveSuccess": "",
+        "saveFailed": "",
+        "submitSuccess": "",
+        "submitFailed": "",
+        "resetConfirm": "",
+        "unsavedChanges": ""
+      },
+      "fields": {
+        "optional": "任意",
+        "required": "必須",
+        "placeholder": "",
+        "help": "",
+        "showPassword": "",
+        "hidePassword": "",
+        "requiredField": "必須項目",
+        "optionalField": "任意項目",
+        "invalid": "入力値が正しくありません",
+        "hint": "ヒント",
+        "helper": "入力のヒント"
+      }
+    }
+  }
+}

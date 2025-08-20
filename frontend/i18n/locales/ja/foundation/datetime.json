@@ -1,0 +1,75 @@
+{
+  "foundation": {
+    "datetime": {
+      "date": {
+        "today": "今日",
+        "yesterday": "昨日",
+        "tomorrow": "明日",
+        "thisWeek": "今週",
+        "lastWeek": "先週",
+        "nextWeek": "来週",
+        "thisMonth": "今月",
+        "lastMonth": "先月",
+        "nextMonth": "来月",
+        "thisYear": "今年",
+        "lastYear": "昨年",
+        "nextYear": "来年",
+        "custom": "カスタム",
+        "range": "期間"
+      },
+      "time": {
+        "hours": "時間",
+        "minutes": "分",
+        "seconds": "秒",
+        "am": "午前",
+        "pm": "午後",
+        "now": "現在"
+      },
+      "duration": {
+        "days": "日",
+        "hours": "時間",
+        "minutes": "分",
+        "seconds": "秒",
+        "milliseconds": "ミリ秒"
+      },
+      "relative": {
+        "justNow": "たった今",
+        "minutesAgo": "{minutes}分前",
+        "hoursAgo": "{hours}時間前",
+        "daysAgo": "{days}日前",
+        "weeksAgo": "{weeks}週間前",
+        "monthsAgo": "{months}ヶ月前",
+        "yearsAgo": "{years}年前",
+        "inMinutes": "{minutes}分後",
+        "inHours": "{hours}時間後",
+        "inDays": "{days}日後",
+        "inWeeks": "{weeks}週間後",
+        "inMonths": "{months}ヶ月後",
+        "inYears": "{years}年後"
+      },
+      "weekday": {
+        "monday": "月曜日",
+        "tuesday": "火曜日",
+        "wednesday": "水曜日",
+        "thursday": "木曜日",
+        "friday": "金曜日",
+        "saturday": "土曜日",
+        "sunday": "日曜日"
+      },
+      "month": {
+        "january": "1月",
+        "february": "2月",
+        "march": "3月",
+        "april": "4月",
+        "may": "5月",
+        "june": "6月",
+        "july": "7月",
+        "august": "8月",
+        "september": "9月",
+        "october": "10月",
+        "november": "11月",
+        "december": "12月"
+      }
+    }
+  }
+}

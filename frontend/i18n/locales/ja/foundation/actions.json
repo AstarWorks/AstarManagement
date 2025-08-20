@@ -1,0 +1,75 @@
+{
+  "foundation": {
+    "actions": {
+      "basic": {
+        "save": "保存",
+        "cancel": "キャンセル",
+        "delete": "削除",
+        "edit": "編集",
+        "create": "新規作成",
+        "update": "更新",
+        "view": "表示",
+        "viewDetails": "詳細を表示",
+        "close": "閉じる",
+        "open": "開く"
+      },
+      "data": {
+        "export": "エクスポート",
+        "import": "インポート",
+        "copy": "コピー",
+        "duplicate": "複製",
+        "download": "ダウンロード",
+        "upload": "アップロード",
+        "print": "印刷",
+        "share": "共有"
+      },
+      "selection": {
+        "select": "選択",
+        "selectAll": "すべて選択",
+        "unselectAll": "選択解除",
+        "bulkEdit": "一括編集",
+        "bulkDelete": "一括削除"
+      },
+      "flow": {
+        "submit": "送信",
+        "apply": "適用",
+        "confirm": "確認",
+        "reject": "",
+        "approve": ""
+      },
+      "navigation": {
+        "back": "戻る",
+        "next": "次へ",
+        "previous": "前へ",
+        "continue": "",
+        "finish": "完了",
+        "skip": "",
+        "home": "",
+        "menu": "メニュー",
+        "navigateNext": "次へ移動",
+        "navigatePrevious": "前へ移動",
+        "openMenu": "メニューを開く",
+        "closeMenu": "メニューを閉じる",
+        "skipToContent": "コンテンツへスキップ",
+        "skipToNavigation": "ナビゲーションへスキップ"
+      },
+      "ui": {
+        "more": "もっと見る",
+        "less": "閉じる",
+        "showDetails": "詳細を表示",
+        "expand": "展開",
+        "collapse": "折りたたむ"
+      },
+      "system": {
+        "refresh": "更新",
+        "reload": "ページを再読み込み",
+        "retry": "再試行",
+        "reset": "リセット",
+        "clear": "クリア",
+        "dismiss": "閉じる",
+        "clearFilters": "フィルターをクリア",
+        "clearSearch": "検索をクリア"
+      }
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "modules": {
+    "admin": {
+      "title": "システム管理",
+      "dashboard": {
+        "title": "管理ダッシュボード",
+        "subtitle": "システム全体の管理と監視"
+      },
+      "users": {
+        "title": "ユーザー管理"
+      },
+      "roles": {
+        "title": "権限管理"
+      },
+      "audit": {
+        "title": "監査ログ"
+      },
+      "system": {
+        "title": "システム設定"
+      }
+    }
+  }
+}

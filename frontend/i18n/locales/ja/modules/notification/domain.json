@@ -1,0 +1,13 @@
+{
+  "modules": {
+    "notification": {
+      "types": {
+        "matter": "案件",
+        "document": "文書",
+        "client": "顧客",
+        "finance": "財務",
+        "system": "システム"
+      }
+    }
+  }
+}

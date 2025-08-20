@@ -1,0 +1,122 @@
+{
+  "foundation": {
+    "table": {
+      "selection": {
+        "selectAll": "",
+        "selectRow": "",
+        "unselectAll": "",
+        "selectedCount": "{count}件選択中",
+        "toggleSelection": "",
+        "selected": {
+          "one": "{count}件選択",
+          "other": "{count}件選択"
+        }
+      },
+      "sorting": {
+        "sort": "並べ替え",
+        "sortAsc": "昇順",
+        "sortDesc": "降順",
+        "sortBy": "",
+        "clearSort": ""
+      },
+      "filtering": {
+        "filter": "",
+        "clearFilter": "",
+        "clearAllFilters": "",
+        "activeFilters": "適用中のフィルター",
+        "showFilters": "",
+        "hideFilters": "",
+        "title": "フィルター",
+        "active": "適用中のフィルター",
+        "available": "利用可能なフィルター",
+        "noFilters": "フィルターなし",
+        "advanced": "詳細フィルター",
+        "clear": "クリア",
+        "modify": "条件を変更",
+        "remove": "削除",
+        "balanceType": "収支タイプ",
+        "hasMemo": "メモあり",
+        "hasAttachments": "添付ファイルあり",
+        "suggestions": {
+          "title": "フィルターの提案",
+          "broaden": "条件を広げてみてください",
+          "different": "異なる条件を試してください",
+          "dateRange": "期間の範囲を調整してみてください",
+          "categories": "カテゴリを変更してみてください"
+        },
+        "stats": {
+          "applied": "{count}個のフィルター適用中",
+          "matches": "{count}件が一致",
+          "matched": "{count}件が一致",
+          "income": "収入",
+          "expense": "支出",
+          "balance": "収支",
+          "noMatches": "一致するデータがありません"
+        }
+      },
+      "pagination": {
+        "page": "{page} ページ",
+        "firstPage": "最初",
+        "previousPage": "前へ",
+        "nextPage": "次へ",
+        "lastPage": "最後",
+        "rowsPerPage": "1ページあたりの行数",
+        "showing": "{total} 件中 {from} - {to} 件を表示",
+        "goToPage": "ページへ移動",
+        "perPage": "表示件数",
+        "of": "/ {total}",
+        "totalPages": "全 {count} ページ",
+        "totalItems": "全 {count} 件",
+        "itemsPerPage": {
+          "10": "10件",
+          "25": "25件",
+          "50": "50件",
+          "100": "100件",
+          "all": "すべて"
+        },
+        "summary": "{start} - {end} / {total}件"
+      },
+      "states": {
+        "empty": {
+          "title": "データがありません",
+          "description": "表示するデータがありません"
+        },
+        "loading": {
+          "title": "読み込み中...",
+          "description": "データを読み込んでいます"
+        },
+        "error": {
+          "title": "エラーが発生しました",
+          "description": "データの読み込み中にエラーが発生しました"
+        },
+        "noResults": ""
+      },
+      "accessibility": {
+        "selectItem": "項目を選択",
+        "unselectItem": "選択を解除",
+        "expandRow": "行を展開",
+        "collapseRow": "行を折りたたむ",
+        "sortColumn": "列でソート",
+        "filterColumn": "列でフィルター",
+        "loading": {
+          "row": "行 {index} を読み込み中"
+        },
+        "selected": {
+          "single": "1つの項目が選択されています",
+          "multiple": "{count}個の項目が選択されています"
+        },
+        "columns": "カラム",
+        "toggleColumns": "カラムの表示/非表示",
+        "ariaLabel": "データテーブル",
+        "description": "{count}件を表示（全{total}件）",
+        "row": {
+          "expand": "詳細を表示",
+          "collapse": "詳細を隠す",
+          "selected": "選択済み",
+          "actions": "操作",
+          "ariaLabel": "{description} - {amount} ({type})"
+        }
+      }
+    }
+  }
+}

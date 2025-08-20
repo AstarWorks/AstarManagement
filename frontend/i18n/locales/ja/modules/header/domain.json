@@ -1,0 +1,26 @@
+{
+  "modules": {
+    "header": {
+      "notifications": {
+      "count": "{count}件の通知",
+      "label": "通知",
+      "empty": "新しい通知はありません"
+    },
+    "search": {
+      "placeholder": "検索...",
+      "label": "検索",
+      "shortcut": "Cmd+K",
+      "searching": "検索中..."
+    },
+    "sidebar": {
+      "toggle": "サイドバーの表示/非表示",
+      "openMobileMenu": "メニューを開く",
+      "closeMobileMenu": "メニューを閉じる"
+    },
+    "breadcrumb": {
+      "home": "ホーム",
+      "separator": "/"
+      }
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "modules": {
+    "states": {
+      "empty": {
+        "expenses": {
+          "title": "実費データがありません",
+          "description": "最初の実費を記録して、支出管理を始めましょう。",
+          "primaryAction": "実費を追加",
+          "secondaryAction": "サンプルデータを読み込む"
+        }
+      }
+    }
+  }
+}

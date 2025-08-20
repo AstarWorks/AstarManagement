@@ -1,0 +1,14 @@
+{
+  "modules": {
+    "document": {
+      "title": "文書管理",
+      "upload": {
+        "title": "ファイルアップロード",
+        "dragDrop": "ファイルをドラッグ&ドロップするか、クリックして選択してください",
+        "browse": "ファイルを選択",
+        "maxSize": "最大ファイルサイズ",
+        "supportedFormats": "対応形式"
+      }
+    }
+  }
+}

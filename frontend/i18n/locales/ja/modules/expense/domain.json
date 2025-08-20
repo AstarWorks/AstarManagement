@@ -1,93 +1,398 @@
 {
-  "expense": {
-    "fields": {
-      "date": "日付",
-      "case": "案件",
-      "category": "カテゴリ",
-      "description": "説明",
-      "amount": "金額",
-      "vendor": "支払先",
-      "balance": "残高"
-    },
-    "table": {
-      "selectAll": "すべて選択",
-      "selectRow": "行を選択"
-    },
-    "domain": {
-      "expense": "経費",
-      "expenses": "経費一覧",
-      "actualExpense": "実費",
-      "advancePayment": "立替金",
-      "reimbursement": "精算",
-      "receipt": "領収書",
-      "invoice": "請求書",
-      "voucher": "伝票",
-      "categories": {
-        "transportation": "交通費",
-        "accommodation": "宿泊費",
-        "meals": "飲食費",
-        "entertainment": "接待費",
-        "supplies": "消耗品費",
-        "communication": "通信費",
-        "utilities": "光熱費",
-        "rent": "賃借料",
-        "insurance": "保険料",
-        "taxes": "税金",
-        "professional": "専門家報酬",
-        "advertising": "広告宣伝費",
-        "travel": "出張費",
-        "conference": "会議費",
-        "training": "研修費",
-        "membership": "会費",
-        "subscription": "購読料",
-        "equipment": "備品費",
-        "maintenance": "修繕費",
-        "other": "その他"
-      },
-      "status": {
-        "draft": "下書き",
-        "pending": "申請中",
-        "approved": "承認済み",
-        "rejected": "却下",
-        "paid": "支払済み",
-        "reimbursed": "精算済み",
-        "cancelled": "取消"
-      },
-      "paymentMethod": {
-        "cash": "現金",
-        "creditCard": "クレジットカード",
-        "bankTransfer": "銀行振込",
-        "check": "小切手",
-        "companyCard": "法人カード",
-        "personalCard": "個人カード",
-        "advance": "仮払い"
-      },
-      "taxType": {
-        "taxIncluded": "税込",
-        "taxExcluded": "税抜",
-        "taxExempt": "非課税",
-        "taxFree": "免税"
+  "modules": {
+    "expense": {
+      "titlePlural": "経費",
+      "domain": {
+        "types": {
+          "expense": "経費",
+          "expenses": "経費一覧",
+          "actualExpense": "実費",
+          "advancePayment": "立替金",
+          "reimbursement": "精算",
+          "receipt": "領収書",
+          "invoice": "請求書",
+          "voucher": "伝票"
+        },
+        "categories": {
+          "transportation": "交通費",
+          "accommodation": "宿泊費",
+          "meals": "飲食費",
+          "entertainment": "接待費",
+          "supplies": "消耗品費",
+          "communication": "通信費",
+          "utilities": "光熱費",
+          "rent": "賃借料",
+          "insurance": "保険料",
+          "taxes": "税金",
+          "professional": "専門家報酬",
+          "advertising": "広告宣伝費",
+          "travel": "出張費",
+          "conference": "会議費",
+          "training": "研修費",
+          "membership": "会費",
+          "subscription": "購読料",
+          "equipment": "備品費",
+          "maintenance": "修繕費",
+          "stampFees": "印紙代",
+          "copyFees": "コピー代",
+          "postage": "郵送費",
+          "other": "その他"
+        },
+        "paymentMethod": {
+          "cash": "現金",
+          "creditCard": "クレジットカード",
+          "bankTransfer": "銀行振込",
+          "check": "小切手",
+          "companyCard": "法人カード",
+          "personalCard": "個人カード",
+          "advance": "仮払い"
+        },
+        "taxType": {
+          "taxIncluded": "税込",
+          "taxExcluded": "税抜",
+          "taxExempt": "非課税",
+          "taxFree": "免税"
+        },
+        "navigation": {
+          "title": "実費管理",
+          "badge": "新着",
+          "list": "実費一覧",
+          "new": "新規実費",
+          "import": "CSVインポート",
+          "reports": "集計レポート"
+        },
+        "actions": {
+          "addTag": "タグを追加",
+          "cancel": "キャンセル",
+          "create": "作成",
+          "delete": "削除",
+          "downloadAttachment": "添付ファイルをダウンロード",
+          "duplicate": "複製",
+          "edit": "編集",
+          "import": "インポート",
+          "print": "印刷",
+          "removeAttachment": "添付ファイルを削除",
+          "reset": "リセット",
+          "save": "保存",
+          "saveDraft": "下書き保存",
+          "update": "更新",
+          "uploadAttachment": "添付ファイルをアップロード",
+          "view": "表示"
+        },
+        "attachments": {
+          "title": "添付ファイル",
+          "upload": "アップロード",
+          "download": "ダウンロード",
+          "remove": "削除",
+          "preview": "プレビュー"
+        },
+        "confirmations": {
+          "delete": "この実費を削除してもよろしいですか？",
+          "discard": "変更を破棄してもよろしいですか？",
+          "save": "実費を保存してもよろしいですか？"
+        },
+        "conflicts": {
+          "title": "競合が発生しました",
+          "message": "他のユーザーがこのデータを変更しています。"
+        },
+        "delete": {
+          "title": "実費を削除",
+          "confirmation": "この実費を削除してもよろしいですか？",
+          "success": "実費が削除されました",
+          "error": "削除に失敗しました"
+        },
+        "detail": {
+          "title": "実費詳細",
+          "sections": {
+            "basic": "基本情報",
+            "attachments": "添付ファイル",
+            "history": "履歴"
+          }
+        },
+        "errors": {
+          "loadFailed": "実費の読み込みに失敗しました",
+          "saveFailed": "実費の保存に失敗しました",
+          "deleteFailed": "実費の削除に失敗しました",
+          "networkError": "ネットワークエラーが発生しました"
+        },
+        "filters": {
+          "category": "カテゴリー",
+          "dateRange": "期間",
+          "status": "ステータス",
+          "amount": "金額"
+        },
+        "indicators": {
+          "new": "新規",
+          "updated": "更新済み",
+          "unsaved": "未保存"
+        },
+        "pagination": {
+          "page": "ページ",
+          "showing": "表示中",
+          "total": "合計",
+          "perPage": "件/ページ"
+        },
+        "status": {
+          "created": "作成済み",
+          "loading": "読み込み中",
+          "optimistic": "一時的",
+          "optimisticUpdate": "一時更新",
+          "unsavedChanges": "未保存の変更"
+        },
+        "table": {
+          "headers": {
+            "category": "カテゴリー",
+            "amount": "金額",
+            "date": "日付",
+            "description": "説明",
+            "actions": "操作"
+          },
+          "columns": {
+            "category": "カテゴリー",
+            "amount": "金額",
+            "date": "日付"
+          }
+        },
+        "tags": {
+          "add": "タグを追加",
+          "remove": "タグを削除",
+          "manage": "タグ管理"
+        }
       },
       "fields": {
-        "expenseDate": "発生日",
         "amount": "金額",
-        "taxAmount": "消費税額",
-        "totalAmount": "合計金額",
-        "category": "カテゴリ",
-        "paymentMethod": "支払方法",
-        "vendor": "支払先",
-        "purpose": "目的",
-        "description": "説明",
-        "project": "プロジェクト",
-        "client": "クライアント",
-        "matter": "案件",
-        "approver": "承認者",
-        "applicant": "申請者",
-        "receiptNumber": "領収書番号",
-        "invoiceNumber": "請求書番号",
-        "attachments": "添付ファイル",
-        "memo": "メモ",
-        "tags": "タグ"
+        "balance": "残高",
+        "category": "カテゴリー",
+        "date": "日付",
+        "description": "説明"
+      },
+      "table": {
+        "columns": {
+          "category": "カテゴリー"
+        },
+        "headers": {
+          "actions": "操作"
+        }
+      },
+      "preview": {
+        "title": "プレビュー"
+      },
+      "form": {
+        "title": {
+          "create": "新規実費登録",
+          "edit": "実費編集"
+        },
+        "sections": {
+          "basic": "基本情報",
+          "details": "詳細",
+          "attachments": "添付ファイル"
+        },
+        "fields": {
+          "attachments": "添付ファイル",
+          "balance": "残高",
+          "case": "案件",
+          "category": "カテゴリー",
+          "date": "日付",
+          "description": "説明",
+          "expenseAmount": "支出金額",
+          "incomeAmount": "収入金額",
+          "memo": "メモ",
+          "tags": "タグ"
+        },
+        "placeholders": {
+          "amount": "金額を入力",
+          "case": "案件を選択",
+          "category": "カテゴリーを選択",
+          "date": "日付を選択",
+          "description": "説明を入力",
+          "memo": "メモを入力",
+          "selectCase": "案件を選択してください",
+          "selectCategory": "カテゴリーを選択してください",
+          "selectTags": "タグを選択",
+          "tags": "タグを選択"
+        },
+        "descriptions": {
+          "case": "この実費が関連する案件",
+          "category": "実費のカテゴリー",
+          "date": "実費が発生した日付",
+          "description": "実費の詳細な説明",
+          "expenseAmount": "支出金額",
+          "incomeAmount": "収入金額",
+          "memo": "追加のメモや備考",
+          "tags": "整理用のタグ"
+        },
+        "actions": {
+          "create": "実費を登録",
+          "import": "インポート",
+          "manageAttachments": "添付ファイル管理"
+        },
+        "navigation": {
+          "nextStep": "次へ",
+          "previousStep": "戻る",
+          "resetForm": "リセット",
+          "saveDraft": "下書き保存",
+          "saveExpense": "実費を保存",
+          "updateExpense": "実費を更新"
+        },
+        "steps": {
+          "basic": "基本情報",
+          "details": "詳細",
+          "review": "確認"
+        },
+        "amountType": "金額タイプ",
+        "amountTypes": {
+          "expense": "支出",
+          "income": "収入"
+        },
+        "attachmentComingSoon": "添付ファイル機能は近日公開予定です",
+        "attachmentPlaceholder": "ファイルをドラッグ&ドロップまたはクリックして選択",
+        "balanceCalculation": "残高計算",
+        "characters": "文字",
+        "commonAmounts": "よく使う金額",
+        "confirmDiscardChanges": "変更を破棄してもよろしいですか？",
+        "currentStep": "現在のステップ",
+        "description": {
+          "edit": "実費の詳細を編集"
+        },
+        "goToStep": "ステップへ移動",
+        "noCase": "案件なし",
+        "noTags": "タグなし",
+        "selectCase": "案件を選択",
+        "selectCategory": "カテゴリーを選択",
+        "selectTags": "タグを選択",
+        "step": "ステップ",
+        "stepCompleted": "完了",
+        "stepCurrent": "現在",
+        "stepOf": "の",
+        "submit": "送信",
+        "successMessage": "実費が正常に保存されました",
+        "tagInput": "タグを入力",
+        "updateSuccessMessage": "実費が正常に更新されました",
+        "validation": {
+          "amountPositive": "金額は正の数でなければなりません",
+          "amountRequired": "金額は必須です",
+          "balanceCalculationError": "残高の計算でエラーが発生しました",
+          "categoryRequired": "カテゴリーは必須です",
+          "dateRequired": "日付は必須です",
+          "descriptionRequired": "説明は必須です",
+          "eitherAmountRequired": "支出金額または収入金額のいずれかが必要です"
+        }
+      },
+      "list": {
+        "title": "実費一覧",
+        "actions": {
+          "add": "新規追加",
+          "export": "エクスポート",
+          "filter": "フィルター",
+          "import": "インポート",
+          "refresh": "更新"
+        },
+        "filters": {
+          "all": "すべて",
+          "category": "カテゴリー",
+          "dateRange": "期間",
+          "status": "ステータス"
+        },
+        "empty": {
+          "title": "実費がありません",
+          "description": "新規実費を追加してください"
+        },
+        "table": {
+          "actions": "操作",
+          "amount": "金額",
+          "category": "カテゴリー",
+          "date": "日付",
+          "description": "説明"
+        },
+        "noExpenses": "実費がありません",
+        "summaryCards": {
+          "averageAmount": "平均金額",
+          "categoryBreakdown": "カテゴリー別内訳",
+          "monthlyTotal": "月間合計",
+          "totalBalance": "総残高",
+          "totalExpenses": "総支出",
+          "totalIncome": "総収入"
+        }
+      },
+      "reports": {
+        "title": "実費レポート",
+        "types": {
+          "monthly": "月次レポート",
+          "quarterly": "四半期レポート",
+          "yearly": "年次レポート",
+          "custom": "カスタムレポート"
+        },
+        "sections": {
+          "summary": "サマリー",
+          "breakdown": "内訳",
+          "trends": "トレンド",
+          "comparison": "比較"
+        },
+        "metrics": {
+          "total": "合計",
+          "average": "平均",
+          "count": "件数",
+          "percentage": "割合"
+        },
+        "charts": {
+          "categoryBreakdown": "カテゴリー別内訳",
+          "monthlyTrend": "月次推移",
+          "yearlyComparison": "年次比較"
+        },
+        "averageExpense": "平均実費",
+        "balanceOverTime": "残高推移",
+        "categoryBreakdown": "カテゴリー別内訳",
+        "categoryDistribution": "カテゴリー分布",
+        "customDateRange": "カスタム期間",
+        "dateRange": "期間",
+        "expenseByCategory": "カテゴリー別実費",
+        "expenseByMonth": "月別実費",
+        "expenseTrends": "実費トレンド",
+        "exportReport": "レポートをエクスポート",
+        "generateReport": "レポート生成",
+        "monthlyBreakdown": "月次内訳",
+        "monthlyComparison": "月次比較",
+        "monthlyReport": "月次レポート",
+        "periodComparison": "期間比較",
+        "quarterlyReport": "四半期レポート",
+        "reportGenerated": "レポートが生成されました",
+        "reportType": "レポートタイプ",
+        "selectPeriod": "期間を選択",
+        "topCategories": "上位カテゴリー",
+        "topExpenses": "上位実費",
+        "totalBalance": "総残高",
+        "totalExpenses": "総実費",
+        "totalIncome": "総収入",
+        "viewDetails": "詳細を表示",
+        "yearlyReport": "年次レポート",
+        "yearlyTrend": "年次トレンド"
+      },
+      "importExport": {
+        "title": "インポート/エクスポート",
+        "import": {
+          "title": "実費をインポート",
+          "selectFile": "ファイルを選択",
+          "dragDrop": "ファイルをドラッグ&ドロップ",
+          "supportedFormats": "対応フォーマット: CSV, Excel",
+          "preview": "プレビュー",
+          "mapping": "フィールドマッピング",
+          "startImport": "インポート開始"
+        },
+        "export": {
+          "title": "実費をエクスポート",
+          "format": "フォーマット",
+          "dateRange": "期間",
+          "categories": "カテゴリー",
+          "startExport": "エクスポート開始"
+        },
+        "downloadTemplate": "テンプレートをダウンロード",
+        "exportFormat": "エクスポート形式",
+        "exportSuccess": "エクスポートが完了しました",
+        "importProgress": "インポート進行状況",
+        "importSuccess": "インポートが完了しました",
+        "mappingInstructions": "CSVの列を対応するフィールドにマッピングしてください",
+        "selectFormat": "形式を選択",
+        "uploadFile": "ファイルをアップロード"
       }
     }
   }

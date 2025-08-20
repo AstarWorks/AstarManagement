@@ -1,0 +1,27 @@
+{
+  "foundation": {
+    "navigation": {
+      "breadcrumb": {
+        "home": "",
+        "separator": "",
+        "current": "",
+        "skipToContent": ""
+      },
+      "pagination": {
+        "page": "",
+        "of": "",
+        "currentPage": "",
+        "totalPages": "",
+        "itemsPerPage": ""
+      },
+      "accessibility": {
+        "skipToContent": "",
+        "skipToNavigation": "",
+        "openMenu": "",
+        "closeMenu": "",
+        "navigateNext": "",
+        "navigatePrevious": ""
+      }
+    }
+  }
+}
