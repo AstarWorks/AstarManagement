@@ -13,15 +13,15 @@ import type { IBreadcrumbItem } from '~/foundation/types/navigation'
  */
 export function useHeaderBreadcrumb() {
   const route = useRoute()
-  const { t } = useI18n()
 
   /**
    * 現在のルートからブレッドクラムアイテムを生成
+   * Returns labelKey for component-side translation
    */
-  const breadcrumbs = computed<IBreadcrumbItem[]>(() => {
+  const breadcrumbs = computed<(IBreadcrumbItem & { labelKey?: string })[]>(() => {
     const pathSegments = route.path.split('/').filter(Boolean)
-    const crumbs: IBreadcrumbItem[] = [
-      { label: t('navigation.dashboard'), href: '/dashboard' }
+    const crumbs: (IBreadcrumbItem & { labelKey?: string })[] = [
+      { label: 'Dashboard', labelKey: 'navigation.dashboard', href: '/dashboard' }
     ]
     
     let currentPath = ''
@@ -29,10 +29,11 @@ export function useHeaderBreadcrumb() {
       currentPath += `/${segment}`
       
       const isLast = index === pathSegments.length - 1
-      const label = getBreadcrumbLabel(segment, currentPath)
+      const { label, labelKey } = getBreadcrumbLabelAndKey(segment, currentPath)
       
       crumbs.push({
         label,
+        labelKey,
         href: isLast ? '' : currentPath
       })
     })
@@ -41,12 +42,12 @@ export function useHeaderBreadcrumb() {
   })
 
   /**
-   * パスセグメントから適切なラベルを生成
-   * i18n対応でハードコーディングを排除
+   * パスセグメントから適切なラベルとキーを生成
+   * Returns both label (fallback) and labelKey for component-side translation
    */
-  const getBreadcrumbLabel = (segment: string, _path: string): string => {
-    // i18n対応のラベルマッピング
-    const labelKeys: Record<string, string> = {
+  const getBreadcrumbLabelAndKey = (segment: string, _path: string): { label: string; labelKey?: string } => {
+    // Label key mapping for i18n
+    const labelKeyMap: Record<string, string> = {
       cases: 'navigation.matters',
       clients: 'navigation.clients', 
       documents: 'navigation.documents',
@@ -57,8 +58,12 @@ export function useHeaderBreadcrumb() {
       upload: 'common.upload'
     }
     
-    const labelKey = labelKeys[segment]
-    return labelKey ? t(labelKey) : segment
+    const labelKey = labelKeyMap[segment]
+    // Return segment as fallback label if no key found
+    return {
+      label: segment.charAt(0).toUpperCase() + segment.slice(1),
+      labelKey
+    }
   }
 
   return {
