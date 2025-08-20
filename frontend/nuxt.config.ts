@@ -2,20 +2,27 @@
 import { fileURLToPath } from 'url'
 import tailwindcss from "@tailwindcss/vite";
 import tailwindAutoReference from 'vite-plugin-vue-tailwind-auto-reference';
+import vueDevTools from 'vite-plugin-vue-devtools'
+
+// 環境変数の取得
+const apiMode = process.env.NUXT_PUBLIC_API_MODE || 'development'
+const isProductionMode = apiMode === 'production'
+const isFrontendOnlyMode = apiMode === 'frontend-only'
 
 export default defineNuxtConfig({
 
     // Modules
     modules: [
-        '@nuxt/eslint',
-        '@pinia/nuxt',
-        '@pinia-plugin-persistedstate/nuxt',
-        '@vueuse/nuxt',
-        '@nuxt/fonts',
-        '@nuxt/icon',
-        '@nuxt/image',
-        'shadcn-nuxt',
-        '@nuxtjs/i18n',
+      '@nuxt/eslint',
+      '@pinia/nuxt',
+      '@pinia-plugin-persistedstate/nuxt',
+      '@vueuse/nuxt',
+      '@nuxt/fonts',
+      '@nuxt/icon',
+      '@nuxt/image',
+      'shadcn-nuxt',
+      '@nuxtjs/i18n',
+      '@sidebase/nuxt-auth',
     ],
 
     // Client-side rendering only (SPA mode)
@@ -24,6 +31,7 @@ export default defineNuxtConfig({
     // Auto imports
     imports: {
         dirs: [
+            'composables/**',
             'modules/*/stores/**',
             'modules/*/composables/**',
             'foundation/stores/**',
@@ -50,7 +58,6 @@ export default defineNuxtConfig({
 
     // CSS
     css: ['~/assets/css/main.css'],
-
 
     // Runtime config
     runtimeConfig: {
@@ -100,6 +107,13 @@ export default defineNuxtConfig({
                 target: ['chrome91', 'firefox90', 'safari15'],
             },
         },
+        // Proxy configuration for development (環境別に分岐)
+        devProxy: isFrontendOnlyMode ? {} : {
+            '/api/v1': {
+                target: 'http://localhost:8080',
+                changeOrigin: true
+            }
+        }
     },
 
     // Vite configuration
@@ -110,7 +124,8 @@ export default defineNuxtConfig({
         plugins: [
             // @ts-expect-error - Plugin type compatibility issue with Vite v6
             tailwindAutoReference('assets/css/main.css'),
-            tailwindcss()
+            tailwindcss(),
+            vueDevTools(),
         ],
         optimizeDeps: {
             include: ['zod', 'vee-validate'],
@@ -144,6 +159,61 @@ export default defineNuxtConfig({
             '@tailwindcss/postcss': {},
             autoprefixer: {}
         }
+    },
+
+    // nuxt-auth configuration (環境別に分岐)
+    auth: {
+        baseURL: isFrontendOnlyMode ? '/api/mock/auth' : '/api/v1/auth',
+        provider: isProductionMode ? {
+            // Auth0設定（本番環境）
+            type: 'auth0',
+            domain: process.env.AUTH0_DOMAIN,
+            clientId: process.env.AUTH0_CLIENT_ID,
+            clientSecret: process.env.AUTH0_CLIENT_SECRET,
+            audience: process.env.AUTH0_AUDIENCE
+        } : {
+            // Local/Mock設定（開発環境・フロントエンド単体）
+            type: 'local',
+            runtimeConfig: {
+                baseURL: isFrontendOnlyMode ? '/api/mock' : '/api/v1'
+            },
+            endpoints: {
+                signIn: { path: '/login', method: 'post' },
+                signOut: { path: '/logout', method: 'post' },
+                signUp: { path: '/register', method: 'post' },
+                getSession: { path: '/validate', method: 'get' }
+            },
+            token: {
+                signInResponseTokenPointer: '/token',
+                type: 'Bearer',
+                cookieName: 'auth.token',
+                headerName: 'Authorization',
+                maxAgeInSeconds: 60 * 60 * 24 * 30, // 30 days
+                sameSiteAttribute: 'lax' as const
+            },
+            refresh: {
+                isEnabled: true,
+                endpoint: { path: '/refresh', method: 'post' },
+                refreshOnlyToken: true,
+                token: {
+                    signInResponseRefreshTokenPointer: '/refreshToken',
+                    refreshRequestTokenPointer: '/refreshToken',
+                    cookieName: 'auth.refresh-token',
+                    maxAgeInSeconds: 60 * 60 * 24 * 30
+                }
+            },
+            sessionDataType: {
+                id: 'string',
+                email: 'string',
+                name: 'string',
+                role: 'string'
+            }
+        },
+        sessionRefresh: {
+            enablePeriodically: 5 * 60 * 1000,
+            enableOnWindowFocus: true
+        },
+        globalAppMiddleware: false
     },
 
     // ESLint
