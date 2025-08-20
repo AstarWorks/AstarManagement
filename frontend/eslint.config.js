@@ -138,7 +138,7 @@ export default createConfigForNuxt({
                         // カテゴリ、ステータス等の動的キー
                         'expense.categories.*',
                         'cases.status.*',
-                        'auth.roles.*',
+                        'modules.auth.roles.*',
                         'error.unauthorized.reasons.*'
                     ]
                 }
@@ -148,5 +148,6 @@ export default createConfigForNuxt({
                 '@intlify/vue-i18n/no-unused-keys': 'off',
                 '@intlify/vue-i18n/no-missing-keys': 'warn',
                 '@intlify/vue-i18n/no-raw-text': 'off',
+                '@intlify/vue-i18n/no-duplicate-keys-in-locale': 'warn'
             }
         })
