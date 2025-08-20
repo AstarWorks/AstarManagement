@@ -10,7 +10,8 @@ import java.util.*
 
 /**
  * Implementation of UserRepository using Spring Data JPA.
- * Bridges the domain layer with the infrastructure layer.
+ * Simplified implementation focusing on business data operations.
+ * No user provisioning or synchronization logic.
  */
 @Component
 @Transactional
@@ -38,17 +39,6 @@ class UserRepositoryImpl(
     }
     
     @Transactional(readOnly = true)
-    override fun findByAuth0SubBypassingRLS(auth0Sub: String): User? {
-        return jpaUserRepository.findByAuth0SubBypassingRLS(auth0Sub)
-            ?.let { userMapper.toDomain(it) }
-    }
-    
-    @Transactional(readOnly = true)
-    override fun existsByAuth0Sub(auth0Sub: String): Boolean {
-        return jpaUserRepository.existsByAuth0Sub(auth0Sub)
-    }
-    
-    @Transactional(readOnly = true)
     override fun findByEmail(email: String): User? {
         return jpaUserRepository.findByEmail(email)
             ?.let { userMapper.toDomain(it) }
@@ -57,12 +47,6 @@ class UserRepositoryImpl(
     @Transactional(readOnly = true)
     override fun existsByEmail(email: String): Boolean {
         return jpaUserRepository.existsByEmail(email)
-    }
-    
-    @Transactional(readOnly = true)
-    override fun findByEmailAndTenantId(email: String, tenantId: UUID): User? {
-        return jpaUserRepository.findByEmailAndTenantId(email, tenantId)
-            ?.let { userMapper.toDomain(it) }
     }
     
     @Transactional(readOnly = true)

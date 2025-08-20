@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component
 
 /**
  * Mapper for converting between User domain model and UserEntity.
- * Handles the transformation between domain and persistence layers.
+ * Simplified mapping without synchronization fields.
  */
 @Component
 class UserMapper {
@@ -22,7 +22,7 @@ class UserMapper {
             name = user.name,
             passwordHash = user.passwordHash,
             profilePictureUrl = user.profilePictureUrl,
-            lastAuth0SyncAt = user.lastAuth0SyncAt,
+            // No lastAuth0SyncAt - removed synchronization
             role = user.role,
             tenantId = user.tenantId,
             createdAt = user.createdAt,
@@ -41,7 +41,7 @@ class UserMapper {
             name = entity.name,
             passwordHash = entity.passwordHash,
             profilePictureUrl = entity.profilePictureUrl,
-            lastAuth0SyncAt = entity.lastAuth0SyncAt,
+            // No lastAuth0SyncAt - removed synchronization
             role = entity.role,
             tenantId = entity.tenantId,
             createdAt = entity.createdAt,
@@ -58,7 +58,7 @@ class UserMapper {
         entity.name = user.name
         entity.passwordHash = user.passwordHash
         entity.profilePictureUrl = user.profilePictureUrl
-        entity.lastAuth0SyncAt = user.lastAuth0SyncAt
+        // No lastAuth0SyncAt - removed synchronization
         entity.role = user.role
         entity.tenantId = user.tenantId
         entity.updatedAt = user.updatedAt

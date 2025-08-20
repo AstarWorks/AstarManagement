@@ -6,7 +6,8 @@ import java.util.*
 
 /**
  * JPA entity for users table.
- * Maps to the database schema with Auth0 and local authentication support.
+ * Simplified schema with Auth0 reference only.
+ * No user provisioning or synchronization.
  */
 @Entity
 @Table(name = "users")
@@ -15,7 +16,7 @@ class UserEntity(
     @Column(name = "id")
     val id: UUID = UUID.randomUUID(),
     
-    @Column(name = "auth0_sub", unique = true)
+    @Column(name = "auth0_sub")  // No unique constraint - Auth0 manages uniqueness
     var auth0Sub: String? = null,
     
     @Column(name = "email", nullable = false, unique = true)
@@ -30,8 +31,7 @@ class UserEntity(
     @Column(name = "profile_picture_url")
     var profilePictureUrl: String? = null,
     
-    @Column(name = "last_auth0_sync_at")
-    var lastAuth0SyncAt: LocalDateTime? = null,
+    // No last_auth0_sync_at - no synchronization needed
     
     @Column(name = "role")
     var role: String = "USER",

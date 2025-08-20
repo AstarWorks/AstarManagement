@@ -5,7 +5,8 @@ import java.util.*
 
 /**
  * User repository interface for domain layer.
- * Defines operations for user persistence supporting both Auth0 and local authentication.
+ * Simplified interface focusing on business data operations.
+ * Auth0 manages user provisioning and synchronization.
  */
 interface UserRepository {
     
@@ -13,21 +14,15 @@ interface UserRepository {
     
     fun findById(id: UUID): User?
     
-    // Auth0 support methods
+    // Simple Auth0 reference lookup - no provisioning
     fun findByAuth0Sub(auth0Sub: String): User?
     
-    fun findByAuth0SubBypassingRLS(auth0Sub: String): User?
-    
-    fun existsByAuth0Sub(auth0Sub: String): Boolean
-    
-    // Email-based methods
+    // Email-based methods for legacy support
     fun findByEmail(email: String): User?
     
     fun existsByEmail(email: String): Boolean
     
-    // Tenant-scoped methods for multi-tenancy
-    fun findByEmailAndTenantId(email: String, tenantId: UUID): User?
-    
+    // Tenant-scoped method
     fun findByTenantId(tenantId: UUID): List<User>
     
     // General methods

@@ -9,27 +9,21 @@ import java.util.*
 
 /**
  * Spring Data JPA repository for UserEntity.
- * Provides database access methods for users with Auth0 and local authentication support.
+ * Simplified interface for business data queries.
+ * No user provisioning or complex Auth0 synchronization.
  */
 @Repository
 interface JpaUserRepository : JpaRepository<UserEntity, UUID> {
     
-    // Auth0 methods
+    // Simple Auth0 reference lookup
     fun findByAuth0Sub(auth0Sub: String): UserEntity?
     
-    @Query("SELECT u FROM UserEntity u WHERE u.auth0Sub = :auth0Sub")
-    fun findByAuth0SubBypassingRLS(@Param("auth0Sub") auth0Sub: String): UserEntity?
-    
-    fun existsByAuth0Sub(auth0Sub: String): Boolean
-    
-    // Email methods
+    // Email methods for legacy support
     fun findByEmail(email: String): UserEntity?
     
     fun existsByEmail(email: String): Boolean
     
-    // Tenant-scoped methods
-    fun findByEmailAndTenantId(email: String, tenantId: UUID): UserEntity?
-    
+    // Tenant-scoped method
     fun findByTenantId(tenantId: UUID): List<UserEntity>
     
     // Count method
