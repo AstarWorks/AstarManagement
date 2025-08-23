@@ -33,9 +33,8 @@
 </template>
 
 <script setup lang="ts">
-import type { IUserProfile } from '@modules/auth/types/user-profile'
+import type { IUserProfile } from '@modules/user/types'
 import { MAIN_NAVIGATION_CONFIG, type NavigationItemConfig } from '~/foundation/config/navigationConfig'
-import { useUserProfile } from '@modules/auth/composables/auth/useUserProfile'
 import NavigationItem from "~/layouts/components/sidebar/NavigationItem.vue";
 import NavigationGroup from "~/layouts/components/sidebar/NavigationGroup.vue";
 

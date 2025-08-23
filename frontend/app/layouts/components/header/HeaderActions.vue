@@ -30,7 +30,7 @@
 import { Button } from '~/foundation/components/ui/button/index'
 import { Badge } from '~/foundation/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/foundation/components/ui/tooltip'
-import UserMenu from "@foundation/components/common/user/menu/UserMenu.vue";
+import UserMenu from "@modules/user/components/menu/UserMenu.vue";
 
 interface Props {
   notificationCount?: number
