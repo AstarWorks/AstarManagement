@@ -96,6 +96,7 @@ import { Alert, AlertTitle, AlertDescription } from '~/foundation/components/ui/
 
 // Page metadata
 definePageMeta({
+  auth: false,  // 認証不要ページ
   layout: false,
   title: 'error.unauthorized.title'
 })
@@ -154,7 +155,7 @@ const goToDashboard = () => {
 
 const goToLogin = () => {
   router.push({
-    path: '/login',
+    path: '/signin',
     query: errorDetails.value.originalPath ? { redirect: errorDetails.value.originalPath } : {}
   })
 }

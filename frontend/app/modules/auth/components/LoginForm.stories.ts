@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/vue3'
 import { within, userEvent, expect } from 'storybook/test'
-import LoginForm from './LoginForm.vue'
+import LoginForm from './SignInForm.vue'
 
 const meta: Meta<typeof LoginForm> = {
-  title: 'Auth/LoginForm',
+  title: 'Auth/signinForm',
   component: LoginForm,
   parameters: {
     layout: 'centered',
