@@ -1,5 +1,7 @@
 package com.astarworks.astarmanagement.core.infrastructure.security.mock
 
+import com.astarworks.astarmanagement.shared.testing.MockAuthController
+import com.astarworks.astarmanagement.shared.testing.MockAuthService
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.shouldBe
@@ -19,9 +21,10 @@ class MockAuthControllerTest : DescribeSpec({
             
             it("should return token successfully") {
                 val expectedToken = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.test.signature"
-                every { mockAuthService.generateToken() } returns expectedToken
+                // Mock the correct method signature that the controller actually calls
+                every { mockAuthService.generateToken(listOf("ADMIN", "USER")) } returns expectedToken
                 
-                val response = controller.generateToken()
+                val response = controller.generateToken(null)
                 
                 response.statusCode shouldBe HttpStatus.OK
                 response.body shouldNotBe null
@@ -32,9 +35,10 @@ class MockAuthControllerTest : DescribeSpec({
             }
             
             it("should handle token generation failure") {
-                every { mockAuthService.generateToken() } throws RuntimeException("Key generation failed")
+                // Mock the correct method signature that the controller actually calls
+                every { mockAuthService.generateToken(listOf("ADMIN", "USER")) } throws RuntimeException("Key generation failed")
                 
-                val response = controller.generateToken()
+                val response = controller.generateToken(null)
                 
                 response.statusCode shouldBe HttpStatus.INTERNAL_SERVER_ERROR
                 response.body shouldNotBe null

@@ -47,11 +47,28 @@
         </encoder>
     </appender>
 
+    <!-- Audit log appender for security and compliance tracking -->
+    <appender name="AUDIT" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/audit.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/audit-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>90</maxHistory> <!-- Keep 90 days of audit logs for compliance -->
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{ISO8601} %msg%n</pattern>
+        </encoder>
+    </appender>
+
     <!-- Specific logger for expense exception handler -->
     <logger name="com.astarworks.astarmanagement.modules.financial.expense.presentation.exception" level="INFO"/>
     
     <!-- Request filter logger -->
     <logger name="com.astarworks.astarmanagement.modules.shared.infrastructure.config.RequestIdFilter" level="DEBUG"/>
+    
+    <!-- Audit logger for security and compliance -->
+    <logger name="com.astarworks.astarmanagement.audit" level="INFO" additivity="false">
+        <appender-ref ref="AUDIT"/>
+    </logger>
 
     <!-- Root logger configuration -->
     <springProfile name="local,dev">

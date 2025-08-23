@@ -18,6 +18,8 @@ spring:
       validation-timeout: 5000
       leak-detection-threshold: 60000
       connection-test-query: SELECT 1
+      # Initialize RLS session variables on connection
+      connection-init-sql: "SET app.current_tenant_id = ''; SET app.current_user_id = '';"
   
   # JPA Configuration
   jpa:
@@ -124,8 +126,8 @@ spring:
   
   datasource:
     url: ${DB_URL:jdbc:postgresql://172.17.0.1:5433/astarmanagement_dev}
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:postgres}
+    username: ${DB_USERNAME:app_user}
+    password: ${DB_PASSWORD:changeme_in_production}
 
 ---
 # Local Development Profile
@@ -136,8 +138,8 @@ spring:
   
   datasource:
     url: jdbc:postgresql://172.17.0.1:5433/astarmanagement_dev
-    username: postgres
-    password: postgres
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
   
   jpa:
     show-sql: true

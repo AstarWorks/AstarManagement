@@ -1,0 +1,54 @@
+# Test-specific configuration for JWT Claims Extraction Integration Tests
+server:
+  port: 0  # Random port for tests
+
+spring:
+  
+  # Use H2 for integration tests
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+  
+  flyway:
+    enabled: false
+  
+  cache:
+    type: none
+  
+  # Allow bean definition overriding for tests
+  main:
+    allow-bean-definition-overriding: true
+  
+  # Configure mock auth for integration tests  
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Use mock JWKS endpoint during tests
+          jwk-set-uri: http://localhost:${server.port:8080}/mock-auth/.well-known/jwks.json
+          issuer-uri: http://localhost:${server.port:8080}/mock-auth
+
+# Enable mock authentication for tests
+auth:
+  mock:
+    enabled: true
+
+# Auth0 configuration for mock auth
+auth0:
+  domain: localhost:8080
+  audience: local-dev-api
+
+# Test logging
+logging:
+  level:
+    com.astarworks.astarmanagement: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.test: DEBUG
