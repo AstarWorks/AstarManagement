@@ -19,12 +19,12 @@ Astar-management/
 │   │   └── websocket/                # WebSocket エンドポイント
 │   ├── modules/                      # Spring Modulith モジュール
 │   │   ├── auth/                     # 認証・認可モジュール
-│   │   ├── case-management/          # 案件管理モジュール
-│   │   ├── document/                 # 文書管理モジュール
-│   │   ├── communication/            # コミュニケーションモジュール
-│   │   ├── financial/                # 財務管理モジュール
-│   │   ├── calendar/                 # カレンダー・スケジュール管理
-│   │   ├── client/                   # クライアント管理
+│   │   ├── tenant/                   # テナント管理モジュール
+│   │   ├── workspace/                # ワークスペース管理モジュール
+│   │   ├── flexible-table/           # 柔軟テーブルシステムモジュール
+│   │   ├── document/                 # ドキュメント管理モジュール
+│   │   ├── ai-agent/                 # AIエージェントモジュール
+│   │   ├── template/                 # テンプレートシステムモジュール
 │   │   └── shared/                   # 共有モジュール
 │   ├── infrastructure/               # インフラストラクチャ層
 │   │   ├── persistence/              # データ永続化
@@ -43,10 +43,11 @@ Astar-management/
 │   │   └── templates/                # ページテンプレート
 │   ├── composables/                  # Vue Composables
 │   ├── pages/                        # ページコンポーネント
-│   │   ├── cases/                    # 案件管理ページ
-│   │   ├── documents/                # 文書管理ページ
-│   │   ├── financial/                # 財務管理ページ
-│   │   ├── calendar/                 # カレンダーページ
+│   │   ├── workspaces/               # ワークスペース管理ページ
+│   │   ├── databases/                # データベース管理ページ
+│   │   ├── documents/                # ドキュメント管理ページ
+│   │   ├── projects/                 # プロジェクト管理ページ
+│   │   ├── expenses/                 # 経費管理ページ
 │   │   └── settings/                 # 設定ページ
 │   ├── layouts/                      # レイアウトコンポーネント
 │   ├── middleware/                   # ルートミドルウェア
@@ -99,43 +100,50 @@ Astar-management/
 ### 3.1 Backend モジュール構造
 
 ```
-backend/modules/case-management/
+backend/modules/flexible-table/
 ├── api/                              # モジュールAPI（公開インターフェース）
 │   ├── commands/                     # コマンド（CQRS）
-│   │   ├── CreateCaseCommand.kt
-│   │   ├── UpdateCaseCommand.kt
-│   │   └── CloseCaseCommand.kt
+│   │   ├── CreateDatabaseCommand.kt
+│   │   ├── CreateRecordCommand.kt
+│   │   └── UpdateRecordCommand.kt
 │   ├── queries/                      # クエリ（CQRS）
-│   │   ├── GetCaseQuery.kt
-│   │   └── SearchCasesQuery.kt
+│   │   ├── GetDatabaseQuery.kt
+│   │   ├── GetRecordsQuery.kt
+│   │   └── SearchRecordsQuery.kt
 │   └── events/                       # ドメインイベント
-│       ├── CaseCreatedEvent.kt
-│       └── CaseStatusChangedEvent.kt
+│       ├── DatabaseCreatedEvent.kt
+│       ├── RecordCreatedEvent.kt
+│       └── RecordUpdatedEvent.kt
 ├── domain/                           # ドメインモデル
 │   ├── model/                        # エンティティ・値オブジェクト
-│   │   ├── Case.kt
-│   │   ├── CaseStatus.kt
-│   │   └── CaseParty.kt
+│   │   ├── Database.kt
+│   │   ├── Property.kt
+│   │   ├── Record.kt
+│   │   └── View.kt
 │   ├── service/                      # ドメインサービス
-│   │   └── CaseValidationService.kt
+│   │   ├── PropertyValidationService.kt
+│   │   └── FormulaCalculationService.kt
 │   └── repository/                   # リポジトリインターフェース
-│       └── CaseRepository.kt
+│       ├── DatabaseRepository.kt
+│       └── RecordRepository.kt
 ├── application/                      # アプリケーションサービス
 │   └── usecase/                      # ユースケース
-│       ├── CreateCaseUseCase.kt
-│       ├── UpdateCaseUseCase.kt
-│       └── SearchCaseUseCase.kt
+│       ├── CreateDatabaseUseCase.kt
+│       ├── ManageRecordsUseCase.kt
+│       └── CalculateFormulaUseCase.kt
 ├── infrastructure/                   # インフラストラクチャ実装
 │   ├── persistence/                  # データ永続化実装
-│   │   ├── JpaCaseRepository.kt
-│   │   └── CaseEntity.kt
+│   │   ├── JpaDatabaseRepository.kt
+│   │   ├── JpaRecordRepository.kt
+│   │   └── entities/
 │   └── messaging/                    # メッセージング実装
-│       └── CaseEventPublisher.kt
+│       └── RecordEventPublisher.kt
 └── web/                              # Web層（REST/GraphQL）
     ├── rest/                         # RESTコントローラー
-    │   └── CaseController.kt
+    │   ├── DatabaseController.kt
+    │   └── RecordController.kt
     └── graphql/                      # GraphQLリゾルバー
-        └── CaseResolver.kt
+        └── DatabaseResolver.kt
 ```
 
 ### 3.2 Frontend 構造詳細
@@ -154,56 +162,59 @@ frontend/
 │   │   ├── MDataTable.vue           # データテーブル
 │   │   └── MNotification.vue        # 通知
 │   └── organisms/
-│       ├── OCaseCard.vue            # 案件カード
+│       ├── ORecordCard.vue          # レコードカード
 │       ├── OKanbanBoard.vue         # カンバンボード
-│       ├── ODocumentViewer.vue      # 文書ビューア
-│       └── OCalendar.vue            # カレンダー
+│       ├── OTableView.vue           # テーブルビュー
+│       ├── ODocumentViewer.vue      # ドキュメントビューア
+│       └── OCalendarView.vue        # カレンダービュー
 ├── composables/
-│   ├── useCase.ts                   # 案件管理
-│   ├── useDocument.ts               # 文書管理
-│   ├── useFinancial.ts              # 財務管理
+│   ├── useDatabase.ts               # データベース管理
+│   ├── useRecord.ts                 # レコード管理
+│   ├── useDocument.ts               # ドキュメント管理
+│   ├── useWorkspace.ts              # ワークスペース管理
 │   └── useAuth.ts                   # 認証管理
 ├── stores/
 │   ├── auth.ts                      # 認証ストア
-│   ├── case.ts                      # 案件ストア
-│   ├── document.ts                  # 文書ストア
+│   ├── workspace.ts                 # ワークスペースストア
+│   ├── database.ts                  # データベースストア
+│   ├── document.ts                  # ドキュメントストア
 │   └── ui.ts                        # UIストア
 └── types/
-    ├── case.ts                      # 案件関連型定義
-    ├── document.ts                  # 文書関連型定義
+    ├── database.ts                  # データベース関連型定義
+    ├── record.ts                    # レコード関連型定義
+    ├── document.ts                  # ドキュメント関連型定義
     └── common.ts                    # 共通型定義
 ```
 
-## 4. 技術スタック
+## 4. 依存関係管理
 
-### 4.1 Backend
-- **言語**: Kotlin (Java 21)
-- **フレームワーク**: Spring Boot 3.5.0
-- **モジュール化**: Spring Modulith
-- **認証**: Spring Security + OAuth2/JWT
-- **データベース**: PostgreSQL 15 + Spring Data JPA
-- **キャッシュ**: Redis
-- **メッセージング**: Redis Streams / Spring Events
-- **API**: REST + GraphQL
-- **ドキュメント**: OpenAPI 3.0 + GraphQL Schema
+### 4.1 モジュール間依存関係
 
-### 4.2 Frontend
-- **フレームワーク**: Nuxt.js 3.17.5
-- **言語**: TypeScript 5
-- **UI**: Vue 3 + Composition API
-- **スタイリング**: Tailwind CSS + shadcn-vue
-- **状態管理**: Pinia
-- **データフェッチ**: TanStack Query
-- **フォーム**: VeeValidate + Zod
-- **アイコン**: Lucide Vue Next
+```
+┌─────────────────────────────────────────────────┐
+│                   Frontend                       │
+│  ┌─────────────┐     ┌─────────────────────┐    │
+│  │ Foundation  │────▶│     Modules         │    │
+│  │ (基盤層)     │     │  (機能モジュール)    │    │
+│  └─────────────┘     └─────────────────────┘    │
+└─────────────────────────────────────────────────┘
+                        │
+                    REST/GraphQL API
+                        │
+┌─────────────────────────────────────────────────┐
+│                   Backend                        │
+│  ┌─────────────┐     ┌─────────────────────┐    │
+│  │    Core     │────▶│     Features        │    │
+│  │ (システム層)  │     │  (機能モジュール)    │    │
+│  └─────────────┘     └─────────────────────┘    │
+└─────────────────────────────────────────────────┘
+```
 
-### 4.3 Infrastructure
-- **コンテナ**: Docker
-- **オーケストレーション**: Kubernetes (GKE/k3s)
-- **CI/CD**: GitHub Actions + ArgoCD
-- **IaC**: Terraform
-- **モニタリング**: Prometheus + Grafana
-- **ログ**: ELK Stack
+### 4.2 技術選択理由
+
+詳細な技術スタックと選択理由については、以下のドキュメントを参照：
+- **SYSTEM_ARCHITECTURE.md**: 全体技術スタック
+- **FRONTEND_ARCHITECTURE.md**: フロントエンド詳細
 
 ## 5. 開発ガイドライン
 
