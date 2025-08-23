@@ -15,7 +15,7 @@
       "Read(./docs/*)"
     ],
     "deny": [
-      
+      "Write(./frontend/app/foundation/components/ui/**)"
     ]
   }
 }

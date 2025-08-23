@@ -2,19 +2,40 @@
 
 ## Project Overview
 
-**Astar Management - 法律事務所向け業務管理システム**
-- 対象: 小中規模法律事務所（1-10名）のDX実現
-- フェーズ: MVP開発段階
+**Astar Management - 汎用ビジネス管理プラットフォーム**
+- **コアコンセプト**: AI-Agent + Notion + Obsidian の融合
+- **ポジショニング**: 企業向けObsidian + AIネイティブ
+- **アーキテクチャ**: 汎用基盤SaaS + 業界特化テンプレート
+- **対象**: 小中規模企業（1-100名）のDX実現
+- **フェーズ**: MVP開発段階（法律事務所テンプレートから開始）
 
-### 主要な4機能 (実装優先順位)
+### プラットフォーム戦略
 
-**Phase 1 (優先実装)**:
-1. **案件管理** - カンバン形式 & テーブル形式での進捗可視化、ステータス管理
-2. **請求管理** - 実費の簡単な入力フォームと事務所、弁護士、案件それぞれの単位での統計
+**汎用基盤**: 業界に依存しない4つのコア機能
+1. **プロジェクト管理** - カンバン形式 & テーブル形式でのワークフロー管理、進捗可視化
+2. **経費管理** - テーブル形式での財務管理、時間・コスト追跡
+3. **顧客管理** - テーブル形式でのリレーション管理、CRM機能
+4. **文書管理** - 階層型Markdownドキュメント、変数システム、AIエージェント統合
 
-**Phase 2 (後期実装)**:
-1. **顧客管理** - 依頼者情報の一元管理、連絡履歴追跡 -> 時系列順に顧客対応が見られれば良い
-2. **文書管理** - 契約書・資料のデジタル保存、検索機能 -> VSCode風書類編集とテンプレ文書の変数埋め込み
+### データ表現哲学
+
+**Notion + Obsidian リスペクト**:
+- **テーブル**: 構造化データの管理（プロジェクト、経費、顧客）
+- **階層型ドキュメント**: 非構造化情報の管理（会議録、ノート、書類）
+- **双方向リンク**: テーブル ↔ ドキュメント間の自由な関連付け
+- **統一インターフェース**: すべてがテーブルまたはドキュメントで表現可能
+
+**テンプレート特化**: 業界別カスタマイズ
+- **法律事務所テンプレート** (最初の実装)
+- **将来展開**: 司法書士、物流業界、不動産管理等
+
+### AIエージェント統合
+
+**全機能AIアクセス可能**:
+- プラットフォームの全機能をAIが操作・実行
+- 自然言語でのタスク指示・実行
+- ローカル/クラウド両対応LLM
+- 組織データからのRAG学習
 
 ## Core Principles
 
@@ -50,11 +71,28 @@
 - **Layer Flow**: Controller → Service → Repository (never skip service layer)
 - **Transaction Boundaries**: Use `@Transactional` for write operations, `@Transactional(readOnly = true)` for read operations
 
-### Legal Domain Requirements
+### Template System Requirements
+- **コード**: 完全に業界非依存、汎用的な実装のみ
+- **テンプレート**: 業界特化の設定・スキーマ・ワークフロー
+- **データ分離**: ハイブリッド型マルチテナントアーキテクチャ
+  - Starter: Shared DB + RLS（コスト効率重視）
+  - Professional: Dedicated Schema（バランス型）
+  - Enterprise: Dedicated Container（高セキュリティ）
+
+### Discord風ロールシステム
+- **初期ロールなし**: システムには事前定義されたロールは存在しない
+- **動的ロール作成**: 管理者が組織のニーズに合わせてロールを作成
+- **テンプレート同梱**: 業界テンプレートに事前定義されたロールをインポート可能
+- **複数ロール付与**: 1ユーザーに複数ロールを付与して柔軟な権限設定
+- **階層なし**: ロール間に継承関係はなく、すべて独立
+- **色分けと表示**: Discord風の色分けとロール表示機能
+
+### Security & Multi-tenancy Requirements
 - Implement tenant isolation for all data operations
 - Add audit logging for sensitive operations
-- Protect attorney-client privilege data
+- Protect confidential business data
 - Use Row Level Security (RLS) for multi-tenancy
+- Dynamic role-based access control with template role import
 
 ## Backend Status
 - **Build**: `./gradlew build -x test`
