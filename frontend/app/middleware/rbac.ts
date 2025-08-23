@@ -17,7 +17,7 @@ interface IRBACOptions {
  */
 export const createRBACMiddleware = (options: IRBACOptions) => {
   return defineNuxtRouteMiddleware((to, _from) => {
-    const { status } = useAuth()
+    // 認証状態の確認は不要（globalAppMiddlewareが処理）
     const userProfile = typeof useUserProfile !== 'undefined' ? useUserProfile() : { profile: ref(null), hasPermission: () => false, hasRole: () => false }
     const { profile, hasPermission, hasRole } = userProfile
     const {
@@ -32,18 +32,7 @@ export const createRBACMiddleware = (options: IRBACOptions) => {
       return
     }
 
-    // 認証チェック（認証されていない場合は auth ミドルウェアに委ねる）
-    if (status.value !== 'authenticated') {
-      return navigateTo({
-        path: '/login',
-        query: {
-          redirect: to.fullPath,
-          reason: 'unauthenticated'
-        }
-      })
-    }
-
-    // 権限チェック
+    // 権限チェック（認証チェックはglobalAppMiddlewareが処理）
     const hasRequiredPermissions = checkPermissions({ hasPermission }, permissions, require)
     const hasRequiredRoles = checkRoles({ hasRole }, roles, require)
 

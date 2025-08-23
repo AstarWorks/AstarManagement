@@ -107,8 +107,7 @@ import {Button} from "~/foundation/components/ui/button";
 
 // Page metadata
 definePageMeta({
-  middleware: 'auth',
-  title: 'dashboard.title'
+  title: 'dashboard.title',
 })
 
 // Types
@@ -140,12 +139,14 @@ interface IActivity {
 const router = useRouter()
 
 // Dashboard data composable
-const {
-  dashboardStats,
-  recentActivities,
-  isLoadingActivity,
-  refreshDashboard
-} = useDashboardData()
+const {getDashboardData, refreshDashboard} = useDashboardData()
+
+// Get dashboard data
+const {data: dashboardData, pending: isLoadingActivity} = getDashboardData()
+
+// Computed properties for stats and activities
+const dashboardStats = computed(() => dashboardData.value?.stats || [])
+const recentActivities = computed(() => dashboardData.value?.recentActivities || [])
 
 // Configuration for quick actions
 const quickActions: IQuickAction[] = [
@@ -176,7 +177,7 @@ const quickActions: IQuickAction[] = [
 ]
 
 // Utility functions
-const { locale, n } = useI18n()
+const {locale, n} = useI18n()
 
 const formatStatValue = (stat: IDashboardStat): string => {
   if (stat.format === 'currency') {

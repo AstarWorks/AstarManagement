@@ -22,7 +22,7 @@ export const requireRole = (allowedRoles: string | string[], redirectTo = '/unau
     // 認証チェック
     if (status.value !== 'authenticated') {
       return navigateTo({
-        path: '/login',
+        path: '/signin',
         query: {
           redirect: to.fullPath,
           reason: 'unauthenticated'
@@ -118,7 +118,7 @@ export const requireAllRoles = (roles: string[]) => {
     // 認証チェック
     if (status.value !== 'authenticated') {
       return navigateTo({
-        path: '/login',
+        path: '/signin',
         query: {
           redirect: to.fullPath,
           reason: 'unauthenticated'

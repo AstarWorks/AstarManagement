@@ -90,7 +90,7 @@
     <section class="mt-8">
       <h2 class="text-xl font-semibold mb-4 text-foreground">ナビゲーションテスト</h2>
       <div class="flex gap-4 flex-wrap">
-        <Button as="nuxt-link" to="/login" variant="outline">{{ $t('modules.navigation.loginPage') }}</Button>
+        <Button as="nuxt-link" to="/signin" variant="outline">{{ $t('modules.navigation.loginPage') }}</Button>
         <Button as="nuxt-link" to="/dashboard" variant="outline">ダッシュボード</Button>
         <Button as="nuxt-link" to="/cases/kanban" variant="outline">案件管理</Button>
       </div>

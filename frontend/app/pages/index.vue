@@ -12,6 +12,7 @@ import redirectMiddleware from '~/middleware/redirect'
 
 // リダイレクトミドルウェアを使用
 definePageMeta({
+  auth: false,  // 認証不要（リダイレクト処理のみ）
   middleware: redirectMiddleware,
   layout: false
 })
