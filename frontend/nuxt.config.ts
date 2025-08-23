@@ -6,7 +6,7 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 
 // 環境変数の取得
 const apiMode = process.env.NUXT_PUBLIC_API_MODE || 'development'
-const isProductionMode = apiMode === 'production'
+const _isProductionMode = apiMode === 'production'
 const isFrontendOnlyMode = apiMode === 'frontend-only'
 
 export default defineNuxtConfig({
@@ -26,7 +26,7 @@ export default defineNuxtConfig({
     ],
 
     // Client-side rendering only (SPA mode)
-    ssr: false,
+    ssr: true,
 
     // Auto imports
     imports: {
@@ -62,10 +62,12 @@ export default defineNuxtConfig({
     // Runtime config
     runtimeConfig: {
         // Private keys (server-side only)
+        authSecret: process.env.AUTH_SECRET || 'dev-secret-change-in-production',
         jwtSecret: process.env.JWT_SECRET,
 
         // Public keys (exposed to client)
         public: {
+            apiMode: process.env.NUXT_PUBLIC_API_MODE || 'development',
             apiBaseUrl: process.env.NUXT_PUBLIC_API_BASE_URL || 'http://localhost:8080/api/v1',
             wsUrl: process.env.NUXT_PUBLIC_WS_URL || 'ws://localhost:8080/ws',
             appEnv: process.env.NUXT_PUBLIC_APP_ENV || 'development',
@@ -83,6 +85,7 @@ export default defineNuxtConfig({
     alias: {
         '@modules': fileURLToPath(new URL('./app/modules', import.meta.url)),
         '@foundation': fileURLToPath(new URL('./app/foundation', import.meta.url)),
+        '@shared': fileURLToPath(new URL('./app/shared', import.meta.url)),
         '@ui': fileURLToPath(new URL('./app/foundation/components/ui', import.meta.url))
     },
 
@@ -161,59 +164,15 @@ export default defineNuxtConfig({
         }
     },
 
-    // nuxt-auth configuration (環境別に分岐)
+    // nuxt-auth configuration with AuthJS provider
     auth: {
-        baseURL: isFrontendOnlyMode ? '/api/mock/auth' : '/api/v1/auth',
-        provider: isProductionMode ? {
-            // Auth0設定（本番環境）
-            type: 'auth0',
-            domain: process.env.AUTH0_DOMAIN,
-            clientId: process.env.AUTH0_CLIENT_ID,
-            clientSecret: process.env.AUTH0_CLIENT_SECRET,
-            audience: process.env.AUTH0_AUDIENCE
-        } : {
-            // Local/Mock設定（開発環境・フロントエンド単体）
-            type: 'local',
-            runtimeConfig: {
-                baseURL: isFrontendOnlyMode ? '/api/mock' : '/api/v1'
-            },
-            endpoints: {
-                signIn: { path: '/login', method: 'post' },
-                signOut: { path: '/logout', method: 'post' },
-                signUp: { path: '/register', method: 'post' },
-                getSession: { path: '/validate', method: 'get' }
-            },
-            token: {
-                signInResponseTokenPointer: '/token',
-                type: 'Bearer',
-                cookieName: 'auth.token',
-                headerName: 'Authorization',
-                maxAgeInSeconds: 60 * 60 * 24 * 30, // 30 days
-                sameSiteAttribute: 'lax' as const
-            },
-            refresh: {
-                isEnabled: true,
-                endpoint: { path: '/refresh', method: 'post' },
-                refreshOnlyToken: true,
-                token: {
-                    signInResponseRefreshTokenPointer: '/refreshToken',
-                    refreshRequestTokenPointer: '/refreshToken',
-                    cookieName: 'auth.refresh-token',
-                    maxAgeInSeconds: 60 * 60 * 24 * 30
-                }
-            },
-            sessionDataType: {
-                id: 'string',
-                email: 'string',
-                name: 'string',
-                role: 'string'
-            }
+        globalAppMiddleware: true,
+        provider: {
+            type: 'authjs',
+            trustHost: false,
+            defaultProvider: process.env.NODE_ENV === 'production' ? 'auth0' : undefined ,
+            addDefaultCallbackUrl: true
         },
-        sessionRefresh: {
-            enablePeriodically: 5 * 60 * 1000,
-            enableOnWindowFocus: true
-        },
-        globalAppMiddleware: false
     },
 
     // ESLint

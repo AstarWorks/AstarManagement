@@ -1,107 +1,84 @@
 /**
  * Dashboard Data Composable
- * Provides dashboard statistics and recent activities
+ * Provides dashboard statistics and recent activities using Repository pattern
  */
 
-import { ref, computed } from 'vue'
-
-interface IDashboardStat {
-  key: string
-  labelKey: string
-  icon: string
-  value: number
-  change: string
-  format?: 'number' | 'currency'
-}
-
-interface IActivity {
-  id: string
-  type: 'case' | 'document' | 'deadline' | 'client'
-  title: string
-  subtitle: string
-  timestamp: Date
-}
+import { useApiClient, useIsMockMode } from '@shared/api/composables/useApiClient'
+import { DashboardApiRepository } from '../repositories/DashboardApiRepository'
+import { DashboardMockRepository } from '../repositories/DashboardMockRepository'
+import type { IDashboardRepository } from '../repositories/IDashboardRepository'
+import type { IDashboardRefreshParams, IDashboardStatsParams, IRecentActivitiesParams } from '../types'
 
 export function useDashboardData() {
-  const isLoadingActivity = ref(false)
-  
-  // Dashboard statistics
-  const dashboardStats = ref<IDashboardStat[]>([
-    {
-      key: 'activeCases',
-      labelKey: 'dashboard.stats.activeMatter',
-      icon: 'lucide:briefcase',
-      value: 12,
-      change: '+2',
-      format: 'number'
-    },
-    {
-      key: 'totalRevenue',
-      labelKey: 'dashboard.stats.revenueThisMonth',
-      icon: 'lucide:trending-up',
-      value: 1250000,
-      change: '+15%',
-      format: 'currency'
-    },
-    {
-      key: 'totalClients',
-      labelKey: 'dashboard.stats.totalClients',
-      icon: 'lucide:users',
-      value: 48,
-      change: '+5',
-      format: 'number'
-    },
-    {
-      key: 'documentsThisMonth',
-      labelKey: 'dashboard.stats.documentsThisMonth',
-      icon: 'lucide:file-text',
-      value: 25,
-      change: '+8',
-      format: 'number'
+    const client = useApiClient()
+    const isMockMode = useIsMockMode()
+    
+    // Create appropriate repository based on mode
+    const repository = computed<IDashboardRepository>(() => {
+        console.log(`[useDashboardData] Creating ${isMockMode ? 'mock' : 'API'} repository`)
+        return isMockMode
+            ? new DashboardMockRepository(client)
+            : new DashboardApiRepository(client)
+    })
+    
+    /**
+     * Get complete dashboard data
+     */
+    const getDashboardData = (params?: IDashboardRefreshParams) => {
+        return useAsyncData(
+            `dashboard:data:${JSON.stringify(params || {})}`,
+            () => repository.value.getDashboardData(params),
+            {
+                server: false,
+                lazy: true
+            }
+        )
     }
-  ])
-  
-  // Recent activities
-  const recentActivities = ref<IActivity[]>([
-    {
-      id: '1',
-      type: 'case',
-      title: '新規案件登録',
-      subtitle: '田中太郎 vs 山田花子',
-      timestamp: new Date()
-    },
-    {
-      id: '2',
-      type: 'document',
-      title: '書類アップロード',
-      subtitle: '契約書_20241215.pdf',
-      timestamp: new Date(Date.now() - 3600000)
-    },
-    {
-      id: '3',
-      type: 'deadline',
-      title: '期限通知',
-      subtitle: '答弁書提出期限',
-      timestamp: new Date(Date.now() - 7200000)
+    
+    /**
+     * Get dashboard statistics only
+     */
+    const getStats = (params?: IDashboardStatsParams) => {
+        return useAsyncData(
+            `dashboard:stats:${JSON.stringify(params || {})}`,
+            () => repository.value.getStats(params),
+            {
+                server: false,
+                lazy: true
+            }
+        )
     }
-  ])
-  
-  // Refresh dashboard data
-  const refreshDashboard = async () => {
-    isLoadingActivity.value = true
-    try {
-      // TODO: Implement actual API call to fetch dashboard data
-      // For now, using mock data
-      await new Promise(resolve => setTimeout(resolve, 500))
-    } finally {
-      isLoadingActivity.value = false
+    
+    /**
+     * Get recent activities only
+     */
+    const getActivities = (params?: IRecentActivitiesParams) => {
+        return useAsyncData(
+            `dashboard:activities:${JSON.stringify(params || {})}`,
+            () => repository.value.getRecentActivities(params),
+            {
+                server: false,
+                lazy: true
+            }
+        )
     }
-  }
-  
-  return {
-    dashboardStats: computed(() => dashboardStats.value),
-    recentActivities: computed(() => recentActivities.value),
-    isLoadingActivity: computed(() => isLoadingActivity.value),
-    refreshDashboard
-  }
+    
+    /**
+     * Refresh dashboard data
+     */
+    const refreshDashboard = async (params?: IDashboardRefreshParams) => {
+        await repository.value.refreshDashboard(params)
+        
+        // Refresh cached data
+        await refreshNuxtData('dashboard:data')
+        await refreshNuxtData('dashboard:stats')
+        await refreshNuxtData('dashboard:activities')
+    }
+    
+    return {
+        getDashboardData,
+        getStats,
+        getActivities,
+        refreshDashboard
+    }
 }

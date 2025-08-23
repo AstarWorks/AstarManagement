@@ -41,7 +41,7 @@ export const API_CONFIG = {
   auth: {
     tokenPrefix: 'Bearer',
     refreshEndpoint: '/auth/refresh',
-    loginEndpoint: '/auth/login',
+    loginEndpoint: '/auth/signin',
     logoutEndpoint: '/auth/logout',
   },
 
@@ -70,7 +70,7 @@ export const API_CONFIG = {
   endpoints: {
     // 認証関連
     auth: {
-      login: '/auth/login',
+      login: '/auth/signin',
       logout: '/auth/logout',
       refresh: '/auth/refresh',
       verify2FA: '/auth/verify-2fa',
@@ -112,6 +112,14 @@ export const API_CONFIG = {
       download: (id: string) => `/documents/${id}/download`,
       delete: (id: string) => `/documents/${id}`,
     },
+    
+    // ダッシュボード
+    dashboard: {
+      stats: '/dashboard/stats',
+      activities: '/dashboard/activities',
+      data: '/dashboard/data',
+      refresh: '/dashboard/refresh',
+    },
   },
 
   // エラーメッセージ
@@ -152,7 +160,7 @@ export const getApiEnvironmentConfig = (): IApiEnvironmentConfig => {
     enableLogging: isDevelopment,
     enableRetry: true,
     enableCache: !isDevelopment, // 本番でのみキャッシュ有効
-    enableMocking: isDevelopment,
+    enableMocking: config.public.apiMode === 'mock' || isDevelopment,
   }
 }
 
