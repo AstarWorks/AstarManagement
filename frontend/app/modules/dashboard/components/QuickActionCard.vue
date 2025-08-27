@@ -1,7 +1,7 @@
 <template>
   <NuxtLink 
     :to="to" 
-    class="quick-action-card group"
+    class="block group"
   >
     <Card class="h-full hover:shadow-lg transition-all duration-200 hover:border-primary/50">
       <CardContent class="p-6">
@@ -87,8 +87,8 @@ const getTrendClass = (trend: 'up' | 'down' | 'neutral'): string => {
 }
 </script>
 
-<style scoped>
+<!-- <style scoped>
 .quick-action-card {
   @apply block;
 }
-</style>
+</style> -->

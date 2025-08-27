@@ -1,5 +1,5 @@
 <template>
-  <div class="quick-actions-section">
+  <div class="mb-8">
     <h3 class="text-lg font-semibold mb-4">{{ $t('modules.dashboard.sections.quickActions.title') }}</h3>
     
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -65,7 +65,7 @@ const reportStats = ref<QuickActionStats[]>([
 </script>
 
 <style scoped>
-.quick-actions-section {
+/* .quick-actions-section {
   @apply mb-8;
-}
+} */
 </style>

@@ -11,38 +11,24 @@
           <FormItem>
             <FormLabel for="email">{{ $t('modules.auth.login.fields.email.label') }}</FormLabel>
             <FormControl>
-              <Input
-                id="email"
-                v-bind="componentField"
-                type="email"
-                :placeholder="$t('modules.auth.login.fields.email.placeholder')"
-                autocomplete="email"
-                :disabled="isLoading"
-                class="w-full"
-              />
+              <Input id="email" v-bind="componentField" type="email"
+                :placeholder="$t('modules.auth.login.fields.email.placeholder')" autocomplete="email"
+                :disabled="isLoading" class="w-full" />
             </FormControl>
             <FormMessage />
           </FormItem>
         </FormField>
 
         <!-- パスワード -->
-        <PasswordInputField
-          name="password"
-          :label="$t('modules.auth.login.fields.password.label')"
-          :placeholder="$t('modules.auth.login.fields.password.placeholder')"
-          :disabled="isLoading"
-        />
+        <PasswordInputField name="password" :label="$t('modules.auth.login.fields.password.label')"
+          :placeholder="$t('modules.auth.login.fields.password.placeholder')" :disabled="isLoading" />
 
         <!-- Remember Me -->
         <FormField v-slot="{ componentField }" name="rememberMe">
           <FormItem>
             <div class="flex items-center space-x-2">
               <FormControl>
-                <Checkbox
-                  id="rememberMe"
-                  v-bind="componentField"
-                  :disabled="isLoading"
-                />
+                <Checkbox id="rememberMe" v-bind="componentField" :disabled="isLoading" />
               </FormControl>
               <FormLabel for="rememberMe" class="text-sm font-normal">
                 {{ $t('modules.auth.login.fields.rememberMe.label') }}
@@ -58,34 +44,18 @@
         </Alert>
 
         <!-- ログインボタン -->
-        <Button
-          type="submit"
-          class="w-full"
-          :disabled="isLoading || !isValid"
-        >
-          <Icon
-            v-if="isLoading"
-            name="lucide:loader-2"
-            class="mr-2 h-4 w-4 animate-spin"
-          />
+        <Button type="submit" class="w-full" :disabled="isLoading || !isValid">
+          <Icon v-if="isLoading" name="lucide:loader-2" class="mr-2 h-4 w-4 animate-spin" />
           {{ isLoading ? $t('modules.auth.login.actions.loading') : $t('modules.auth.login.actions.submit') }}
         </Button>
 
         <!-- デバッグ用自動フィル（開発環境のみ） -->
-        <DevelopmentDebugPanel
-          v-if="isDevelopment"
-          :is-loading="isLoading"
-          @fill-credentials="handleFillCredentials"
-        />
+        <DevelopmentDebugPanel v-if="isDevelopment" :is-loading="isLoading" @fill-credentials="handleFillCredentials" />
 
         <!-- パスワードリセットリンク -->
         <div class="text-center">
-          <Button
-            variant="link"
-            class="text-sm text-blue-600 hover:text-blue-500"
-            :disabled="isLoading"
-            @click="$emit('forgotPassword')"
-          >
+          <Button variant="link" class="text-sm text-blue-600 hover:text-blue-500" :disabled="isLoading"
+            @click="$emit('forgotPassword')">
             {{ $t('modules.auth.login.actions.forgotPassword') }}
           </Button>
         </div>
@@ -102,14 +72,14 @@ import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
 import { Checkbox } from '~/foundation/components/ui/checkbox'
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '~/foundation/components/ui/form'
-import { Input } from '~/foundation/components/ui/input/index'
-import { Button } from '~/foundation/components/ui/button/index'
+import { Input } from '~/foundation/components/ui/input'
+import { Button } from '~/foundation/components/ui/button'
 import { Card } from '~/foundation/components/ui/card'
 import { Alert, AlertDescription } from '~/foundation/components/ui/alert'
 import AuthFormFooter from "~/modules/auth/components/AuthFormFooter.vue";
 import DevelopmentDebugPanel from "~/modules/auth/components/DevelopmentDebugPanel.vue";
-import {PasswordInputField} from "~/foundation/components/ui/password-input";
-import {createLoginSchema} from "~/utils/auth-validation";
+import { PasswordInputField } from "~/foundation/components/ui/password-input";
+import { createLoginSchema } from "~/utils/auth-validation";
 import AuthFormHeader from "~/modules/auth/components/AuthFormHeader.vue";
 
 // Props
@@ -169,4 +139,3 @@ watchEffect(() => {
   isValid.value = true
 })
 </script>
-
