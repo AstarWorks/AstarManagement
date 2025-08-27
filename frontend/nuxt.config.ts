@@ -125,8 +125,8 @@ export default defineNuxtConfig({
             __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: process.env.NODE_ENV === 'development' ? 'true' : 'false',
         },
         plugins: [
-            // // @ts-expect-error - Plugin type compatibility issue with Vite v6
-            // tailwindAutoReference('assets/css/main.css'),
+            // @ts-expect-error - Plugin type compatibility issue with Vite v6
+            tailwindAutoReference('./app/assets/css/main.css'),
             tailwindcss(),
             vueDevTools(),
         ],
