@@ -47,7 +47,7 @@ const meta: Meta<typeof QuickActionCard> = {
 export default meta;
 type Story = StoryObj<typeof QuickActionCard>;
 
-// 1. 基本的なカードのストーリー
+// 基本的なカードのストーリー
 export const Default: Story = {
   args: {
     title: '新しいプロジェクト',
@@ -58,29 +58,92 @@ export const Default: Story = {
   },
 };
 
-// 2. 統計情報を持つカードのストーリー
-export const WithStats: Story = {
+// 経費カード (Expense)
+export const Expense: Story = {
+  name: '経費カード (Expense)',
   args: {
-    ...Default.args, // Defaultの引数を継承
-    title: '今月の売上',
-    description: '今月の売上実績と前月比のトレンドを確認します。',
-    icon: 'lucide:dollar-sign',
-    to: '/sales/monthly',
+    title: '経費',
+    description: 'お知らせ',
+    icon: 'lucide:credit-card',
+    to: '/expenses/new',
     stats: [
-      { label: '総売上', value: '¥1,250,000', trend: 'up' },
-      { label: '新規顧客', value: 82, trend: 'down' },
-      { label: 'コンバージョン率', value: '3.5%', trend: 'neutral' },
+      { label: 'Total Expenses', value: 47, trend: 'up' },
+      { label: 'This Month', value: 12 }  
     ] as QuickActionStats[],
-  },
-};
+  }
+}
 
-// 3. 長いテキストを持つカードのストーリー
-export const WithLongText: Story = {
+// 実費カード (ActualExpense)
+export const ActualExpense: Story = {
+  name: '実費カード (Actual Expense)',
   args: {
-    ...WithStats.args, // WithStatsの引数を継承
-    title: '非常に長くて詳細なタイトルがここに表示される場合のテスト',
-    description: 'これは説明文の例です。このテキストはカードのレイアウトが長いコンテンツをどのように処理するかをテストするために意図的に長く作られています。改行やテキストの折り返しが正しく行われるか確認しましょう。',
-    icon: 'lucide:file-text',
-    to: '/reports/long-text-example',
-  },
-};
+    title: '実費を登録',
+    description: 'お知らせ',
+    icon: 'lucide:wallet',
+    to: '/actual-expenses/new',
+    stats: [
+      { label: 'This Month', value: '¥125,000', trend: 'up' },
+      { label: 'Pending', value: 3 }  
+    ] as QuickActionStats[],
+  }
+}
+
+// インポートカード (Import)
+export const Import: Story = {
+  name: 'インポートカード (Import)',
+  args: {
+    title: 'インポート',
+    description: 'お知らせ',
+    icon: 'lucide:import',
+    to: '/imports/new',
+    stats: [
+      {label: '', value: ''},
+      {label: '', value: ''}
+    ] as QuickActionStats[], // 統計情報なし
+  }
+} 
+
+// エクスポートカード (Export)
+export const Export: Story = {
+  name: 'エクスポートカード (Export)',
+  args: {
+    title: 'エクスポート',
+    description: 'お知らせ',
+    icon: 'lucide:bar-chart-3',
+    to: '/exports/new',
+    stats: [
+      { label: 'Balance', value: '¥892,500', trend: 'up' },
+      { label: 'Categories', value: 8 } 
+    ] as QuickActionStats[],
+  }
+}
+
+// 統計情報なしのカード
+export const NoStats: Story = {
+  name: 'カード without Stats',
+  args: {
+    title: '新しいプロジェクト',
+    description: '新しいプロジェクトを作成し、タスクの管理を始めます。',
+    icon: 'lucide:plus-circle',
+    to: '/',
+    stats: [
+      {label: '', value: ''},
+      {label: '', value: ''}
+    ] as QuickActionStats[], // 統計情報が空の配列
+  }
+}
+
+// 長いテキストのカード
+export const LongText: Story = {
+  name: 'カード with Long Text',
+  args: {
+    title: 'これは非常に長いタイトルの例です。カードのレイアウトがどのように対応するかを確認します。',
+    description: 'これは非常に長い説明文の例です。カードのレイアウトがどのように対応するかを確認します。テキストが折り返され、見やすく表示されることを期待しています。',
+    icon: 'lucide:info',
+    to: '/',
+    stats: [
+      { label: 'Total Expenses', value: 47, trend: 'up' },
+      { label: 'This Month', value: 12 }  
+    ] as QuickActionStats[],
+  }
+}
