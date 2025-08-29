@@ -126,7 +126,7 @@ export default defineNuxtConfig({
         },
         plugins: [
             // @ts-expect-error - Plugin type compatibility issue with Vite v6
-            tailwindAutoReference('assets/css/main.css'),
+            tailwindAutoReference('./app/assets/css/main.css'),
             tailwindcss(),
             vueDevTools(),
         ],
@@ -204,5 +204,4 @@ export default defineNuxtConfig({
         prefix: '',
         componentDir: '~/foundation/components/ui'
     },
-
 })

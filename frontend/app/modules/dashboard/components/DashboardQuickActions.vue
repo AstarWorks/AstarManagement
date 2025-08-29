@@ -23,7 +23,7 @@
       <QuickActionCard
         :title="$t('modules.expense.form.actions.import')"
         :description="$t('foundation.messages.info.default')"
-        :icon="'lucide:upload'"
+        :icon="'lucide:import'"
         :to="'/expenses/import'"
       />
       
@@ -47,21 +47,27 @@ export interface QuickActionStats {
   trend?: 'up' | 'down' | 'neutral'
 }
 
+defineProps<{
+  listStats?: QuickActionStats[]
+  expenseStats?: QuickActionStats[]
+  reportStats?: QuickActionStats[]
+}>()
+
 // Mock stats - will be replaced with real data from stores
-const listStats = ref<QuickActionStats[]>([
-  { label: 'Total Expenses', value: 47, trend: 'up' },
-  { label: 'This Month', value: 12 }
-])
+// const listStats = ref<QuickActionStats[]>([
+//   { label: 'Total Expenses', value: 47, trend: 'up' },
+//   { label: 'This Month', value: 12 }
+// ])
 
-const expenseStats = ref<QuickActionStats[]>([
-  { label: 'This Month', value: '¥125,000', trend: 'up' },
-  { label: 'Pending', value: 3 }
-])
+// const expenseStats = ref<QuickActionStats[]>([
+//   { label: 'This Month', value: '¥125,000', trend: 'up' },
+//   { label: 'Pending', value: 3 }
+// ])
 
-const reportStats = ref<QuickActionStats[]>([
-  { label: 'Balance', value: '¥892,500', trend: 'up' },
-  { label: 'Categories', value: 8 }
-])
+// const reportStats = ref<QuickActionStats[]>([
+//   { label: 'Balance', value: '¥892,500', trend: 'up' },
+//   { label: 'Categories', value: 8 }
+// ])
 </script>
 
 <style scoped>

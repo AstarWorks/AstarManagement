@@ -9,7 +9,9 @@
           <div class="p-3 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
             <Icon :name="icon" class="w-6 h-6 text-primary" />
           </div>
-          <Icon name="lucide:arrow-right" class="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+          <div class="p-3 rounded-lg">
+            <Icon name="lucide:arrow-right" class="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+          </div>
         </div>
         
         <h4 class="font-semibold text-lg mb-2 group-hover:text-primary transition-colors">
