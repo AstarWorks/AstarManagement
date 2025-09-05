@@ -87,7 +87,7 @@ ALTER TABLE role_permissions ENABLE ROW LEVEL SECURITY;
 -- Check if user exists before creating (for idempotency)
 DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_user WHERE usename = 'app_user') THEN
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'app_user') THEN
         CREATE USER app_user WITH PASSWORD 'changeme_in_production';
     END IF;
 END
@@ -118,13 +118,13 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT EXECUTE ON FUNCTIONS TO app_user
 -- SELECT: Can only see members of current tenant
 CREATE POLICY tenant_users_select ON tenant_users
     FOR SELECT
-    TO app_user
+    TO PUBLIC
     USING (tenant_id = current_tenant_id());
 
 -- INSERT: Only admins can add users to tenant
 CREATE POLICY tenant_users_insert ON tenant_users
     FOR INSERT
-    TO app_user
+    TO PUBLIC
     WITH CHECK (
         tenant_id = current_tenant_id() 
         AND is_tenant_admin()
@@ -133,7 +133,7 @@ CREATE POLICY tenant_users_insert ON tenant_users
 -- UPDATE: Only admins can update memberships
 CREATE POLICY tenant_users_update ON tenant_users
     FOR UPDATE
-    TO app_user
+    TO PUBLIC
     USING (tenant_id = current_tenant_id())
     WITH CHECK (
         tenant_id = current_tenant_id() 
@@ -143,7 +143,7 @@ CREATE POLICY tenant_users_update ON tenant_users
 -- DELETE: Only admins can remove users from tenant
 CREATE POLICY tenant_users_delete ON tenant_users
     FOR DELETE
-    TO app_user
+    TO PUBLIC
     USING (
         tenant_id = current_tenant_id() 
         AND is_tenant_admin()
@@ -156,13 +156,13 @@ CREATE POLICY tenant_users_delete ON tenant_users
 -- SELECT: Can see roles in current tenant
 CREATE POLICY roles_select ON roles
     FOR SELECT
-    TO app_user
+    TO PUBLIC
     USING (tenant_id = current_tenant_id());
 
 -- INSERT: Only admins can create roles
 CREATE POLICY roles_insert ON roles
     FOR INSERT
-    TO app_user
+    TO PUBLIC
     WITH CHECK (
         tenant_id = current_tenant_id() 
         AND is_tenant_admin()
@@ -171,7 +171,7 @@ CREATE POLICY roles_insert ON roles
 -- UPDATE: Only admins can modify roles (except system roles)
 CREATE POLICY roles_update ON roles
     FOR UPDATE
-    TO app_user
+    TO PUBLIC
     USING (
         tenant_id = current_tenant_id() 
         AND is_tenant_admin()
@@ -185,7 +185,7 @@ CREATE POLICY roles_update ON roles
 -- DELETE: Only admins can delete roles (except system roles)
 CREATE POLICY roles_delete ON roles
     FOR DELETE
-    TO app_user
+    TO PUBLIC
     USING (
         tenant_id = current_tenant_id() 
         AND is_tenant_admin()
@@ -199,7 +199,7 @@ CREATE POLICY roles_delete ON roles
 -- SELECT: Can see role assignments in current tenant
 CREATE POLICY user_roles_select ON user_roles
     FOR SELECT
-    TO app_user
+    TO PUBLIC
     USING (
         EXISTS (
             SELECT 1 FROM tenant_users tu
@@ -211,7 +211,7 @@ CREATE POLICY user_roles_select ON user_roles
 -- INSERT: Only admins can assign roles
 CREATE POLICY user_roles_insert ON user_roles
     FOR INSERT
-    TO app_user
+    TO PUBLIC
     WITH CHECK (
         EXISTS (
             SELECT 1 FROM tenant_users tu
@@ -224,7 +224,7 @@ CREATE POLICY user_roles_insert ON user_roles
 -- DELETE: Only admins can remove role assignments
 CREATE POLICY user_roles_delete ON user_roles
     FOR DELETE
-    TO app_user
+    TO PUBLIC
     USING (
         EXISTS (
             SELECT 1 FROM tenant_users tu
@@ -243,7 +243,7 @@ CREATE POLICY user_roles_delete ON user_roles
 -- SELECT: Can see permissions for roles in current tenant
 CREATE POLICY role_permissions_select ON role_permissions
     FOR SELECT
-    TO app_user
+    TO PUBLIC
     USING (
         EXISTS (
             SELECT 1 FROM roles r
@@ -255,7 +255,7 @@ CREATE POLICY role_permissions_select ON role_permissions
 -- INSERT: Only admins can add permissions
 CREATE POLICY role_permissions_insert ON role_permissions
     FOR INSERT
-    TO app_user
+    TO PUBLIC
     WITH CHECK (
         EXISTS (
             SELECT 1 FROM roles r
@@ -269,7 +269,7 @@ CREATE POLICY role_permissions_insert ON role_permissions
 -- DELETE: Only admins can remove permissions
 CREATE POLICY role_permissions_delete ON role_permissions
     FOR DELETE
-    TO app_user
+    TO PUBLIC
     USING (
         EXISTS (
             SELECT 1 FROM roles r

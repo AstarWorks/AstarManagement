@@ -12,7 +12,7 @@ DECLARE
     v_user_exists BOOLEAN;
 BEGIN
     -- Check if app_user exists
-    SELECT EXISTS (SELECT 1 FROM pg_user WHERE usename = 'app_user') INTO v_user_exists;
+    SELECT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'app_user') INTO v_user_exists;
     
     IF v_user_exists THEN
         -- Try to get password from environment variable

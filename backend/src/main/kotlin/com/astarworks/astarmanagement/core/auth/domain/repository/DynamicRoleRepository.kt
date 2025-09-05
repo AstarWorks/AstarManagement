@@ -1,7 +1,8 @@
 package com.astarworks.astarmanagement.core.auth.domain.repository
 
 import com.astarworks.astarmanagement.core.auth.domain.model.DynamicRole
-import java.util.UUID
+import com.astarworks.astarmanagement.shared.domain.value.RoleId
+import com.astarworks.astarmanagement.shared.domain.value.TenantId
 
 /**
  * Dynamic role repository interface for domain layer.
@@ -22,7 +23,7 @@ interface DynamicRoleRepository {
      * @param id The role ID
      * @return The dynamic role if found, null otherwise
      */
-    fun findById(id: UUID): DynamicRole?
+    fun findById(id: RoleId): DynamicRole?
     
     /**
      * Finds all dynamic roles.
@@ -35,7 +36,7 @@ interface DynamicRoleRepository {
      * @param tenantId The tenant ID
      * @return List of roles for the tenant
      */
-    fun findByTenantId(tenantId: UUID): List<DynamicRole>
+    fun findByTenantId(tenantId: TenantId): List<DynamicRole>
     
     /**
      * Finds all system-wide roles (roles not tied to any specific tenant).
@@ -49,7 +50,7 @@ interface DynamicRoleRepository {
      * @param name The role name
      * @return The dynamic role if found, null otherwise
      */
-    fun findByTenantIdAndName(tenantId: UUID?, name: String): DynamicRole?
+    fun findByTenantIdAndName(tenantId: TenantId?, name: String): DynamicRole?
     
     /**
      * Checks if a role with the given tenant and name combination exists.
@@ -57,14 +58,14 @@ interface DynamicRoleRepository {
      * @param name The role name
      * @return true if exists, false otherwise
      */
-    fun existsByTenantIdAndName(tenantId: UUID?, name: String): Boolean
+    fun existsByTenantIdAndName(tenantId: TenantId?, name: String): Boolean
     
     /**
      * Finds all roles for a tenant ordered by position (Discord-style hierarchy).
      * @param tenantId The tenant ID
      * @return List of roles ordered by position (highest first)
      */
-    fun findByTenantIdOrderByPositionDesc(tenantId: UUID): List<DynamicRole>
+    fun findByTenantIdOrderByPositionDesc(tenantId: TenantId): List<DynamicRole>
     
     /**
      * Finds system roles ordered by position.
@@ -76,13 +77,13 @@ interface DynamicRoleRepository {
      * Deletes a dynamic role by its ID.
      * @param id The role ID
      */
-    fun deleteById(id: UUID)
+    fun deleteById(id: RoleId)
     
     /**
      * Deletes all roles for a specific tenant.
      * @param tenantId The tenant ID
      */
-    fun deleteByTenantId(tenantId: UUID)
+    fun deleteByTenantId(tenantId: TenantId)
     
     /**
      * Counts the total number of dynamic roles.
@@ -95,7 +96,7 @@ interface DynamicRoleRepository {
      * @param tenantId The tenant ID
      * @return The count of roles for the tenant
      */
-    fun countByTenantId(tenantId: UUID): Long
+    fun countByTenantId(tenantId: TenantId): Long
     
     /**
      * Counts the number of system roles.
