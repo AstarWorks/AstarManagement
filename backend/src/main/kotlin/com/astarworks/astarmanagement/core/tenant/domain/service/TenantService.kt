@@ -2,10 +2,10 @@ package com.astarworks.astarmanagement.core.tenant.domain.service
 
 import com.astarworks.astarmanagement.core.tenant.domain.model.Tenant
 import com.astarworks.astarmanagement.core.tenant.domain.repository.TenantRepository
+import com.astarworks.astarmanagement.shared.domain.value.TenantId
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.UUID
 
 /**
  * Application service for tenant management.
@@ -57,7 +57,7 @@ class TenantService(
      * @return Tenant if found
      */
     @Transactional(readOnly = true)
-    fun findById(id: UUID): Tenant? {
+    fun findById(id: TenantId): Tenant? {
         return tenantRepository.findById(id)
     }
     
@@ -109,7 +109,7 @@ class TenantService(
      * @return Updated tenant
      * @throws IllegalArgumentException if tenant not found
      */
-    fun updateTenantName(id: UUID, name: String): Tenant {
+    fun updateTenantName(id: TenantId, name: String): Tenant {
         logger.info("Updating tenant $id name to: $name")
         
         val tenant = tenantRepository.findById(id)
@@ -126,7 +126,7 @@ class TenantService(
      * @return Updated tenant
      * @throws IllegalArgumentException if tenant not found or Auth0 org already linked
      */
-    fun linkAuth0Organization(id: UUID, auth0OrgId: String): Tenant {
+    fun linkAuth0Organization(id: TenantId, auth0OrgId: String): Tenant {
         logger.info("Linking tenant $id with Auth0 org: $auth0OrgId")
         
         val tenant = tenantRepository.findById(id)
@@ -150,7 +150,7 @@ class TenantService(
      * @return Deactivated tenant
      * @throws IllegalArgumentException if tenant not found
      */
-    fun deactivateTenant(id: UUID): Tenant {
+    fun deactivateTenant(id: TenantId): Tenant {
         logger.info("Deactivating tenant: $id")
         
         val tenant = tenantRepository.findById(id)
@@ -166,7 +166,7 @@ class TenantService(
      * @return Activated tenant
      * @throws IllegalArgumentException if tenant not found
      */
-    fun activateTenant(id: UUID): Tenant {
+    fun activateTenant(id: TenantId): Tenant {
         logger.info("Activating tenant: $id")
         
         val tenant = tenantRepository.findById(id)
@@ -219,7 +219,7 @@ class TenantService(
      * @param id Tenant ID
      * @throws IllegalArgumentException if tenant not found
      */
-    fun deleteById(id: UUID) {
+    fun deleteById(id: TenantId) {
         logger.info("Deleting tenant: $id")
         
         val tenant = tenantRepository.findById(id)

@@ -1,14 +1,15 @@
 package com.astarworks.astarmanagement.core.tenant.api.controller
+import org.springframework.web.server.ResponseStatusException
 
 import com.astarworks.astarmanagement.core.tenant.api.dto.CreateTenantRequest
 import com.astarworks.astarmanagement.core.tenant.api.dto.TenantResponse
 import com.astarworks.astarmanagement.core.tenant.api.dto.UpdateTenantRequest
 import com.astarworks.astarmanagement.core.tenant.domain.service.TenantService
 import com.astarworks.astarmanagement.core.tenant.infrastructure.context.TenantContextService
+import com.astarworks.astarmanagement.shared.domain.value.TenantId
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import java.util.UUID
@@ -29,24 +30,24 @@ class TenantController(
      * Get all tenants (admin only).
      */
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    fun getAllTenants(): ResponseEntity<List<TenantResponse>> {
+    @PreAuthorize("hasPermissionRule('tenant.view.all')")
+    fun getAllTenants(): List<TenantResponse> {
         logger.info("Getting all tenants")
         val tenants = tenantService.findAllTenants()
         val responses = tenants.map { TenantResponse.from(it) }
-        return ResponseEntity.ok(responses)
+        return responses
     }
     
     /**
      * Get all active tenants (admin only).
      */
     @GetMapping("/active")
-    @PreAuthorize("hasRole('ADMIN')")
-    fun getActiveTenants(): ResponseEntity<List<TenantResponse>> {
+    @PreAuthorize("hasPermissionRule('tenant.view.all')")
+    fun getActiveTenants(): List<TenantResponse> {
         logger.info("Getting active tenants")
         val tenants = tenantService.findActiveTenants()
         val responses = tenants.map { TenantResponse.from(it) }
-        return ResponseEntity.ok(responses)
+        return responses
     }
     
     /**
@@ -54,21 +55,21 @@ class TenantController(
      * Returns the tenant associated with the current user's JWT token.
      */
     @GetMapping("/current")
-    fun getCurrentTenant(): ResponseEntity<TenantResponse> {
+    fun getCurrentTenant(): TenantResponse {
         val tenantId = tenantContextService.getTenantContext()
         
         if (tenantId == null) {
             logger.warn("No tenant context found for current user")
-            return ResponseEntity.notFound().build()
+            throw ResponseStatusException(HttpStatus.NOT_FOUND)
         }
         
-        val tenant = tenantService.findById(tenantId)
+        val tenant = tenantService.findById(TenantId(tenantId))
         
         return if (tenant != null) {
-            ResponseEntity.ok(TenantResponse.from(tenant))
+            TenantResponse.from(tenant)
         } else {
             logger.error("Tenant not found for ID in context: $tenantId")
-            ResponseEntity.notFound().build()
+            throw ResponseStatusException(HttpStatus.NOT_FOUND)
         }
     }
     
@@ -76,15 +77,15 @@ class TenantController(
      * Get tenant by ID.
      */
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.tenantId")
-    fun getTenantById(@PathVariable id: UUID): ResponseEntity<TenantResponse> {
+    @PreAuthorize("hasPermissionRule('tenant.view.all') and canAccessResource(#id, 'tenant', 'view')")
+    fun getTenantById(@PathVariable id: UUID): TenantResponse {
         logger.info("Getting tenant by ID: $id")
         
-        val tenant = tenantService.findById(id)
+        val tenant = tenantService.findById(TenantId(id))
         return if (tenant != null) {
-            ResponseEntity.ok(TenantResponse.from(tenant))
+            TenantResponse.from(tenant)
         } else {
-            ResponseEntity.notFound().build()
+            throw ResponseStatusException(HttpStatus.NOT_FOUND)
         }
     }
     
@@ -92,14 +93,14 @@ class TenantController(
      * Get tenant by slug.
      */
     @GetMapping("/slug/{slug}")
-    fun getTenantBySlug(@PathVariable slug: String): ResponseEntity<TenantResponse> {
+    fun getTenantBySlug(@PathVariable slug: String): TenantResponse {
         logger.info("Getting tenant by slug: $slug")
         
         val tenant = tenantService.findBySlug(slug)
         return if (tenant != null) {
-            ResponseEntity.ok(TenantResponse.from(tenant))
+            TenantResponse.from(tenant)
         } else {
-            ResponseEntity.notFound().build()
+            throw ResponseStatusException(HttpStatus.NOT_FOUND)
         }
     }
     
@@ -107,10 +108,10 @@ class TenantController(
      * Create a new tenant (admin only).
      */
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasPermissionRule('tenant.create.all')")
     fun createTenant(
         @Valid @RequestBody request: CreateTenantRequest
-    ): ResponseEntity<TenantResponse> {
+    ): TenantResponse {
         logger.info("Creating tenant with slug: ${request.slug}")
         
         return try {
@@ -119,10 +120,10 @@ class TenantController(
                 name = request.name,
                 auth0OrgId = request.auth0OrgId
             )
-            ResponseEntity.status(HttpStatus.CREATED).body(TenantResponse.from(tenant))
+            TenantResponse.from(tenant)
         } catch (e: IllegalArgumentException) {
             logger.error("Failed to create tenant: ${e.message}")
-            ResponseEntity.badRequest().build()
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST)
         }
     }
     
@@ -130,19 +131,19 @@ class TenantController(
      * Update tenant information.
      */
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.tenantId")
+    @PreAuthorize("hasPermissionRule('tenant.edit.all') and canAccessResource(#id, 'tenant', 'edit')")
     fun updateTenant(
         @PathVariable id: UUID,
         @Valid @RequestBody request: UpdateTenantRequest
-    ): ResponseEntity<TenantResponse> {
+    ): TenantResponse {
         logger.info("Updating tenant $id")
         
         return try {
-            val tenant = tenantService.updateTenantName(id, request.name)
-            ResponseEntity.ok(TenantResponse.from(tenant))
+            val tenant = tenantService.updateTenantName(TenantId(id), request.name)
+            TenantResponse.from(tenant)
         } catch (e: IllegalArgumentException) {
             logger.error("Failed to update tenant: ${e.message}")
-            ResponseEntity.notFound().build()
+            throw ResponseStatusException(HttpStatus.NOT_FOUND)
         }
     }
     
@@ -150,19 +151,19 @@ class TenantController(
      * Link tenant with Auth0 Organization (admin only).
      */
     @PostMapping("/{id}/link-auth0")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasPermissionRule('tenant.edit.all')")
     fun linkAuth0Organization(
         @PathVariable id: UUID,
         @RequestParam auth0OrgId: String
-    ): ResponseEntity<TenantResponse> {
+    ): TenantResponse {
         logger.info("Linking tenant $id with Auth0 org: $auth0OrgId")
         
         return try {
-            val tenant = tenantService.linkAuth0Organization(id, auth0OrgId)
-            ResponseEntity.ok(TenantResponse.from(tenant))
+            val tenant = tenantService.linkAuth0Organization(TenantId(id), auth0OrgId)
+            TenantResponse.from(tenant)
         } catch (e: IllegalArgumentException) {
             logger.error("Failed to link Auth0 organization: ${e.message}")
-            ResponseEntity.badRequest().build()
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST)
         }
     }
     
@@ -170,16 +171,16 @@ class TenantController(
      * Deactivate a tenant (admin only).
      */
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    fun deactivateTenant(@PathVariable id: UUID): ResponseEntity<TenantResponse> {
+    @PreAuthorize("hasPermissionRule('tenant.delete.all')")
+    fun deactivateTenant(@PathVariable id: UUID): TenantResponse {
         logger.info("Deactivating tenant: $id")
         
         return try {
-            val tenant = tenantService.deactivateTenant(id)
-            ResponseEntity.ok(TenantResponse.from(tenant))
+            val tenant = tenantService.deactivateTenant(TenantId(id))
+            TenantResponse.from(tenant)
         } catch (e: IllegalArgumentException) {
             logger.error("Failed to deactivate tenant: ${e.message}")
-            ResponseEntity.notFound().build()
+            throw ResponseStatusException(HttpStatus.NOT_FOUND)
         }
     }
     
@@ -187,16 +188,16 @@ class TenantController(
      * Activate a tenant (admin only).
      */
     @PostMapping("/{id}/activate")
-    @PreAuthorize("hasRole('ADMIN')")
-    fun activateTenant(@PathVariable id: UUID): ResponseEntity<TenantResponse> {
+    @PreAuthorize("hasPermissionRule('tenant.edit.all')")
+    fun activateTenant(@PathVariable id: UUID): TenantResponse {
         logger.info("Activating tenant: $id")
         
         return try {
-            val tenant = tenantService.activateTenant(id)
-            ResponseEntity.ok(TenantResponse.from(tenant))
+            val tenant = tenantService.activateTenant(TenantId(id))
+            TenantResponse.from(tenant)
         } catch (e: IllegalArgumentException) {
             logger.error("Failed to activate tenant: ${e.message}")
-            ResponseEntity.notFound().build()
+            throw ResponseStatusException(HttpStatus.NOT_FOUND)
         }
     }
 }

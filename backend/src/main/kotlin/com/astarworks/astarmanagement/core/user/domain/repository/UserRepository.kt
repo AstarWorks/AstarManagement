@@ -1,6 +1,7 @@
 package com.astarworks.astarmanagement.core.user.domain.repository
 
 import com.astarworks.astarmanagement.core.user.domain.model.User
+import com.astarworks.astarmanagement.shared.domain.value.UserId
 import java.util.UUID
 
 /**
@@ -12,7 +13,7 @@ interface UserRepository {
     
     fun save(user: User): User
     
-    fun findById(id: UUID): User?
+    fun findById(id: UserId): User?
     
     /**
      * Find user by Auth0 subject identifier.
@@ -30,7 +31,7 @@ interface UserRepository {
     fun existsByAuth0Sub(auth0Sub: String): Boolean
     
     // General methods
-    fun deleteById(id: UUID)
+    fun deleteById(id: UserId)
     
     fun findAll(): List<User>
     

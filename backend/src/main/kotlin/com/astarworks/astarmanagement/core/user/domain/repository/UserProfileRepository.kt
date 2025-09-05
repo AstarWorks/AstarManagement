@@ -1,7 +1,8 @@
 package com.astarworks.astarmanagement.core.user.domain.repository
 
 import com.astarworks.astarmanagement.core.user.domain.model.UserProfile
-import java.util.UUID
+import com.astarworks.astarmanagement.shared.domain.value.UserId
+import com.astarworks.astarmanagement.shared.domain.value.UserProfileId
 
 /**
  * User profile repository interface for domain layer.
@@ -22,21 +23,21 @@ interface UserProfileRepository {
      * @param id The user profile ID
      * @return The user profile if found, null otherwise
      */
-    fun findById(id: UUID): UserProfile?
+    fun findById(id: UserProfileId): UserProfile?
     
     /**
      * Finds a user profile by the associated user ID.
      * @param userId The user ID
      * @return The user profile if found, null otherwise
      */
-    fun findByUserId(userId: UUID): UserProfile?
+    fun findByUserId(userId: UserId): UserProfile?
     
     /**
      * Checks if a user profile exists for the given user ID.
      * @param userId The user ID to check
      * @return true if a profile exists, false otherwise
      */
-    fun existsByUserId(userId: UUID): Boolean
+    fun existsByUserId(userId: UserId): Boolean
     
     /**
      * Finds all user profiles.
@@ -48,13 +49,13 @@ interface UserProfileRepository {
      * Deletes a user profile by its ID.
      * @param id The user profile ID
      */
-    fun deleteById(id: UUID)
+    fun deleteById(id: UserProfileId)
     
     /**
      * Deletes a user profile by the associated user ID.
      * @param userId The user ID
      */
-    fun deleteByUserId(userId: UUID)
+    fun deleteByUserId(userId: UserId)
     
     /**
      * Counts the total number of user profiles.

@@ -1,6 +1,8 @@
 package com.astarworks.astarmanagement.core.tenant.domain.model
 
-import java.time.LocalDateTime
+import com.astarworks.astarmanagement.shared.domain.value.EntityId
+import com.astarworks.astarmanagement.shared.domain.value.TenantId
+import java.time.Instant
 import java.util.UUID
 
 /**
@@ -8,13 +10,13 @@ import java.util.UUID
  * Integrates with Auth0 Organizations for SSO and identity management.
  */
 data class Tenant(
-    val id: UUID = UUID.randomUUID(),
+    val id: TenantId = TenantId(java.util.UUID.randomUUID()),
     val slug: String,
     val name: String,
     val auth0OrgId: String? = null,
     val isActive: Boolean = true,
-    val createdAt: LocalDateTime = LocalDateTime.now(),
-    val updatedAt: LocalDateTime = LocalDateTime.now()
+    val createdAt: Instant = Instant.now(),
+    val updatedAt: Instant = Instant.now()
 ) {
     init {
         require(slug.isNotBlank()) { "Tenant slug cannot be blank" }
@@ -31,7 +33,7 @@ data class Tenant(
      */
     fun deactivate(): Tenant = copy(
         isActive = false,
-        updatedAt = LocalDateTime.now()
+        updatedAt = Instant.now()
     )
     
     /**
@@ -39,7 +41,7 @@ data class Tenant(
      */
     fun activate(): Tenant = copy(
         isActive = true,
-        updatedAt = LocalDateTime.now()
+        updatedAt = Instant.now()
     )
     
     /**
@@ -51,7 +53,7 @@ data class Tenant(
         
         return copy(
             name = newName,
-            updatedAt = LocalDateTime.now()
+            updatedAt = Instant.now()
         )
     }
     
@@ -63,7 +65,7 @@ data class Tenant(
         
         return copy(
             auth0OrgId = orgId,
-            updatedAt = LocalDateTime.now()
+            updatedAt = Instant.now()
         )
     }
 }

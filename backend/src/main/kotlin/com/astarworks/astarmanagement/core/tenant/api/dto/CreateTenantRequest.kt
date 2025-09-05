@@ -3,10 +3,12 @@ package com.astarworks.astarmanagement.core.tenant.api.dto
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
+import kotlinx.serialization.Serializable
 
 /**
  * Request DTO for creating a new tenant.
  */
+@Serializable
 data class CreateTenantRequest(
     @field:NotBlank(message = "Slug is required")
     @field:Size(min = 3, max = 100, message = "Slug must be between 3 and 100 characters")

@@ -1,6 +1,8 @@
 package com.astarworks.astarmanagement.core.user.domain.model
 
-import java.time.LocalDateTime
+import com.astarworks.astarmanagement.shared.domain.value.EntityId
+import com.astarworks.astarmanagement.shared.domain.value.UserId
+import java.time.Instant
 import java.util.UUID
 
 /**
@@ -9,11 +11,11 @@ import java.util.UUID
  * Profile information (name, avatar) is stored separately in user_profiles.
  */
 data class User(
-    val id: UUID = UUID.randomUUID(),
+    val id: UserId = UserId(UUID.randomUUID()),
     val auth0Sub: String,  // Required - Auth0 is the only authentication method
     val email: String,
-    val createdAt: LocalDateTime = LocalDateTime.now(),
-    val updatedAt: LocalDateTime = LocalDateTime.now()
+    val createdAt: Instant = Instant.now(),
+    val updatedAt: Instant = Instant.now()
 ) {
     init {
         require(auth0Sub.isNotBlank()) {
@@ -45,7 +47,7 @@ data class User(
     fun updateEmail(newEmail: String): User {
         return this.copy(
             email = newEmail,
-            updatedAt = LocalDateTime.now()
+            updatedAt = Instant.now()
         )
     }
 }

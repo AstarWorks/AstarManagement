@@ -1,7 +1,7 @@
 package com.astarworks.astarmanagement.core.tenant.domain.repository
 
 import com.astarworks.astarmanagement.core.tenant.domain.model.Tenant
-import java.util.UUID
+import com.astarworks.astarmanagement.shared.domain.value.TenantId
 
 /**
  * Tenant repository interface for domain layer.
@@ -21,7 +21,7 @@ interface TenantRepository {
      * @param id The tenant ID
      * @return The tenant if found, null otherwise
      */
-    fun findById(id: UUID): Tenant?
+    fun findById(id: TenantId): Tenant?
     
     /**
      * Finds a tenant by its unique slug.
@@ -67,7 +67,7 @@ interface TenantRepository {
      * Deletes a tenant by its ID.
      * @param id The tenant ID
      */
-    fun deleteById(id: UUID)
+    fun deleteById(id: TenantId)
     
     /**
      * Counts the total number of tenants.

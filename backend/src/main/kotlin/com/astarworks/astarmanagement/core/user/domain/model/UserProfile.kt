@@ -1,6 +1,9 @@
 package com.astarworks.astarmanagement.core.user.domain.model
 
-import java.time.LocalDateTime
+import com.astarworks.astarmanagement.shared.domain.value.EntityId
+import com.astarworks.astarmanagement.shared.domain.value.UserId
+import com.astarworks.astarmanagement.shared.domain.value.UserProfileId
+import java.time.Instant
 import java.util.UUID
 
 /**
@@ -9,12 +12,12 @@ import java.util.UUID
  * One-to-one relationship with User entity.
  */
 data class UserProfile(
-    val id: UUID = UUID.randomUUID(),
-    val userId: UUID,
+    val id: UserProfileId = UserProfileId(java.util.UUID.randomUUID()),
+    val userId: UserId,
     val displayName: String? = null,
     val avatarUrl: String? = null,
-    val createdAt: LocalDateTime = LocalDateTime.now(),
-    val updatedAt: LocalDateTime = LocalDateTime.now()
+    val createdAt: Instant = Instant.now(),
+    val updatedAt: Instant = Instant.now()
 ) {
     init {
         require(displayName?.isNotBlank() ?: true) {
@@ -41,7 +44,7 @@ data class UserProfile(
         
         return copy(
             displayName = newDisplayName,
-            updatedAt = LocalDateTime.now()
+            updatedAt = Instant.now()
         )
     }
     
@@ -55,7 +58,7 @@ data class UserProfile(
         
         return copy(
             avatarUrl = newAvatarUrl,
-            updatedAt = LocalDateTime.now()
+            updatedAt = Instant.now()
         )
     }
     
@@ -76,7 +79,7 @@ data class UserProfile(
         return copy(
             displayName = newDisplayName,
             avatarUrl = newAvatarUrl,
-            updatedAt = LocalDateTime.now()
+            updatedAt = Instant.now()
         )
     }
 }
