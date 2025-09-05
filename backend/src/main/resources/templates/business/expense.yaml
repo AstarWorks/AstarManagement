@@ -1,0 +1,90 @@
+# Expense Template - 経費管理用テンプレート
+id: business.expense
+name: 経費
+description: 経費管理用テンプレート
+tags:
+  - business
+  - expense-management
+
+properties:
+  title:
+    typeId: text
+    displayName: 項目名
+    required: true
+
+  amount:
+    typeId: number
+    displayName: 金額
+    required: true
+    config:
+      format: currency
+      precision: 0
+
+  category:
+    typeId: select
+    displayName: カテゴリ
+    required: true
+    config:
+      options:
+        - value: transport
+          label: 交通費
+          color: "#4B9BFF"
+        - value: meals
+          label: 食費
+          color: "#FF9500"
+        - value: accommodation
+          label: 宿泊費
+          color: "#8E44AD"
+        - value: supplies
+          label: 消耗品費
+          color: "#27AE60"
+        - value: communication
+          label: 通信費
+          color: "#F39C12"
+        - value: utilities
+          label: 光熱費
+          color: "#E74C3C"
+        - value: entertainment
+          label: 交際費
+          color: "#E91E63"
+        - value: other
+          label: その他
+          color: "#95A5A6"
+
+  date:
+    typeId: date
+    displayName: 発生日
+    required: true
+
+  receipt_url:
+    typeId: url
+    displayName: 領収書URL
+
+  approved:
+    typeId: checkbox
+    displayName: 承認済み
+    config:
+      default: false
+
+  approved_by:
+    typeId: user
+    displayName: 承認者
+
+  notes:
+    typeId: long_text
+    displayName: 備考
+
+propertyOrder:
+  - title
+  - amount
+  - category
+  - date
+  - receipt_url
+  - approved
+  - approved_by
+  - notes
+
+metadata:
+  temporary: false
+  industry: business
+  version: "1.0"

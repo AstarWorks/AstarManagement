@@ -1,0 +1,90 @@
+# Inventory Template - 在庫管理用テンプレート
+id: business.inventory
+name: 在庫
+description: 在庫管理用テンプレート
+tags:
+  - business
+  - inventory-management
+
+properties:
+  item_name:
+    typeId: text
+    displayName: 品目名
+    required: true
+
+  sku:
+    typeId: text
+    displayName: SKU
+    required: true
+
+  quantity:
+    typeId: number
+    displayName: 数量
+    required: true
+    config:
+      min: 0
+      precision: 0
+
+  unit_price:
+    typeId: number
+    displayName: 単価
+    config:
+      format: currency
+      precision: 2
+
+  total_value:
+    typeId: number
+    displayName: 総額
+    config:
+      calculated: true
+      formula: "quantity * unit_price"
+      format: currency
+
+  location:
+    typeId: text
+    displayName: 保管場所
+
+  reorder_level:
+    typeId: number
+    displayName: 発注点
+    config:
+      min: 0
+      precision: 0
+
+  status:
+    typeId: select
+    displayName: ステータス
+    config:
+      options:
+        - value: in_stock
+          label: 在庫あり
+          color: "#00AA00"
+        - value: low_stock
+          label: 在庫少
+          color: "#FFB800"
+        - value: out_of_stock
+          label: 在庫切れ
+          color: "#CC0000"
+        - value: on_order
+          label: 発注中
+          color: "#0066CC"
+
+  last_restocked:
+    typeId: date
+    displayName: 最終入荷日
+
+propertyOrder:
+  - item_name
+  - sku
+  - quantity
+  - unit_price
+  - total_value
+  - location
+  - reorder_level
+  - status
+  - last_restocked
+
+metadata:
+  temporary: false
+  industry: business
+  version: "1.0"

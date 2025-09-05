@@ -1,0 +1,56 @@
+# Customer Template - 顧客管理用テンプレート
+id: business.customer
+name: 顧客
+description: 顧客管理用テンプレート
+tags:
+  - business
+  - customer-management
+
+properties:
+  name:
+    typeId: text
+    displayName: 名前
+    required: true
+
+  email:
+    typeId: email
+    displayName: メールアドレス
+
+  phone:
+    typeId: phone
+    displayName: 電話番号
+
+  company:
+    typeId: text
+    displayName: 会社名
+
+  status:
+    typeId: select
+    displayName: ステータス
+    config:
+      options:
+        - value: lead
+          label: リード
+        - value: prospect
+          label: 見込み客
+        - value: customer
+          label: 顧客
+        - value: churned
+          label: 解約
+
+  notes:
+    typeId: long_text
+    displayName: 備考
+
+propertyOrder:
+  - name
+  - email
+  - phone
+  - company
+  - status
+  - notes
+
+metadata:
+  temporary: false
+  industry: business
+  version: "1.0"

@@ -1,0 +1,80 @@
+# Project Template - プロジェクト管理用テンプレート
+id: business.project
+name: プロジェクト
+description: プロジェクト管理用テンプレート
+tags:
+  - business
+  - project-management
+
+properties:
+  name:
+    typeId: text
+    displayName: プロジェクト名
+    required: true
+
+  status:
+    typeId: select
+    displayName: ステータス
+    config:
+      options:
+        - value: planning
+          label: 計画中
+          color: "#808080"
+        - value: in_progress
+          label: 進行中
+          color: "#0066CC"
+        - value: completed
+          label: 完了
+          color: "#00AA00"
+        - value: on_hold
+          label: 保留中
+          color: "#FFB800"
+        - value: cancelled
+          label: 中止
+          color: "#CC0000"
+
+  start_date:
+    typeId: date
+    displayName: 開始日
+
+  end_date:
+    typeId: date
+    displayName: 終了日
+
+  budget:
+    typeId: number
+    displayName: 予算
+    config:
+      format: currency
+      precision: 0
+
+  progress:
+    typeId: number
+    displayName: 進捗率
+    config:
+      format: percentage
+      min: 0
+      max: 100
+
+  owner:
+    typeId: user
+    displayName: 責任者
+
+  description:
+    typeId: long_text
+    displayName: 説明
+
+propertyOrder:
+  - name
+  - status
+  - start_date
+  - end_date
+  - budget
+  - progress
+  - owner
+  - description
+
+metadata:
+  temporary: false
+  industry: business
+  version: "1.0"

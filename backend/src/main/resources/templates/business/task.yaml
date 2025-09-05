@@ -1,0 +1,49 @@
+# Task Template - タスク管理用テンプレート
+id: business.task
+name: タスク
+description: 一般的なタスク管理用テンプレート
+tags:
+  - business
+  - task-management
+
+properties:
+  title:
+    typeId: text
+    displayName: タイトル
+    required: true
+
+  status:
+    typeId: select
+    displayName: ステータス
+    config:
+      options:
+        - value: todo
+          label: 未着手
+        - value: in_progress
+          label: 進行中  
+        - value: done
+          label: 完了
+
+  assignee:
+    typeId: user
+    displayName: 担当者
+
+  due_date:
+    typeId: date
+    displayName: 期限日
+
+  description:
+    typeId: long_text
+    displayName: 説明
+
+propertyOrder:
+  - title
+  - status
+  - assignee
+  - due_date
+  - description
+
+metadata:
+  temporary: false
+  industry: business
+  version: "1.0"

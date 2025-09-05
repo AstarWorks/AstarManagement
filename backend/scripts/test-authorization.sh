@@ -72,52 +72,52 @@ run_authorization_test() {
 # 1. 公開エンドポイントのテスト
 echo -e "${YELLOW}[Section 1/7] Public Endpoint Tests${NC}"
 echo "----------------------------------------"
-run_authorization_test "Public endpoint (no auth)" "NONE" "/api/v1/test/public" "200"
+run_authorization_test "Public endpoint (no auth)" "NONE" "/api/v1/auth/test/public" "200"
 echo ""
 
 # 2. 認証が必要なエンドポイント（ロール不問）のテスト
 echo -e "${YELLOW}[Section 2/7] Authentication Required Tests${NC}"
 echo "----------------------------------------"
-run_authorization_test "Authenticated endpoint (no auth)" "NONE" "/api/v1/test/authenticated" "401"
-run_authorization_test "Authenticated endpoint (with ADMIN)" "ADMIN" "/api/v1/test/authenticated" "200"
-run_authorization_test "Authenticated endpoint (with USER)" "USER" "/api/v1/test/authenticated" "200"
-run_authorization_test "Authenticated endpoint (with VIEWER)" "VIEWER" "/api/v1/test/authenticated" "200"
+run_authorization_test "Authenticated endpoint (no auth)" "NONE" "/api/v1/auth/test/authenticated" "401"
+run_authorization_test "Authenticated endpoint (with ADMIN)" "ADMIN" "/api/v1/auth/test/authenticated" "200"
+run_authorization_test "Authenticated endpoint (with USER)" "USER" "/api/v1/auth/test/authenticated" "200"
+run_authorization_test "Authenticated endpoint (with VIEWER)" "VIEWER" "/api/v1/auth/test/authenticated" "200"
 echo ""
 
 # 3. ADMIN専用エンドポイントのテスト
 echo -e "${YELLOW}[Section 3/7] ADMIN Role Authorization Tests${NC}"
 echo "----------------------------------------"
-run_authorization_test "Admin-only (no auth)" "NONE" "/api/v1/test/admin-only" "401"
-run_authorization_test "Admin-only (ADMIN role)" "ADMIN" "/api/v1/test/admin-only" "200"
-run_authorization_test "Admin-only (USER role)" "USER" "/api/v1/test/admin-only" "403"
-run_authorization_test "Admin-only (VIEWER role)" "VIEWER" "/api/v1/test/admin-only" "403"
+run_authorization_test "Admin-only (no auth)" "NONE" "/api/v1/auth/test/admin-only" "401"
+run_authorization_test "Admin-only (ADMIN role)" "ADMIN" "/api/v1/auth/test/admin-only" "200"
+run_authorization_test "Admin-only (USER role)" "USER" "/api/v1/auth/test/admin-only" "403"
+run_authorization_test "Admin-only (VIEWER role)" "VIEWER" "/api/v1/auth/test/admin-only" "403"
 echo ""
 
 # 4. USER専用エンドポイントのテスト
 echo -e "${YELLOW}[Section 4/7] USER Role Authorization Tests${NC}"
 echo "----------------------------------------"
-run_authorization_test "User-only (no auth)" "NONE" "/api/v1/test/user-only" "401"
-run_authorization_test "User-only (USER role)" "USER" "/api/v1/test/user-only" "200"
-run_authorization_test "User-only (ADMIN role)" "ADMIN" "/api/v1/test/user-only" "403"
-run_authorization_test "User-only (VIEWER role)" "VIEWER" "/api/v1/test/user-only" "403"
+run_authorization_test "User-only (no auth)" "NONE" "/api/v1/auth/test/user-only" "401"
+run_authorization_test "User-only (USER role)" "USER" "/api/v1/auth/test/user-only" "200"
+run_authorization_test "User-only (ADMIN role)" "ADMIN" "/api/v1/auth/test/user-only" "403"
+run_authorization_test "User-only (VIEWER role)" "VIEWER" "/api/v1/auth/test/user-only" "403"
 echo ""
 
 # 5. VIEWER専用エンドポイントのテスト
 echo -e "${YELLOW}[Section 5/7] VIEWER Role Authorization Tests${NC}"
 echo "----------------------------------------"
-run_authorization_test "Viewer-only (no auth)" "NONE" "/api/v1/test/viewer-only" "401"
-run_authorization_test "Viewer-only (VIEWER role)" "VIEWER" "/api/v1/test/viewer-only" "200"
-run_authorization_test "Viewer-only (ADMIN role)" "ADMIN" "/api/v1/test/viewer-only" "403"
-run_authorization_test "Viewer-only (USER role)" "USER" "/api/v1/test/viewer-only" "403"
+run_authorization_test "Viewer-only (no auth)" "NONE" "/api/v1/auth/test/viewer-only" "401"
+run_authorization_test "Viewer-only (VIEWER role)" "VIEWER" "/api/v1/auth/test/viewer-only" "200"
+run_authorization_test "Viewer-only (ADMIN role)" "ADMIN" "/api/v1/auth/test/viewer-only" "403"
+run_authorization_test "Viewer-only (USER role)" "USER" "/api/v1/auth/test/viewer-only" "403"
 echo ""
 
 # 6. 複数ロール許可エンドポイントのテスト
 echo -e "${YELLOW}[Section 6/7] Multiple Role Authorization Tests${NC}"
 echo "----------------------------------------"
-run_authorization_test "Admin-or-User (no auth)" "NONE" "/api/v1/test/admin-or-user" "401"
-run_authorization_test "Admin-or-User (ADMIN role)" "ADMIN" "/api/v1/test/admin-or-user" "200"
-run_authorization_test "Admin-or-User (USER role)" "USER" "/api/v1/test/admin-or-user" "200"
-run_authorization_test "Admin-or-User (VIEWER role)" "VIEWER" "/api/v1/test/admin-or-user" "403"
+run_authorization_test "Admin-or-User (no auth)" "NONE" "/api/v1/auth/test/admin-or-user" "401"
+run_authorization_test "Admin-or-User (ADMIN role)" "ADMIN" "/api/v1/auth/test/admin-or-user" "200"
+run_authorization_test "Admin-or-User (USER role)" "USER" "/api/v1/auth/test/admin-or-user" "200"
+run_authorization_test "Admin-or-User (VIEWER role)" "VIEWER" "/api/v1/auth/test/admin-or-user" "403"
 echo ""
 
 # 7. トークン生成機能のテスト
