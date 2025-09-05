@@ -1,15 +1,24 @@
 package com.astarworks.astarmanagement.core.auth.api.controller
+import org.springframework.web.server.ResponseStatusException
+import org.springframework.http.HttpStatus
 
-import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.security.core.annotation.AuthenticationPrincipal
-import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import com.astarworks.astarmanagement.core.auth.infrastructure.jwt.JwtClaimsExtractor
-
+import com.astarworks.astarmanagement.core.auth.api.dto.BusinessContextResponse
+import com.astarworks.astarmanagement.core.auth.api.dto.AuthenticatedContextDto
+import com.astarworks.astarmanagement.core.auth.api.dto.RawJwtClaimsDto
+import com.astarworks.astarmanagement.core.auth.api.dto.CurrentUserResponse
+import com.astarworks.astarmanagement.core.auth.api.dto.JwtClaimsResponse
+import com.astarworks.astarmanagement.core.auth.domain.model.AuthenticatedUserContext
+import com.astarworks.astarmanagement.core.auth.domain.model.SetupModeAuthentication
+import com.astarworks.astarmanagement.core.auth.domain.model.SetupModeContext
+import com.astarworks.astarmanagement.core.auth.domain.model.MultiTenantAuthentication
+import com.astarworks.astarmanagement.core.auth.domain.model.MultiTenantContext
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 /**
  * Authentication controller for JWT validation.
  * Provides endpoints to verify JWT authentication and retrieve user information.
@@ -22,22 +31,72 @@ class AuthController(
 
     /**
      * Get current authenticated user information.
-     * Returns JWT claims if authentication successful.
+     * Returns different responses based on authentication type:
+     * - SetupModeAuthentication: Returns SETUP_REQUIRED status
+     * - Normal authentication: Returns full business context with user, tenant, and role information
      */
     @GetMapping("/me")
-    fun getCurrentUser(@AuthenticationPrincipal jwt: Jwt): ResponseEntity<Map<String, Any>> {
-        val userInfo = mapOf(
-            "subject" to jwt.subject,
-            "email" to (jwt.getClaimAsString("email") ?: "N/A"),
-            "name" to (jwt.getClaimAsString("name") ?: "N/A"),
-            "audience" to jwt.audience,
-            "issuer" to (jwt.issuer?.toString() ?: "N/A"),
-            "issuedAt" to jwt.issuedAt.toString(),
-            "expiresAt" to jwt.expiresAt.toString(),
-            "allClaims" to jwt.claims
-        )
-        
-        return ResponseEntity.ok(userInfo)
+    fun getCurrentUser(authentication: Authentication?): Any {
+        return when (authentication) {
+            null -> {
+                // No authentication - return unauthorized
+                throw ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "Authentication required"
+                )
+            }
+            is SetupModeAuthentication -> {
+                // First-time user without org_id - needs setup
+                val setupContext = authentication.principal as SetupModeContext
+                mapOf(
+                    "status" to "SETUP_REQUIRED",
+                    "auth0Sub" to setupContext.auth0Sub,
+                    "email" to setupContext.email,
+                    "hasDefaultTenant" to false,
+                    "message" to "Please complete the setup process to create your default workspace"
+                )
+            }
+            
+            is JwtAuthenticationToken -> {
+                // Normal authenticated user with org_id
+                val authenticatedContext = authentication.principal as? AuthenticatedUserContext
+                    ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED)
+                
+                AuthenticatedContextDto(
+                    auth0Sub = authenticatedContext.auth0Sub,
+                    userId = authenticatedContext.userId,
+                    tenantUserId = authenticatedContext.tenantUserId,
+                    tenantId = authenticatedContext.tenantId,
+                    roles = authenticatedContext.roles.map { it.name }.toSet().toList(),  
+                    email = authenticatedContext.email,
+                    isActive = authenticatedContext.isActive
+                )
+            }
+            
+            is MultiTenantAuthentication -> {
+                // User without org_id but has accessible tenants - return first tenant info
+                val multiTenantContext = authentication.principal as MultiTenantContext
+                
+                // For multi-tenant users without org_id, return basic info without tenant context
+                AuthenticatedContextDto(
+                    auth0Sub = multiTenantContext.auth0Sub,
+                    userId = multiTenantContext.userId,
+                    tenantUserId = null, // No specific tenant selected
+                    tenantId = multiTenantContext.accessibleTenantIds.firstOrNull(), // Return first accessible tenant
+                    roles = emptyList(),  // No specific roles without tenant context
+                    email = multiTenantContext.email,
+                    isActive = true
+                )
+            }
+            
+            else -> {
+                // Unknown authentication type
+                throw ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "Invalid authentication type"
+                )
+            }
+        }
     }
 
     /**
@@ -45,21 +104,28 @@ class AuthController(
      * Returns formatted JWT claims for client consumption.
      */
     @GetMapping("/claims")
-    fun getJwtClaims(@AuthenticationPrincipal jwt: Jwt): ResponseEntity<Map<String, Any?>> {
-        val claims = mapOf(
-            "sub" to jwt.subject,
-            "email" to jwt.getClaimAsString("email"),
-            "email_verified" to jwt.getClaimAsBoolean("email_verified"),
-            "name" to jwt.getClaimAsString("name"),
-            "picture" to jwt.getClaimAsString("picture"),
-            "aud" to jwt.audience,
-            "iss" to jwt.issuer?.toString(),
-            "iat" to jwt.issuedAt,
-            "exp" to jwt.expiresAt,
-            "scope" to jwt.getClaimAsString("scope")
+    fun getJwtClaims(authentication: Authentication?): JwtClaimsResponse {
+        if (authentication == null) {
+            throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required")
+        }
+        // JwtAuthenticationToken から JWT を取得
+        val jwt = (authentication as? JwtAuthenticationToken)?.token
+            ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED)
+        
+        val claims = JwtClaimsResponse(
+            sub = jwt.subject,
+            email = jwt.getClaimAsString("email"),
+            emailVerified = jwt.getClaimAsBoolean("email_verified"),
+            name = jwt.getClaimAsString("name"),
+            picture = jwt.getClaimAsString("picture"),
+            aud = jwt.audience,
+            iss = jwt.issuer?.toString(),
+            iat = jwt.issuedAt,
+            exp = jwt.expiresAt,
+            scope = jwt.getClaimAsString("scope")
         )
         
-        return ResponseEntity.ok(claims)
+        return claims
     }
 
     /**
@@ -67,25 +133,39 @@ class AuthController(
      * Returns business-specific information and authorities.
      */
     @GetMapping("/business-context")
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER', 'VIEWER')")
-    fun getBusinessContext(@AuthenticationPrincipal jwt: Jwt, authentication: Authentication): ResponseEntity<Map<String, Any?>> {
-        val businessContext = jwtClaimsExtractor.extractBusinessContext(jwt)
+    @PreAuthorize("isAuthenticated()")
+    fun getBusinessContext(authentication: Authentication?): BusinessContextResponse {
+        if (authentication == null) {
+            throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required")
+        }
+        // Principal から AuthenticatedUserContext を取得
+        val authenticatedContext = authentication.principal as? AuthenticatedUserContext
+            ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED)
+        
+        // JwtAuthenticationToken から JWT を取得
+        val jwt = (authentication as? JwtAuthenticationToken)?.token
+            ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED)
+        
         val authorities = authentication.authorities.map { it.authority }
         
-        val response = mapOf(
-            "businessContext" to mapOf(
-                "userId" to businessContext.userId,
-                "tenantId" to businessContext.tenantId,
-                "roles" to businessContext.roles.map { it.name }
+        val response = BusinessContextResponse(
+            authenticatedContext = AuthenticatedContextDto(
+                auth0Sub = authenticatedContext.auth0Sub,
+                userId = authenticatedContext.userId,
+                tenantUserId = authenticatedContext.tenantUserId,
+                tenantId = authenticatedContext.tenantId,
+                roles = authenticatedContext.roles.map { it.name }.toSet().toList(),
+                email = authenticatedContext.email,
+                isActive = authenticatedContext.isActive
             ),
-            "springSecurityAuthorities" to authorities,
-            "rawJwtClaims" to mapOf(
-                "org_id" to jwt.getClaimAsString("org_id"),
-                "custom_tenant_id" to jwt.getClaimAsString("https://your-app.com/tenant_id"),
-                "roles" to jwt.getClaimAsStringList("https://your-app.com/roles")
+            springSecurityAuthorities = authorities,
+            rawJwtClaims = RawJwtClaimsDto(
+                orgId = jwt.getClaimAsString("org_id"),
+                customTenantId = jwt.getClaimAsString("https://your-app.com/tenant_id"),
+                roles = jwt.getClaimAsStringList("https://your-app.com/roles")
             )
         )
         
-        return ResponseEntity.ok(response)
+        return response
     }
 }
