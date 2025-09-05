@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/vue3'
+import type { Meta, StoryObj } from '@storybook/vue3-vite'
 import { within, userEvent, expect } from 'storybook/test'
 import LoginForm from './SignInForm.vue'
 
@@ -194,7 +194,7 @@ export const FocusManagement: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
-    
+
     // メールフィールドにフォーカスが当たっていることを確認
     const emailInput = canvas.getByLabelText('メールアドレス')
     await expect(emailInput).toHaveFocus()
