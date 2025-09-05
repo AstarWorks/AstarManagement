@@ -1,6 +1,8 @@
 package com.astarworks.astarmanagement.core.auth.domain.model
 
-import java.time.LocalDateTime
+import com.astarworks.astarmanagement.shared.domain.value.RoleId
+import com.astarworks.astarmanagement.shared.domain.value.TenantId
+import java.time.Instant
 import java.util.UUID
 
 /**
@@ -9,15 +11,15 @@ import java.util.UUID
  * No default roles - all roles are explicitly created and assigned.
  */
 data class DynamicRole(
-    val id: UUID = UUID.randomUUID(),
-    val tenantId: UUID? = null,  // null = system-wide role
+    val id: RoleId = RoleId(java.util.UUID.randomUUID()),
+    val tenantId: TenantId? = null,  // null = system-wide role
     val name: String,
     val displayName: String? = null,
     val color: String? = null,  // Hex color code (e.g., "#FF5733")
     val position: Int = 0,  // Display order (higher = higher priority)
     val isSystem: Boolean = false,  // System-defined roles cannot be deleted
-    val createdAt: LocalDateTime = LocalDateTime.now(),
-    val updatedAt: LocalDateTime = LocalDateTime.now()
+    val createdAt: Instant = Instant.now(),
+    val updatedAt: Instant = Instant.now()
 ) {
     init {
         require(name.isNotBlank()) {
@@ -50,7 +52,7 @@ data class DynamicRole(
         
         return copy(
             displayName = newDisplayName,
-            updatedAt = LocalDateTime.now()
+            updatedAt = Instant.now()
         )
     }
     
@@ -64,7 +66,7 @@ data class DynamicRole(
         
         return copy(
             color = newColor,
-            updatedAt = LocalDateTime.now()
+            updatedAt = Instant.now()
         )
     }
     
@@ -78,7 +80,7 @@ data class DynamicRole(
         
         return copy(
             position = newPosition,
-            updatedAt = LocalDateTime.now()
+            updatedAt = Instant.now()
         )
     }
     
@@ -109,7 +111,7 @@ data class DynamicRole(
          * Creates a tenant-specific role.
          */
         fun forTenant(
-            tenantId: UUID,
+            tenantId: TenantId,
             name: String,
             displayName: String? = null,
             color: String? = null,

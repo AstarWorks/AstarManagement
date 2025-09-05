@@ -1,6 +1,10 @@
 package com.astarworks.astarmanagement.core.auth.domain.model
 
-import java.time.LocalDateTime
+import com.astarworks.astarmanagement.shared.domain.value.RoleId
+import com.astarworks.astarmanagement.shared.domain.value.TenantUserId
+import com.astarworks.astarmanagement.shared.domain.value.UserId
+import java.time.Duration
+import java.time.Instant
 import java.util.UUID
 
 /**
@@ -9,15 +13,15 @@ import java.util.UUID
  * A user can have multiple roles within a tenant (Discord-style).
  */
 data class UserRole(
-    val tenantUserId: UUID,
-    val roleId: UUID,
-    val assignedAt: LocalDateTime = LocalDateTime.now(),
-    val assignedBy: UUID? = null  // User who assigned the role
+    val tenantUserId: TenantUserId,
+    val roleId: RoleId,
+    val assignedAt: Instant = Instant.now(),
+    val assignedBy: UserId? = null  // User who assigned the role
 ) {
     /**
      * Checks if this role was assigned by a specific user.
      */
-    fun wasAssignedBy(userId: UUID): Boolean = assignedBy == userId
+    fun wasAssignedBy(userId: UserId): Boolean = assignedBy == userId
     
     /**
      * Checks if this role was system-assigned (no specific assigner).
@@ -30,7 +34,7 @@ data class UserRole(
      * @return true if assigned within the specified days, false otherwise
      */
     fun wasAssignedWithin(withinDays: Long): Boolean {
-        val cutoffDate = LocalDateTime.now().minusDays(withinDays)
+        val cutoffDate = Instant.now().minus(Duration.ofDays(withinDays))
         return assignedAt.isAfter(cutoffDate)
     }
     
@@ -38,8 +42,8 @@ data class UserRole(
      * Creates a new assignment with updated assigner.
      * Used when reassigning or confirming a role assignment.
      */
-    fun reassignBy(newAssignerId: UUID): UserRole = copy(
-        assignedAt = LocalDateTime.now(),
+    fun reassignBy(newAssignerId: UserId): UserRole = copy(
+        assignedAt = Instant.now(),
         assignedBy = newAssignerId
     )
     
@@ -48,9 +52,9 @@ data class UserRole(
          * Creates a new user role assignment.
          */
         fun assign(
-            tenantUserId: UUID,
-            roleId: UUID,
-            assignedBy: UUID? = null
+            tenantUserId: TenantUserId,
+            roleId: RoleId,
+            assignedBy: UserId? = null
         ): UserRole {
             return UserRole(
                 tenantUserId = tenantUserId,
@@ -63,8 +67,8 @@ data class UserRole(
          * Creates a system-assigned role.
          */
         fun systemAssign(
-            tenantUserId: UUID,
-            roleId: UUID
+            tenantUserId: TenantUserId,
+            roleId: RoleId
         ): UserRole {
             return UserRole(
                 tenantUserId = tenantUserId,
