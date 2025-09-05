@@ -92,7 +92,7 @@
 
 <script setup lang="ts">
   import type {INavigationItem, NavigationItem} from '~/foundation/types/navigation'
-  import { useUserProfile } from '~/modules/auth/composables/useUserProfile'
+  import { useUserProfile } from '~/modules/user/composables/useUserProfile'
 
   // Props
   interface Props {

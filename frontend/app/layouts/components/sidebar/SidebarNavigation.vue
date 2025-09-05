@@ -33,7 +33,8 @@
 </template>
 
 <script setup lang="ts">
-import type { IUserProfile } from '@modules/user/types'
+import type { UserProfile } from '@modules/user/types'
+import type { DeepReadonly } from 'vue'
 import { MAIN_NAVIGATION_CONFIG, type NavigationItemConfig } from '~/foundation/config/navigationConfig'
 import NavigationItem from "~/layouts/components/sidebar/NavigationItem.vue";
 import NavigationGroup from "~/layouts/components/sidebar/NavigationGroup.vue";
@@ -41,7 +42,7 @@ import NavigationGroup from "~/layouts/components/sidebar/NavigationGroup.vue";
 interface Props {
   collapsed?: boolean
   isMobile?: boolean
-  user?: IUserProfile | null
+  user?: DeepReadonly<UserProfile> | null
 }
 
 const props = defineProps<Props>()

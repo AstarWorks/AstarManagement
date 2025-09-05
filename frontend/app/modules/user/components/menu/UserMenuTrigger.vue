@@ -31,11 +31,12 @@
 </template>
 
 <script setup lang="ts">
-import type { IUserProfile, IUserRole } from '@modules/user/types'
+import type { UserProfile } from '@modules/user/types'
+import type { DeepReadonly } from 'vue'
 import UserAvatar from "@modules/user/components/avatar/UserAvatar.vue";
 
 interface Props {
-  user: IUserProfile | null
+  user: DeepReadonly<UserProfile> | null
   isOpen: boolean
 }
 
@@ -47,7 +48,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const getPrimaryRoleDisplay = (roles?: readonly IUserRole[]): string => {
+const getPrimaryRoleDisplay = (roles?: DeepReadonly<UserProfile['roles']>): string => {
   if (!roles || roles.length === 0) {
     return t('foundation.common.general.guest')
   }

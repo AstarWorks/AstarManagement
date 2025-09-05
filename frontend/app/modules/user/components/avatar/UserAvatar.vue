@@ -8,10 +8,11 @@
 </template>
 
 <script setup lang="ts">
-import type { IUserProfile } from '@modules/user/types'
+import type { UserProfile } from '@modules/user/types'
+import type { DeepReadonly } from 'vue'
 
 interface Props {
-  user: IUserProfile | null
+  user: DeepReadonly<UserProfile> | null
   size?: 'sm' | 'md' | 'lg'
 }
 

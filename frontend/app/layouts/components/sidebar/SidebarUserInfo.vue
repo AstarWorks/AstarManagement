@@ -18,12 +18,13 @@
 <script setup lang="ts">
 
 import {Avatar} from "~/foundation/components/ui/avatar";
-import type {IBusinessRole, IBusinessProfile} from "@modules/auth/types/business-profile";
+import type { UserProfile } from '@modules/user/types'
+import type { DeepReadonly } from 'vue'
 
 interface Props {
   collapsed?: boolean
   isMobile?: boolean
-  user?: IBusinessProfile | null
+  user?: DeepReadonly<UserProfile> | null
 }
 
 defineProps<Props>()
@@ -35,20 +36,19 @@ const getInitials = (name: string) => {
   return name.split(' ').map(n => n[0]).join('').toUpperCase()
 }
 
-const getRoleLabel = (roles?: readonly IBusinessRole[] | null): string => {
+const getRoleLabel = (roles?: DeepReadonly<UserProfile['roles']>): string => {
   if (!roles || roles.length === 0) {
     return t('foundation.common.general.unknown')
   }
   
-  // Convert readonly array to mutable for processing
-  const mutableRoles = [...roles]
-  const primaryRole = mutableRoles[0]?.name
+  // Access readonly array directly
+  const primaryRole = roles[0]?.name
   if (!primaryRole) {
     return t('foundation.common.general.guest')
   }
   
   // Use display name if available, otherwise try translation
-  const displayName = mutableRoles[0]?.displayName
+  const displayName = roles[0]?.displayName
   if (displayName) {
     return displayName
   }

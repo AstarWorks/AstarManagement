@@ -3,7 +3,23 @@
 import { NuxtAuthHandler } from '#auth'
 import Auth0Provider from 'next-auth/providers/auth0'
 import CredentialsProvider from "next-auth/providers/credentials"
-import type {Provider} from "next-auth/providers/index";
+import type { Provider } from "next-auth/providers/index"
+import type { Session } from 'next-auth'
+import type { JWT } from 'next-auth/jwt'
+
+// NextAuthの型定義
+interface User {
+  id: string
+  email?: string | null
+  name?: string | null
+  image?: string | null
+}
+
+interface Account {
+  access_token?: string
+  id_token?: string
+  refresh_token?: string
+}
 
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
@@ -50,7 +66,15 @@ export default NuxtAuthHandler({
         error: '/signin'
     },
     callbacks: {
-        async jwt({ token, user, account }) {
+        async jwt({ 
+            token, 
+            user, 
+            account 
+        }: {
+            token: JWT
+            user?: User
+            account?: Account | null
+        }): Promise<JWT> {
             // 開発環境の場合
             if (isDevelopment && user) {
                 token.accessToken = 'dev-mock-jwt-token'
@@ -66,7 +90,13 @@ export default NuxtAuthHandler({
             return token
         },
 
-        async session({session, token}) {
+        async session({ 
+            session, 
+            token 
+        }: {
+            session: Session
+            token: JWT
+        }): Promise<Session> {
             // 開発環境用のモックロールと権限
             const userRole = token.role as string || 'USER'
             const mockRoles = [{
@@ -84,14 +114,13 @@ export default NuxtAuthHandler({
                 ...session,
                 accessToken: token.accessToken as string,
                 user: {
-                    ...session.user,
-                    id: token.sub as string,
-                    role: userRole,
-                    roles: mockRoles,
-                    permissions: mockPermissions,
+                    ...(session.user || {}),
+                    // Use type assertion to add custom properties
+                    ...(mockRoles.length > 0 ? { roles: mockRoles } : {}),
+                    ...(mockPermissions.length > 0 ? { permissions: mockPermissions } : {}),
                     isActive: true
                 }
-            }
+            } as Session
         }
     },
 

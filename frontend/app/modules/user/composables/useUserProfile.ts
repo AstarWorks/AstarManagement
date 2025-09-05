@@ -9,7 +9,7 @@ import { useApiClient, useIsMockMode } from '@shared/api/composables/useApiClien
 import { UserApiRepository } from '../repositories/UserApiRepository'
 import { UserMockRepository } from '../repositories/UserMockRepository'
 import type { IUserRepository } from '../repositories/IUserRepository'
-import type { IUserProfile, IUserStats, IUpdateUserProfileDto } from '../types'
+import type { UserProfile, IUserStats, IUpdateUserProfileDto } from '../types'
 
 /**
  * User profile composable for managing user data and permissions
@@ -37,7 +37,7 @@ export const useUserProfile = () => {
         return {
             id: user.id,
             email: user.email || '',
-            name: user.name,
+            name: user.name || '',
             displayName: user.name || undefined,
             avatar: undefined, // Will be fetched from repository
             roles: user.roles || [],
@@ -45,8 +45,10 @@ export const useUserProfile = () => {
             isActive: user.isActive ?? true,
             
             // Optional fields from session
-            organizationId: user.tenantId,
-            organizationName: user.tenantSlug,
+            organizationId: (user as Record<string, unknown>).tenantId as string | undefined,
+            organizationName: (user as Record<string, unknown>).tenantSlug as string | undefined,
+            tenantId: (user as Record<string, unknown>).tenantId as string | undefined,
+            tenantUserId: (user as Record<string, unknown>).tenantUserId as string | undefined,
             
             // Default preferences (will be replaced by repository data)
             preferences: {
@@ -106,7 +108,7 @@ export const useUserProfile = () => {
     )
     
     // Merge session profile with detailed profile
-    const enrichedProfile = computed<IUserProfile | null>(() => {
+    const enrichedProfile = computed<UserProfile | null>(() => {
         if (!profile.value) return null
         
         // If we have detailed data from repository, merge it
@@ -121,7 +123,7 @@ export const useUserProfile = () => {
         }
         
         // Otherwise return base profile from session
-        return profile.value as IUserProfile
+        return profile.value as UserProfile
     })
     
     // Loading state from auth status

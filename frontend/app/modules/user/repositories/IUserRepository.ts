@@ -4,18 +4,18 @@
  */
 
 import type { IRepository } from '@shared/api/types'
-import type { IUserProfile, IUserStats, IUserStatsParams, IUpdateUserProfileDto } from '../types'
+import type { UserProfile, IUserStats, IUserStatsParams, IUpdateUserProfileDto } from '../types'
 
-export interface IUserRepository extends IRepository<IUserProfile> {
+export interface IUserRepository extends IRepository<UserProfile> {
   /**
    * Get user profile by ID
    */
-  getProfile(id: string): Promise<IUserProfile>
+  getProfile(id: string): Promise<UserProfile>
   
   /**
    * Update user profile
    */
-  updateProfile(id: string, data: IUpdateUserProfileDto): Promise<IUserProfile>
+  updateProfile(id: string, data: IUpdateUserProfileDto): Promise<UserProfile>
   
   /**
    * Get user statistics
@@ -35,5 +35,5 @@ export interface IUserRepository extends IRepository<IUserProfile> {
   /**
    * Get user by email (for search/lookup)
    */
-  getByEmail(email: string): Promise<IUserProfile | null>
+  getByEmail(email: string): Promise<UserProfile | null>
 }

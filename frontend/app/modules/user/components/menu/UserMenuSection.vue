@@ -10,12 +10,13 @@
 
 <script setup lang="ts">
 import type { IMenuItemConfig } from '@foundation/config/userMenuConfig'
-import type { IUserProfile } from '@modules/user/types'
+import type { UserProfile } from '@modules/user/types'
+import type { DeepReadonly } from 'vue'
 import UserMenuItem from "./UserMenuItem.vue";
 
 interface Props {
   items: IMenuItemConfig[]
-  user: IUserProfile | null
+  user: DeepReadonly<UserProfile> | null
   notificationCounts?: Record<string, number>
 }
 
@@ -34,7 +35,7 @@ const visibleItems = computed(() => {
   return props.items.filter(item => {
     // 権限チェック
     if (item.requiredRoles && item.requiredRoles.length > 0) {
-      const userRoles = props.user?.roles.map(r => r.name) || []
+      const userRoles = props.user?.roles?.map(r => r.name) || []
       return item.requiredRoles.some(role => userRoles.includes(role))
     }
     return true

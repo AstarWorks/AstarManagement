@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import type { IUserProfile } from '@modules/user/types'
+import type { UserProfile } from '@modules/user/types'
 
 // ミドルウェアのインポート（モック設定後に行う）
 // TODO: Implement guest middleware
@@ -15,7 +15,7 @@ interface IMockAuthStore {
   tokens: { accessToken: string; refreshToken: string; expiresIn: number } | null
   isTokenExpired: boolean
   requiresTwoFactor: boolean
-  user: IUserProfile | null
+  user: UserProfile | null
   fetchUser: ReturnType<typeof vi.fn>
   initialize: ReturnType<typeof vi.fn>
 }

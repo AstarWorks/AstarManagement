@@ -41,7 +41,7 @@ export const requireRole = (allowedRoles: string | string[], redirectTo = '/unau
       console.warn('Role-based access denied:', {
         user: profile.value?.email,
         requiredRoles: roles,
-        userRoles: profile.value?.roles?.map((r) => r.name),
+        userRoles: profile.value?.roles?.map((r: { name: string }) => r.name),
         path: to.fullPath
       })
 
@@ -133,7 +133,7 @@ export const requireAllRoles = (roles: string[]) => {
       console.warn('All roles required access denied:', {
         user: profile.value?.email,
         requiredRoles: roles,
-        userRoles: profile.value?.roles?.map((r) => r.name),
+        userRoles: profile.value?.roles?.map((r: { name: string }) => r.name),
         path: to.fullPath
       })
 

@@ -28,10 +28,11 @@
 <script setup lang="ts">
 import UserAvatar from "@modules/user/components/avatar/UserAvatar.vue";
 import {Badge} from "@foundation/components/ui/badge";
-import type {IUserProfile} from "@modules/user/types";
+import type { UserProfile } from "@modules/user/types";
+import type { DeepReadonly } from 'vue'
 
 interface Props {
-  user: IUserProfile | null
+  user: DeepReadonly<UserProfile> | null
 }
 
 defineProps<Props>()

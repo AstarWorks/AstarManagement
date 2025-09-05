@@ -6,10 +6,10 @@
 import { BaseRepository } from '@shared/api/core/BaseRepository'
 import type { IPaginatedResponse } from '@shared/api/types'
 import type { IUserRepository } from './IUserRepository'
-import type { IUserProfile, IUserStats, IUserStatsParams, IUpdateUserProfileDto } from '../types'
+import type { UserProfile, IUserStats, IUserStatsParams, IUpdateUserProfileDto, RoleResponse } from '../types'
 
 // Mock user data
-const mockUsers = new Map<string, IUserProfile>([
+const mockUsers = new Map<string, UserProfile>([
   ['dev-user-001', {
     id: 'dev-user-001',
     email: 'dev@example.com',
@@ -31,12 +31,10 @@ const mockUsers = new Map<string, IUserProfile>([
     permissions: ['users.view', 'users.edit', 'settings.edit', 'all'] as const,
     phone: '090-1234-5678',
     isActive: true,
-    lastLoginAt: new Date(),
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date(),
     preferences: {
       language: 'ja',
-      timezone: 'Asia/Tokyo',
       theme: 'light',
       notifications: {
         email: true,
@@ -66,12 +64,10 @@ const mockUsers = new Map<string, IUserProfile>([
     permissions: ['all'] as const,
     phone: '090-9876-5432',
     isActive: true,
-    lastLoginAt: new Date(),
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date(),
     preferences: {
       language: 'ja',
-      timezone: 'Asia/Tokyo',
       theme: 'dark',
       notifications: {
         email: true,
@@ -101,12 +97,10 @@ const mockUsers = new Map<string, IUserProfile>([
     permissions: ['users.view', 'self.edit'] as const,
     phone: '090-5555-5555',
     isActive: true,
-    lastLoginAt: new Date(),
     createdAt: new Date('2024-02-01'),
     updatedAt: new Date(),
     preferences: {
       language: 'ja',
-      timezone: 'Asia/Tokyo',
       theme: 'light',
       notifications: {
         email: true,
@@ -156,7 +150,7 @@ const mockStats = new Map<string, IUserStats>([
 
 export class UserMockRepository extends BaseRepository implements IUserRepository {
   
-  async list(_params?: Record<string, unknown>): Promise<IPaginatedResponse<IUserProfile>> {
+  async list(_params?: Record<string, unknown>): Promise<IPaginatedResponse<UserProfile>> {
     // Simulate API delay
     await this.delay(200)
     
@@ -172,7 +166,7 @@ export class UserMockRepository extends BaseRepository implements IUserRepositor
     }
   }
   
-  async get(id: string): Promise<IUserProfile> {
+  async get(id: string): Promise<UserProfile> {
     // Simulate API delay
     await this.delay(150)
     
@@ -184,34 +178,33 @@ export class UserMockRepository extends BaseRepository implements IUserRepositor
     return { ...user }
   }
   
-  async getProfile(id: string): Promise<IUserProfile> {
+  async getProfile(id: string): Promise<UserProfile> {
     return this.get(id)
   }
   
-  async create(data: Partial<IUserProfile>): Promise<IUserProfile> {
+  async create(data: Partial<UserProfile>): Promise<UserProfile> {
     // Simulate API delay
     await this.delay(300)
     
     const id = `user-${Date.now()}`
-    const newUser: IUserProfile = {
+    const newUser: UserProfile = {
       id,
       email: data.email || '',
-      name: data.name,
+      name: data.name || '',
       displayName: data.displayName,
       avatar: data.avatar,
       organizationId: 'org-001',
       organizationName: 'Astar Works',
       team: data.team,
       position: data.position,
-      roles: [],
-      permissions: [],
+      roles: [] as readonly RoleResponse[],
+      permissions: [] as readonly string[],
       phone: data.phone,
       isActive: true,
       createdAt: new Date(),
       updatedAt: new Date(),
       preferences: {
         language: 'ja',
-        timezone: 'Asia/Tokyo',
         theme: 'light',
         notifications: {
           email: true,
@@ -225,8 +218,8 @@ export class UserMockRepository extends BaseRepository implements IUserRepositor
     return newUser
   }
   
-  async update(id: string, data: Partial<IUserProfile>): Promise<IUserProfile> {
-    // Convert Partial<IUserProfile> to IUpdateUserProfileDto
+  async update(id: string, data: Partial<UserProfile>): Promise<UserProfile> {
+    // Convert Partial<UserProfile> to IUpdateUserProfileDto
     const updateDto: IUpdateUserProfileDto = {
       name: data.name !== null ? data.name : undefined,
       displayName: data.displayName,
@@ -238,7 +231,7 @@ export class UserMockRepository extends BaseRepository implements IUserRepositor
     return this.updateProfile(id, updateDto)
   }
   
-  async updateProfile(id: string, data: IUpdateUserProfileDto): Promise<IUserProfile> {
+  async updateProfile(id: string, data: IUpdateUserProfileDto): Promise<UserProfile> {
     // Simulate API delay
     await this.delay(250)
     
@@ -247,7 +240,7 @@ export class UserMockRepository extends BaseRepository implements IUserRepositor
       throw new Error(`User not found: ${id}`)
     }
     
-    const updatedUser: IUserProfile = {
+    const updatedUser: UserProfile = {
       ...user,
       name: data.name !== undefined ? data.name : user.name,
       displayName: data.displayName !== undefined ? data.displayName : user.displayName,
@@ -348,7 +341,7 @@ export class UserMockRepository extends BaseRepository implements IUserRepositor
     mockUsers.set(id, user)
   }
   
-  async getByEmail(email: string): Promise<IUserProfile | null> {
+  async getByEmail(email: string): Promise<UserProfile | null> {
     // Simulate API delay
     await this.delay(150)
     

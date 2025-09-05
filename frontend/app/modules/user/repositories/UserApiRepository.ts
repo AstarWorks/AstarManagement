@@ -6,11 +6,11 @@
 import { BaseRepository } from '@shared/api/core/BaseRepository'
 import type { IPaginatedResponse } from '@shared/api/types'
 import type { IUserRepository } from './IUserRepository'
-import type { IUserProfile, IUserStats, IUserStatsParams, IUpdateUserProfileDto } from '../types'
+import type { UserProfile, IUserStats, IUserStatsParams, IUpdateUserProfileDto } from '../types'
 
 export class UserApiRepository extends BaseRepository implements IUserRepository {
   
-  async list(params?: Record<string, unknown>): Promise<IPaginatedResponse<IUserProfile>> {
+  async list(params?: Record<string, unknown>): Promise<IPaginatedResponse<UserProfile>> {
     const queryString = this.buildQueryString(params)
     
     return this.client.request({
@@ -19,7 +19,7 @@ export class UserApiRepository extends BaseRepository implements IUserRepository
     })
   }
   
-  async get(id: string): Promise<IUserProfile> {
+  async get(id: string): Promise<UserProfile> {
     this.validateId(id)
     
     return this.client.request({
@@ -28,7 +28,7 @@ export class UserApiRepository extends BaseRepository implements IUserRepository
     })
   }
   
-  async getProfile(id: string): Promise<IUserProfile> {
+  async getProfile(id: string): Promise<UserProfile> {
     this.validateId(id)
     
     return this.client.request({
@@ -37,7 +37,7 @@ export class UserApiRepository extends BaseRepository implements IUserRepository
     })
   }
   
-  async create(data: Partial<IUserProfile>): Promise<IUserProfile> {
+  async create(data: Partial<UserProfile>): Promise<UserProfile> {
     this.validateRequiredFields(data, ['email'])
     
     return this.client.request({
@@ -47,7 +47,7 @@ export class UserApiRepository extends BaseRepository implements IUserRepository
     })
   }
   
-  async update(id: string, data: Partial<IUserProfile>): Promise<IUserProfile> {
+  async update(id: string, data: Partial<UserProfile>): Promise<UserProfile> {
     this.validateId(id)
     
     return this.client.request({
@@ -57,7 +57,7 @@ export class UserApiRepository extends BaseRepository implements IUserRepository
     })
   }
   
-  async updateProfile(id: string, data: IUpdateUserProfileDto): Promise<IUserProfile> {
+  async updateProfile(id: string, data: IUpdateUserProfileDto): Promise<UserProfile> {
     this.validateId(id)
     
     return this.client.request({
@@ -129,13 +129,13 @@ export class UserApiRepository extends BaseRepository implements IUserRepository
     })
   }
   
-  async getByEmail(email: string): Promise<IUserProfile | null> {
+  async getByEmail(email: string): Promise<UserProfile | null> {
     if (!email || !email.includes('@')) {
       throw new Error('Valid email is required')
     }
     
     try {
-      const response = await this.client.request<IPaginatedResponse<IUserProfile>>({
+      const response = await this.client.request<IPaginatedResponse<UserProfile>>({
         method: 'GET',
         endpoint: `/users?email=${encodeURIComponent(email)}`
       })
