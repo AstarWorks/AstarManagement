@@ -5,8 +5,7 @@
 -- Clear all test data using TRUNCATE CASCADE for clean slate
 -- This ensures no foreign key constraint issues and is faster than DELETE
 -- Add CASCADE to handle foreign key dependencies properly
-TRUNCATE TABLE users, tenants, tenant_users, roles, role_permissions, 
-         user_roles, workspaces, user_profiles RESTART IDENTITY CASCADE;
+
 
 -- Update existing data with version for Spring Data JDBC compatibility
 -- (This is applied after inserts to handle existing test data)
