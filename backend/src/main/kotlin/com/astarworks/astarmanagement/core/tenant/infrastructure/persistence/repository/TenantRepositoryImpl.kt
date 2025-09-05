@@ -2,70 +2,78 @@ package com.astarworks.astarmanagement.core.tenant.infrastructure.persistence.re
 
 import com.astarworks.astarmanagement.core.tenant.domain.model.Tenant
 import com.astarworks.astarmanagement.core.tenant.domain.repository.TenantRepository
-import com.astarworks.astarmanagement.core.tenant.infrastructure.persistence.mapper.TenantMapper
+import com.astarworks.astarmanagement.core.tenant.infrastructure.persistence.mapper.SpringDataJdbcTenantMapper
+import com.astarworks.astarmanagement.shared.domain.value.TenantId
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Repository
-import java.util.UUID
 
 /**
- * Implementation of TenantRepository using Spring Data JPA.
- * Bridges the domain repository interface with JPA operations.
+ * Implementation of TenantRepository using Spring Data JDBC.
+ * Bridges the domain repository interface with Spring Data JDBC operations.
  */
 @Repository
 class TenantRepositoryImpl(
-    private val jpaTenantRepository: JpaTenantRepository,
-    private val tenantMapper: TenantMapper
+    private val springDataJdbcTenantRepository: SpringDataJdbcTenantRepository,
+    private val mapper: SpringDataJdbcTenantMapper
 ) : TenantRepository {
     
     override fun save(tenant: Tenant): Tenant {
-        val entity = jpaTenantRepository.findById(tenant.id)
-            .map { existingEntity ->
-                tenantMapper.updateEntity(existingEntity, tenant)
-            }
-            .orElseGet {
-                tenantMapper.toEntity(tenant)
-            }
+        // Check if the tenant already exists to handle version properly
+        val existingEntity = springDataJdbcTenantRepository.findByIdOrNull(tenant.id)
         
-        val savedEntity = jpaTenantRepository.save(entity)
-        return tenantMapper.toDomain(savedEntity)
+        return if (existingEntity != null) {
+            // For updates: preserve version and update fields
+            val updatedEntity = existingEntity.copy(
+                slug = tenant.slug,
+                name = tenant.name,
+                auth0OrgId = tenant.auth0OrgId,
+                isActive = tenant.isActive,
+                createdAt = tenant.createdAt,
+                updatedAt = tenant.updatedAt
+            )
+            val savedEntity = springDataJdbcTenantRepository.save(updatedEntity)
+            mapper.toDomain(savedEntity)
+        } else {
+            // For new entities: create from domain model
+            val tableEntity = mapper.toTable(tenant)
+            val savedEntity = springDataJdbcTenantRepository.save(tableEntity)
+            mapper.toDomain(savedEntity)
+        }
     }
     
-    override fun findById(id: UUID): Tenant? {
-        return jpaTenantRepository.findById(id)
-            .map { tenantMapper.toDomain(it) }
-            .orElse(null)
+    override fun findById(id: TenantId): Tenant? {
+        return springDataJdbcTenantRepository.findByIdOrNull(id)?.let { mapper.toDomain(it) }
     }
     
     override fun findBySlug(slug: String): Tenant? {
-        return jpaTenantRepository.findBySlug(slug)
-            ?.let { tenantMapper.toDomain(it) }
+        return springDataJdbcTenantRepository.findBySlug(slug)?.let { mapper.toDomain(it) }
     }
     
     override fun findByAuth0OrgId(auth0OrgId: String): Tenant? {
-        return jpaTenantRepository.findByAuth0OrgId(auth0OrgId)
-            ?.let { tenantMapper.toDomain(it) }
+        return springDataJdbcTenantRepository.findByAuth0OrgId(auth0OrgId)?.let { mapper.toDomain(it) }
     }
     
     override fun findAll(): List<Tenant> {
-        return tenantMapper.toDomainList(jpaTenantRepository.findAll())
+        return mapper.toDomainList(springDataJdbcTenantRepository.findAll())
     }
     
     override fun findAllActive(): List<Tenant> {
-        return tenantMapper.toDomainList(jpaTenantRepository.findByIsActiveTrue())
+        return mapper.toDomainList(springDataJdbcTenantRepository.findByIsActiveTrue())
     }
     
     override fun existsBySlug(slug: String): Boolean {
-        return jpaTenantRepository.existsBySlug(slug)
+        return springDataJdbcTenantRepository.existsBySlug(slug)
     }
     
     override fun existsByAuth0OrgId(auth0OrgId: String): Boolean {
-        return jpaTenantRepository.existsByAuth0OrgId(auth0OrgId)
+        return springDataJdbcTenantRepository.existsByAuth0OrgId(auth0OrgId)
     }
     
-    override fun deleteById(id: UUID) {
-        jpaTenantRepository.deleteById(id)
+    override fun deleteById(id: TenantId) {
+        springDataJdbcTenantRepository.deleteById(id)
     }
     
     override fun count(): Long {
-        return jpaTenantRepository.count()
+        return springDataJdbcTenantRepository.count()
     }
 }

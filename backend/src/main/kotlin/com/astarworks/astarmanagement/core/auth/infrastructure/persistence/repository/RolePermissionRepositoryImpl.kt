@@ -1,215 +1,191 @@
 package com.astarworks.astarmanagement.core.auth.infrastructure.persistence.repository
 
-import com.astarworks.astarmanagement.core.auth.domain.model.RolePermission
+import com.astarworks.astarmanagement.core.auth.domain.model.*
 import com.astarworks.astarmanagement.core.auth.domain.repository.RolePermissionRepository
-import com.astarworks.astarmanagement.core.auth.infrastructure.persistence.mapper.RolePermissionMapper
+import com.astarworks.astarmanagement.core.auth.infrastructure.persistence.mapper.SpringDataJdbcRolePermissionMapper
+import com.astarworks.astarmanagement.shared.domain.value.RoleId
+import com.astarworks.astarmanagement.shared.domain.value.RolePermissionId
+import com.astarworks.astarmanagement.shared.domain.value.ResourceGroupId
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDateTime
-import java.util.*
+import java.time.Instant
+import java.util.UUID
 
 /**
- * Implementation of RolePermissionRepository using Spring Data JPA.
- * Handles permission assignments to roles with composite key operations and advanced permission rule matching.
- * Uses Row Level Security (RLS) for multi-tenant data isolation.
+ * Implementation of RolePermissionRepository using Spring Data JDBC.
+ * Manages role-permission mappings with fine-grained access control.
+ * Handles resource-level, group-level, and scope-based permissions.
  */
 @Component
-@Transactional
 class RolePermissionRepositoryImpl(
-    private val jpaRolePermissionRepository: JpaRolePermissionRepository,
-    private val jpaDynamicRoleRepository: JpaDynamicRoleRepository,
-    private val rolePermissionMapper: RolePermissionMapper
+    private val jdbcRolePermissionRepository: SpringDataJdbcRolePermissionRepository,
+    private val rolePermissionMapper: SpringDataJdbcRolePermissionMapper
 ) : RolePermissionRepository {
     
+    @Transactional
     override fun save(rolePermission: RolePermission): RolePermission {
-        // Get RoleTable entity for composite key relationship
-        val roleTable = jpaDynamicRoleRepository.findById(rolePermission.roleId)
-            .orElseThrow {
-                IllegalArgumentException("Role not found with id: ${rolePermission.roleId}")
-            }
+        // Check if the role permission already exists to handle version properly
+        val existingEntity = jdbcRolePermissionRepository.findByRoleIdAndPermissionRule(
+            rolePermission.roleId, 
+            rolePermission.permissionRule.toDatabaseString()
+        )
         
-        // Check if role permission already exists by composite key
-        val existingRolePermission = jpaRolePermissionRepository.findByRoleAndPermissionRule(roleTable, rolePermission.permissionRule)
-        
-        val savedEntity = if (existingRolePermission != null) {
-            // Update existing role permission (though typically immutable)
-            val updatedEntity = rolePermissionMapper.updateEntity(existingRolePermission, rolePermission)
-            jpaRolePermissionRepository.save(updatedEntity)
+        return if (existingEntity != null) {
+            // For updates: preserve version and update fields
+            val updatedEntity = existingEntity.copy(
+                createdAt = rolePermission.createdAt
+            )
+            val savedEntity = jdbcRolePermissionRepository.save(updatedEntity)
+            rolePermissionMapper.toDomain(savedEntity)
         } else {
-            // Create new role permission
-            val entity = rolePermissionMapper.toEntity(rolePermission, roleTable)
-            jpaRolePermissionRepository.save(entity)
+            // For new entities: create from domain model
+            val entity = rolePermissionMapper.toTable(rolePermission)
+            val savedEntity = jdbcRolePermissionRepository.save(entity)
+            rolePermissionMapper.toDomain(savedEntity)
         }
-        
-        return rolePermissionMapper.toDomain(savedEntity)
     }
     
     @Transactional(readOnly = true)
-    override fun findByRoleIdAndPermissionRule(roleId: UUID, permissionRule: String): RolePermission? {
-        return jpaRolePermissionRepository.findByRoleIdAndPermissionRule(roleId, permissionRule)
+    override fun findByRoleIdAndPermissionRule(roleId: RoleId, permissionRule: PermissionRule): RolePermission? {
+        return jdbcRolePermissionRepository.findByRoleIdAndPermissionRule(roleId, permissionRule.toDatabaseString())
             ?.let { rolePermissionMapper.toDomain(it) }
     }
     
     @Transactional(readOnly = true)
     override fun findAll(): List<RolePermission> {
-        return jpaRolePermissionRepository.findAll()
+        return jdbcRolePermissionRepository.findAll()
             .map { rolePermissionMapper.toDomain(it) }
     }
     
     @Transactional(readOnly = true)
-    override fun findByRoleId(roleId: UUID): List<RolePermission> {
-        return jpaRolePermissionRepository.findByRoleId(roleId)
+    override fun findByRoleId(roleId: RoleId): List<RolePermission> {
+        return jdbcRolePermissionRepository.findByRoleId(roleId)
             .map { rolePermissionMapper.toDomain(it) }
     }
     
     @Transactional(readOnly = true)
-    override fun findByPermissionRule(permissionRule: String): List<RolePermission> {
-        return jpaRolePermissionRepository.findByPermissionRule(permissionRule)
+    override fun findByResourceType(resourceType: ResourceType): List<RolePermission> {
+        return jdbcRolePermissionRepository.findByResourceType(resourceType.name.lowercase())
             .map { rolePermissionMapper.toDomain(it) }
     }
     
     @Transactional(readOnly = true)
-    override fun findByPermissionRuleContaining(pattern: String): List<RolePermission> {
-        return jpaRolePermissionRepository.findByPermissionRuleContainingPattern(pattern)
+    override fun findByAction(action: Action): List<RolePermission> {
+        return jdbcRolePermissionRepository.findByAction(action.name.lowercase())
             .map { rolePermissionMapper.toDomain(it) }
     }
     
     @Transactional(readOnly = true)
-    override fun findWildcardPermissions(): List<RolePermission> {
-        return jpaRolePermissionRepository.findWildcardPermissions()
+    override fun findByScope(scope: Scope): List<RolePermission> {
+        return jdbcRolePermissionRepository.findByScope(scope.name.lowercase())
             .map { rolePermissionMapper.toDomain(it) }
     }
     
     @Transactional(readOnly = true)
-    override fun findFullAccessPermissions(): List<RolePermission> {
-        return jpaRolePermissionRepository.findFullAccessPermissions()
-            .map { rolePermissionMapper.toDomain(it) }
+    override fun findByResourceTypeAndAction(resourceType: ResourceType, action: Action): List<RolePermission> {
+        return jdbcRolePermissionRepository.findByResourceTypeAndAction(
+            resourceType.name.lowercase(),
+            action.name.lowercase()
+        ).map { rolePermissionMapper.toDomain(it) }
     }
     
     @Transactional(readOnly = true)
-    override fun findByResource(resource: String): List<RolePermission> {
-        return jpaRolePermissionRepository.findByResource(resource)
-            .map { rolePermissionMapper.toDomain(it) }
-    }
-    
-    @Transactional(readOnly = true)
-    override fun findByResourceAndAction(resource: String, action: String): List<RolePermission> {
-        return jpaRolePermissionRepository.findByResourceAndAction(resource, action)
-            .map { rolePermissionMapper.toDomain(it) }
-    }
-    
-    @Transactional(readOnly = true)
-    override fun findByResourceAndActionAndScope(resource: String, action: String, scope: String): List<RolePermission> {
-        return jpaRolePermissionRepository.findByResourceAndActionAndScope(resource, action, scope)
-            .map { rolePermissionMapper.toDomain(it) }
-    }
-    
-    @Transactional(readOnly = true)
-    override fun findByScope(scope: String): List<RolePermission> {
-        return jpaRolePermissionRepository.findByScope(scope)
+    override fun findByResourceTypeAndActionAndScope(
+        resourceType: ResourceType,
+        action: Action,
+        scope: Scope
+    ): List<RolePermission> {
+        val pattern = "${resourceType.name.lowercase()}.${action.name.lowercase()}.${scope.name.lowercase()}"
+        return jdbcRolePermissionRepository.findByPermissionRuleStartingWith(pattern)
             .map { rolePermissionMapper.toDomain(it) }
     }
     
     @Transactional(readOnly = true)
     override fun findCreatedWithin(withinDays: Long): List<RolePermission> {
-        val cutoffDate = LocalDateTime.now().minusDays(withinDays)
-        return jpaRolePermissionRepository.findCreatedAfterDate(cutoffDate)
+        val cutoffDate = Instant.now().minusSeconds(withinDays * 24 * 60 * 60)
+        return jdbcRolePermissionRepository.findByCreatedAtAfter(cutoffDate)
             .map { rolePermissionMapper.toDomain(it) }
     }
     
     @Transactional(readOnly = true)
-    override fun findGrantingAccessTo(resource: String, action: String, scope: String): List<RolePermission> {
+    override fun findGrantingAccessTo(
+        resourceType: ResourceType,
+        action: Action,
+        scope: Scope
+    ): List<RolePermission> {
         return findAll().filter { rolePermission ->
-            rolePermission.grantsAccessTo(resource, action, scope)
+            val rule = rolePermission.permissionRule
+            rule.resourceType == resourceType &&
+                    (rule.action == action || rule.action == Action.MANAGE) &&
+                    rule.scope == scope
         }
     }
     
     @Transactional(readOnly = true)
-    override fun existsByRoleIdAndPermissionRule(roleId: UUID, permissionRule: String): Boolean {
-        return jpaRolePermissionRepository.existsByRoleIdAndPermissionRule(roleId, permissionRule)
+    override fun findByResourceGroupId(groupId: ResourceGroupId): List<RolePermission> {
+        // Find all permissions for a specific resource group
+        return findAll().filter { permission ->
+            permission.permissionRule is PermissionRule.ResourceGroupRule &&
+                    (permission.permissionRule as PermissionRule.ResourceGroupRule).groupId == groupId.value
+        }
     }
     
     @Transactional(readOnly = true)
-    override fun existsByRoleId(roleId: UUID): Boolean {
-        return jpaRolePermissionRepository.existsByRoleId(roleId)
+    override fun findByResourceId(resourceId: UUID): List<RolePermission> {
+        // Find all permissions for a specific resource ID
+        return findAll().filter { permission ->
+            permission.permissionRule is PermissionRule.ResourceIdRule &&
+                    (permission.permissionRule as PermissionRule.ResourceIdRule).resourceId == resourceId
+        }
     }
     
     @Transactional(readOnly = true)
-    override fun existsByPermissionRule(permissionRule: String): Boolean {
-        return jpaRolePermissionRepository.existsByPermissionRule(permissionRule)
+    override fun existsByRoleIdAndPermissionRule(roleId: RoleId, permissionRule: PermissionRule): Boolean {
+        return jdbcRolePermissionRepository.existsByRoleIdAndPermissionRule(roleId, permissionRule.toDatabaseString())
     }
     
     @Transactional(readOnly = true)
-    override fun existsWildcardPermissions(): Boolean {
-        return jpaRolePermissionRepository.existsWildcardPermissions()
+    override fun existsByRoleId(roleId: RoleId): Boolean {
+        return jdbcRolePermissionRepository.existsByRoleId(roleId)
     }
     
     @Transactional(readOnly = true)
-    override fun existsFullAccessPermissions(): Boolean {
-        return jpaRolePermissionRepository.existsFullAccessPermissions()
+    override fun existsByResourceType(resourceType: ResourceType): Boolean {
+        return jdbcRolePermissionRepository.countByResourceType(resourceType.name.lowercase()) > 0
     }
     
-    override fun deleteByRoleIdAndPermissionRule(roleId: UUID, permissionRule: String) {
-        jpaRolePermissionRepository.deleteByRoleIdAndPermissionRule(roleId, permissionRule)
+    @Transactional
+    override fun deleteByRoleIdAndPermissionRule(roleId: RoleId, permissionRule: PermissionRule) {
+        jdbcRolePermissionRepository.deleteByRoleIdAndPermissionRule(roleId, permissionRule.toDatabaseString())
     }
     
-    override fun deleteByRoleId(roleId: UUID) {
-        val roleTable = jpaDynamicRoleRepository.findById(roleId)
-            .orElseThrow {
-                IllegalArgumentException("Role not found with id: $roleId")
-            }
-        
-        jpaRolePermissionRepository.deleteByRole(roleTable)
+    @Transactional
+    override fun deleteByRoleId(roleId: RoleId) {
+        jdbcRolePermissionRepository.deleteByRoleId(roleId)
     }
     
-    override fun deleteByPermissionRule(permissionRule: String) {
-        jpaRolePermissionRepository.deleteByPermissionRule(permissionRule)
-    }
-    
-    override fun deleteWildcardPermissions() {
-        jpaRolePermissionRepository.deleteWildcardPermissions()
-    }
-    
-    override fun deleteFullAccessPermissions() {
-        jpaRolePermissionRepository.deleteFullAccessPermissions()
-    }
-    
-    override fun deleteByResource(resource: String) {
-        jpaRolePermissionRepository.deleteByResource(resource)
+    @Transactional
+    override fun deleteByResourceType(resourceType: ResourceType) {
+        jdbcRolePermissionRepository.deleteByResourceType(resourceType.name.lowercase())
     }
     
     @Transactional(readOnly = true)
     override fun count(): Long {
-        return jpaRolePermissionRepository.count()
+        return jdbcRolePermissionRepository.count()
     }
     
     @Transactional(readOnly = true)
-    override fun countByRoleId(roleId: UUID): Long {
-        return jpaRolePermissionRepository.countByRoleId(roleId)
+    override fun countByRoleId(roleId: RoleId): Long {
+        return jdbcRolePermissionRepository.countByRoleId(roleId)
     }
     
     @Transactional(readOnly = true)
-    override fun countByPermissionRule(permissionRule: String): Long {
-        return jpaRolePermissionRepository.countByPermissionRule(permissionRule)
+    override fun countByResourceType(resourceType: ResourceType): Long {
+        return jdbcRolePermissionRepository.countByResourceType(resourceType.name.lowercase())
     }
     
     @Transactional(readOnly = true)
-    override fun countWildcardPermissions(): Long {
-        return jpaRolePermissionRepository.countWildcardPermissions()
-    }
-    
-    @Transactional(readOnly = true)
-    override fun countFullAccessPermissions(): Long {
-        return jpaRolePermissionRepository.countFullAccessPermissions()
-    }
-    
-    @Transactional(readOnly = true)
-    override fun countByResource(resource: String): Long {
-        return jpaRolePermissionRepository.countByResource(resource)
-    }
-    
-    @Transactional(readOnly = true)
-    override fun countByScope(scope: String): Long {
-        return jpaRolePermissionRepository.countByScope(scope)
+    override fun countByScope(scope: Scope): Long {
+        return jdbcRolePermissionRepository.countByScope(scope.name.lowercase())
     }
 }

@@ -2,131 +2,127 @@ package com.astarworks.astarmanagement.core.auth.infrastructure.persistence.repo
 
 import com.astarworks.astarmanagement.core.auth.domain.model.DynamicRole
 import com.astarworks.astarmanagement.core.auth.domain.repository.DynamicRoleRepository
-import com.astarworks.astarmanagement.core.auth.infrastructure.persistence.mapper.DynamicRoleMapper
-import com.astarworks.astarmanagement.core.tenant.infrastructure.persistence.repository.JpaTenantRepository
+import com.astarworks.astarmanagement.core.auth.infrastructure.persistence.mapper.SpringDataJdbcRoleMapper
+import com.astarworks.astarmanagement.shared.domain.value.RoleId
+import com.astarworks.astarmanagement.shared.domain.value.TenantId
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
-import java.util.*
 
 /**
- * Implementation of DynamicRoleRepository using Spring Data JPA.
+ * Implementation of DynamicRoleRepository using Spring Data JDBC.
  * Handles Discord-style dynamic role system persistence operations.
  * Uses Row Level Security (RLS) for multi-tenant data isolation.
  */
 @Component
-@Transactional
 class DynamicRoleRepositoryImpl(
-    private val jpaDynamicRoleRepository: JpaDynamicRoleRepository,
-    private val jpaTenantRepository: JpaTenantRepository,
-    private val dynamicRoleMapper: DynamicRoleMapper
+    private val jdbcRoleRepository: SpringDataJdbcRoleRepository,
+    private val roleMapper: SpringDataJdbcRoleMapper
 ) : DynamicRoleRepository {
     
+    @Transactional
     override fun save(role: DynamicRole): DynamicRole {
-        // Get TenantTable entity for foreign key relationship (null for system roles)
-        val tenantTable = role.tenantId?.let { tenantId ->
-            jpaTenantRepository.findById(tenantId)
-                .orElseThrow {
-                    IllegalArgumentException("Tenant not found with id: $tenantId")
-                }
-        }
+        // Check if the role already exists to handle version properly
+        val existingEntity = jdbcRoleRepository.findById(role.id).orElse(null)
         
-        // Check if role already exists by ID
-        val existingRole = jpaDynamicRoleRepository.findById(role.id)
-        
-        val savedEntity = if (existingRole.isPresent) {
-            // Update existing role
-            val updatedEntity = dynamicRoleMapper.updateEntity(existingRole.get(), role)
-            jpaDynamicRoleRepository.save(updatedEntity)
+        return if (existingEntity != null) {
+            // For updates: preserve version and update fields
+            val updatedEntity = existingEntity.copy(
+                tenantId = role.tenantId,
+                name = role.name,
+                displayName = role.displayName,
+                color = role.color,
+                position = role.position,
+                isSystem = role.isSystem,
+                createdAt = role.createdAt,
+                updatedAt = role.updatedAt
+            )
+            val savedEntity = jdbcRoleRepository.save(updatedEntity)
+            roleMapper.toDomain(savedEntity)
         } else {
-            // Create new role
-            val entity = dynamicRoleMapper.toEntity(role, tenantTable)
-            jpaDynamicRoleRepository.save(entity)
+            // For new entities: create from domain model
+            val entity = roleMapper.toTable(role)
+            val savedEntity = jdbcRoleRepository.save(entity)
+            roleMapper.toDomain(savedEntity)
         }
-        
-        return dynamicRoleMapper.toDomain(savedEntity)
     }
     
     @Transactional(readOnly = true)
-    override fun findById(id: UUID): DynamicRole? {
-        return jpaDynamicRoleRepository.findById(id)
-            .map { dynamicRoleMapper.toDomain(it) }
+    override fun findById(id: RoleId): DynamicRole? {
+        return jdbcRoleRepository.findById(id)
+            .map { roleMapper.toDomain(it) }
             .orElse(null)
     }
     
     @Transactional(readOnly = true)
     override fun findAll(): List<DynamicRole> {
-        return jpaDynamicRoleRepository.findAll()
-            .map { dynamicRoleMapper.toDomain(it) }
+        return jdbcRoleRepository.findAll()
+            .map { roleMapper.toDomain(it) }
     }
     
     @Transactional(readOnly = true)
-    override fun findByTenantId(tenantId: UUID): List<DynamicRole> {
-        return jpaDynamicRoleRepository.findByTenantId(tenantId)
-            .map { dynamicRoleMapper.toDomain(it) }
+    override fun findByTenantId(tenantId: TenantId): List<DynamicRole> {
+        return jdbcRoleRepository.findByTenantId(tenantId)
+            .map { roleMapper.toDomain(it) }
     }
     
     @Transactional(readOnly = true)
     override fun findSystemRoles(): List<DynamicRole> {
-        return jpaDynamicRoleRepository.findByTenantIsNull()
-            .map { dynamicRoleMapper.toDomain(it) }
+        return jdbcRoleRepository.findSystemRoles()
+            .map { roleMapper.toDomain(it) }
     }
     
     @Transactional(readOnly = true)
-    override fun findByTenantIdAndName(tenantId: UUID?, name: String): DynamicRole? {
-        val tenantTable = tenantId?.let { id ->
-            jpaTenantRepository.findById(id).orElse(null)
+    override fun findByTenantIdAndName(tenantId: TenantId?, name: String): DynamicRole? {
+        return if (tenantId != null) {
+            jdbcRoleRepository.findByTenantIdAndName(tenantId, name)
+        } else {
+            jdbcRoleRepository.findSystemRoleByName(name)
+        }?.let { roleMapper.toDomain(it) }
+    }
+    
+    @Transactional(readOnly = true)
+    override fun existsByTenantIdAndName(tenantId: TenantId?, name: String): Boolean {
+        return if (tenantId != null) {
+            jdbcRoleRepository.existsByTenantIdAndName(tenantId, name)
+        } else {
+            jdbcRoleRepository.existsSystemRoleByName(name)
         }
-        
-        return jpaDynamicRoleRepository.findByTenantAndName(tenantTable, name)
-            ?.let { dynamicRoleMapper.toDomain(it) }
     }
     
     @Transactional(readOnly = true)
-    override fun existsByTenantIdAndName(tenantId: UUID?, name: String): Boolean {
-        val tenantTable = tenantId?.let { id ->
-            jpaTenantRepository.findById(id).orElse(null)
-        }
-        
-        return jpaDynamicRoleRepository.existsByTenantAndName(tenantTable, name)
-    }
-    
-    @Transactional(readOnly = true)
-    override fun findByTenantIdOrderByPositionDesc(tenantId: UUID): List<DynamicRole> {
-        return jpaDynamicRoleRepository.findByTenantIdOrderByPositionDesc(tenantId)
-            .map { dynamicRoleMapper.toDomain(it) }
+    override fun findByTenantIdOrderByPositionDesc(tenantId: TenantId): List<DynamicRole> {
+        return jdbcRoleRepository.findByTenantIdOrderByPositionDesc(tenantId)
+            .map { roleMapper.toDomain(it) }
     }
     
     @Transactional(readOnly = true)
     override fun findSystemRolesOrderByPositionDesc(): List<DynamicRole> {
-        return jpaDynamicRoleRepository.findByTenantIsNullOrderByPositionDesc()
-            .map { dynamicRoleMapper.toDomain(it) }
+        return jdbcRoleRepository.findSystemRolesOrderByPositionDesc()
+            .map { roleMapper.toDomain(it) }
     }
     
-    override fun deleteById(id: UUID) {
-        jpaDynamicRoleRepository.deleteById(id)
+    @Transactional
+    override fun deleteById(id: RoleId) {
+        jdbcRoleRepository.deleteById(id)
     }
     
-    override fun deleteByTenantId(tenantId: UUID) {
-        val tenantTable = jpaTenantRepository.findById(tenantId)
-            .orElseThrow {
-                IllegalArgumentException("Tenant not found with id: $tenantId")
-            }
-        
-        jpaDynamicRoleRepository.deleteByTenant(tenantTable)
+    @Transactional
+    override fun deleteByTenantId(tenantId: TenantId) {
+        jdbcRoleRepository.deleteByTenantId(tenantId)
     }
     
     @Transactional(readOnly = true)
     override fun count(): Long {
-        return jpaDynamicRoleRepository.count()
+        return jdbcRoleRepository.count()
     }
     
     @Transactional(readOnly = true)
-    override fun countByTenantId(tenantId: UUID): Long {
-        return jpaDynamicRoleRepository.countByTenantId(tenantId)
+    override fun countByTenantId(tenantId: TenantId): Long {
+        return jdbcRoleRepository.countByTenantId(tenantId)
     }
     
     @Transactional(readOnly = true)
     override fun countSystemRoles(): Long {
-        return jpaDynamicRoleRepository.countByTenantIsNull()
+        return jdbcRoleRepository.countSystemRoles()
     }
 }

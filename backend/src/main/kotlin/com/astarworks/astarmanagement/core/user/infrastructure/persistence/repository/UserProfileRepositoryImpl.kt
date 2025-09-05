@@ -2,81 +2,77 @@ package com.astarworks.astarmanagement.core.user.infrastructure.persistence.repo
 
 import com.astarworks.astarmanagement.core.user.domain.model.UserProfile
 import com.astarworks.astarmanagement.core.user.domain.repository.UserProfileRepository
-import com.astarworks.astarmanagement.core.user.infrastructure.persistence.mapper.UserProfileMapper
+import com.astarworks.astarmanagement.core.user.infrastructure.persistence.mapper.SpringDataJdbcUserProfileMapper
+import com.astarworks.astarmanagement.shared.domain.value.UserId
+import com.astarworks.astarmanagement.shared.domain.value.UserProfileId
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
-import java.util.*
 
 /**
- * Implementation of UserProfileRepository using Spring Data JPA.
+ * Implementation of UserProfileRepository using Spring Data JDBC.
  * Handles user profile information persistence operations.
  * Uses Row Level Security (RLS) for multi-tenant data isolation.
  */
 @Component
 @Transactional
 class UserProfileRepositoryImpl(
-    private val jpaUserProfileRepository: JpaUserProfileRepository,
-    private val jpaUserRepository: JpaUserRepository,
-    private val userProfileMapper: UserProfileMapper
+    private val springDataJdbcUserProfileRepository: SpringDataJdbcUserProfileRepository,
+    private val mapper: SpringDataJdbcUserProfileMapper
 ) : UserProfileRepository {
     
     override fun save(userProfile: UserProfile): UserProfile {
-        // Get the UserTable entity for the foreign key relationship
-        val userTable = jpaUserRepository.findById(userProfile.userId)
-            .orElseThrow { 
-                IllegalArgumentException("User not found with id: ${userProfile.userId}") 
-            }
+        // Check if the user profile already exists to handle version properly
+        val existingEntity = springDataJdbcUserProfileRepository.findByUserId(userProfile.userId)
         
-        // Check if profile already exists
-        val existingProfile = jpaUserProfileRepository.findByUserId(userProfile.userId)
-        
-        val savedEntity = if (existingProfile != null) {
-            // Update existing profile
-            val updatedEntity = userProfileMapper.updateEntity(existingProfile, userProfile)
-            jpaUserProfileRepository.save(updatedEntity)
+        return if (existingEntity != null) {
+            // For updates: preserve version and update fields
+            val updatedEntity = existingEntity.copy(
+                userId = userProfile.userId,
+                displayName = userProfile.displayName,
+                avatarUrl = userProfile.avatarUrl,
+                updatedAt = userProfile.updatedAt
+            )
+            val savedEntity = springDataJdbcUserProfileRepository.save(updatedEntity)
+            mapper.toDomain(savedEntity)
         } else {
-            // Create new profile
-            val entity = userProfileMapper.toEntity(userProfile, userTable)
-            jpaUserProfileRepository.save(entity)
+            // For new entities: create from domain model
+            val tableEntity = mapper.toTable(userProfile)
+            val savedEntity = springDataJdbcUserProfileRepository.save(tableEntity)
+            mapper.toDomain(savedEntity)
         }
-        
-        return userProfileMapper.toDomain(savedEntity)
     }
     
     @Transactional(readOnly = true)
-    override fun findById(id: UUID): UserProfile? {
-        return jpaUserProfileRepository.findById(id)
-            .map { userProfileMapper.toDomain(it) }
-            .orElse(null)
+    override fun findById(id: UserProfileId): UserProfile? {
+        return springDataJdbcUserProfileRepository.findByIdOrNull(id)?.let { mapper.toDomain(it) }
     }
     
     @Transactional(readOnly = true)
-    override fun findByUserId(userId: UUID): UserProfile? {
-        return jpaUserProfileRepository.findByUserId(userId)
-            ?.let { userProfileMapper.toDomain(it) }
+    override fun findByUserId(userId: UserId): UserProfile? {
+        return springDataJdbcUserProfileRepository.findByUserId(userId)?.let { mapper.toDomain(it) }
     }
     
     @Transactional(readOnly = true)
-    override fun existsByUserId(userId: UUID): Boolean {
-        return jpaUserProfileRepository.existsByUserId(userId)
+    override fun existsByUserId(userId: UserId): Boolean {
+        return springDataJdbcUserProfileRepository.existsByUserId(userId)
     }
     
     @Transactional(readOnly = true)
     override fun findAll(): List<UserProfile> {
-        return jpaUserProfileRepository.findAll()
-            .map { userProfileMapper.toDomain(it) }
+        return mapper.toDomainList(springDataJdbcUserProfileRepository.findAll())
     }
     
-    override fun deleteById(id: UUID) {
-        jpaUserProfileRepository.deleteById(id)
+    override fun deleteById(id: UserProfileId) {
+        springDataJdbcUserProfileRepository.deleteById(id)
     }
     
-    override fun deleteByUserId(userId: UUID) {
-        jpaUserProfileRepository.deleteByUserId(userId)
+    override fun deleteByUserId(userId: UserId) {
+        springDataJdbcUserProfileRepository.deleteByUserId(userId)
     }
     
     @Transactional(readOnly = true)
     override fun count(): Long {
-        return jpaUserProfileRepository.count()
+        return springDataJdbcUserProfileRepository.count()
     }
 }
