@@ -1,24 +1,21 @@
 package com.astarworks.astarmanagement.shared.infrastructure.handler
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.astarworks.astarmanagement.shared.exception.dto.ErrorResponse
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import kotlinx.serialization.json.Json
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.web.access.AccessDeniedHandler
 import org.springframework.stereotype.Component
-import java.time.Instant
 
 /**
  * Custom access denied handler for handling authorization failures.
  * Returns user-friendly JSON error responses for forbidden access attempts.
  */
 @Component
-class CustomAccessDeniedHandler : AccessDeniedHandler {
-    
-    private val objectMapper = ObjectMapper().apply {
-        registerModule(JavaTimeModule())
-    }
+class CustomAccessDeniedHandler(
+    private val json: Json
+) : AccessDeniedHandler {
     
     override fun handle(
         request: HttpServletRequest,
@@ -29,13 +26,11 @@ class CustomAccessDeniedHandler : AccessDeniedHandler {
         response.contentType = "application/json"
         response.characterEncoding = "UTF-8"
         
-        val errorResponse = ErrorResponse(
-            error = "forbidden",
+        val errorResponse = ErrorResponse.forbidden(
             message = "Access denied",
-            timestamp = Instant.now(),
-            path = request.requestURI
-        )
+            requiredPermission = null
+        ).copy(path = request.requestURI)
         
-        response.writer.write(objectMapper.writeValueAsString(errorResponse))
+        response.writer.write(json.encodeToString(ErrorResponse.serializer(), errorResponse))
     }
 }

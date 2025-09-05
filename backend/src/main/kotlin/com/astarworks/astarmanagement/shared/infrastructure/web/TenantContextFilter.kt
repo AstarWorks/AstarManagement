@@ -173,7 +173,7 @@ class TenantContextFilter(
             }
             
             logger.debug("User ID from Auth0 sub: {} -> {}", auth0Sub, user.id)
-            user.id
+            user.id.value
             
         } catch (e: Exception) {
             logger.error("Error extracting user ID from JWT", e)

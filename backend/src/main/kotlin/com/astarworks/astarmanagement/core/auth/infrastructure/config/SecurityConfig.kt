@@ -1,16 +1,20 @@
 package com.astarworks.astarmanagement.core.auth.infrastructure.config
 
-import com.astarworks.astarmanagement.core.auth.infrastructure.jwt.TenantAwareJwtAuthenticationConverter
+import com.astarworks.astarmanagement.core.auth.infrastructure.security.CustomAuthorizationManager
 import com.astarworks.astarmanagement.shared.infrastructure.handler.CustomAccessDeniedHandler
 import com.astarworks.astarmanagement.shared.infrastructure.handler.CustomAuthenticationEntryPoint
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.convert.converter.Converter
 import org.springframework.core.env.Environment
+import org.springframework.security.authentication.AbstractAuthenticationToken
 import org.springframework.security.authorization.AuthorizationDecision
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
+import org.springframework.security.oauth2.jwt.Jwt
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
 import org.springframework.security.web.SecurityFilterChain
@@ -29,9 +33,10 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 class SecurityConfig(
     @param:Value("\${spring.security.oauth2.resourceserver.jwt.jwk-set-uri}")
     private val jwksUri: String,
-    private val jwtAuthenticationConverter: TenantAwareJwtAuthenticationConverter,
+    private val jwtAuthenticationConverter: Converter<Jwt, AbstractAuthenticationToken>,
     private val customAuthenticationEntryPoint: CustomAuthenticationEntryPoint,
     private val customAccessDeniedHandler: CustomAccessDeniedHandler,
+    private val customAuthorizationManager: CustomAuthorizationManager,
     private val environment: Environment
 ) {
 
@@ -44,6 +49,13 @@ class SecurityConfig(
                 corsConfigurer.configurationSource(corsConfigurationSource())
             }
             .csrf { it.disable() }
+            .headers { headers ->
+                headers
+                    .frameOptions { it.deny() }
+                    .xssProtection { it.headerValue(org.springframework.security.web.header.writers.XXssProtectionHeaderWriter.HeaderValue.ENABLED_MODE_BLOCK) }
+                    .contentTypeOptions { }
+                    .cacheControl { }
+            }
             .authorizeHttpRequests { auth ->
                 auth
                     // Public endpoints
@@ -63,12 +75,17 @@ class SecurityConfig(
                     .requestMatchers("/mock-auth/**")
                     .permitAll()
 
-                    // Test data endpoints (development only, requires mock auth to be enabled)
+                    // Test data endpoints - controlled by CustomAuthorizationManager
+                    // SetupMode should be blocked, normal auth should be allowed
                     .requestMatchers("/api/v1/test-data/**")
-                    .permitAll()
+                    .access(customAuthorizationManager)
 
                     // Test endpoints - public endpoint only
-                    .requestMatchers("/api/v1/test/public")
+                    .requestMatchers("/api/v1/auth/test/public")
+                    .permitAll()
+                    
+                    // Kotlin Serialization test endpoints (development only)
+                    .requestMatchers("/api/test/serialization/**")
                     .permitAll()
 
                     // Development-only endpoints
@@ -83,13 +100,13 @@ class SecurityConfig(
                         "/api-docs/**"
                     ).access { _, _ -> developmentOnlyAccess() }
 
-                    // Auth endpoints 
+                    // Auth endpoints - use custom authorization manager
                     .requestMatchers("/api/v1/auth/**")
-                    .authenticated()
+                    .access(customAuthorizationManager)
 
-                    // All other API endpoints require authentication
+                    // All other API endpoints - use custom authorization manager
                     .requestMatchers("/api/**")
-                    .authenticated()
+                    .access(customAuthorizationManager)
 
                     // Deny all other requests
                     .anyRequest().denyAll()
@@ -170,10 +187,19 @@ class SecurityConfig(
     }
 
     @Bean
+    @ConditionalOnMissingBean(JwtDecoder::class)
     fun jwtDecoder(): JwtDecoder {
+        System.err.println("=== SecurityConfig.jwtDecoder() called - creating default decoder ===")
+        println("=== SecurityConfig.jwtDecoder() called - creating default decoder ===")
+        System.err.println("JWKS URI: $jwksUri")
+        
         // Note: JWKS caching is handled internally by NimbusJwtDecoder
         // It caches the keys automatically with a default TTL
-        return NimbusJwtDecoder.withJwkSetUri(jwksUri).build()
+        // This bean will only be created if no other JwtDecoder bean exists (e.g., in tests)
+        val decoder = NimbusJwtDecoder.withJwkSetUri(jwksUri).build()
+        
+        System.err.println("Default JwtDecoder created: $decoder")
+        return decoder
     }
 
     private fun developmentOnlyAccess(): AuthorizationDecision =
@@ -184,6 +210,7 @@ class SecurityConfig(
     private fun isDevelopmentEnvironment(): Boolean {
         return profiles.contains("dev") ||
                 profiles.contains("local") ||
-                profiles.contains("test")
+                profiles.contains("test") ||
+                profiles.contains("integration-test")
     }
 }

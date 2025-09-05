@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.jwt.Jwt
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
@@ -24,9 +25,13 @@ import java.util.UUID
  * 4. Allows RLS policies to filter data automatically
  * 
  * The session variables are automatically cleared when the transaction ends.
+ * 
+ * Note: This interceptor is conditionally enabled based on configuration.
+ * Set 'app.security.rls.enabled=true' to enable RLS interception.
  */
 @Aspect
 @Component
+@ConditionalOnProperty(name = ["app.security.rls.enabled"], havingValue = "true", matchIfMissing = false)
 class RLSInterceptor(
     private val jdbcTemplate: JdbcTemplate,
     private val tenantContextService: TenantContextService,
@@ -34,6 +39,16 @@ class RLSInterceptor(
 ) {
     
     private val logger = LoggerFactory.getLogger(RLSInterceptor::class.java)
+    
+    init {
+        System.err.println("=== RLSInterceptor initialized - RLS is ENABLED (profile: rls-test/production/development) ===")
+        logger.info("RLSInterceptor initialized - RLS is ENABLED (profile: rls-test/production/development)")
+    }
+    
+    companion object {
+        // ThreadLocal to prevent recursion
+        private val isSettingContext = ThreadLocal.withInitial { false }
+    }
     
     /**
      * Intercepts all @Transactional methods and sets RLS context.
@@ -100,6 +115,12 @@ class RLSInterceptor(
      * Extracts the user ID by finding the user record matching the Auth0 subject.
      */
     private fun getCurrentUserId(): UUID? {
+        // Prevent recursion when calling userRepository
+        if (isSettingContext.get()) {
+            logger.trace("Preventing recursion in getCurrentUserId")
+            return null
+        }
+        
         return try {
             val authentication = SecurityContextHolder.getContext().authentication
                 ?: return null
@@ -117,17 +138,25 @@ class RLSInterceptor(
                 return null
             }
             
-            // Find user by Auth0 subject
-            val user = userRepository.findByAuth0Sub(auth0Sub)
-            if (user == null) {
-                logger.warn("No user found for Auth0 subject: {}", auth0Sub)
-                return null
+            // Set flag to prevent recursion
+            isSettingContext.set(true)
+            try {
+                // Find user by Auth0 subject
+                val user = userRepository.findByAuth0Sub(auth0Sub)
+                if (user == null) {
+                    logger.warn("No user found for Auth0 subject: {}", auth0Sub)
+                    return null
+                }
+                
+                return user.id.value
+            } finally {
+                // Always clear the flag
+                isSettingContext.set(false)
             }
-            
-            return user.id
             
         } catch (e: Exception) {
             logger.error("Error getting current user ID", e)
+            isSettingContext.set(false) // Ensure flag is cleared on error
             null
         }
     }

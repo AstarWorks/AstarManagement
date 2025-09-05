@@ -1,0 +1,64 @@
+package com.astarworks.astarmanagement.core.auth.infrastructure.persistence.entity
+
+import jakarta.persistence.*
+import java.io.Serializable
+import java.time.Instant
+import java.util.UUID
+
+/**
+ * JPA entity for resource_group_permissions table.
+ * Represents permissions granted to roles for specific resource groups.
+ * 
+ * ロールがリソースグループに対して持つ権限を管理。
+ * 例: "管理者ロール" が "プロジェクトAグループ" に対して "EDIT" 権限を持つ
+ * 
+ * NOTE: This is an incomplete/unused feature that needs to be migrated to Spring Data JDBC
+ */
+// @Entity
+// @Table(
+//     name = "resource_group_permissions",
+//     indexes = [
+//         Index(name = "idx_group_permissions_role", columnList = "role_id"),
+//         Index(name = "idx_group_permissions_group", columnList = "group_id"),
+//         Index(name = "idx_group_permissions_composite", columnList = "role_id,group_id,action", unique = true)
+//     ]
+// )
+// @IdClass(ResourceGroupPermissionId::class)
+class ResourceGroupPermissionTable(
+    // @Id
+    // @ManyToOne(fetch = FetchType.LAZY)
+    // @JoinColumn(name = "role_id", nullable = false)
+    val role: Any, // RoleTable,
+    
+    @Id
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "group_id", nullable = false)
+    val group: ResourceGroupTable,
+    
+    @Id
+    @Column(name = "action", nullable = false, length = 50)
+    val action: String, // Action enum stored as string (VIEW, CREATE, EDIT, DELETE, MANAGE, etc.)
+    
+    @Column(name = "granted_at", nullable = false)
+    val grantedAt: Instant = Instant.now(),
+    
+    @Column(name = "granted_by", nullable = false)
+    val grantedBy: UUID,
+    
+    @Column(name = "expires_at")
+    val expiresAt: Instant? = null // Optional expiration for temporary permissions
+)
+
+/**
+ * Composite primary key for ResourceGroupPermissionTable.
+ * Unique combination of role, group, and action.
+ */
+data class ResourceGroupPermissionId(
+    val role: UUID = UUID.randomUUID(),
+    val group: UUID = UUID.randomUUID(),
+    val action: String = ""
+) : Serializable {
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+}
