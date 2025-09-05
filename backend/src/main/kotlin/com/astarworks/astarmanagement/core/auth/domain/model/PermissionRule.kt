@@ -1,148 +1,136 @@
 package com.astarworks.astarmanagement.core.auth.domain.model
 
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import java.util.UUID
 
 /**
- * Permission rule that defines access control for resources.
- * Can be either a general rule (applying to all resources of a type with a scope)
- * or a specific rule (applying to a specific resource instance).
+ * 権限ルール = ResourceType + Action + Scope
+ * これが権限システムの基本単位
+ * 
+ * 文字列処理は一切ビジネスロジックで行わない。
+ * データベースとの変換はMapper層でのみ行う。
  */
 @Serializable
 sealed class PermissionRule {
-    abstract val permission: Permission
+    abstract val resourceType: ResourceType
+    abstract val action: Action
+    abstract val scope: Scope
     
     /**
-     * Converts this permission rule to a Spring Security authority string.
-     * Used for integration with @PreAuthorize annotations.
-     * 
-     * Format examples:
-     * - GeneralRule: "table.view.all", "document.edit.team"
-     * - SpecificRule: "table.edit.uuid:123e4567-e89b-12d3-a456-426614174000"
+     * データベース保存用の文字列表現
+     * Mapper層でのみ使用する
      */
-    abstract fun toAuthorityString(): String
+    abstract fun toDatabaseString(): String
     
     /**
-     * Checks if this rule matches the requested permission string.
-     * Supports exact matching and wildcard matching for MANAGE permission.
-     */
-    abstract fun matches(requestedPermission: String): Boolean
-    
-    /**
-     * General permission rule that applies to all resources of a type within a scope.
-     * Example: "All team members can view all documents in their team"
+     * 一般的なスコープベース権限（ALL, TEAM, OWN）
+     * 例: "すべてのテーブルを閲覧可能"、"チームのドキュメントを編集可能"
      */
     @Serializable
     data class GeneralRule(
-        override val permission: Permission,
-        val scope: Scope,
-        val resourceType: ResourceType
+        override val resourceType: ResourceType,
+        override val action: Action,
+        override val scope: Scope
     ) : PermissionRule() {
-        
-        override fun toAuthorityString(): String {
-            val resource = resourceType.name.lowercase()
-            val perm = permission.name.lowercase()
-            val scopeStr = scope.name.lowercase()
-            return "$resource.$perm.$scopeStr"
+        init {
+            require(scope in listOf(Scope.ALL, Scope.TEAM, Scope.OWN)) {
+                "GeneralRule only supports ALL, TEAM, OWN scopes, got: $scope"
+            }
         }
         
-        override fun matches(requestedPermission: String): Boolean {
-            // Exact match
-            if (toAuthorityString() == requestedPermission) return true
-            
-            // MANAGE permission matches all actions for the resource type
-            if (permission == Permission.MANAGE) {
-                val resourcePrefix = "${resourceType.name.lowercase()}."
-                return requestedPermission.startsWith(resourcePrefix)
-            }
-            
-            return false
+        override fun toDatabaseString(): String {
+            return "${resourceType.name.lowercase()}.${action.name.lowercase()}.${scope.name.lowercase()}"
         }
     }
     
     /**
-     * Specific permission rule that applies to a single resource instance.
-     * Example: "User X can edit document with UUID Y"
+     * リソースグループ経由の権限
+     * 例: "プロジェクトAグループのテーブルを編集可能"
      */
     @Serializable
-    data class SpecificRule(
-        override val permission: Permission,
-        val resourceReference: ResourceReference
+    data class ResourceGroupRule(
+        override val resourceType: ResourceType,
+        override val action: Action,
+        @Contextual val groupId: UUID  // グループIDを内包
     ) : PermissionRule() {
+        override val scope = Scope.RESOURCE_GROUP
         
-        override fun toAuthorityString(): String {
-            val resource = resourceReference.type.name.lowercase()
-            val perm = permission.name.lowercase()
-            return "$resource.$perm.uuid:${resourceReference.id}"
+        override fun toDatabaseString(): String {
+            return "${resourceType.name.lowercase()}.${action.name.lowercase()}.resource_group:$groupId"
         }
+    }
+    
+    /**
+     * 特定リソースインスタンスへの権限
+     * 例: "テーブルID:123を編集可能"
+     */
+    @Serializable
+    data class ResourceIdRule(
+        override val resourceType: ResourceType,
+        override val action: Action,
+        @Contextual val resourceId: UUID  // リソースIDを内包
+    ) : PermissionRule() {
+        override val scope = Scope.RESOURCE_ID
         
-        override fun matches(requestedPermission: String): Boolean {
-            // Only exact match for specific rules
-            return toAuthorityString() == requestedPermission
+        override fun toDatabaseString(): String {
+            return "${resourceType.name.lowercase()}.${action.name.lowercase()}.resource_id:$resourceId"
         }
     }
     
     companion object {
         /**
-         * Parses a permission string into a PermissionRule.
+         * データベースの文字列からPermissionRuleへ変換
+         * Mapper層でのみ使用する
          * 
-         * Format:
-         * - "resource.permission.scope" -> GeneralRule
-         * - "resource.permission.uuid:id" -> SpecificRule
-         * 
-         * @param authorityString The permission string to parse
-         * @return The parsed PermissionRule, or null if parsing fails
+         * @param str データベースに保存された権限文字列
+         * @return PermissionRuleオブジェクト
+         * @throws IllegalArgumentException 無効な形式の場合
          */
-        fun fromString(authorityString: String): PermissionRule? {
-            val parts = authorityString.split(".")
-            if (parts.size != 3) return null
+        fun fromDatabaseString(str: String): PermissionRule {
+            val parts = str.split(".")
+            require(parts.size == 3) { 
+                "Invalid permission format. Expected: 'resourceType.action.scope', got: '$str'" 
+            }
             
-            val resourceTypeStr = parts[0].uppercase()
-            val permissionStr = parts[1].uppercase()
-            val scopeOrId = parts[2]
-            
-            // Find matching enums
             val resourceType = try {
-                ResourceType.valueOf(resourceTypeStr)
+                ResourceType.valueOf(parts[0].uppercase())
             } catch (e: IllegalArgumentException) {
-                return null
+                throw IllegalArgumentException("Unknown resource type: ${parts[0]}", e)
             }
             
-            val permission = try {
-                Permission.valueOf(permissionStr)
+            val action = try {
+                Action.valueOf(parts[1].uppercase())
             } catch (e: IllegalArgumentException) {
-                return null
+                throw IllegalArgumentException("Unknown action: ${parts[1]}", e)
             }
             
-            return if (scopeOrId.startsWith("uuid:")) {
-                // Parse as SpecificRule
-                val uuidStr = scopeOrId.substring(5)
-                val uuid = try {
-                    UUID.fromString(uuidStr)
-                } catch (e: IllegalArgumentException) {
-                    return null
+            val scopePart = parts[2]
+            
+            return when {
+                scopePart in listOf("all", "team", "own") -> {
+                    val scope = Scope.valueOf(scopePart.uppercase())
+                    GeneralRule(resourceType, action, scope)
                 }
-                
-                SpecificRule(
-                    permission = permission,
-                    resourceReference = ResourceReference(
-                        type = resourceType,
-                        id = uuid
-                    )
-                )
-            } else {
-                // Parse as GeneralRule
-                val scope = try {
-                    Scope.valueOf(scopeOrId.uppercase())
-                } catch (e: IllegalArgumentException) {
-                    return null
+                scopePart.startsWith("resource_group:") -> {
+                    val groupIdStr = scopePart.substringAfter(":")
+                    val groupId = try {
+                        UUID.fromString(groupIdStr)
+                    } catch (e: IllegalArgumentException) {
+                        throw IllegalArgumentException("Invalid group ID: $groupIdStr", e)
+                    }
+                    ResourceGroupRule(resourceType, action, groupId)
                 }
-                
-                GeneralRule(
-                    permission = permission,
-                    scope = scope,
-                    resourceType = resourceType
-                )
+                scopePart.startsWith("resource_id:") -> {
+                    val resourceIdStr = scopePart.substringAfter(":")
+                    val resourceId = try {
+                        UUID.fromString(resourceIdStr)
+                    } catch (e: IllegalArgumentException) {
+                        throw IllegalArgumentException("Invalid resource ID: $resourceIdStr", e)
+                    }
+                    ResourceIdRule(resourceType, action, resourceId)
+                }
+                else -> throw IllegalArgumentException("Unknown scope format: $scopePart")
             }
         }
     }
