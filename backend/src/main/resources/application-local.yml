@@ -1,0 +1,42 @@
+# Local Development Profile Configuration
+spring:
+  datasource:
+    url: jdbc:postgresql://172.17.0.1:5433/astarmanagement_dev
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+  
+  jpa:
+    show-sql: true
+  
+  flyway:
+    baseline-on-migrate: true
+  
+  # DevTools
+  devtools:
+    restart:
+      enabled: false
+  
+  # Override security for local development with mock auth
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # When mock auth is enabled, these will use localhost
+          issuer-uri: http://${auth0.domain}/mock-auth
+          jwk-set-uri: http://${auth0.domain}/mock-auth/.well-known/jwks.json
+
+# Local Auth0 Configuration (overridden when mock auth is enabled)
+auth0:
+  domain: ${AUTH0_DOMAIN:localhost:8080}
+  audience: ${AUTH0_AUDIENCE:local-dev-api}
+
+# Enable mock authentication for local development
+auth:
+  mock:
+    enabled: true
+
+logging:
+  level:
+    com.astarworks.astarmanagement: INFO
+    # Disable OAuth2 debugging in local
+    org.springframework.security: WARN
