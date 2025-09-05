@@ -1,0 +1,72 @@
+# Test Common Configuration
+# Shared settings for all test profiles (unit, integration, e2e)
+
+spring:
+  application:
+    name: AstarManagement-Test
+  
+  # Allow bean definition overriding for tests
+  main:
+    allow-bean-definition-overriding: true
+  
+  cache:
+    type: none
+  
+  # Configure mock auth for all tests  
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Mock JWKS URI for tests - actual validation is handled by SecurityTestConfig mock decoder
+          jwk-set-uri: http://localhost/mock-auth/.well-known/jwks.json
+          issuer-uri: https://test-auth0.com/
+
+# Enable mock authentication for tests
+auth:
+  mock:
+    enabled: true
+
+# Auth0 configuration for mock auth
+auth0:
+  domain: test-auth0.com
+  audience: test-api
+
+# Application-specific test configuration
+app:
+  security:
+    # Disable JIT provisioning - tests use pre-defined test data
+    jit-provisioning:
+      enabled: false
+    # Use test JWT validation
+    jwt:
+      test-mode: true
+
+  audit:
+    enabled: false
+
+# Cache configuration for tests
+cache:
+  enabled: false
+
+# Test logging
+logging:
+  level:
+    root: WARN
+    com.astarworks.astarmanagement: DEBUG
+    com.astarworks.astarmanagement.core.auth.infrastructure.jwt: TRACE
+    com.astarworks.astarmanagement.core.auth.domain.service: TRACE
+    com.astarworks.astarmanagement.core.auth.infrastructure.security: TRACE
+    com.astarworks.astarmanagement.core.membership: TRACE
+    com.astarworks.astarmanagement.core.tenant: TRACE
+    com.astarworks.astarmanagement.config.SecurityTestConfig: TRACE
+    org.springframework.security: DEBUG
+    org.springframework.security.oauth2: DEBUG
+    org.springframework.security.web: DEBUG
+    org.springframework.security.authentication: DEBUG
+    org.springframework.security.access: DEBUG
+    org.springframework.security.access.prepost: TRACE
+    org.springframework.security.access.expression: TRACE
+    org.springframework.expression: TRACE
+    org.springframework.context: INFO
+    org.springframework.boot.autoconfigure.security: DEBUG
+    org.springframework.test: INFO

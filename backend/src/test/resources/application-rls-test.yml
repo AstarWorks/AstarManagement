@@ -1,0 +1,47 @@
+# RLS Integration Test Configuration
+# This configuration enables Row Level Security for comprehensive multi-tenant testing
+
+spring:
+  application:
+    name: AstarManagement-RLSTest
+  
+  jpa:
+    hibernate:
+      ddl-auto: validate  # Flyway handles schema
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        jdbc:
+          time_zone: UTC
+  
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+  
+  # Test-specific configurations
+  test:
+    database:
+      replace: none  # Use real database from TestContainer
+
+# Application-specific configuration
+app:
+  security:
+    rls:
+      enabled: true  # ENABLE RLS for comprehensive multi-tenant testing
+
+# Extended logging for RLS tests
+logging:
+  level:
+    org.testcontainers: INFO
+    org.flywaydb: INFO
+    org.springframework.jdbc: DEBUG
+    com.zaxxer.hikari: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.security.oauth2: DEBUG
+    org.springframework.web: DEBUG
+    com.astarworks.astarmanagement: DEBUG
+    com.astarworks.astarmanagement.shared.infrastructure.security.RLSInterceptor: DEBUG
+    # RLS-specific logging
+    org.postgresql: DEBUG
+    root: INFO

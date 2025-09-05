@@ -1,0 +1,49 @@
+# Integration Test Configuration (TestContainers)
+# IMPORTANT: データソースURLは設定しない - TestContainerが動的に提供する
+
+spring:
+  application:
+    name: AstarManagement-IntegrationTest
+  
+  # Kotlin Serializationを優先的に使用
+  http:
+    converters:
+      preferred-json-mapper: kotlin-serialization
+  
+  jpa:
+    hibernate:
+      ddl-auto: validate  # Flyway handles schema
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        jdbc:
+          time_zone: UTC
+  
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+  
+  # Test-specific configurations
+  test:
+    database:
+      replace: none  # Use real database from TestContainer
+
+# Application-specific configuration
+app:
+  security:
+    rls:
+      enabled: ${RLS_ENABLED:true}  # RLS is enabled for integration tests to ensure proper tenant isolation
+
+# Extended logging for integration tests
+logging:
+  level:
+    org.testcontainers: INFO
+    org.flywaydb: INFO
+    org.springframework.jdbc: DEBUG
+    com.zaxxer.hikari: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.security.oauth2: TRACE
+    org.springframework.web: DEBUG
+    com.astarworks.astarmanagement: DEBUG
+    # RLS is disabled by default in test environment
