@@ -1,9 +1,9 @@
 package com.astarworks.astarmanagement.core.auth.domain.service
 
-import com.astarworks.astarmanagement.core.auth.domain.model.Permission
+import com.astarworks.astarmanagement.core.auth.domain.model.Action
 import com.astarworks.astarmanagement.core.auth.domain.model.PermissionRule
-import com.astarworks.astarmanagement.core.auth.domain.model.Role
-import com.astarworks.astarmanagement.core.auth.domain.model.RolePermissionMapping
+import com.astarworks.astarmanagement.core.auth.domain.model.DynamicRole
+import com.astarworks.astarmanagement.core.auth.domain.repository.RolePermissionRepository
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.stereotype.Service
@@ -20,7 +20,9 @@ import java.util.UUID
  * - Permission-based authorization (table.view.all, document.edit.own, etc.)
  */
 @Service
-class PermissionService {
+class PermissionService(
+    private val rolePermissionRepository: RolePermissionRepository
+) {
     
     /**
      * Converts a set of roles to Spring Security GrantedAuthorities.
@@ -32,18 +34,19 @@ class PermissionService {
      * @param roles Set of roles to convert
      * @return Set of GrantedAuthority objects for Spring Security
      */
-    fun convertRolesToAuthorities(roles: Set<Role>): Set<GrantedAuthority> {
+    fun convertRolesToAuthorities(roles: Set<DynamicRole>): Set<GrantedAuthority> {
         val authorities = mutableSetOf<GrantedAuthority>()
         
-        // Add role-based authorities (ROLE_ prefix is required by Spring Security)
+        // Process each role once - add role authority and permission authorities
         roles.forEach { role ->
+            // Add role-based authority (ROLE_ prefix is required by Spring Security)
             authorities.add(SimpleGrantedAuthority("ROLE_${role.name}"))
-        }
-        
-        // Add permission-based authorities from role mappings
-        val permissionRules = RolePermissionMapping.getPermissionRulesForRoles(roles)
-        permissionRules.forEach { rule ->
-            authorities.add(SimpleGrantedAuthority(rule.toAuthorityString()))
+            
+            // Add permission-based authorities from role permissions
+            val rolePermissions = rolePermissionRepository.findByRoleId(role.id)
+            rolePermissions.forEach { rolePermission ->
+                authorities.add(SimpleGrantedAuthority(rolePermission.permissionRule.toDatabaseString()))
+            }
         }
         
         return authorities
@@ -69,7 +72,7 @@ class PermissionService {
         
         // Add permission authorities
         rules.forEach { rule ->
-            authorities.add(SimpleGrantedAuthority(rule.toAuthorityString()))
+            authorities.add(SimpleGrantedAuthority(rule.toDatabaseString()))
         }
         
         return authorities
@@ -82,25 +85,30 @@ class PermissionService {
      * 
      * @param userRules List of permission rules the user has
      * @param resourceId UUID of the resource to check access for
-     * @param requiredPermission The permission required (VIEW, EDIT, DELETE, etc.)
+     * @param requiredAction The permission required (VIEW, EDIT, DELETE, etc.)
      * @return true if the user has the required permission
      */
     fun hasPermissionForResource(
         userRules: List<PermissionRule>,
         resourceId: UUID,
-        requiredPermission: Permission
+        requiredAction: Action
     ): Boolean {
         return userRules.any { rule ->
             when (rule) {
-                is PermissionRule.SpecificRule -> {
+                is PermissionRule.ResourceIdRule -> {
                     // Check if this rule applies to the specific resource
-                    rule.resourceReference.id == resourceId &&
-                    (rule.permission == requiredPermission || 
-                     rule.permission == Permission.MANAGE)
+                    rule.resourceId == resourceId &&
+                    (rule.action == requiredAction || 
+                     rule.action == Action.MANAGE)
+                }
+                is PermissionRule.ResourceGroupRule -> {
+                    // ResourceGroupRule doesn't directly apply to specific resources
+                    // This would need additional logic to check group membership
+                    false
                 }
                 is PermissionRule.GeneralRule -> {
                     // MANAGE permission on general rules grants access to all resources
-                    rule.permission == Permission.MANAGE
+                    rule.action == Action.MANAGE
                 }
             }
         }
