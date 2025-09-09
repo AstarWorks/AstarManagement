@@ -62,9 +62,8 @@ class EntityIdJdbcConfiguration : AbstractJdbcConfiguration() {
                 StringToJsonbConverter(),
                 JsonbToStringConverter(),  // Added to handle PGobject -> String conversion
                 
-                // JsonObject converters (removed as we're using String now)
-                // JsonObjectReadingConverter(),
-                // JsonObjectWritingConverter(),
+//                 JsonObjectReadingConverter(),
+//                 JsonObjectWritingConverter(),
                 
                 // PropertyDefinition Map converters (disabled - using PGobject directly)
 //                 PropertyDefinitionMapReadingConverter(),
