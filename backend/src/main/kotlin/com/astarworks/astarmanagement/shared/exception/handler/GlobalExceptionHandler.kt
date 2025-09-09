@@ -12,7 +12,6 @@ import org.springframework.core.annotation.Order
 import org.springframework.core.env.Environment
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.security.access.AccessDeniedException
@@ -27,6 +26,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
 import org.springframework.web.servlet.NoHandlerFoundException
+import org.springframework.web.server.ResponseStatusException
 import java.util.UUID
 
 /**
@@ -241,12 +241,21 @@ class GlobalExceptionHandler(
         ex: HttpMessageNotReadableException,
         response: HttpServletResponse
     ): ErrorResponse {
+        // デバッグ用の詳細ログ
+        logger.error("=== HttpMessageNotReadableException DEBUG ===")
+        logger.error("Message: ${ex.message}")
+        logger.error("Most specific cause: ${ex.mostSpecificCause.message}")
+        logger.error("Cause class: ${ex.mostSpecificCause.javaClass.name}")
+        logger.error("Full stack trace:", ex)
+        
+        val detailedMessage = ex.mostSpecificCause.message ?: ex.message ?: "Malformed JSON"
+        
         logWarning("Invalid request body", ex)
         response.status = HttpStatus.BAD_REQUEST.value()
         
         return ErrorResponse.of(
             code = "INVALID_REQUEST_BODY",
-            message = "Invalid request body: ${extractReadableMessage(ex)}"
+            message = "Invalid request body: $detailedMessage" // 一時的に詳細メッセージを返す
         ).copy(
             path = request.requestURI,
             traceId = getTraceId()
@@ -279,22 +288,20 @@ class GlobalExceptionHandler(
      */
     @ExceptionHandler(HttpMediaTypeNotSupportedException::class)
     fun handleMediaTypeNotSupported(
-        ex: HttpMediaTypeNotSupportedException
-    ): ResponseEntity<ErrorResponse> {
+        ex: HttpMediaTypeNotSupportedException,
+        response: HttpServletResponse
+    ): ErrorResponse {
         logWarning("Media type not supported", ex)
+        response.status = HttpStatus.UNSUPPORTED_MEDIA_TYPE.value()
         
         val supportedTypes = ex.supportedMediaTypes.joinToString(", ")
-        val response = ErrorResponse.of(
+        return ErrorResponse.of(
             code = "UNSUPPORTED_MEDIA_TYPE",
             message = "Media type not supported. Supported types: $supportedTypes"
         ).copy(
             path = request.requestURI,
             traceId = getTraceId()
         )
-        
-        return ResponseEntity
-            .status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
-            .body(response)
     }
     
     /**
@@ -302,21 +309,19 @@ class GlobalExceptionHandler(
      */
     @ExceptionHandler(NoHandlerFoundException::class)
     fun handleNoHandlerFound(
-        ex: NoHandlerFoundException
-    ): ResponseEntity<ErrorResponse> {
+        ex: NoHandlerFoundException,
+        response: HttpServletResponse
+    ): ErrorResponse {
         logWarning("Endpoint not found", ex)
+        response.status = HttpStatus.NOT_FOUND.value()
         
-        val response = ErrorResponse.of(
+        return ErrorResponse.of(
             code = "ENDPOINT_NOT_FOUND",
             message = "Endpoint not found: ${ex.requestURL}"
         ).copy(
             path = request.requestURI,
             traceId = getTraceId()
         )
-        
-        return ResponseEntity
-            .status(HttpStatus.NOT_FOUND)
-            .body(response)
     }
     
     /**
@@ -324,9 +329,11 @@ class GlobalExceptionHandler(
      */
     @ExceptionHandler(DataIntegrityViolationException::class)
     fun handleDataIntegrityViolation(
-        ex: DataIntegrityViolationException
-    ): ResponseEntity<ErrorResponse> {
+        ex: DataIntegrityViolationException,
+        response: HttpServletResponse
+    ): ErrorResponse {
         logWarning("Data integrity violation", ex)
+        response.status = HttpStatus.CONFLICT.value()
         
         val message = if (isProduction()) {
             "Operation failed due to data constraints"
@@ -334,17 +341,13 @@ class GlobalExceptionHandler(
             extractConstraintMessage(ex)
         }
         
-        val response = ErrorResponse.of(
+        return ErrorResponse.of(
             code = "DATA_INTEGRITY_VIOLATION",
             message = message
         ).copy(
             path = request.requestURI,
             traceId = getTraceId()
         )
-        
-        return ResponseEntity
-            .status(HttpStatus.CONFLICT)
-            .body(response)
     }
     
     /**
@@ -352,23 +355,21 @@ class GlobalExceptionHandler(
      */
     @ExceptionHandler(AuthenticationException::class)
     fun handleAuthentication(
-        ex: AuthenticationException
-    ): ResponseEntity<ErrorResponse> {
+        ex: AuthenticationException,
+        response: HttpServletResponse
+    ): ErrorResponse {
         logWarning("Authentication failed", ex)
+        response.status = HttpStatus.UNAUTHORIZED.value()
         
         val (code, message) = when (ex) {
             is BadCredentialsException -> "INVALID_CREDENTIALS" to "Invalid username or password"
             else -> "AUTHENTICATION_FAILED" to "Authentication failed"
         }
         
-        val response = ErrorResponse.of(code, message).copy(
+        return ErrorResponse.of(code, message).copy(
             path = request.requestURI,
             traceId = getTraceId()
         )
-        
-        return ResponseEntity
-            .status(HttpStatus.UNAUTHORIZED)
-            .body(response)
     }
     
     /**
@@ -376,18 +377,45 @@ class GlobalExceptionHandler(
      */
     @ExceptionHandler(AccessDeniedException::class)
     fun handleAccessDenied(
-        ex: AccessDeniedException
-    ): ResponseEntity<ErrorResponse> {
+        ex: AccessDeniedException,
+        response: HttpServletResponse
+    ): ErrorResponse {
         logWarning("Access denied", ex)
+        response.status = HttpStatus.FORBIDDEN.value()
         
-        val response = ErrorResponse.forbidden().copy(
+        return ErrorResponse.forbidden().copy(
             path = request.requestURI,
             traceId = getTraceId()
         )
+    }
+    
+    /**
+     * Handles ResponseStatusException for proper HTTP status code propagation.
+     */
+    @ExceptionHandler(ResponseStatusException::class)
+    fun handleResponseStatusException(
+        ex: ResponseStatusException,
+        response: HttpServletResponse
+    ): ErrorResponse {
+        logWarning("ResponseStatusException: ${ex.statusCode}", ex)
+        response.status = ex.statusCode.value()
         
-        return ResponseEntity
-            .status(HttpStatus.FORBIDDEN)
-            .body(response)
+        val statusName = when (ex.statusCode.value()) {
+            401 -> "UNAUTHORIZED"
+            403 -> "FORBIDDEN"
+            404 -> "NOT_FOUND"
+            409 -> "CONFLICT"
+            400 -> "BAD_REQUEST"
+            else -> "ERROR"
+        }
+        
+        return ErrorResponse.of(
+            code = statusName,
+            message = ex.reason ?: "Request failed with status ${ex.statusCode.value()}"
+        ).copy(
+            path = request.requestURI,
+            traceId = getTraceId()
+        )
     }
     
     /**
@@ -395,21 +423,19 @@ class GlobalExceptionHandler(
      */
     @ExceptionHandler(IllegalArgumentException::class)
     fun handleIllegalArgument(
-        ex: IllegalArgumentException
-    ): ResponseEntity<ErrorResponse> {
+        ex: IllegalArgumentException,
+        response: HttpServletResponse
+    ): ErrorResponse {
         logWarning("Invalid argument", ex)
+        response.status = HttpStatus.BAD_REQUEST.value()
         
-        val response = ErrorResponse.of(
+        return ErrorResponse.of(
             code = "INVALID_ARGUMENT",
             message = ex.message ?: "Invalid argument provided"
         ).copy(
             path = request.requestURI,
             traceId = getTraceId()
         )
-        
-        return ResponseEntity
-            .status(HttpStatus.BAD_REQUEST)
-            .body(response)
     }
     
     /**
@@ -417,21 +443,19 @@ class GlobalExceptionHandler(
      */
     @ExceptionHandler(IllegalStateException::class)
     fun handleIllegalState(
-        ex: IllegalStateException
-    ): ResponseEntity<ErrorResponse> {
+        ex: IllegalStateException,
+        response: HttpServletResponse
+    ): ErrorResponse {
         logWarning("Invalid state", ex)
+        response.status = HttpStatus.CONFLICT.value()
         
-        val response = ErrorResponse.of(
+        return ErrorResponse.of(
             code = "INVALID_STATE",
             message = ex.message ?: "Operation not allowed in current state"
         ).copy(
             path = request.requestURI,
             traceId = getTraceId()
         )
-        
-        return ResponseEntity
-            .status(HttpStatus.CONFLICT)
-            .body(response)
     }
     
     /**
@@ -440,11 +464,13 @@ class GlobalExceptionHandler(
      */
     @ExceptionHandler(Exception::class)
     fun handleGenericException(
-        ex: Exception
-    ): ResponseEntity<ErrorResponse> {
+        ex: Exception,
+        response: HttpServletResponse
+    ): ErrorResponse {
         logError("Unexpected error", ex)
+        response.status = HttpStatus.INTERNAL_SERVER_ERROR.value()
         
-        val response = if (isProduction()) {
+        return if (isProduction()) {
             ErrorResponse.internalError().copy(
                 path = request.requestURI,
                 traceId = getTraceId()
@@ -459,10 +485,6 @@ class GlobalExceptionHandler(
                 traceId = getTraceId()
             )
         }
-        
-        return ResponseEntity
-            .status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(response)
     }
     
     // === Helper Methods ===

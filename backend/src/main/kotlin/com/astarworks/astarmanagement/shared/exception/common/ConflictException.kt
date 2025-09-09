@@ -1,7 +1,7 @@
 package com.astarworks.astarmanagement.shared.exception.common
 
 import com.astarworks.astarmanagement.shared.exception.base.BusinessException
-import com.astarworks.astarmanagement.shared.exception.base.ErrorCode
+import com.astarworks.astarmanagement.shared.exception.base.ErrorCodeEnum
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -17,29 +17,23 @@ import java.util.UUID
  * @property existingResource The existing resource that conflicts (optional)
  */
 class ConflictException(
-    val conflictType: String,
+    val conflictType: ConflictType,
     val conflictingResource: Any? = null,
     val existingResource: Any? = null,
     message: String,
     cause: Throwable? = null
 ) : BusinessException(
     message = message,
-    errorCode = ErrorCode.CONFLICT,
+    errorCode = ErrorCodeEnum.CONFLICT.code,
     httpStatus = CONFLICT,
     details = buildJsonObject {
-        put("conflictType", JsonPrimitive(conflictType))
+        put("conflictType", JsonPrimitive(conflictType.name))
         conflictingResource?.let { put("conflictingResource", JsonPrimitive(it.toString())) }
         existingResource?.let { put("existingResource", JsonPrimitive(it.toString())) }
     },
     cause = cause
 ) {
     companion object {
-        // Conflict type constants
-        const val DUPLICATE = "DUPLICATE"
-        const val VERSION_MISMATCH = "VERSION_MISMATCH"
-        const val STATE_CONFLICT = "STATE_CONFLICT"
-        const val RESOURCE_LOCKED = "RESOURCE_LOCKED"
-        const val DEPENDENCY_CONFLICT = "DEPENDENCY_CONFLICT"
         
         /**
          * Creates a ConflictException for duplicate workspace name.
@@ -49,7 +43,7 @@ class ConflictException(
             tenantId: UUID
         ): ConflictException {
             return ConflictException(
-                conflictType = DUPLICATE,
+                conflictType = ConflictType.DUPLICATE,
                 conflictingResource = buildJsonObject {
                     put("name", JsonPrimitive(name))
                     put("tenantId", JsonPrimitive(tenantId.toString()))
@@ -66,7 +60,7 @@ class ConflictException(
             workspaceId: UUID
         ): ConflictException {
             return ConflictException(
-                conflictType = DUPLICATE,
+                conflictType = ConflictType.DUPLICATE,
                 conflictingResource = buildJsonObject {
                     put("name", JsonPrimitive(name))
                     put("workspaceId", JsonPrimitive(workspaceId.toString()))
@@ -83,7 +77,7 @@ class ConflictException(
             tableId: UUID
         ): ConflictException {
             return ConflictException(
-                conflictType = DUPLICATE,
+                conflictType = ConflictType.DUPLICATE,
                 conflictingResource = buildJsonObject {
                     put("key", JsonPrimitive(key))
                     put("tableId", JsonPrimitive(tableId.toString()))
@@ -102,7 +96,7 @@ class ConflictException(
             actualVersion: Any
         ): ConflictException {
             return ConflictException(
-                conflictType = VERSION_MISMATCH,
+                conflictType = ConflictType.VERSION_MISMATCH,
                 conflictingResource = buildJsonObject {
                     put("resourceType", JsonPrimitive(resourceType))
                     put("resourceId", JsonPrimitive(resourceId.toString()))
@@ -123,7 +117,7 @@ class ConflictException(
             requiredState: String
         ): ConflictException {
             return ConflictException(
-                conflictType = STATE_CONFLICT,
+                conflictType = ConflictType.STATE_CONFLICT,
                 conflictingResource = buildJsonObject {
                     put("resourceType", JsonPrimitive(resourceType))
                     put("resourceId", JsonPrimitive(resourceId.toString()))
@@ -149,7 +143,7 @@ class ConflictException(
             }
             
             return ConflictException(
-                conflictType = DEPENDENCY_CONFLICT,
+                conflictType = ConflictType.DEPENDENCY,
                 conflictingResource = buildJsonObject {
                     put("resourceType", JsonPrimitive(resourceType))
                     put("resourceId", JsonPrimitive(resourceId.toString()))
@@ -176,7 +170,7 @@ class ConflictException(
             }
             
             return ConflictException(
-                conflictType = RESOURCE_LOCKED,
+                conflictType = ConflictType.LOCK_CONFLICT,
                 conflictingResource = details,
                 message = "$resourceType is currently locked and cannot be modified"
             )
@@ -191,7 +185,7 @@ class ConflictException(
             limit: Int
         ): ConflictException {
             return ConflictException(
-                conflictType = STATE_CONFLICT,
+                conflictType = ConflictType.STATE_CONFLICT,
                 conflictingResource = buildJsonObject {
                     put("resourceType", JsonPrimitive(resourceType))
                     put("currentCount", JsonPrimitive(currentCount))

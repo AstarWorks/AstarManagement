@@ -1,7 +1,7 @@
 package com.astarworks.astarmanagement.shared.exception.common
 
 import com.astarworks.astarmanagement.shared.exception.base.BusinessException
-import com.astarworks.astarmanagement.shared.exception.base.ErrorCode
+import com.astarworks.astarmanagement.shared.exception.base.ErrorCodeEnum
 import com.astarworks.astarmanagement.shared.exception.dto.ValidationError
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
@@ -18,18 +18,18 @@ import kotlinx.serialization.json.JsonPrimitive
 class ValidationException(
     val field: String? = null,
     val violations: List<ValidationError>? = null,
-    val validationType: String? = null,
+    val validationType: ValidationType? = null,
     message: String = "Validation failed",
     cause: Throwable? = null
 ) : BusinessException(
     message = message,
-    errorCode = ErrorCode.VALIDATION_ERROR,
+    errorCode = ErrorCodeEnum.VALIDATION_ERROR.code,
     httpStatus = BAD_REQUEST,
     details = if (field != null || violations != null || validationType != null) {
         buildJsonObject {
             field?.let { put("field", JsonPrimitive(it)) }
             violations?.let { put("violations", JsonPrimitive(it.toString())) }
-            validationType?.let { put("validationType", JsonPrimitive(it)) }
+            validationType?.let { put("validationType", JsonPrimitive(it.name)) }
         }
     } else null,
     cause = cause

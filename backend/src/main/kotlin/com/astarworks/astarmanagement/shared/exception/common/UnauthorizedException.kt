@@ -1,7 +1,7 @@
 package com.astarworks.astarmanagement.shared.exception.common
 
 import com.astarworks.astarmanagement.shared.exception.base.BusinessException
-import com.astarworks.astarmanagement.shared.exception.base.ErrorCode
+import com.astarworks.astarmanagement.shared.exception.base.ErrorCodeEnum
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -20,7 +20,7 @@ class UnauthorizedException(
     cause: Throwable? = null
 ) : BusinessException(
     message = message,
-    errorCode = ErrorCode.UNAUTHORIZED,
+    errorCode = ErrorCodeEnum.UNAUTHORIZED.code,
     httpStatus = UNAUTHORIZED,
     details = if (reason != null || realm != null) {
         buildJsonObject {
@@ -134,7 +134,7 @@ class ForbiddenException(
     cause: Throwable? = null
 ) : BusinessException(
     message = message,
-    errorCode = ErrorCode.FORBIDDEN,
+    errorCode = ErrorCodeEnum.FORBIDDEN.code,
     httpStatus = FORBIDDEN,
     details = if (requiredPermission != null || userPermissions != null || resource != null) {
         buildJsonObject {

@@ -1,7 +1,7 @@
 package com.astarworks.astarmanagement.shared.exception.common
 
 import com.astarworks.astarmanagement.shared.exception.base.BusinessException
-import com.astarworks.astarmanagement.shared.exception.base.ErrorCode
+import com.astarworks.astarmanagement.shared.exception.base.ErrorCodeEnum
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -16,16 +16,16 @@ import java.util.UUID
  * @property searchCriteria Additional search criteria used (optional)
  */
 class ResourceNotFoundException(
-    val resourceType: String,
+    val resourceType: ResourceType,
     val resourceId: Any,
     val searchCriteria: JsonObject? = null,
     message: String? = null
 ) : BusinessException(
-    message = message ?: "$resourceType not found: $resourceId",
-    errorCode = ErrorCode.RESOURCE_NOT_FOUND,
+    message = message ?: "${resourceType.displayName} not found: $resourceId",
+    errorCode = ErrorCodeEnum.RESOURCE_NOT_FOUND.code,
     httpStatus = NOT_FOUND,
     details = buildJsonObject {
-        put("resourceType", JsonPrimitive(resourceType))
+        put("resourceType", JsonPrimitive(resourceType.name))
         put("resourceId", JsonPrimitive(resourceId.toString()))
         searchCriteria?.let {
             it.forEach { (key, value) ->
@@ -40,7 +40,7 @@ class ResourceNotFoundException(
          */
         fun workspace(workspaceId: UUID): ResourceNotFoundException {
             return ResourceNotFoundException(
-                resourceType = "Workspace",
+                resourceType = ResourceType.WORKSPACE,
                 resourceId = workspaceId,
                 message = "Workspace not found: $workspaceId"
             )
@@ -51,7 +51,7 @@ class ResourceNotFoundException(
          */
         fun table(tableId: UUID): ResourceNotFoundException {
             return ResourceNotFoundException(
-                resourceType = "Table",
+                resourceType = ResourceType.TABLE,
                 resourceId = tableId,
                 message = "Table not found: $tableId"
             )
@@ -62,7 +62,7 @@ class ResourceNotFoundException(
          */
         fun record(recordId: UUID): ResourceNotFoundException {
             return ResourceNotFoundException(
-                resourceType = "Record",
+                resourceType = ResourceType.RECORD,
                 resourceId = recordId,
                 message = "Record not found: $recordId"
             )
@@ -73,7 +73,7 @@ class ResourceNotFoundException(
          */
         fun propertyType(typeId: String): ResourceNotFoundException {
             return ResourceNotFoundException(
-                resourceType = "PropertyType",
+                resourceType = ResourceType.PROPERTY_TYPE,
                 resourceId = typeId,
                 message = "Property type not found: $typeId"
             )
@@ -84,7 +84,7 @@ class ResourceNotFoundException(
          */
         fun tenant(tenantId: UUID): ResourceNotFoundException {
             return ResourceNotFoundException(
-                resourceType = "Tenant",
+                resourceType = ResourceType.TENANT,
                 resourceId = tenantId,
                 message = "Tenant not found: $tenantId"
             )
@@ -95,7 +95,7 @@ class ResourceNotFoundException(
          */
         fun user(userId: UUID): ResourceNotFoundException {
             return ResourceNotFoundException(
-                resourceType = "User",
+                resourceType = ResourceType.USER,
                 resourceId = userId,
                 message = "User not found: $userId"
             )
@@ -105,7 +105,7 @@ class ResourceNotFoundException(
          * Creates a ResourceNotFoundException with search criteria.
          */
         fun withCriteria(
-            resourceType: String,
+            resourceType: ResourceType,
             criteria: Map<String, Any>
         ): ResourceNotFoundException {
             val jsonCriteria = buildJsonObject {
@@ -117,7 +117,7 @@ class ResourceNotFoundException(
                 resourceType = resourceType,
                 resourceId = "unknown",
                 searchCriteria = jsonCriteria,
-                message = "$resourceType not found with criteria: $criteria"
+                message = "${resourceType.displayName} not found with criteria: $criteria"
             )
         }
     }
