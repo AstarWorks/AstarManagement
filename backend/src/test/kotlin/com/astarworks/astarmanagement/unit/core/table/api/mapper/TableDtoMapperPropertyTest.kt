@@ -5,6 +5,7 @@ import com.astarworks.astarmanagement.core.table.api.dto.property.PropertyDefini
 import com.astarworks.astarmanagement.core.table.api.dto.property.SelectOptionDto
 import com.astarworks.astarmanagement.core.table.api.mapper.TableDtoMapper
 import com.astarworks.astarmanagement.core.table.domain.model.PropertyDefinition
+import com.astarworks.astarmanagement.core.table.domain.model.PropertyType
 import com.astarworks.astarmanagement.core.table.domain.model.Table
 import com.astarworks.astarmanagement.shared.domain.value.TableId
 import com.astarworks.astarmanagement.shared.domain.value.WorkspaceId
@@ -40,7 +41,7 @@ class TableDtoMapperPropertyTest {
         fun `should convert basic property definition to dto`() {
             // Given
             val propertyDef = PropertyDefinition(
-                typeId = "text",
+                type = PropertyType.TEXT,
                 displayName = "Test Property",
                 config = buildJsonObject { 
                     put("maxLength", 500)
@@ -52,7 +53,7 @@ class TableDtoMapperPropertyTest {
             
             // Then
             assertThat(dto).isNotNull
-            assertThat(dto.typeId).isEqualTo("text")
+            assertThat(dto.type).isEqualTo(PropertyType.TEXT)
             assertThat(dto.displayName).isEqualTo("Test Property")
             assertThat(dto.config["maxLength"]?.jsonPrimitive?.int).isEqualTo(500)
             assertThat(dto.required).isFalse() // Default value
@@ -65,7 +66,7 @@ class TableDtoMapperPropertyTest {
         fun `should extract required flag from config`() {
             // Given
             val propertyDef = PropertyDefinition(
-                typeId = "text",
+                type = PropertyType.TEXT,
                 displayName = "Required Field",
                 config = buildJsonObject { 
                     put("required", true)
@@ -87,7 +88,7 @@ class TableDtoMapperPropertyTest {
         fun `should handle complex config with nested objects`() {
             // Given
             val propertyDef = PropertyDefinition(
-                typeId = "select",
+                type = PropertyType.SELECT,
                 displayName = "Status Field",
                 config = buildJsonObject {
                     putJsonArray("options") {
@@ -110,7 +111,7 @@ class TableDtoMapperPropertyTest {
             val dto = mapper.toPropertyDefinitionDto(propertyDef)
             
             // Then
-            assertThat(dto.typeId).isEqualTo("select")
+            assertThat(dto.type).isEqualTo(PropertyType.SELECT)
             val options = dto.config["options"]?.jsonArray
             assertThat(options).isNotNull()
             assertThat(options?.size).isEqualTo(2)
@@ -122,7 +123,7 @@ class TableDtoMapperPropertyTest {
         fun `should handle number type with validation`() {
             // Given
             val propertyDef = PropertyDefinition(
-                typeId = "number",
+                type = PropertyType.NUMBER,
                 displayName = "Age",
                 config = buildJsonObject {
                     put("min", 0)
@@ -136,7 +137,7 @@ class TableDtoMapperPropertyTest {
             val dto = mapper.toPropertyDefinitionDto(propertyDef)
             
             // Then
-            assertThat(dto.typeId).isEqualTo("number")
+            assertThat(dto.type).isEqualTo(PropertyType.NUMBER)
             assertThat(dto.config["min"]?.jsonPrimitive?.int).isEqualTo(0)
             assertThat(dto.config["max"]?.jsonPrimitive?.int).isEqualTo(150)
             assertThat(dto.config["decimals"]?.jsonPrimitive?.int).isEqualTo(0)
@@ -148,7 +149,7 @@ class TableDtoMapperPropertyTest {
         fun `should handle empty config`() {
             // Given
             val propertyDef = PropertyDefinition(
-                typeId = "text",
+                type = PropertyType.TEXT,
                 displayName = "Simple Text"
                 // config defaults to empty JsonObject
             )
@@ -172,7 +173,7 @@ class TableDtoMapperPropertyTest {
             // Given
             val dto = PropertyDefinitionDto(
                 key = "testProp",
-                typeId = "text",
+                type = PropertyType.TEXT,
                 displayName = "Test Property",
                 config = buildJsonObject {
                     put("maxLength", 1000)
@@ -187,7 +188,7 @@ class TableDtoMapperPropertyTest {
             
             // Then
             assertThat(propertyDef).isNotNull
-            assertThat(propertyDef.typeId).isEqualTo("text")
+            assertThat(propertyDef.type).isEqualTo(PropertyType.TEXT)
             assertThat(propertyDef.displayName).isEqualTo("Test Property")
             assertThat(propertyDef.config["required"]?.jsonPrimitive?.boolean).isTrue()
             assertThat(propertyDef.config["maxLength"]?.jsonPrimitive?.int).isEqualTo(1000)
@@ -201,7 +202,7 @@ class TableDtoMapperPropertyTest {
             // Given
             val dto = PropertyDefinitionDto(
                 key = "requiredProp",
-                typeId = "number",
+                type = PropertyType.NUMBER,
                 displayName = "Required Number",
                 required = true
             )
@@ -233,7 +234,7 @@ class TableDtoMapperPropertyTest {
             val propertyDef = mapper.fromPropertyDefinitionDto(dto)
             
             // Then
-            assertThat(propertyDef.typeId).isEqualTo("select")
+            assertThat(propertyDef.type).isEqualTo(PropertyType.SELECT)
             val options = propertyDef.config["options"]?.jsonArray
             assertThat(options?.size).isEqualTo(3)
             val firstOption = options?.get(0)?.jsonObject
@@ -248,7 +249,7 @@ class TableDtoMapperPropertyTest {
             // Given
             val dto = PropertyDefinitionDto(
                 key = "withDefault",
-                typeId = "checkbox",  // Using valid PropertyTypes.CHECKBOX instead of "boolean"
+                type = PropertyType.CHECKBOX,
                 displayName = "Checkbox Field",
                 defaultValue = JsonPrimitive(true)
             )
@@ -258,7 +259,7 @@ class TableDtoMapperPropertyTest {
             
             // Then
             // defaultValue is not embedded in config (it's a DTO-only field)
-            assertThat(propertyDef.typeId).isEqualTo("checkbox")
+            assertThat(propertyDef.type).isEqualTo(PropertyType.CHECKBOX)
             assertThat(propertyDef.displayName).isEqualTo("Checkbox Field")
             // The defaultValue field is preserved in the DTO but not transferred to domain model
         }
@@ -274,7 +275,7 @@ class TableDtoMapperPropertyTest {
             // Given
             val originalDto = PropertyDefinitionDto(
                 key = "roundTripProp",
-                typeId = "text",
+                type = PropertyType.TEXT,
                 displayName = "Round Trip Property",
                 config = buildJsonObject {
                     put("maxLength", 500)
@@ -292,7 +293,7 @@ class TableDtoMapperPropertyTest {
             
             // Then
             // Note: key is not preserved in the conversion (it's stored separately in the map)
-            assertThat(convertedDto.typeId).isEqualTo(originalDto.typeId)
+            assertThat(convertedDto.type).isEqualTo(originalDto.type)
             assertThat(convertedDto.displayName).isEqualTo(originalDto.displayName)
             assertThat(convertedDto.required).isEqualTo(originalDto.required)
             assertThat(convertedDto.config["maxLength"]).isEqualTo(originalDto.config["maxLength"])
@@ -306,7 +307,7 @@ class TableDtoMapperPropertyTest {
             // Given
             val originalDto = PropertyDefinitionDto(
                 key = "complexProp",
-                typeId = "select",  // Using valid PropertyTypes.SELECT instead of "custom"
+                type = PropertyType.SELECT,
                 displayName = "Complex Property",
                 config = buildJsonObject {
                     putJsonObject("validation") {
@@ -353,16 +354,16 @@ class TableDtoMapperPropertyTest {
             // Given
             val properties = mapOf(
                 "field1" to PropertyDefinition(
-                    typeId = "text",
+                    type = PropertyType.TEXT,
                     displayName = "Field 1",
                     config = buildJsonObject { put("required", true) }
                 ),
                 "field2" to PropertyDefinition(
-                    typeId = "number",
+                    type = PropertyType.NUMBER,
                     displayName = "Field 2"
                 ),
                 "field3" to PropertyDefinition(
-                    typeId = "select",
+                    type = PropertyType.SELECT,
                     displayName = "Field 3",
                     config = buildJsonObject {
                         putJsonArray("options") {
@@ -388,7 +389,7 @@ class TableDtoMapperPropertyTest {
             // Then
             assertThat(response.properties).hasSize(3)
             assertThat(response.properties["field1"]?.required).isTrue()
-            assertThat(response.properties["field2"]?.typeId).isEqualTo("number")
+            assertThat(response.properties["field2"]?.type).isEqualTo(PropertyType.NUMBER)
             assertThat(response.properties["field3"]?.config?.get("options")).isNotNull()
             
             // Verify property order is preserved

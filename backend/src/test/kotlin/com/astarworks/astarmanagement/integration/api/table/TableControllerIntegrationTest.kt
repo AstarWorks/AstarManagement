@@ -13,6 +13,7 @@ import com.astarworks.astarmanagement.core.table.api.dto.property.PropertyReorde
 import com.astarworks.astarmanagement.core.table.api.dto.property.PropertyUpdateRequest
 import com.astarworks.astarmanagement.core.table.api.dto.table.TableCreateRequest
 import com.astarworks.astarmanagement.core.table.api.dto.table.TableUpdateRequest
+import com.astarworks.astarmanagement.core.table.domain.model.PropertyType
 import com.astarworks.astarmanagement.core.table.domain.service.TableService
 import com.astarworks.astarmanagement.core.tenant.domain.model.Tenant
 import com.astarworks.astarmanagement.core.tenant.domain.repository.TenantRepository
@@ -367,7 +368,7 @@ class TableControllerIntegrationTest : IntegrationTestBase() {
                 properties = listOf(
                     PropertyDefinitionDto(
                         key = "title",
-                        typeId = "text",
+                        type = PropertyType.TEXT,
                         displayName = "Title",
                         config = kotlinx.serialization.json.buildJsonObject {
                             put("required", kotlinx.serialization.json.JsonPrimitive(true))
@@ -375,7 +376,7 @@ class TableControllerIntegrationTest : IntegrationTestBase() {
                     ),
                     PropertyDefinitionDto(
                         key = "priority",
-                        typeId = "select",
+                        type = PropertyType.SELECT,
                         displayName = "Priority",
                         config = kotlinx.serialization.json.buildJsonObject {
                             put("options", kotlinx.serialization.json.buildJsonArray {
@@ -629,7 +630,7 @@ class TableControllerIntegrationTest : IntegrationTestBase() {
             val propertyRequest = PropertyAddRequest(
                 definition = PropertyDefinitionDto(
                     key = "status",
-                    typeId = "select",
+                    type = PropertyType.SELECT,
                     displayName = "Status",
                     config = kotlinx.serialization.json.buildJsonObject {
                         put("options", kotlinx.serialization.json.buildJsonArray {
@@ -655,10 +656,11 @@ class TableControllerIntegrationTest : IntegrationTestBase() {
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(json.encodeToString(propertyRequest))
             )
+            .andDo(print())
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.properties.status").exists())
             .andExpect(jsonPath("$.properties.status.displayName").value("Status"))
-            .andExpect(jsonPath("$.properties.status.typeId").value("select"))
+            .andExpect(jsonPath("$.properties.status.type").value("select"))
             .andExpect(jsonPath("$.propertyOrder[*]").value(Matchers.hasItem("status")))
         }
         
@@ -671,7 +673,7 @@ class TableControllerIntegrationTest : IntegrationTestBase() {
             val addRequest = PropertyAddRequest(
                 definition = PropertyDefinitionDto(
                     key = "category",
-                    typeId = "text",
+                    type = PropertyType.TEXT,
                     displayName = "Category",
                     config = kotlinx.serialization.json.buildJsonObject {
                         put("required", kotlinx.serialization.json.JsonPrimitive(true))
@@ -714,7 +716,7 @@ class TableControllerIntegrationTest : IntegrationTestBase() {
             val addRequest = PropertyAddRequest(
                 definition = PropertyDefinitionDto(
                     key = "temp_field",
-                    typeId = "text",
+                    type = PropertyType.TEXT,
                     displayName = "Temporary Field"
                 )
             )
@@ -747,7 +749,7 @@ class TableControllerIntegrationTest : IntegrationTestBase() {
                 val addRequest = PropertyAddRequest(
                     definition = PropertyDefinitionDto(
                         key = propKey,
-                        typeId = "text",
+                        type = PropertyType.TEXT,
                         displayName = propKey.capitalize()
                     )
                 )
@@ -786,7 +788,7 @@ class TableControllerIntegrationTest : IntegrationTestBase() {
             val firstRequest = PropertyAddRequest(
                 definition = PropertyDefinitionDto(
                     key = "duplicate_key",
-                    typeId = "text",
+                    type = PropertyType.TEXT,
                     displayName = "First Property"
                 )
             )
@@ -802,7 +804,7 @@ class TableControllerIntegrationTest : IntegrationTestBase() {
             val duplicateRequest = PropertyAddRequest(
                 definition = PropertyDefinitionDto(
                     key = "duplicate_key",
-                    typeId = "number",
+                    type = PropertyType.NUMBER,
                     displayName = "Duplicate Property"
                 )
             )
@@ -849,7 +851,7 @@ class TableControllerIntegrationTest : IntegrationTestBase() {
             )
             val updateRequest = TableUpdateRequest(name = "Updated Name")
             val propertyRequest = PropertyAddRequest(
-                definition = PropertyDefinitionDto("test", "text", "Test")
+                definition = PropertyDefinitionDto("test", PropertyType.TEXT, "Test")
             )
             
             // Test all major endpoints without authentication
@@ -930,7 +932,7 @@ class TableControllerIntegrationTest : IntegrationTestBase() {
             
             // Viewer tries to add property - should fail
             val propertyRequest = PropertyAddRequest(
-                definition = PropertyDefinitionDto("new_prop", "text", "New Property")
+                definition = PropertyDefinitionDto("new_prop", PropertyType.TEXT, "New Property")
             )
             
             mockMvc.perform(

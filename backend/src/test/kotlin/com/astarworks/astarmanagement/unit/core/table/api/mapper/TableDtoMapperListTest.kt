@@ -4,6 +4,7 @@ import com.astarworks.astarmanagement.base.UnitTest
 import com.astarworks.astarmanagement.core.table.api.dto.table.TableListResponse
 import com.astarworks.astarmanagement.core.table.api.mapper.TableDtoMapper
 import com.astarworks.astarmanagement.core.table.domain.model.PropertyDefinition
+import com.astarworks.astarmanagement.core.table.domain.model.PropertyType
 import com.astarworks.astarmanagement.core.table.domain.model.Table
 import com.astarworks.astarmanagement.shared.domain.value.TableId
 import com.astarworks.astarmanagement.shared.domain.value.WorkspaceId
@@ -303,10 +304,10 @@ class TableDtoMapperListTest {
     
     private fun createTestPropertyDefinition(
         displayName: String,
-        typeId: String = "text"
+        type: PropertyType = PropertyType.TEXT
     ): PropertyDefinition {
         return PropertyDefinition(
-            typeId = typeId,
+            type = type,
             displayName = displayName,
             config = buildJsonObject { 
                 put("maxLength", 500)

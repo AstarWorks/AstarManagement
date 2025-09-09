@@ -14,7 +14,7 @@ import com.astarworks.astarmanagement.core.membership.domain.repository.TenantMe
 import com.astarworks.astarmanagement.core.table.api.dto.record.*
 import com.astarworks.astarmanagement.core.table.api.dto.table.*
 import com.astarworks.astarmanagement.core.table.api.dto.property.*
-import com.astarworks.astarmanagement.core.table.domain.model.PropertyTypes
+import com.astarworks.astarmanagement.core.table.domain.model.PropertyType
 import com.astarworks.astarmanagement.core.table.domain.model.Table
 import com.astarworks.astarmanagement.core.table.domain.service.TableService
 import com.astarworks.astarmanagement.core.table.domain.service.RecordService
@@ -181,14 +181,14 @@ class UserOnboardingWorkflowTest : IntegrationTestBase() {
                 properties = listOf(
                     PropertyDefinitionDto(
                         key = "title",
-                        typeId = PropertyTypes.TEXT,
+                        type = PropertyType.TEXT,
                         displayName = "Title",
                         required = true,
                         config = buildJsonObject {}
                     ),
                     PropertyDefinitionDto(
                         key = "status",
-                        typeId = PropertyTypes.SELECT,
+                        type = PropertyType.SELECT,
                         displayName = "Status", 
                         required = false,
                         config = buildJsonObject {
@@ -210,7 +210,7 @@ class UserOnboardingWorkflowTest : IntegrationTestBase() {
                     ),
                     PropertyDefinitionDto(
                         key = "assignee",
-                        typeId = PropertyTypes.TEXT,
+                        type = PropertyType.TEXT,
                         displayName = "Assignee",
                         required = false,
                         config = buildJsonObject {}
@@ -371,7 +371,7 @@ class UserOnboardingWorkflowTest : IntegrationTestBase() {
                 properties = listOf(
                     PropertyDefinitionDto(
                         key = "title",
-                        typeId = PropertyTypes.TEXT,
+                        type = PropertyType.TEXT,
                         displayName = "Title",
                         required = true,
                         config = buildJsonObject {}
@@ -577,7 +577,7 @@ class UserOnboardingWorkflowTest : IntegrationTestBase() {
                 properties = listOf(
                     PropertyDefinitionDto(
                         key = "content",
-                        typeId = PropertyTypes.TEXT,
+                        type = PropertyType.TEXT,
                         displayName = "Content",
                         required = true,
                         config = buildJsonObject {}
@@ -607,7 +607,7 @@ class UserOnboardingWorkflowTest : IntegrationTestBase() {
                 properties = listOf(
                     PropertyDefinitionDto(
                         key = "content",
-                        typeId = PropertyTypes.TEXT,
+                        type = PropertyType.TEXT,
                         displayName = "Content",
                         required = true,
                         config = buildJsonObject {}
@@ -759,7 +759,7 @@ class UserOnboardingWorkflowTest : IntegrationTestBase() {
                 properties = listOf(
                     PropertyDefinitionDto(
                         key = "requiredField",
-                        typeId = PropertyTypes.TEXT,
+                        type = PropertyType.TEXT,
                         displayName = "Required",
                         required = true,
                         config = buildJsonObject {}
@@ -780,11 +780,15 @@ class UserOnboardingWorkflowTest : IntegrationTestBase() {
                 tableResponse.response.contentAsString
             )
             
-            // Try to create record without required field
-            val invalidRecordRequest = RecordCreateRequest(
+            // Note: Record validation has been removed from the service layer in the simplified version
+            // The backend now acts as a simple JSON container (MVP philosophy)
+            // Validation should be handled by the frontend or in future iterations
+            
+            // Create record without required field - should succeed now (no validation)
+            val recordWithoutRequiredField = RecordCreateRequest(
                 tableId = table.id,
                 data = buildJsonObject {
-                    // Missing required field
+                    // Missing required field - but this is allowed in simplified service
                 }
             )
             
@@ -792,9 +796,9 @@ class UserOnboardingWorkflowTest : IntegrationTestBase() {
                 post("/api/v1/records")
                     .header("Authorization", "Bearer $jwt")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(json.encodeToString(invalidRecordRequest))
+                    .content(json.encodeToString(recordWithoutRequiredField))
             )
-            .andExpect(status().isBadRequest)
+            .andExpect(status().isCreated)  // Should succeed without validation
         }
     }
     
@@ -860,7 +864,7 @@ class UserOnboardingWorkflowTest : IntegrationTestBase() {
         val adminRoleId = UUID.randomUUID()
         executeAsSystemUser {
             // Create admin role
-            dynamicRoleRepository.save(
+            val adminRole = dynamicRoleRepository.save(
                 DynamicRole(
                     id = RoleId(adminRoleId),
                     tenantId = TenantId(setupResult.tenantId),
@@ -873,6 +877,14 @@ class UserOnboardingWorkflowTest : IntegrationTestBase() {
                     updatedAt = Instant.now()
                 )
             )
+        }
+        
+        // Verify role was created before granting permissions
+        executeAsSystemUser {
+            val savedRole = dynamicRoleRepository.findById(RoleId(adminRoleId))
+            if (savedRole == null) {
+                throw IllegalStateException("Admin role was not created successfully")
+            }
             
             // Add workspace permissions
             rolePermissionService.grantPermissionFromString(

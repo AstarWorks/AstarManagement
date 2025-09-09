@@ -3,7 +3,7 @@ package com.astarworks.astarmanagement.unit.core.table.domain.model
 import com.astarworks.astarmanagement.base.UnitTest
 import com.astarworks.astarmanagement.core.table.domain.model.Table
 import com.astarworks.astarmanagement.core.table.domain.model.PropertyDefinition
-import com.astarworks.astarmanagement.core.table.domain.model.PropertyTypes
+import com.astarworks.astarmanagement.core.table.domain.model.PropertyType
 import com.astarworks.astarmanagement.core.table.api.exception.DuplicatePropertyKeyException
 import com.astarworks.astarmanagement.fixture.builder.DomainModelTestBuilder
 import com.astarworks.astarmanagement.shared.domain.value.TableId
@@ -696,11 +696,11 @@ class TableTest {
                 .addProperty("status", DomainModelTestBuilder.selectPropertyDefinition("Status"))
                 .addProperty("priority", DomainModelTestBuilder.selectPropertyDefinition("Priority"))
                 .addProperty("assignee", DomainModelTestBuilder.propertyDefinition(
-                    typeId = PropertyTypes.USER, 
+                    type = PropertyType.TEXT, // User type removed 
                     displayName = "Assignee"
                 ))
                 .addProperty("due_date", DomainModelTestBuilder.propertyDefinition(
-                    typeId = PropertyTypes.DATE, 
+                    type = PropertyType.DATE, 
                     displayName = "Due Date"
                 ))
                 .reorderProperties(listOf("title", "priority", "status", "assignee", "due_date"))
@@ -720,7 +720,7 @@ class TableTest {
             assertEquals("Title", titleProperty.displayName)
             
             val statusProperty = finalTable.getProperty("status")!!
-            assertEquals(PropertyTypes.SELECT, statusProperty.typeId)
+            assertEquals(PropertyType.SELECT, statusProperty.type)
         }
         
         @Test
@@ -762,10 +762,10 @@ class TableTest {
             
             val priorityProperty = complexTable.getProperty("priority")!!
             assertTrue(priorityProperty.isRequired)
-            assertEquals(PropertyTypes.SELECT, priorityProperty.typeId)
+            assertEquals(PropertyType.SELECT, priorityProperty.type)
             
             val tagsProperty = complexTable.getProperty("tags")!!
-            assertEquals(PropertyTypes.MULTI_SELECT, tagsProperty.typeId)
+            assertEquals(PropertyType.MULTI_SELECT, tagsProperty.type)
             assertTrue(tagsProperty.isMultiple)
             
             val scoreProperty = complexTable.getProperty("score")!!

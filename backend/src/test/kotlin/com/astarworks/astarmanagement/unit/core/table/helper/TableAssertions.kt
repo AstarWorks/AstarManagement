@@ -120,51 +120,52 @@ object TableAssertions {
     
     /**
      * Asserts property type catalog properties.
+     * @deprecated PropertyTypeCatalog has been removed from the system
      */
-    fun assertPropertyType(
-        type: PropertyTypeCatalog,
-        id: String? = null,
-        category: PropertyTypeCategory? = null,
-        isActive: Boolean? = null,
-        isCustom: Boolean? = null
-    ) {
-        id?.let {
-            assertThat(type.id)
-                .describedAs("Property type ID")
-                .isEqualTo(it)
-        }
-        
-        category?.let {
-            assertThat(type.category)
-                .describedAs("Property type category")
-                .isEqualTo(it)
-        }
-        
-        isActive?.let {
-            assertThat(type.isActive)
-                .describedAs("Property type active status")
-                .isEqualTo(it)
-        }
-        
-        isCustom?.let {
-            assertThat(type.isCustom)
-                .describedAs("Property type custom status")
-                .isEqualTo(it)
-        }
-    }
+    // fun assertPropertyType(
+    //     type: PropertyTypeCatalog,
+    //     id: String? = null,
+    //     category: PropertyTypeCategory? = null,
+    //     isActive: Boolean? = null,
+    //     isCustom: Boolean? = null
+    // ) {
+    //     id?.let {
+    //         assertThat(type.id)
+    //             .describedAs("Property type ID")
+    //             .isEqualTo(it)
+    //     }
+    //     
+    //     category?.let {
+    //         assertThat(type.category)
+    //             .describedAs("Property type category")
+    //             .isEqualTo(it)
+    //     }
+    //     
+    //     isActive?.let {
+    //         assertThat(type.isActive)
+    //             .describedAs("Property type active status")
+    //             .isEqualTo(it)
+    //     }
+    //     
+    //     isCustom?.let {
+    //         assertThat(type.isCustom)
+    //             .describedAs("Property type custom status")
+    //             .isEqualTo(it)
+    //     }
+    // }
     
     /**
      * Asserts property definition properties.
      */
     fun assertPropertyDefinition(
         definition: PropertyDefinition,
-        typeId: String? = null,
+        type: PropertyType? = null,
         displayName: String? = null,
         isRequired: Boolean? = null
     ) {
-        typeId?.let {
-            assertThat(definition.typeId)
-                .describedAs("Property definition type ID")
+        type?.let {
+            assertThat(definition.type)
+                .describedAs("Property definition type")
                 .isEqualTo(it)
         }
         
@@ -245,13 +246,13 @@ object TableAssertions {
             .describedAs("Task template should have standard properties")
             .containsKeys("title", "status", "assignee", "due_date", "description")
         
-        assertThat(table.properties["title"]?.typeId)
+        assertThat(table.properties["title"]?.type)
             .describedAs("Title should be text type")
-            .isEqualTo(PropertyTypeCatalog.TEXT)
+            .isEqualTo(PropertyType.TEXT)
         
-        assertThat(table.properties["status"]?.typeId)
+        assertThat(table.properties["status"]?.type)
             .describedAs("Status should be select type")
-            .isEqualTo(PropertyTypeCatalog.SELECT)
+            .isEqualTo(PropertyType.SELECT)
     }
     
     /**
@@ -262,12 +263,12 @@ object TableAssertions {
             .describedAs("Customer template should have standard properties")
             .containsKeys("name", "email", "phone", "company", "status", "notes")
         
-        assertThat(table.properties["email"]?.typeId)
+        assertThat(table.properties["email"]?.type)
             .describedAs("Email should be email type")
-            .isEqualTo(PropertyTypeCatalog.EMAIL)
+            .isEqualTo(PropertyType.EMAIL)
         
-        assertThat(table.properties["phone"]?.typeId)
+        assertThat(table.properties["phone"]?.type)
             .describedAs("Phone should be phone type")
-            .isEqualTo(PropertyTypeCatalog.PHONE)
+            .isEqualTo(PropertyType.TEXT) // Phone type removed
     }
 }

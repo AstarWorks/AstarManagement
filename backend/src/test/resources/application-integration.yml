@@ -5,11 +5,6 @@ spring:
   application:
     name: AstarManagement-IntegrationTest
   
-  # Kotlin Serializationを優先的に使用
-  http:
-    converters:
-      preferred-json-mapper: kotlin-serialization
-  
   jpa:
     hibernate:
       ddl-auto: validate  # Flyway handles schema

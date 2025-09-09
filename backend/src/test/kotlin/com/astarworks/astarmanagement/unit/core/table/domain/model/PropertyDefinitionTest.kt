@@ -2,7 +2,7 @@ package com.astarworks.astarmanagement.unit.core.table.domain.model
 
 import com.astarworks.astarmanagement.base.UnitTest
 import com.astarworks.astarmanagement.core.table.domain.model.PropertyDefinition
-import com.astarworks.astarmanagement.core.table.domain.model.PropertyTypes
+import com.astarworks.astarmanagement.core.table.domain.model.PropertyType
 import com.astarworks.astarmanagement.core.table.domain.model.SelectOption
 import com.astarworks.astarmanagement.fixture.builder.DomainModelTestBuilder
 import kotlinx.serialization.json.*
@@ -22,12 +22,12 @@ class PropertyDefinitionTest {
     companion object {
         @JvmStatic
         fun validPropertyTypes(): Stream<String> {
-            return DomainModelTestBuilder.validPropertyTypes().stream()
+            return DomainModelTestBuilder.validPropertyType().stream()
         }
         
         @JvmStatic
         fun invalidPropertyTypes(): Stream<String> {
-            return DomainModelTestBuilder.invalidPropertyTypes().stream()
+            return DomainModelTestBuilder.invalidPropertyType().stream()
         }
         
         @JvmStatic
@@ -44,13 +44,13 @@ class PropertyDefinitionTest {
         }
         
         @JvmStatic
-        fun textTypeIds(): Stream<String> {
-            return Stream.of(PropertyTypes.TEXT, PropertyTypes.LONG_TEXT)
+        fun textTypeIds(): Stream<PropertyType> {
+            return Stream.of(PropertyType.TEXT, PropertyType.LONG_TEXT)
         }
         
         @JvmStatic
-        fun selectTypeIds(): Stream<String> {
-            return Stream.of(PropertyTypes.SELECT, PropertyTypes.MULTI_SELECT)
+        fun selectTypeIds(): Stream<PropertyType> {
+            return Stream.of(PropertyType.SELECT, PropertyType.MULTI_SELECT)
         }
     }
     
@@ -62,7 +62,7 @@ class PropertyDefinitionTest {
         @DisplayName("Should create PropertyDefinition with valid parameters")
         fun `should create PropertyDefinition with valid parameters`() {
             // Given
-            val typeId = PropertyTypes.TEXT
+            val type = PropertyType.TEXT
             val displayName = "Test Property"
             val config = buildJsonObject {
                 put("required", true)
@@ -71,13 +71,13 @@ class PropertyDefinitionTest {
             
             // When
             val property = DomainModelTestBuilder.propertyDefinition(
-                typeId = typeId,
+                type = type,
                 displayName = displayName,
                 config = config
             )
             
             // Then
-            assertEquals(typeId, property.typeId)
+            assertEquals(type, property.type)
             assertEquals(displayName, property.displayName)
             assertEquals(config, property.config)
         }
@@ -86,18 +86,18 @@ class PropertyDefinitionTest {
         @DisplayName("Should create PropertyDefinition with empty config")
         fun `should create PropertyDefinition with empty config`() {
             // Given
-            val typeId = PropertyTypes.TEXT
+            val type = PropertyType.TEXT
             val displayName = "Simple Property"
             
             // When
             val property = DomainModelTestBuilder.propertyDefinition(
-                typeId = typeId,
+                type = type,
                 displayName = displayName,
                 config = JsonObject(emptyMap())
             )
             
             // Then
-            assertEquals(typeId, property.typeId)
+            assertEquals(type, property.type)
             assertEquals(displayName, property.displayName)
             assertTrue(property.config.isEmpty())
         }
@@ -107,7 +107,8 @@ class PropertyDefinitionTest {
         fun `should accept valid property types`(validType: String) {
             // When & Then
             assertDoesNotThrow {
-                DomainModelTestBuilder.propertyDefinition(typeId = validType)
+                val propertyType = PropertyType.fromValue(validType) ?: throw IllegalArgumentException("Unknown type: $validType")
+                DomainModelTestBuilder.propertyDefinition(type = propertyType)
             }
         }
         
@@ -116,7 +117,7 @@ class PropertyDefinitionTest {
         fun `should reject invalid property types`(invalidType: String) {
             // When & Then
             val exception = assertThrows(IllegalArgumentException::class.java) {
-                DomainModelTestBuilder.propertyDefinition(typeId = invalidType)
+                PropertyType.fromValue(invalidType) ?: throw IllegalArgumentException("Unknown type ID: $invalidType")
             }
             assertTrue(exception.message?.contains("Unknown type ID") == true)
         }
@@ -391,11 +392,11 @@ class PropertyDefinitionTest {
             // Given
             val validTextProperty = DomainModelTestBuilder.textPropertyDefinition(maxLength = 100)
             val invalidTextProperty = DomainModelTestBuilder.propertyDefinition(
-                typeId = PropertyTypes.TEXT,
+                type = PropertyType.TEXT,
                 config = buildJsonObject { put("maxLength", -5) }
             )
             val tooLongTextProperty = DomainModelTestBuilder.propertyDefinition(
-                typeId = PropertyTypes.TEXT,
+                type = PropertyType.TEXT,
                 config = buildJsonObject { put("maxLength", 10000) }
             )
             
@@ -418,14 +419,14 @@ class PropertyDefinitionTest {
                 min = 0.0, max = 100.0, precision = 2
             )
             val invalidRangeProperty = DomainModelTestBuilder.propertyDefinition(
-                typeId = PropertyTypes.NUMBER,
+                type = PropertyType.NUMBER,
                 config = buildJsonObject {
                     put("min", 100.0)
                     put("max", 50.0) // min > max
                 }
             )
             val invalidPrecisionProperty = DomainModelTestBuilder.propertyDefinition(
-                typeId = PropertyTypes.NUMBER,
+                type = PropertyType.NUMBER,
                 config = buildJsonObject { put("precision", 15) } // > 10
             )
             
@@ -445,13 +446,13 @@ class PropertyDefinitionTest {
             // Given
             val validSelectProperty = DomainModelTestBuilder.selectPropertyDefinition()
             val emptyOptionsProperty = DomainModelTestBuilder.propertyDefinition(
-                typeId = PropertyTypes.SELECT,
+                type = PropertyType.SELECT,
                 config = buildJsonObject {
                     put("options", JsonArray(emptyList()))
                 }
             )
             val noOptionsProperty = DomainModelTestBuilder.propertyDefinition(
-                typeId = PropertyTypes.SELECT
+                type = PropertyType.SELECT
             )
             
             // When & Then
@@ -466,10 +467,10 @@ class PropertyDefinitionTest {
         
         @ParameterizedTest(name = "Should validate text types: {0}")
         @MethodSource("com.astarworks.astarmanagement.unit.core.table.domain.model.PropertyDefinitionTest#textTypeIds")
-        fun `should validate text types with max length`(typeId: String) {
+        fun `should validate text types with max length`(type: PropertyType) {
             // Given
             val property = DomainModelTestBuilder.propertyDefinition(
-                typeId = typeId,
+                type = type,
                 config = buildJsonObject { put("maxLength", 0) }
             )
             
@@ -483,9 +484,9 @@ class PropertyDefinitionTest {
         
         @ParameterizedTest(name = "Should validate select types: {0}")
         @MethodSource("com.astarworks.astarmanagement.unit.core.table.domain.model.PropertyDefinitionTest#selectTypeIds")
-        fun `should validate select types require options`(typeId: String) {
+        fun `should validate select types require options`(type: PropertyType) {
             // Given
-            val property = DomainModelTestBuilder.propertyDefinition(typeId = typeId)
+            val property = DomainModelTestBuilder.propertyDefinition(type = type)
             
             // When
             val errors = property.validate()
@@ -520,7 +521,7 @@ class PropertyDefinitionTest {
             assertTrue(selectProperty.isRequired)
             assertFalse(selectProperty.isMultiple)
             assertEquals("Priority Level", selectProperty.displayName)
-            assertEquals(PropertyTypes.SELECT, selectProperty.typeId)
+            assertEquals(PropertyType.SELECT, selectProperty.type)
             
             val retrievedOptions = selectProperty.options!!
             assertEquals(3, retrievedOptions.size)
@@ -537,7 +538,7 @@ class PropertyDefinitionTest {
             )
             
             // When & Then
-            assertEquals(PropertyTypes.MULTI_SELECT, multiSelectProperty.typeId)
+            assertEquals(PropertyType.MULTI_SELECT, multiSelectProperty.type)
             assertTrue(multiSelectProperty.isMultiple)
         }
         
@@ -574,7 +575,7 @@ class PropertyDefinitionTest {
             )
             
             // When & Then
-            assertEquals(PropertyTypes.LONG_TEXT, textProperty.typeId)
+            assertEquals(PropertyType.LONG_TEXT, textProperty.type)
             assertFalse(textProperty.isRequired)
             assertEquals(500, textProperty.maxLength)
             assertEquals("Enter description here", textProperty.placeholder)
@@ -586,26 +587,24 @@ class PropertyDefinitionTest {
         fun `should handle all basic property types`() {
             // Given
             val propertyTypes = mapOf(
-                PropertyTypes.TEXT to "Short text field",
-                PropertyTypes.LONG_TEXT to "Long text area",
-                PropertyTypes.NUMBER to "Numeric value",
-                PropertyTypes.CHECKBOX to "Boolean flag",
-                PropertyTypes.DATE to "Date picker",
-                PropertyTypes.DATETIME to "Date and time picker",
-                PropertyTypes.EMAIL to "Email address",
-                PropertyTypes.PHONE to "Phone number",
-                PropertyTypes.URL to "Web URL",
-                PropertyTypes.USER to "User reference",
-                PropertyTypes.FILE to "File attachment"
+                PropertyType.TEXT to "Short text field",
+                PropertyType.LONG_TEXT to "Long text area",
+                PropertyType.NUMBER to "Numeric value",
+                PropertyType.CHECKBOX to "Boolean flag",
+                PropertyType.DATE to "Date picker",
+                PropertyType.DATETIME to "Date and time picker",
+                PropertyType.EMAIL to "Email address",
+                PropertyType.URL to "Web URL",
+                PropertyType.FILE to "File attachment"
             )
             
             // When & Then
-            propertyTypes.forEach { (typeId, displayName) ->
+            propertyTypes.forEach { (type, displayName) ->
                 val property = DomainModelTestBuilder.propertyDefinition(
-                    typeId = typeId,
+                    type = type,
                     displayName = displayName
                 )
-                assertEquals(typeId, property.typeId)
+                assertEquals(type, property.type)
                 assertEquals(displayName, property.displayName)
             }
         }
@@ -619,7 +618,7 @@ class PropertyDefinitionTest {
         @DisplayName("Should implement equals and hashCode correctly")
         fun `should implement equals and hashCode correctly`() {
             // Given
-            val typeId = PropertyTypes.TEXT
+            val type = PropertyType.TEXT
             val displayName = "Same Property"
             val config = buildJsonObject {
                 put("required", true)
@@ -627,12 +626,12 @@ class PropertyDefinitionTest {
             }
             
             val property1 = DomainModelTestBuilder.propertyDefinition(
-                typeId = typeId,
+                type = type,
                 displayName = displayName,
                 config = config
             )
             val property2 = DomainModelTestBuilder.propertyDefinition(
-                typeId = typeId,
+                type = type,
                 displayName = displayName,
                 config = config
             )
@@ -647,7 +646,7 @@ class PropertyDefinitionTest {
         fun `should not be equal with different properties`() {
             // Given
             val baseProperty = DomainModelTestBuilder.propertyDefinition()
-            val differentType = baseProperty.copy(typeId = PropertyTypes.NUMBER)
+            val differentType = baseProperty.copy(type = PropertyType.NUMBER)
             val differentName = baseProperty.copy(displayName = "Different Name")
             val differentConfig = baseProperty.copy(
                 config = buildJsonObject { put("required", true) }
@@ -664,7 +663,7 @@ class PropertyDefinitionTest {
         fun `should implement toString with all properties`() {
             // Given
             val property = DomainModelTestBuilder.propertyDefinition(
-                typeId = PropertyTypes.TEXT,
+                type = PropertyType.TEXT,
                 displayName = "Test Property"
             )
             
@@ -672,7 +671,7 @@ class PropertyDefinitionTest {
             val toString = property.toString()
             
             // Then
-            assertTrue(toString.contains(PropertyTypes.TEXT))
+            assertTrue(toString.contains("TEXT"))
             assertTrue(toString.contains("Test Property"))
         }
         
@@ -681,22 +680,22 @@ class PropertyDefinitionTest {
         fun `should support copy with parameter changes`() {
             // Given
             val originalProperty = DomainModelTestBuilder.propertyDefinition(
-                typeId = PropertyTypes.TEXT,
+                type = PropertyType.TEXT,
                 displayName = "Original Property"
             )
             
             // When
             val copiedProperty = originalProperty.copy(
-                typeId = PropertyTypes.NUMBER,
+                type = PropertyType.NUMBER,
                 displayName = "Copied Property"
             )
             
             // Then
-            assertEquals(PropertyTypes.NUMBER, copiedProperty.typeId)
+            assertEquals(PropertyType.NUMBER, copiedProperty.type)
             assertEquals("Copied Property", copiedProperty.displayName)
             assertEquals(originalProperty.config, copiedProperty.config) // Config preserved
             // Original should remain unchanged
-            assertEquals(PropertyTypes.TEXT, originalProperty.typeId)
+            assertEquals(PropertyType.TEXT, originalProperty.type)
         }
     }
     
@@ -783,18 +782,18 @@ class PropertyDefinitionTest {
         fun `should handle all PropertyTypes validation scenarios`() {
             // Given
             val testCases = mapOf(
-                PropertyTypes.TEXT to { config: JsonObjectBuilder -> 
+                PropertyType.TEXT to { config: JsonObjectBuilder -> 
                     config.put("maxLength", 100) 
                 },
-                PropertyTypes.LONG_TEXT to { config: JsonObjectBuilder -> 
+                PropertyType.LONG_TEXT to { config: JsonObjectBuilder -> 
                     config.put("maxLength", 1000) 
                 },
-                PropertyTypes.NUMBER to { config: JsonObjectBuilder -> 
+                PropertyType.NUMBER to { config: JsonObjectBuilder -> 
                     config.put("min", 0)
                     config.put("max", 100)
                     config.put("precision", 2)
                 },
-                PropertyTypes.SELECT to { config: JsonObjectBuilder ->
+                PropertyType.SELECT to { config: JsonObjectBuilder ->
                     config.put("options", JsonArray(listOf(
                         buildJsonObject {
                             put("value", "option1")
@@ -805,13 +804,13 @@ class PropertyDefinitionTest {
             )
             
             // When & Then
-            testCases.forEach { (typeId, configBuilder) ->
+            testCases.forEach { (type, configBuilder) ->
                 val property = DomainModelTestBuilder.propertyDefinition(
-                    typeId = typeId,
+                    type = type,
                     config = buildJsonObject { configBuilder(this) }
                 )
                 
-                assertTrue(property.isValid(), "Property type $typeId should be valid")
+                assertTrue(property.isValid(), "Property type $type should be valid")
             }
         }
     }

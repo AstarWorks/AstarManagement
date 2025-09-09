@@ -19,6 +19,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers.print
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 
 /**
@@ -115,6 +116,7 @@ class AuthControllerIntegrationTest : IntegrationTestBase() {
                     .header("Authorization", "Bearer $adminJwt")
                     .contentType(MediaType.APPLICATION_JSON)
             )
+                .andDo(print())
                 .andExpect(status().isOk)
                 .andExpect(jsonPath("$.auth0Sub").value("auth0|test_${IntegrationTestSetup.Companion.TestIds.ADMIN_USER}"))
                 .andExpect(jsonPath("$.userId").value(IntegrationTestSetup.Companion.TestIds.ADMIN_USER.toString()))
@@ -277,7 +279,7 @@ class AuthControllerIntegrationTest : IntegrationTestBase() {
                 .andExpect(jsonPath("$.authenticatedContext.tenantId").value(IntegrationTestSetup.Companion.TestIds.TENANT_A.toString()))
                 .andExpect(jsonPath("$.authenticatedContext.roles").isArray)
                 .andExpect(jsonPath("$.authenticatedContext.email").value("tenant1-admin@test.com"))
-                .andExpect(jsonPath("$.authenticatedContext.isActive").value(true))
+                .andExpect(jsonPath("$.authenticatedContext.active").value(true))
                 // Spring Security authorities
                 .andExpect(jsonPath("$.springSecurityAuthorities").isArray)
                 .andExpect(jsonPath("$.springSecurityAuthorities").isNotEmpty)

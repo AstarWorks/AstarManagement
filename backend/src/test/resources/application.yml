@@ -47,6 +47,22 @@ app:
 # Cache configuration for tests
 cache:
   enabled: false
+  
+  
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs-original
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui
+    configUrl: /v3/api-docs
+    try-it-out-enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+    persist-authorization: true
+  packages-to-scan: com.astarworks.astarmanagement.core
+  default-produces-media-type: application/json
 
 # Test logging
 logging:

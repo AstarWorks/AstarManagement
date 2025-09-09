@@ -89,12 +89,12 @@ object TableTestHelper {
      * Creates a test property definition.
      */
     fun createTestPropertyDefinition(
-        typeId: String = PropertyTypeCatalog.TEXT,
+        type: PropertyType = PropertyType.TEXT,
         displayName: String = "Test Property",
         config: JsonObject = JsonObject(emptyMap())
     ): PropertyDefinition {
         return PropertyDefinition(
-            typeId = typeId,
+            type = type,
             displayName = displayName,
             config = config
         )
@@ -102,30 +102,31 @@ object TableTestHelper {
     
     /**
      * Creates a test property type catalog entry.
+     * @deprecated PropertyTypeCatalog has been removed from the system
      */
-    fun createTestPropertyTypeCatalog(
-        id: String = "test_type",
-        category: PropertyTypeCategory = PropertyTypeCategory.BASIC,
-        validationSchema: JsonObject? = null,
-        defaultConfig: JsonObject = JsonObject(emptyMap()),
-        uiComponent: String? = "TextInput",
-        icon: String? = "text",
-        description: String? = "Test property type",
-        isActive: Boolean = true,
-        isCustom: Boolean = false
-    ): PropertyTypeCatalog {
-        return PropertyTypeCatalog(
-            id = id,
-            category = category,
-            validationSchema = validationSchema,
-            defaultConfig = defaultConfig,
-            uiComponent = uiComponent,
-            icon = icon,
-            description = description,
-            isActive = isActive,
-            isCustom = isCustom
-        )
-    }
+    // fun createTestPropertyTypeCatalog(
+    //     id: String = "test_type",
+    //     category: PropertyTypeCategory = PropertyTypeCategory.BASIC,
+    //     validationSchema: JsonObject? = null,
+    //     defaultConfig: JsonObject = JsonObject(emptyMap()),
+    //     uiComponent: String? = "TextInput",
+    //     icon: String? = "text",
+    //     description: String? = "Test property type",
+    //     isActive: Boolean = true,
+    //     isCustom: Boolean = false
+    // ): PropertyTypeCatalog {
+    //     return PropertyTypeCatalog(
+    //         id = id,
+    //         category = category,
+    //         validationSchema = validationSchema,
+    //         defaultConfig = defaultConfig,
+    //         uiComponent = uiComponent,
+    //         icon = icon,
+    //         description = description,
+    //         isActive = isActive,
+    //         isCustom = isCustom
+    //     )
+    // }
     
     /**
      * Creates default properties for a test table.
@@ -133,7 +134,7 @@ object TableTestHelper {
     fun createDefaultProperties(): Map<String, PropertyDefinition> {
         return mapOf(
             "title" to PropertyDefinition(
-                typeId = PropertyTypeCatalog.TEXT,
+                type = PropertyType.TEXT,
                 displayName = "Title",
                 config = buildJsonObject { 
                     put("required", JsonPrimitive(true))
@@ -141,7 +142,7 @@ object TableTestHelper {
                 }
             ),
             "status" to PropertyDefinition(
-                typeId = PropertyTypeCatalog.SELECT,
+                type = PropertyType.SELECT,
                 displayName = "Status",
                 config = buildJsonObject {
                     put("options", JsonArray(listOf(
@@ -161,12 +162,12 @@ object TableTestHelper {
                 }
             ),
             "assignee" to PropertyDefinition(
-                typeId = PropertyTypeCatalog.USER,
+                type = PropertyType.TEXT, // User type removed
                 displayName = "Assignee",
                 config = JsonObject(emptyMap())
             ),
             "priority" to PropertyDefinition(
-                typeId = PropertyTypeCatalog.NUMBER,
+                type = PropertyType.NUMBER,
                 displayName = "Priority",
                 config = buildJsonObject {
                     put("min", JsonPrimitive(1))
@@ -175,7 +176,7 @@ object TableTestHelper {
                 }
             ),
             "progress" to PropertyDefinition(
-                typeId = PropertyTypeCatalog.PERCENT,
+                type = PropertyType.NUMBER, // Percent type removed
                 displayName = "Progress",
                 config = buildJsonObject {
                     put("min", JsonPrimitive(0))
@@ -184,22 +185,22 @@ object TableTestHelper {
                 }
             ),
             "email" to PropertyDefinition(
-                typeId = PropertyTypeCatalog.EMAIL,
+                type = PropertyType.EMAIL,
                 displayName = "Email",
                 config = JsonObject(emptyMap())
             ),
             "website" to PropertyDefinition(
-                typeId = PropertyTypeCatalog.URL,
+                type = PropertyType.URL,
                 displayName = "Website",
                 config = JsonObject(emptyMap())
             ),
             "phone" to PropertyDefinition(
-                typeId = PropertyTypeCatalog.PHONE,
+                type = PropertyType.TEXT, // Phone type removed
                 displayName = "Phone",
                 config = JsonObject(emptyMap())
             ),
             "tags" to PropertyDefinition(
-                typeId = PropertyTypeCatalog.MULTI_SELECT,
+                type = PropertyType.MULTI_SELECT,
                 displayName = "Tags",
                 config = buildJsonObject {
                     put("options", JsonArray(listOf(
@@ -269,11 +270,11 @@ object TableTestHelper {
             workspaceId = WorkspaceId(workspaceId),
             name = "タスク",
             properties = mapOf(
-                "title" to PropertyDefinition(PropertyTypeCatalog.TEXT, "タイトル", JsonObject(emptyMap())),
-                "status" to PropertyDefinition(PropertyTypeCatalog.SELECT, "ステータス", JsonObject(emptyMap())),
-                "assignee" to PropertyDefinition(PropertyTypeCatalog.TEXT, "担当者", JsonObject(emptyMap())),
-                "priority" to PropertyDefinition(PropertyTypeCatalog.SELECT, "優先度", JsonObject(emptyMap())),
-                "dueDate" to PropertyDefinition(PropertyTypeCatalog.DATE, "期限", JsonObject(emptyMap()))
+                "title" to PropertyDefinition(PropertyType.TEXT, "タイトル", JsonObject(emptyMap())),
+                "status" to PropertyDefinition(PropertyType.SELECT, "ステータス", JsonObject(emptyMap())),
+                "assignee" to PropertyDefinition(PropertyType.TEXT, "担当者", JsonObject(emptyMap())),
+                "priority" to PropertyDefinition(PropertyType.SELECT, "優先度", JsonObject(emptyMap())),
+                "dueDate" to PropertyDefinition(PropertyType.DATE, "期限", JsonObject(emptyMap()))
             )
         )
     }
@@ -286,11 +287,11 @@ object TableTestHelper {
             workspaceId = WorkspaceId(workspaceId),
             name = "顧客",
             properties = mapOf(
-                "name" to PropertyDefinition(PropertyTypeCatalog.TEXT, "名前", JsonObject(emptyMap())),
-                "email" to PropertyDefinition(PropertyTypeCatalog.TEXT, "メール", JsonObject(emptyMap())),
-                "phone" to PropertyDefinition(PropertyTypeCatalog.TEXT, "電話", JsonObject(emptyMap())),
-                "company" to PropertyDefinition(PropertyTypeCatalog.TEXT, "会社", JsonObject(emptyMap())),
-                "address" to PropertyDefinition(PropertyTypeCatalog.TEXT, "住所", JsonObject(emptyMap()))
+                "name" to PropertyDefinition(PropertyType.TEXT, "名前", JsonObject(emptyMap())),
+                "email" to PropertyDefinition(PropertyType.TEXT, "メール", JsonObject(emptyMap())),
+                "phone" to PropertyDefinition(PropertyType.TEXT, "電話", JsonObject(emptyMap())),
+                "company" to PropertyDefinition(PropertyType.TEXT, "会社", JsonObject(emptyMap())),
+                "address" to PropertyDefinition(PropertyType.TEXT, "住所", JsonObject(emptyMap()))
             )
         )
     }

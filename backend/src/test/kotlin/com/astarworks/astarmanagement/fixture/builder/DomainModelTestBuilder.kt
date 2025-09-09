@@ -7,8 +7,7 @@ import com.astarworks.astarmanagement.core.workspace.domain.model.Workspace
 import com.astarworks.astarmanagement.core.table.domain.model.Table
 import com.astarworks.astarmanagement.core.table.domain.model.Record
 import com.astarworks.astarmanagement.core.table.domain.model.PropertyDefinition
-import com.astarworks.astarmanagement.core.table.domain.model.PropertyTypes
-import com.astarworks.astarmanagement.core.table.domain.model.PropertyValue
+import com.astarworks.astarmanagement.core.table.domain.model.PropertyType
 import com.astarworks.astarmanagement.core.table.domain.model.SelectOption
 import com.astarworks.astarmanagement.core.auth.domain.model.DynamicRole
 import com.astarworks.astarmanagement.shared.domain.value.*
@@ -125,14 +124,14 @@ object DomainModelTestBuilder {
      * Creates a PropertyDefinition with sensible defaults.
      */
     fun propertyDefinition(
-        typeId: String = PropertyTypes.TEXT,
+        type: PropertyType = PropertyType.TEXT,
         displayName: String = "Test Property",
         config: JsonObject = buildJsonObject { 
             put("required", false)
         }
     ): PropertyDefinition {
         return PropertyDefinition(
-            typeId = typeId,
+            type = type,
             displayName = displayName,
             config = config
         )
@@ -167,7 +166,7 @@ object DomainModelTestBuilder {
     fun record(
         id: RecordId = RecordId(UUID.randomUUID()),
         tableId: TableId = TableId(UUID.randomUUID()),
-        data: JsonObject = JsonObject(emptyMap()),
+        data: JsonObject = Json.parseToJsonElement(recordDataJson()).jsonObject,
         position: Float = Record.DEFAULT_POSITION,
         createdAt: Instant = Instant.now(),
         updatedAt: Instant = Instant.now()
@@ -229,7 +228,7 @@ object DomainModelTestBuilder {
     fun tableWithTextProperties(): Table {
         val properties = mapOf(
             "title" to propertyDefinition(
-                typeId = PropertyTypes.TEXT,
+                type = PropertyType.TEXT,
                 displayName = "Title",
                 config = buildJsonObject {
                     put("required", true)
@@ -237,7 +236,7 @@ object DomainModelTestBuilder {
                 }
             ),
             "description" to propertyDefinition(
-                typeId = PropertyTypes.LONG_TEXT,
+                type = PropertyType.LONG_TEXT,
                 displayName = "Description",
                 config = buildJsonObject {
                     put("required", false)
@@ -256,33 +255,40 @@ object DomainModelTestBuilder {
      * Creates a record with sample text data.
      */
     fun recordWithTextData(tableId: TableId): Record {
-        val data = buildJsonObject {
+        val dataJson = buildJsonObject {
             put("title", "Sample Title")
             put("description", "Sample description text")
-        }
+        }.toString()
         
         return record(
             tableId = tableId,
-            data = data
+            data = Json.parseToJsonElement(dataJson).jsonObject
         )
     }
     
-    // ===== Property Value Helpers =====
+    // ===== JSON Data Helpers =====
     
     /**
-     * Creates a PropertyValue with sensible defaults.
+     * Creates JSON data string for Records with sensible defaults.
      */
-    fun propertyValue(
-        key: String = "test_property",
-        value: JsonElement = JsonPrimitive("test value"),
-        typeId: String? = null
-    ): PropertyValue {
-        return PropertyValue(
-            key = key,
-            value = value,
-            typeId = typeId
-        )
+    fun recordDataJson(
+        name: String = "Test Record",
+        age: Int = 25,
+        active: Boolean = true,
+        additionalFields: Map<String, JsonElement> = emptyMap()
+    ): String {
+        return buildJsonObject {
+            put("name", name)
+            put("age", age)
+            put("active", active)
+            additionalFields.forEach { (key, value) -> put(key, value) }
+        }.toString()
     }
+    
+    /**
+     * Creates empty JSON data for Records.
+     */
+    fun emptyRecordDataJson(): String = "{}"
     
     /**
      * Creates a SelectOption with sensible defaults.
@@ -308,33 +314,6 @@ object DomainModelTestBuilder {
             selectOption(value = "option2", label = "Option 2", color = "#33FF57"),
             selectOption(value = "option3", label = "Option 3", color = "#3357FF")
         )
-    }
-    
-    /**
-     * Creates a PropertyValue for different types.
-     */
-    fun textPropertyValue(key: String = "text_field", value: String? = "sample text"): PropertyValue {
-        return PropertyValue.text(key, value)
-    }
-    
-    fun numberPropertyValue(key: String = "number_field", value: Number? = 42): PropertyValue {
-        return PropertyValue.number(key, value)
-    }
-    
-    fun checkboxPropertyValue(key: String = "checkbox_field", value: Boolean = true): PropertyValue {
-        return PropertyValue.checkbox(key, value)
-    }
-    
-    fun datePropertyValue(key: String = "date_field", value: LocalDate? = LocalDate.now()): PropertyValue {
-        return PropertyValue.date(key, value)
-    }
-    
-    fun selectPropertyValue(key: String = "select_field", value: String? = "option1"): PropertyValue {
-        return PropertyValue.select(key, value)
-    }
-    
-    fun multiSelectPropertyValue(key: String = "multi_select_field", values: List<String> = listOf("option1", "option2")): PropertyValue {
-        return PropertyValue.multiSelect(key, values)
     }
     
     // ===== Validation Test Helpers =====
@@ -430,14 +409,14 @@ object DomainModelTestBuilder {
     /**
      * Creates test cases for valid PropertyType IDs.
      */
-    fun validPropertyTypes(): List<String> {
-        return PropertyTypes.ALL.toList()
+    fun validPropertyType(): List<String> {
+        return PropertyType.entries.map { it.name.lowercase() }
     }
     
     /**
      * Creates test cases for invalid PropertyType IDs.
      */
-    fun invalidPropertyTypes(): List<String> {
+    fun invalidPropertyType(): List<String> {
         return listOf(
             "",
             "invalid_type",
@@ -470,9 +449,9 @@ object DomainModelTestBuilder {
         isRequired: Boolean = false,
         isMultiple: Boolean = false
     ): PropertyDefinition {
-        val typeId = if (isMultiple) PropertyTypes.MULTI_SELECT else PropertyTypes.SELECT
+        val type = if (isMultiple) PropertyType.MULTI_SELECT else PropertyType.SELECT
         return propertyDefinition(
-            typeId = typeId,
+            type = type,
             displayName = displayName,
             config = buildJsonObject {
                 put("required", isRequired)
@@ -499,7 +478,7 @@ object DomainModelTestBuilder {
         precision: Int? = null
     ): PropertyDefinition {
         return propertyDefinition(
-            typeId = PropertyTypes.NUMBER,
+            type = PropertyType.NUMBER,
             displayName = displayName,
             config = buildJsonObject {
                 put("required", isRequired)
@@ -521,7 +500,7 @@ object DomainModelTestBuilder {
         isLongText: Boolean = false
     ): PropertyDefinition {
         return propertyDefinition(
-            typeId = if (isLongText) PropertyTypes.LONG_TEXT else PropertyTypes.TEXT,
+            type = if (isLongText) PropertyType.LONG_TEXT else PropertyType.TEXT,
             displayName = displayName,
             config = buildJsonObject {
                 put("required", isRequired)
@@ -555,10 +534,10 @@ object DomainModelTestBuilder {
                 isMultiple = true
             ),
             "score" to numberPropertyDefinition("Score", min = 0.0, max = 100.0, precision = 1),
-            "completed" to propertyDefinition(PropertyTypes.CHECKBOX, "Completed", 
+            "completed" to propertyDefinition(PropertyType.CHECKBOX, "Completed", 
                 buildJsonObject { put("required", false) }
             ),
-            "due_date" to propertyDefinition(PropertyTypes.DATE, "Due Date")
+            "due_date" to propertyDefinition(PropertyType.DATE, "Due Date")
         )
         
         return table(
@@ -636,7 +615,7 @@ object DomainModelTestBuilder {
         isRequired: Boolean = false
     ): PropertyDefinition {
         return propertyDefinition(
-            typeId = PropertyTypes.EMAIL,
+            type = PropertyType.EMAIL,
             displayName = displayName,
             config = buildJsonObject {
                 put("required", isRequired)
@@ -652,7 +631,7 @@ object DomainModelTestBuilder {
         isRequired: Boolean = false
     ): PropertyDefinition {
         return propertyDefinition(
-            typeId = PropertyTypes.PHONE,
+            type = PropertyType.TEXT, // Phone type removed
             displayName = displayName,
             config = buildJsonObject {
                 put("required", isRequired)
@@ -668,7 +647,7 @@ object DomainModelTestBuilder {
         isRequired: Boolean = false
     ): PropertyDefinition {
         return propertyDefinition(
-            typeId = PropertyTypes.URL,
+            type = PropertyType.URL,
             displayName = displayName,
             config = buildJsonObject {
                 put("required", isRequired)

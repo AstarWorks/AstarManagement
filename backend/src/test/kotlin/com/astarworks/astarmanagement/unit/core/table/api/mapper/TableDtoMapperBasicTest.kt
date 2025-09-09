@@ -4,6 +4,7 @@ import com.astarworks.astarmanagement.base.UnitTest
 import com.astarworks.astarmanagement.core.table.api.mapper.TableDtoMapper
 import com.astarworks.astarmanagement.core.table.domain.model.Table
 import com.astarworks.astarmanagement.core.table.domain.model.PropertyDefinition
+import com.astarworks.astarmanagement.core.table.domain.model.PropertyType
 import com.astarworks.astarmanagement.shared.domain.value.TableId
 import com.astarworks.astarmanagement.shared.domain.value.WorkspaceId
 import kotlinx.serialization.json.buildJsonObject
@@ -43,12 +44,12 @@ class TableDtoMapperBasicTest {
             val workspaceId = UUID.randomUUID()
             val properties = mapOf(
                 "field1" to PropertyDefinition(
-                    typeId = "text",
+                    type = PropertyType.TEXT,
                     displayName = "Field 1",
                     config = buildJsonObject { put("maxLength", 500) }
                 ),
                 "field2" to PropertyDefinition(
-                    typeId = "number",
+                    type = PropertyType.NUMBER,
                     displayName = "Field 2",
                     config = buildJsonObject { put("min", 0) }
                 )
@@ -318,7 +319,7 @@ class TableDtoMapperBasicTest {
     
     private fun createTestPropertyDefinition(
         displayName: String,
-        typeId: String = "text",
+        type: PropertyType = PropertyType.TEXT,
         required: Boolean = false
     ): PropertyDefinition {
         val config = buildJsonObject {
@@ -327,7 +328,7 @@ class TableDtoMapperBasicTest {
             }
         }
         return PropertyDefinition(
-            typeId = typeId,
+            type = type,
             displayName = displayName,
             config = config
         )

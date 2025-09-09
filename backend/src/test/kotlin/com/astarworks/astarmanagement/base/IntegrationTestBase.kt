@@ -6,7 +6,6 @@ import org.springframework.test.context.ActiveProfiles
 import org.junit.jupiter.api.Tag
 import com.astarworks.astarmanagement.config.TestSecurityConfig
 import com.astarworks.astarmanagement.config.TestContainerConfig
-import com.astarworks.astarmanagement.config.TestWebMvcConfig
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
 import org.springframework.context.annotation.Import
@@ -40,7 +39,7 @@ import java.util.UUID
 @Tag("integration")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
-@Import(TestSecurityConfig::class, TestContainerConfig::class, TestWebMvcConfig::class)
+@Import(TestSecurityConfig::class, TestContainerConfig::class)
 @Execution(ExecutionMode.SAME_THREAD)
 abstract class IntegrationTestBase {
 

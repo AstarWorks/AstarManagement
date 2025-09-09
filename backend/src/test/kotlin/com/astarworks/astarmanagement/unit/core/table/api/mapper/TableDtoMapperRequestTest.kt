@@ -6,6 +6,7 @@ import com.astarworks.astarmanagement.core.table.api.dto.table.TableCreateReques
 import com.astarworks.astarmanagement.core.table.api.dto.table.TableUpdateRequest
 import com.astarworks.astarmanagement.core.table.api.dto.table.TableDuplicateRequest
 import com.astarworks.astarmanagement.core.table.api.mapper.TableDtoMapper
+import com.astarworks.astarmanagement.core.table.domain.model.PropertyType
 import com.astarworks.astarmanagement.core.table.domain.model.Table
 import com.astarworks.astarmanagement.shared.domain.value.TableId
 import com.astarworks.astarmanagement.shared.domain.value.WorkspaceId
@@ -88,10 +89,10 @@ class TableDtoMapperRequestTest {
             // Then
             assertThat(extractedProperties).hasSize(2)
             assertThat(extractedProperties["title"]).isNotNull
-            assertThat(extractedProperties["title"]?.typeId).isEqualTo("text")
+            assertThat(extractedProperties["title"]?.type).isEqualTo(PropertyType.TEXT)
             assertThat(extractedProperties["title"]?.displayName).isEqualTo("Title")
             assertThat(extractedProperties["amount"]).isNotNull
-            assertThat(extractedProperties["amount"]?.typeId).isEqualTo("number")
+            assertThat(extractedProperties["amount"]?.type).isEqualTo(PropertyType.NUMBER)
         }
         
         @Test
@@ -333,7 +334,7 @@ class TableDtoMapperRequestTest {
         val properties = if (propertyOrder.isNotEmpty()) {
             propertyOrder.associateWith { key ->
                 com.astarworks.astarmanagement.core.table.domain.model.PropertyDefinition(
-                    typeId = "text",
+                    type = PropertyType.TEXT,
                     displayName = key.replaceFirstChar { it.uppercase() }
                 )
             }

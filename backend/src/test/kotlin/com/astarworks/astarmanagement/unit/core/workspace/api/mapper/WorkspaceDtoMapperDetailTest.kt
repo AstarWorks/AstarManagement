@@ -5,6 +5,7 @@ import com.astarworks.astarmanagement.core.workspace.api.mapper.WorkspaceDtoMapp
 import com.astarworks.astarmanagement.core.workspace.domain.model.Workspace
 import com.astarworks.astarmanagement.core.table.domain.model.Table
 import com.astarworks.astarmanagement.core.table.domain.model.PropertyDefinition
+import com.astarworks.astarmanagement.core.table.domain.model.PropertyType
 import com.astarworks.astarmanagement.core.auth.domain.model.PermissionRule
 import com.astarworks.astarmanagement.core.auth.domain.model.Action
 import com.astarworks.astarmanagement.core.auth.domain.model.ResourceType
@@ -454,7 +455,7 @@ class WorkspaceDtoMapperDetailTest {
             name = name,
             properties = mapOf(
                 "prop1" to PropertyDefinition(
-                    typeId = "text",
+                    type = PropertyType.TEXT,
                     displayName = "Property 1",
                     config = buildJsonObject {}
                 )
