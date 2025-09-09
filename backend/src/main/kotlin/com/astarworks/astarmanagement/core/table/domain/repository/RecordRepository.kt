@@ -83,8 +83,9 @@ interface RecordRepository {
     
     /**
      * Delete all records in a table.
+     * @return The number of deleted records
      */
-    fun deleteByTableId(tableId: TableId)
+    fun deleteByTableId(tableId: TableId): Int
     
     /**
      * Count all records.
@@ -101,4 +102,16 @@ interface RecordRepository {
      * Used for adding new records at the end.
      */
     fun findMaxPositionByTableId(tableId: TableId): Float?
+    
+    /**
+     * Find the last record in a table ordered by position.
+     * Used for calculating position for new records.
+     */
+    fun findTopByTableIdOrderByPositionDesc(tableId: TableId): Record?
+    
+    /**
+     * Delete multiple records by IDs.
+     * Alias for deleteAllById for compatibility.
+     */
+    fun deleteByIdIn(ids: List<RecordId>) = deleteAllById(ids)
 }

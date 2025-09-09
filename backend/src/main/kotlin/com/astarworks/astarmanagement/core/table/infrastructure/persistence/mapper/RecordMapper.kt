@@ -2,6 +2,8 @@ package com.astarworks.astarmanagement.core.table.infrastructure.persistence.map
 
 import com.astarworks.astarmanagement.core.table.domain.model.Record
 import com.astarworks.astarmanagement.core.table.infrastructure.persistence.entity.SpringDataJdbcRecordTable
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
 import org.springframework.stereotype.Component
 
 /**
@@ -11,10 +13,11 @@ import org.springframework.stereotype.Component
 class RecordMapper {
     
     fun toDomain(entity: SpringDataJdbcRecordTable): Record {
-        return Record.fromJson(
+        val dataJson = Json.parseToJsonElement(entity.data).jsonObject
+        return Record(
             id = entity.id,
             tableId = entity.tableId,
-            dataJson = entity.data,
+            data = dataJson,
             position = entity.position,
             createdAt = entity.createdAt,
             updatedAt = entity.updatedAt
@@ -25,7 +28,7 @@ class RecordMapper {
         return SpringDataJdbcRecordTable(
             id = domain.id,
             tableId = domain.tableId,
-            data = domain.getDataJson(),
+            data = domain.data.toString(),
             position = domain.position,
             createdAt = domain.createdAt,
             updatedAt = domain.updatedAt

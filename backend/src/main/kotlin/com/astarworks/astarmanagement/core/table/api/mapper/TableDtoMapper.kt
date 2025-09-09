@@ -149,7 +149,7 @@ class TableDtoMapper {
     fun toPropertyDefinitionDto(definition: PropertyDefinition): PropertyDefinitionDto {
         println("====== PROPERTY DTO MAPPING DEBUG ======")
         println("Input PropertyDefinition: ${definition}")
-        println("  typeId: ${definition.typeId} (type: ${definition.typeId::class.java})")
+        println("  type: ${definition.type} (type: ${definition.type::class.java})")
         println("  displayName: ${definition.displayName} (type: ${definition.displayName::class.java})")
         println("  config: ${definition.config} (type: ${definition.config::class.java})")
         
@@ -172,7 +172,7 @@ class TableDtoMapper {
         
         val result = PropertyDefinitionDto(
             key = "", // Key will be set from the map key
-            typeId = definition.typeId,
+            type = definition.type,
             displayName = definition.displayName,
             config = dtoConfig,
             required = isRequired,
@@ -182,7 +182,7 @@ class TableDtoMapper {
         
         println("Output PropertyDefinitionDto: ${result}")
         println("  key: ${result.key} (type: ${result.key::class.java})")
-        println("  typeId: ${result.typeId} (type: ${result.typeId::class.java})")
+        println("  type: ${result.type} (type: ${result.type::class.java})")
         println("  displayName: ${result.displayName} (type: ${result.displayName::class.java})")
         println("  config: ${result.config} (type: ${result.config::class.java})")
         println("  required: ${result.required} (type: ${result.required::class.java})")
@@ -209,7 +209,7 @@ class TableDtoMapper {
         }
         
         return PropertyDefinition(
-            typeId = dto.typeId,
+            type = dto.type,
             displayName = dto.displayName,
             config = domainConfig
         )

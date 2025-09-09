@@ -8,11 +8,11 @@ import java.util.UUID
 
 /**
  * レコード
- * データベースの実データを格納
+ * データベースの実データを格納するシンプルなJSONコンテナ
  * 
  * @property id レコードID
  * @property tableId 所属するデータベースID
- * @property dataJson プロパティ値のJSON文字列（内部保存用）
+ * @property data プロパティ値のJSONオブジェクト
  * @property position 手動ソート用の位置情報
  * @property createdAt 作成日時
  * @property updatedAt 更新日時
@@ -20,7 +20,7 @@ import java.util.UUID
 data class Record(
     val id: RecordId = RecordId(UUID.randomUUID()),
     val tableId: TableId,
-    private val dataJson: String = "{}",
+    val data: JsonObject = buildJsonObject {},
     val position: Float = DEFAULT_POSITION,
     val createdAt: Instant = Instant.now(),
     val updatedAt: Instant = Instant.now()
@@ -30,112 +30,16 @@ data class Record(
     }
     
     /**
-     * プロパティ値のマップ（JsonObject形式）
-     * 後方互換性のための計算プロパティ
+     * JSON文字列を取得（互換性のため残す）
      */
-    val data: JsonObject
-        get() = try {
-            Json.parseToJsonElement(dataJson).jsonObject
-        } catch (e: Exception) {
-            JsonObject(emptyMap())
-        }
+    fun getDataJson(): String = data.toString()
     
     /**
-     * JSON文字列を取得（内部用）
+     * データを更新（新しいJSONで置換）
      */
-    fun getDataJson(): String = dataJson
-    
-    /**
-     * JsonObjectからRecordを作成（コンストラクタヘルパー）
-     */
-    constructor(
-        id: RecordId = RecordId(java.util.UUID.randomUUID()),
-        tableId: TableId,
-        data: JsonObject,
-        position: Float = DEFAULT_POSITION,
-        createdAt: Instant = Instant.now(),
-        updatedAt: Instant = Instant.now()
-    ) : this(
-        id = id,
-        tableId = tableId,
-        dataJson = data.toString(),
-        position = position,
-        createdAt = createdAt,
-        updatedAt = updatedAt
-    )
-    
-    /**
-     * プロパティ値を取得
-     */
-    fun getValue(key: String): JsonElement? = data[key]
-    
-    /**
-     * プロパティ値を型安全に取得
-     */
-    inline fun <reified T> getValueAs(key: String): T? = data[key]?.let { element ->
-        when (element) {
-            is JsonPrimitive -> when {
-                T::class == String::class && element.isString -> element.content as? T
-                T::class == Boolean::class && element.booleanOrNull != null -> element.boolean as? T
-                T::class == Int::class && element.intOrNull != null -> element.int as? T
-                T::class == Long::class && element.longOrNull != null -> element.long as? T
-                T::class == Float::class && element.floatOrNull != null -> element.float as? T
-                T::class == Double::class && element.doubleOrNull != null -> element.double as? T
-                else -> null
-            }
-            is JsonArray -> if (T::class == List::class) element.map { it } as? T else null
-            is JsonObject -> if (T::class == Map::class) element.toMap() as? T else null
-            is JsonNull -> null
-        }
-    }
-    
-    /**
-     * プロパティ値を設定
-     */
-    fun setValue(key: String, value: JsonElement): Record {
-        val newData = buildJsonObject {
-            data.forEach { (k, v) -> if (k != key) put(k, v) }
-            put(key, value)
-        }
+    fun updateData(newData: JsonObject): Record {
         return copy(
-            dataJson = newData.toString(),
-            updatedAt = Instant.now()
-        )
-    }
-    
-    /**
-     * 複数のプロパティ値を設定
-     */
-    fun setValues(values: JsonObject): Record {
-        val newData = buildJsonObject {
-            data.forEach { (k, v) -> put(k, v) }
-            values.forEach { (k, v) -> put(k, v) }
-        }
-        return copy(
-            dataJson = newData.toString(),
-            updatedAt = Instant.now()
-        )
-    }
-    
-    /**
-     * プロパティ値を削除
-     */
-    fun removeValue(key: String): Record {
-        val newData = buildJsonObject {
-            data.forEach { (k, v) -> if (k != key) put(k, v) }
-        }
-        return copy(
-            dataJson = newData.toString(),
-            updatedAt = Instant.now()
-        )
-    }
-    
-    /**
-     * すべてのプロパティ値をクリア
-     */
-    fun clearValues(): Record {
-        return copy(
-            dataJson = "{}",
+            data = newData,
             updatedAt = Instant.now()
         )
     }
@@ -152,46 +56,9 @@ data class Record(
     }
     
     /**
-     * レコードが空かどうか
+     * レコードが空かどうか（空のJSONオブジェクト）
      */
     fun isEmpty(): Boolean = data.isEmpty()
-    
-    /**
-     * 特定のキーが存在するか
-     */
-    fun hasKey(key: String): Boolean = data.containsKey(key)
-    
-    /**
-     * PropertyValueのリストに変換
-     */
-    fun toPropertyValues(): List<PropertyValue> {
-        return data.map { (key, value) ->
-            PropertyValue(key, value)
-        }
-    }
-    
-    /**
-     * データベース定義に基づいて検証
-     */
-    fun validate(table: Table): List<String> {
-        val errors = mutableListOf<String>()
-        
-        // 必須フィールドのチェック
-        table.properties.forEach { (key, definition) ->
-            if (definition.isRequired && !hasKey(key)) {
-                errors.add("Required field '$key' is missing")
-            }
-        }
-        
-        // 未知のフィールドのチェック
-        data.keys.forEach { key ->
-            if (key !in table.properties) {
-                errors.add("Unknown field '$key'")
-            }
-        }
-        
-        return errors
-    }
     
     /**
      * 2つのレコード間の位置を計算
@@ -216,49 +83,14 @@ data class Record(
          */
         fun create(
             tableId: TableId,
-            data: JsonObject = JsonObject(emptyMap()),
+            data: JsonObject = buildJsonObject {},
             position: Float = DEFAULT_POSITION
         ): Record {
             return Record(
                 tableId = tableId,
-                dataJson = data.toString(),
+                data = data,
                 position = position
             )
-        }
-        
-        /**
-         * JSON文字列から作成（内部用）
-         */
-        fun fromJson(
-            id: RecordId = RecordId(java.util.UUID.randomUUID()),
-            tableId: TableId,
-            dataJson: String,
-            position: Float = DEFAULT_POSITION,
-            createdAt: Instant = Instant.now(),
-            updatedAt: Instant = Instant.now()
-        ): Record {
-            return Record(
-                id = id,
-                tableId = tableId,
-                dataJson = dataJson,
-                position = position,
-                createdAt = createdAt,
-                updatedAt = updatedAt
-            )
-        }
-        
-        /**
-         * PropertyValueのリストからレコードを作成
-         */
-        fun fromPropertyValues(
-            tableId: TableId,
-            values: List<PropertyValue>,
-            position: Float = DEFAULT_POSITION
-        ): Record {
-            val data = buildJsonObject {
-                values.forEach { put(it.key, it.value) }
-            }
-            return create(tableId, data, position)
         }
         
         /**

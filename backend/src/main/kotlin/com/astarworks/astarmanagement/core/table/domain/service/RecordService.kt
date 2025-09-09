@@ -1,18 +1,12 @@
 package com.astarworks.astarmanagement.core.table.domain.service
 
 import com.astarworks.astarmanagement.core.table.domain.model.Record
-import com.astarworks.astarmanagement.core.table.domain.model.PropertyValue
-import com.astarworks.astarmanagement.core.table.domain.model.PropertyTypeCatalog
-import com.astarworks.astarmanagement.core.table.domain.model.PropertyDefinition
-import com.astarworks.astarmanagement.core.table.domain.model.SelectOption
 import com.astarworks.astarmanagement.core.table.domain.repository.RecordRepository
 import com.astarworks.astarmanagement.core.table.api.exception.*
 import com.astarworks.astarmanagement.shared.domain.value.*
-import com.astarworks.astarmanagement.shared.exception.dto.ValidationError
-import kotlinx.serialization.json.*
+import kotlinx.serialization.json.JsonObject
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
-import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
@@ -22,19 +16,15 @@ import java.util.UUID
 /**
  * Service for managing records (data rows) in the flexible table system.
  * 
- * Handles record operations including:
- * - Record CRUD operations
- * - Batch processing for bulk operations
- * - Position management for manual sorting
- * - Data validation against table schema
- * - Pagination for large datasets
+ * Simplified service focused on basic CRUD operations.
+ * Data validation and business logic are handled at the controller level
+ * or will be implemented in future iterations.
  */
 @Service
 @Transactional
 class RecordService(
     private val recordRepository: RecordRepository,
-    private val tableService: TableService,
-    private val propertyTypeCatalogService: PropertyTypeCatalogService
+    private val tableService: TableService
 ) {
     private val logger = LoggerFactory.getLogger(RecordService::class.java)
     
@@ -47,36 +37,34 @@ class RecordService(
      * Creates a new record in a table.
      * 
      * @param tableId The table ID
-     * @param data The record data
+     * @param dataJson The record data as JSON string
+     * @param position Optional position for manual sorting
      * @return The created record
-     * @throws TableNotFoundException if table not found
-     * @throws RecordValidationException if validation fails
      */
-    fun createRecord(tableId: UUID, data: JsonObject): Record {
-        logger.info("Creating record in table: $tableId")
+    fun createRecord(
+        tableId: UUID,
+        data: JsonObject,
+        position: Float? = null
+    ): Record {
+        logger.debug("Creating record in table: $tableId")
         
-        // Validate table exists
+        // Ensure table exists (basic validation)
         val table = tableService.getTableById(TableId(tableId))
         
-        // Validate record data against table schema
-        val errors = validateRecordData(table, data)
-        if (errors.isNotEmpty()) {
-            val validationErrors = errors.map { ValidationError(it.substringBefore(":").trim(), it.substringAfter(":").trim()) }
-            throw RecordValidationException.of(null, validationErrors)
-        }
-        
-        // Calculate position for new record (at the end)
-        val maxPosition = recordRepository.findMaxPositionByTableId(TableId(tableId))
-        val position = if (maxPosition != null) {
-            Record.nextPosition(maxPosition)
-        } else {
-            Record.firstPosition()
+        // Calculate position if not provided
+        val recordPosition = position ?: run {
+            val lastRecord = recordRepository.findTopByTableIdOrderByPositionDesc(TableId(tableId))
+            if (lastRecord != null) {
+                Record.nextPosition(lastRecord.position)
+            } else {
+                Record.firstPosition()
+            }
         }
         
         val record = Record.create(
             tableId = TableId(tableId),
             data = data,
-            position = position
+            position = recordPosition
         )
         
         val savedRecord = recordRepository.save(record)
@@ -87,839 +75,280 @@ class RecordService(
     
     /**
      * Creates multiple records in a table (batch operation).
-     * 
-     * @param tableId The table ID
-     * @param dataList List of record data
-     * @return List of created records
-     * @throws TableNotFoundException if table not found
-     * @throws RecordValidationException if validation fails
-     * @throws BatchSizeExceededException if batch size exceeds limit
      */
-    fun createRecords(tableId: UUID, dataList: List<JsonObject>): List<Record> {
-        if (dataList.isEmpty()) {
-            return emptyList()
+    fun createRecords(
+        tableId: UUID,
+        recordsData: List<JsonObject>
+    ): List<Record> {
+        if (recordsData.size > MAX_BATCH_SIZE) {
+            throw IllegalArgumentException("Batch size cannot exceed $MAX_BATCH_SIZE")
         }
         
-        if (dataList.size > MAX_BATCH_SIZE) {
-            throw BatchSizeExceededException.of(dataList.size, MAX_BATCH_SIZE)
-        }
+        logger.debug("Creating ${recordsData.size} records in table: $tableId")
         
-        logger.info("Creating ${dataList.size} records in table: $tableId")
-        
-        // Validate table exists
+        // Ensure table exists
         val table = tableService.getTableById(TableId(tableId))
+        val tableIdValue = TableId(tableId)
         
-        // Validate all records
-        dataList.forEachIndexed { index, data ->
-            val errors = validateRecordData(table, data)
-            if (errors.isNotEmpty()) {
-                val validationErrors = errors.map { ValidationError(it.substringBefore(":").trim(), it.substringAfter(":").trim()) }
-                throw RecordValidationException.batchValidationFailed(index, validationErrors)
-            }
-        }
+        // Generate positions for all records
+        val lastRecord = recordRepository.findTopByTableIdOrderByPositionDesc(tableIdValue)
+        var currentPosition = lastRecord?.position ?: Record.DEFAULT_POSITION
         
-        // Calculate starting position
-        val maxPosition = recordRepository.findMaxPositionByTableId(TableId(tableId))
-        var currentPosition = maxPosition ?: 0f
-        
-        // Create records with incremental positions
-        val records = dataList.map { data ->
-            currentPosition = Record.nextPosition(currentPosition)
+        val records = recordsData.map { data ->
+            currentPosition += Record.POSITION_INCREMENT
             Record.create(
-                tableId = TableId(tableId),
+                tableId = tableIdValue,
                 data = data,
                 position = currentPosition
             )
         }
         
         val savedRecords = recordRepository.saveAll(records)
-        logger.info("Created ${savedRecords.size} records in table $tableId")
+        logger.info("Created ${savedRecords.size} records in table: $tableId")
         
         return savedRecords
     }
     
     /**
-     * Updates a record.
-     * 
-     * @param id The record ID
-     * @param data The new data
-     * @return The updated record
-     * @throws RecordNotFoundException if record not found
-     * @throws RecordValidationException if validation fails
+     * Updates an existing record.
      */
-    fun updateRecord(id: UUID, data: JsonObject): Record {
-        logger.info("Updating record: $id")
+    fun updateRecord(
+        recordId: UUID,
+        data: JsonObject
+    ): Record {
+        logger.debug("Updating record: $recordId")
         
-        val record = getRecordById(id)
-        val table = tableService.getTableById(record.tableId)
+        val record = recordRepository.findById(RecordId(recordId))
+            ?: throw RecordNotFoundException.of(RecordId(recordId))
         
-        // Validate new data
-        val errors = validateRecordData(table, data)
-        if (errors.isNotEmpty()) {
-            val validationErrors = errors.map { ValidationError(it.substringBefore(":").trim(), it.substringAfter(":").trim()) }
-            throw RecordValidationException.of(RecordId(id), validationErrors)
-        }
-        
-        val updatedRecord = record.setValues(data)
+        val updatedRecord = record.updateData(data)
         val savedRecord = recordRepository.save(updatedRecord)
         
-        logger.info("Updated record $id")
+        logger.info("Updated record: $recordId")
         return savedRecord
     }
     
     /**
-     * Gets a record by ID.
-     * Enforces tenant isolation by verifying the record's table is accessible.
-     * 
-     * @param id The record ID
-     * @return The record
-     * @throws RecordNotFoundException if record not found or not accessible by current tenant
+     * Updates record position for manual sorting.
      */
-    @Transactional(readOnly = true)
-    fun getRecordById(id: UUID): Record {
-        val record = recordRepository.findById(RecordId(id))
-            ?: throw RecordNotFoundException.of(RecordId(id))
+    fun updateRecordPosition(
+        recordId: UUID,
+        position: Float
+    ): Record {
+        logger.debug("Updating record position: $recordId to $position")
         
-        // Verify table access (which will check tenant access)
-        try {
-            tableService.getTableById(record.tableId)
-            // If getTableById doesn't throw, we have access
-        } catch (e: TableNotFoundException) {
-            // Table not accessible means record is not accessible
-            throw RecordNotFoundException.of(RecordId(id))
-        }
+        val record = recordRepository.findById(RecordId(recordId))
+            ?: throw RecordNotFoundException.of(RecordId(recordId))
         
-        return record
+        val updatedRecord = record.updatePosition(position)
+        val savedRecord = recordRepository.save(updatedRecord)
+        
+        logger.info("Updated record position: $recordId")
+        return savedRecord
     }
     
     /**
      * Deletes a record.
-     * 
-     * @param id The record ID
-     * @throws RecordNotFoundException if record not found
      */
-    fun deleteRecord(id: UUID) {
-        logger.info("Deleting record: $id")
+    fun deleteRecord(recordId: UUID) {
+        logger.debug("Deleting record: $recordId")
         
-        if (!recordRepository.existsById(RecordId(id))) {
-            throw RecordNotFoundException.of(RecordId(id))
+        val recordIdValue = RecordId(recordId)
+        if (!recordRepository.existsById(recordIdValue)) {
+            throw RecordNotFoundException.of(recordIdValue)
         }
         
-        recordRepository.deleteById(RecordId(id))
-        logger.info("Deleted record $id")
+        recordRepository.deleteById(recordIdValue)
+        logger.info("Deleted record: $recordId")
     }
     
     /**
      * Deletes multiple records (batch operation).
-     * 
-     * @param ids List of record IDs
      */
-    fun deleteRecords(ids: List<UUID>) {
-        if (ids.isEmpty()) {
-            return
+    fun deleteRecords(recordIds: List<UUID>) {
+        if (recordIds.size > MAX_BATCH_SIZE) {
+            throw IllegalArgumentException("Batch size cannot exceed $MAX_BATCH_SIZE")
         }
         
-        logger.info("Deleting ${ids.size} records")
-        recordRepository.deleteAllById(ids.map { RecordId(it) })
-        logger.info("Deleted ${ids.size} records")
-    }
-    
-    /**
-     * Gets all records in a table.
-     * 
-     * @param tableId The table ID
-     * @return List of records
-     */
-    @Transactional(readOnly = true)
-    fun getRecordsByTable(tableId: UUID): List<Record> {
-        return recordRepository.findByTableId(TableId(tableId))
-    }
-    
-    /**
-     * Gets records in a table with pagination, ordered by position.
-     * 
-     * @param tableId The table ID
-     * @param pageable Pagination parameters
-     * @return Page of records
-     */
-    @Transactional(readOnly = true)
-    fun getRecordsByTablePaged(tableId: UUID, pageable: Pageable): Page<Record> {
-        // Validate table exists
-        tableService.getTableById(TableId(tableId))
+        logger.debug("Deleting ${recordIds.size} records")
         
-        // Repository already returns domain objects, no mapping needed
+        val recordIdValues = recordIds.map { RecordId(it) }
+        recordRepository.deleteByIdIn(recordIdValues)
+        
+        logger.info("Deleted ${recordIds.size} records")
+    }
+    
+    /**
+     * Finds a record by ID.
+     */
+    @Transactional(readOnly = true)
+    fun findById(recordId: UUID): Record {
+        return recordRepository.findById(RecordId(recordId))
+            ?: throw RecordNotFoundException.of(RecordId(recordId))
+    }
+    
+    /**
+     * Finds all records in a table with pagination.
+     */
+    @Transactional(readOnly = true)
+    fun findByTableId(
+        tableId: UUID,
+        pageable: Pageable = PageRequest.of(0, DEFAULT_PAGE_SIZE)
+    ): Page<Record> {
+        logger.debug("Finding records in table: $tableId")
+        
+        // Ensure table exists
+        val table = tableService.getTableById(TableId(tableId))
+        
         return recordRepository.findByTableIdOrderByPosition(TableId(tableId), pageable)
     }
     
     /**
-     * Gets records in a table ordered by position.
-     * 
-     * @param tableId The table ID
-     * @return List of ordered records
+     * Finds all records in a table (without pagination).
      */
     @Transactional(readOnly = true)
-    fun getRecordsByTableOrdered(tableId: UUID): List<Record> {
+    fun findAllByTableId(tableId: UUID): List<Record> {
+        logger.debug("Finding all records in table: $tableId")
+        
+        // Ensure table exists
+        val table = tableService.getTableById(TableId(tableId))
+        
         return recordRepository.findByTableIdOrderByPosition(TableId(tableId))
     }
     
     /**
-     * Moves a record to a new position.
-     * 
-     * @param id The record ID
-     * @param afterRecordId The ID of the record to position after (null for first position)
-     * @return The updated record
-     * @throws IllegalArgumentException if record not found
-     */
-    fun moveRecord(id: UUID, afterRecordId: UUID?): Record {
-        logger.info("Moving record $id after record: $afterRecordId")
-        
-        val record = getRecordById(id)
-        
-        val newPosition = if (afterRecordId == null) {
-            // Move to first position
-            val firstRecord = recordRepository.findByTableIdOrderByPosition(record.tableId).firstOrNull()
-            if (firstRecord != null && firstRecord.id.value != id) {
-                firstRecord.position / 2
-            } else {
-                Record.firstPosition()
-            }
-        } else {
-            // Move after specified record
-            val afterRecord = getRecordById(afterRecordId)
-            if (afterRecord.tableId != record.tableId) {
-                throw InvalidFilterException.of("Records must be in the same table")
-            }
-            
-            // Find the next record after the target position
-            val records = recordRepository.findByTableIdOrderByPosition(record.tableId)
-            val afterIndex = records.indexOfFirst { it.id == RecordId(afterRecordId) }
-            
-            if (afterIndex == -1) {
-                throw RecordNotFoundException.of(RecordId(afterRecordId))
-            }
-            
-            val nextRecord = if (afterIndex < records.size - 1) {
-                records[afterIndex + 1]
-            } else {
-                null
-            }
-            
-            if (nextRecord != null && nextRecord.id.value != id) {
-                // Position between afterRecord and nextRecord
-                (afterRecord.position + nextRecord.position) / 2
-            } else {
-                // Position at the end
-                Record.nextPosition(afterRecord.position)
-            }
-        }
-        
-        val updatedRecord = record.updatePosition(newPosition)
-        val savedRecord = recordRepository.save(updatedRecord)
-        
-        logger.info("Moved record $id to position $newPosition")
-        return savedRecord
-    }
-    
-    /**
-     * Reorders multiple records.
-     * 
-     * @param tableId The table ID
-     * @param orderedIds List of record IDs in desired order
-     * @return List of reordered records
-     * @throws IllegalArgumentException if any record not found or not in table
-     */
-    fun reorderRecords(tableId: UUID, orderedIds: List<UUID>): List<Record> {
-        logger.info("Reordering ${orderedIds.size} records in table: $tableId")
-        
-        // Validate all records exist and belong to the table
-        val records = orderedIds.map { id ->
-            val record = getRecordById(id)
-            if (record.tableId.value != tableId) {
-                throw InvalidFilterException.of("Record $id does not belong to table $tableId")
-            }
-            record
-        }
-        
-        // Assign new positions
-        var position = Record.firstPosition()
-        val updatedRecords = records.map { record ->
-            val updated = record.updatePosition(position)
-            position = Record.nextPosition(position)
-            updated
-        }
-        
-        val savedRecords = recordRepository.saveAll(updatedRecords)
-        logger.info("Reordered ${savedRecords.size} records")
-        
-        return savedRecords
-    }
-    
-    /**
-     * Validates record data against table schema.
-     * 
-     * @param table The table
-     * @param data The record data
-     * @return List of validation errors (empty if valid)
-     */
-    @Transactional(readOnly = true)
-    fun validateRecordData(table: com.astarworks.astarmanagement.core.table.domain.model.Table, data: JsonObject): List<String> {
-        val errors = mutableListOf<String>()
-        
-        // Check required fields and validate types
-        table.properties.forEach { (key, definition) ->
-            val value = data[key]
-            
-            // Check required fields
-            if (definition.isRequired) {
-                if (!data.containsKey(key) || value == null) {
-                    errors.add("Required field '$key' is missing")
-                    return@forEach // Skip further validation if required field is missing
-                }
-            }
-            
-            // Validate type and value if field is present and not null
-            if (data.containsKey(key) && value != null) {
-                // Type validation
-                if (!validateFieldType(definition.typeId, value)) {
-                    errors.add("Field '$key': Invalid type for ${definition.typeId}")
-                } else {
-                    // Value validation (format, range, etc.) - only if type is correct
-                    val valueErrors = validateFieldValue(definition, value)
-                    if (valueErrors.isNotEmpty()) {
-                        errors.addAll(valueErrors.map { "Field '$key': $it" })
-                    }
-                }
-            }
-        }
-        
-        // Check for unknown fields
-        data.keys.forEach { key ->
-            if (!table.properties.containsKey(key)) {
-                errors.add("Unknown field '$key'")
-            }
-        }
-        
-        return errors
-    }
-    
-    /**
-     * Validates field type.
-     * 
-     * @param typeId The property type ID
-     * @param value The value to validate
-     * @return true if type is valid, false otherwise
-     */
-    private fun validateFieldType(typeId: String, value: Any): Boolean {
-        return when (typeId) {
-            PropertyTypeCatalog.TEXT, PropertyTypeCatalog.LONG_TEXT -> {
-                value is String || (value is JsonPrimitive && value.isString)
-            }
-            PropertyTypeCatalog.NUMBER, PropertyTypeCatalog.CURRENCY, PropertyTypeCatalog.PERCENT -> {
-                value is Number || (value is JsonPrimitive && !value.isString)
-            }
-            PropertyTypeCatalog.CHECKBOX -> {
-                value is Boolean || (value is JsonPrimitive && value.booleanOrNull != null)
-            }
-            PropertyTypeCatalog.DATE, PropertyTypeCatalog.DATETIME -> {
-                value is String || (value is JsonPrimitive && value.isString)
-            }
-            PropertyTypeCatalog.SELECT -> {
-                value is String || (value is JsonPrimitive && value.isString)
-            }
-            PropertyTypeCatalog.MULTI_SELECT -> {
-                value is String || value is List<*> || 
-                (value is JsonPrimitive && value.isString) ||
-                (value is JsonArray)
-            }
-            PropertyTypeCatalog.EMAIL -> {
-                value is String || (value is JsonPrimitive && value.isString)
-            }
-            PropertyTypeCatalog.URL -> {
-                value is String || (value is JsonPrimitive && value.isString)
-            }
-            PropertyTypeCatalog.PHONE -> {
-                value is String || (value is JsonPrimitive && value.isString)
-            }
-            PropertyTypeCatalog.USER -> {
-                value is String || value is UUID || 
-                (value is JsonPrimitive && value.isString)
-            }
-            PropertyTypeCatalog.FILE -> {
-                value is String || value is Map<*, *> || 
-                (value is JsonPrimitive && value.isString) ||
-                (value is JsonObject)
-            }
-            else -> true // Unknown types pass type validation
-        }
-    }
-    
-    /**
-     * Validates field value based on property definition.
-     * 
-     * @param definition The property definition
-     * @param value The value to validate
-     * @return List of validation errors (empty if valid)
-     */
-    private fun validateFieldValue(definition: PropertyDefinition, value: Any): List<String> {
-        val errors = mutableListOf<String>()
-        val typeId = definition.typeId
-        
-        when (typeId) {
-            PropertyTypeCatalog.TEXT, PropertyTypeCatalog.LONG_TEXT -> {
-                val textValue = extractStringValue(value)
-                if (textValue != null) {
-                    val maxLength = definition.maxLength
-                    if (maxLength != null && textValue.length > maxLength) {
-                        errors.add("Text exceeds maximum length of $maxLength")
-                    }
-                }
-            }
-            PropertyTypeCatalog.EMAIL -> {
-                val emailValue = extractStringValue(value)
-                if (emailValue != null && !isValidEmail(emailValue)) {
-                    errors.add("Invalid email format")
-                }
-            }
-            PropertyTypeCatalog.URL -> {
-                val urlValue = extractStringValue(value)
-                if (urlValue != null && !isValidUrl(urlValue)) {
-                    errors.add("Invalid URL format")
-                }
-            }
-            PropertyTypeCatalog.PHONE -> {
-                val phoneValue = extractStringValue(value)
-                if (phoneValue != null && !isValidPhone(phoneValue)) {
-                    errors.add("Invalid phone number format")
-                }
-            }
-            PropertyTypeCatalog.SELECT -> {
-                val selectValue = extractStringValue(value)
-                if (selectValue != null) {
-                    val validationError = validateSelectOption(definition, selectValue)
-                    if (validationError != null) {
-                        errors.add(validationError)
-                    }
-                }
-            }
-            PropertyTypeCatalog.MULTI_SELECT -> {
-                val validationError = when (value) {
-                    is String -> validateSelectOption(definition, value)
-                    is JsonPrimitive -> {
-                        val stringValue = extractStringValue(value)
-                        if (stringValue != null) validateSelectOption(definition, stringValue) else null
-                    }
-                    is JsonArray -> validateMultiSelectOptionsFromJson(definition, value)
-                    is List<*> -> validateMultiSelectOptions(definition, value)
-                    else -> "Invalid value type for multi-select"
-                }
-                if (validationError != null) {
-                    errors.add(validationError)
-                }
-            }
-            PropertyTypeCatalog.NUMBER, PropertyTypeCatalog.CURRENCY, PropertyTypeCatalog.PERCENT -> {
-                val numberValue = extractNumberValue(value)
-                if (numberValue != null) {
-                    val rangeError = validateNumberRange(definition, numberValue)
-                    if (rangeError != null) {
-                        errors.add(rangeError)
-                    }
-                }
-            }
-        }
-        
-        return errors
-    }
-    
-    /**
-     * Extracts string value from Any or JsonPrimitive
-     */
-    private fun extractStringValue(value: Any): String? {
-        return when (value) {
-            is String -> value
-            is JsonPrimitive -> if (value.isString) value.content else null
-            else -> null
-        }
-    }
-    
-    /**
-     * Extracts number value from Any or JsonPrimitive
-     */
-    private fun extractNumberValue(value: Any): Number? {
-        return when (value) {
-            is Number -> value
-            is JsonPrimitive -> value.doubleOrNull ?: value.longOrNull ?: value.intOrNull
-            else -> null
-        }
-    }
-    
-    /**
-     * Validates multi-select options from JsonArray
-     */
-    private fun validateMultiSelectOptionsFromJson(definition: PropertyDefinition, value: JsonArray): String? {
-        val stringValues = value.mapNotNull { element ->
-            if (element is JsonPrimitive && element.isString) element.content else null
-        }
-        return validateMultiSelectOptions(definition, stringValues)
-    }
-    
-    /**
-     * Validates SELECT option.
-     * 
-     * @param definition The property definition
-     * @param value The selected value
-     * @return Error message if invalid, null otherwise
-     */
-    private fun validateSelectOption(definition: PropertyDefinition, value: String): String? {
-        // Try to get options using options property first
-        val selectOptions = definition.options
-        if (selectOptions != null && selectOptions.isNotEmpty()) {
-            val validValues = selectOptions.map { it.value }
-            if (value !in validValues) {
-                return "Invalid option: '$value' is not in allowed values"
-            }
-        } else {
-            // Fall back to raw options if getOptions() returns null/empty
-            val rawOptions = definition.config["options"] as? List<*>
-            if (rawOptions != null && rawOptions.isNotEmpty()) {
-                val validValues = when (val firstOption = rawOptions.firstOrNull()) {
-                    is SelectOption -> rawOptions.filterIsInstance<SelectOption>().map { it.value }
-                    is Map<*, *> -> rawOptions.filterIsInstance<Map<*, *>>().mapNotNull { it["value"] as? String }
-                    else -> emptyList()
-                }
-                if (validValues.isNotEmpty() && value !in validValues) {
-                    return "Invalid option: '$value' is not in allowed values"
-                }
-            }
-        }
-        return null
-    }
-    
-    /**
-     * Validates MULTI_SELECT options.
-     * 
-     * @param definition The property definition
-     * @param values The selected values
-     * @return Error message if invalid, null otherwise
-     */
-    private fun validateMultiSelectOptions(definition: PropertyDefinition, values: List<*>): String? {
-        // Try to get options using options property first
-        val selectOptions = definition.options
-        if (selectOptions != null && selectOptions.isNotEmpty()) {
-            val validValues = selectOptions.map { it.value }
-            val invalidValues = values.filter { 
-                it !is String || it !in validValues
-            }
-            if (invalidValues.isNotEmpty()) {
-                return "Invalid options: $invalidValues are not in allowed values"
-            }
-        } else {
-            // Fall back to raw options if getOptions() returns null/empty
-            val rawOptions = definition.config["options"] as? List<*>
-            if (rawOptions != null && rawOptions.isNotEmpty()) {
-                val validValues = when (val firstOption = rawOptions.firstOrNull()) {
-                    is SelectOption -> rawOptions.filterIsInstance<SelectOption>().map { it.value }
-                    is Map<*, *> -> rawOptions.filterIsInstance<Map<*, *>>().mapNotNull { it["value"] as? String }
-                    else -> emptyList()
-                }
-                if (validValues.isNotEmpty()) {
-                    val invalidValues = values.filter {
-                        it !is String || it !in validValues
-                    }
-                    if (invalidValues.isNotEmpty()) {
-                        return "Invalid options: $invalidValues are not in allowed values"
-                    }
-                }
-            }
-        }
-        return null
-    }
-    
-    /**
-     * Validates number range.
-     * 
-     * @param definition The property definition
-     * @param value The number value
-     * @return Error message if out of range, null otherwise
-     */
-    private fun validateNumberRange(definition: PropertyDefinition, value: Number): String? {
-        val min = definition.minValue
-        val max = definition.maxValue
-        
-        val doubleValue = value.toDouble()
-        
-        if (min != null && doubleValue < min.toDouble()) {
-            return "Value $value is less than minimum $min"
-        }
-        if (max != null && doubleValue > max.toDouble()) {
-            return "Value $value is greater than maximum $max"
-        }
-        
-        return null
-    }
-    
-    /**
-     * Validates email format.
-     */
-    private fun isValidEmail(email: String): Boolean {
-        return email.contains("@") && 
-               email.matches(Regex("^[\\w._%+-]+@[\\w.-]+\\.[A-Za-z]{2,}$"))
-    }
-    
-    /**
-     * Validates URL format.
-     */
-    private fun isValidUrl(url: String): Boolean {
-        return url.startsWith("http://") || 
-               url.startsWith("https://") || 
-               url.startsWith("ftp://")
-    }
-    
-    /**
-     * Validates phone number format.
-     */
-    private fun isValidPhone(phone: String): Boolean {
-        return phone.matches(Regex("^[+]?[\\d\\s()-]{7,}$"))
-    }
-    
-    /**
      * Counts records in a table.
-     * 
-     * @param tableId The table ID
-     * @return The number of records
      */
     @Transactional(readOnly = true)
-    fun countRecords(tableId: UUID): Long {
+    fun countByTableId(tableId: UUID): Long {
         return recordRepository.countByTableId(TableId(tableId))
     }
     
     /**
-     * Deletes all records in a table.
-     * 
-     * @param tableId The table ID
+     * Checks if a record exists.
      */
-    fun clearTable(tableId: UUID) {
-        logger.info("Clearing all records from table: $tableId")
-        
-        // Validate table exists
-        tableService.getTableById(TableId(tableId))
-        
-        recordRepository.deleteByTableId(TableId(tableId))
-        logger.info("Cleared all records from table $tableId")
+    @Transactional(readOnly = true)
+    fun existsById(recordId: UUID): Boolean {
+        return recordRepository.existsById(RecordId(recordId))
     }
     
     /**
-     * Copies records within the same table or to a different table.
-     * 
-     * @param recordIds List of record IDs to copy
-     * @param targetTableId Target table ID (null for same table)
-     * @param includeData Whether to include data in the copy
-     * @param fieldMapping Field name mapping for cross-table copy
-     * @return List of copied records
-     * @throws IllegalArgumentException if records not found or validation fails
+     * Deletes all records in a table.
+     */
+    fun deleteAllByTableId(tableId: UUID) {
+        logger.debug("Deleting all records in table: $tableId")
+        
+        val deletedCount = recordRepository.deleteByTableId(TableId(tableId))
+        logger.info("Deleted $deletedCount records from table: $tableId")
+    }
+    
+    // ===== Compatibility methods for controllers =====
+    
+    /**
+     * Alias for countByTableId for compatibility.
+     */
+    fun countRecords(tableId: UUID): Long = countByTableId(tableId)
+    
+    /**
+     * Alias for deleteAllByTableId for compatibility.
+     */
+    fun clearTable(tableId: UUID) = deleteAllByTableId(tableId)
+    
+    /**
+     * Alias for findByTableId for compatibility.
+     */
+    fun getRecordsByTablePaged(tableId: UUID, pageable: Pageable): Page<Record> = 
+        findByTableId(tableId, pageable)
+    
+    /**
+     * Alias for findById for compatibility.
+     */
+    fun getRecordById(recordId: UUID): Record = findById(recordId)
+    
+    /**
+     * Alias for findAllByTableId for compatibility.
+     */
+    fun getRecordsByTableOrdered(tableId: UUID): List<Record> = findAllByTableId(tableId)
+    
+    /**
+     * Copies records to create duplicates.
      */
     fun copyRecords(
-        recordIds: List<UUID>,
-        targetTableId: UUID? = null,
-        includeData: Boolean = true,
-        fieldMapping: Map<String, String>? = null
+        sourceRecordIds: List<UUID>,
+        targetTableId: UUID,
+        position: Float? = null
     ): List<Record> {
-        if (recordIds.isEmpty()) {
-            return emptyList()
+        logger.debug("Copying ${sourceRecordIds.size} records to table: $targetTableId")
+        
+        val sourceRecords = sourceRecordIds.map { id ->
+            findById(id)
         }
         
-        if (recordIds.size > 100) {
-            throw BatchSizeExceededException.of(recordIds.size, 100)
+        val targetTableIdValue = TableId(targetTableId)
+        var currentPosition = position ?: run {
+            val lastRecord = recordRepository.findTopByTableIdOrderByPositionDesc(targetTableIdValue)
+            lastRecord?.position ?: Record.DEFAULT_POSITION
         }
         
-        logger.info("Copying ${recordIds.size} records to table: ${targetTableId ?: "same"}")
-        
-        // Get source records
-        val sourceRecords = recordIds.map { id ->
-            recordRepository.findById(RecordId(id)) 
-                ?: throw RecordNotFoundException.of(RecordId(id))
-        }
-        
-        // Determine target table
-        val firstRecord = sourceRecords.first()
-        val targetDbId = targetTableId?.let { TableId(it) } ?: firstRecord.tableId
-        val targetTable = tableService.getTableById(targetDbId)
-        
-        // Validate cross-table copy if applicable
-        if (targetTableId != null && TableId(targetTableId) != firstRecord.tableId) {
-            // Ensure all source records are from the same table
-            if (sourceRecords.any { it.tableId != firstRecord.tableId }) {
-                throw InvalidFilterException.of("All source records must be from the same table for cross-table copy")
-            }
-        }
-        
-        // Calculate starting position in target table
-        val maxPosition = recordRepository.findMaxPositionByTableId(targetDbId)
-        var currentPosition = maxPosition ?: 0f
-        
-        // Create copied records
-        val copiedRecords = sourceRecords.map { sourceRecord ->
-            currentPosition = Record.nextPosition(currentPosition)
-            
-            val copiedData = if (includeData) {
-                if (fieldMapping != null) {
-                    // Apply field mapping for cross-table copy
-                    buildJsonObject {
-                        sourceRecord.data.forEach { (key, value) ->
-                            val mappedKey = fieldMapping[key] ?: key
-                            if (targetTable.properties.containsKey(mappedKey)) {
-                                put(mappedKey, value)
-                            }
-                        }
-                    }
-                } else {
-                    // Copy data as-is for same table
-                    sourceRecord.data
-                }
-            } else {
-                JsonObject(emptyMap())
-            }
-            
-            // Validate copied data against target table schema (skip validation if no data is included)
-            if (includeData) {
-                val errors = validateRecordData(targetTable, copiedData)
-                if (errors.isNotEmpty()) {
-                    val validationErrors = errors.map { ValidationError(it.substringBefore(":").trim(), it.substringAfter(":").trim()) }
-                    throw RecordValidationException.of(null, validationErrors)
-                }
-            }
-            
+        val copiedRecords = sourceRecords.map { source ->
+            currentPosition += Record.POSITION_INCREMENT
             Record.create(
-                tableId = targetDbId,
-                data = copiedData,
+                tableId = targetTableIdValue,
+                data = source.data,
                 position = currentPosition
             )
         }
         
-        val savedRecords = recordRepository.saveAll(copiedRecords)
-        logger.info("Successfully copied ${savedRecords.size} records")
-        
-        return savedRecords
+        return recordRepository.saveAll(copiedRecords)
     }
     
     /**
-     * Updates a specific field across multiple records.
-     * 
-     * @param recordIds List of record IDs to update
-     * @param field The field name to update
-     * @param value The new value (null to clear the field)
-     * @return RecordBatchResponse with success and failure details
+     * Moves a record to a new position.
      */
-    fun bulkUpdateField(
-        recordIds: List<UUID>,
-        field: String,
-        value: JsonElement?
-    ): com.astarworks.astarmanagement.core.table.api.dto.record.RecordBatchResponse {
-        if (recordIds.isEmpty()) {
-            return com.astarworks.astarmanagement.core.table.api.dto.record.RecordBatchResponse.success(emptyList())
+    fun moveRecord(
+        recordId: UUID,
+        afterRecordId: UUID?
+    ): Record {
+        logger.debug("Moving record $recordId after $afterRecordId")
+        
+        val record = findById(recordId)
+        val tableRecords = findAllByTableId(record.tableId.value)
+        
+        val afterRecord = afterRecordId?.let { id ->
+            tableRecords.find { it.id.value == id }
         }
         
-        if (recordIds.size > MAX_BATCH_SIZE) {
-            throw BatchSizeExceededException.of(recordIds.size, MAX_BATCH_SIZE)
-        }
-        
-        logger.info("Bulk updating field '$field' for ${recordIds.size} records")
-        
-        val succeeded = mutableListOf<com.astarworks.astarmanagement.core.table.api.dto.record.RecordResponse>()
-        val failed = mutableListOf<com.astarworks.astarmanagement.core.table.api.dto.record.RecordBatchError>()
-        
-        recordIds.forEachIndexed { index, recordId ->
-            try {
-                // Get the record
-                val record = recordRepository.findById(RecordId(recordId))
-                if (record == null) {
-                    failed.add(
-                        com.astarworks.astarmanagement.core.table.api.dto.record.RecordBatchError.forRecord(
-                            recordId,
-                            "Record not found"
-                        )
-                    )
-                    return@forEachIndexed
-                }
-                
-                // Get the table schema
-                val table = tableService.getTableById(record.tableId)
-                
-                // Check if field exists in table schema
-                if (!table.properties.containsKey(field)) {
-                    failed.add(
-                        com.astarworks.astarmanagement.core.table.api.dto.record.RecordBatchError.forRecord(
-                            recordId,
-                            "Field '$field' does not exist in table schema"
-                        )
-                    )
-                    return@forEachIndexed
-                }
-                
-                // Create updated data
-                val updatedData = buildJsonObject {
-                    record.data.forEach { (key, existingValue) ->
-                        if (key != field) {
-                            put(key, existingValue)
-                        }
-                    }
-                    if (value != null && value !is JsonNull) {
-                        put(field, value)
-                    }
-                }
-                
-                // Validate the updated data
-                val errors = validateRecordData(table, updatedData)
-                if (errors.isNotEmpty()) {
-                    val validationErrors = errors.map { error ->
-                        com.astarworks.astarmanagement.core.table.api.dto.record.RecordValidationError(
-                            field = error.substringBefore(":").trim(),
-                            message = error.substringAfter(":").trim()
-                        )
-                    }
-                    failed.add(
-                        com.astarworks.astarmanagement.core.table.api.dto.record.RecordBatchError.validation(
-                            index = index,
-                            recordId = recordId,
-                            validationErrors = validationErrors
-                        )
-                    )
-                    return@forEachIndexed
-                }
-                
-                // Update and save the record
-                val updatedRecord = record.setValues(updatedData)
-                val savedRecord = recordRepository.save(updatedRecord)
-                
-                // Convert to response DTO
-                val recordResponse = com.astarworks.astarmanagement.core.table.api.dto.record.RecordResponse(
-                    id = savedRecord.id.value,
-                    tableId = savedRecord.tableId.value,
-                    data = savedRecord.data,
-                    position = savedRecord.position,
-                    createdAt = savedRecord.createdAt,
-                    updatedAt = savedRecord.updatedAt
-                )
-                succeeded.add(recordResponse)
-                
-            } catch (e: Exception) {
-                logger.error("Failed to update field '$field' for record $recordId", e)
-                failed.add(
-                    com.astarworks.astarmanagement.core.table.api.dto.record.RecordBatchError.forRecord(
-                        recordId,
-                        e.message ?: "Unknown error"
-                    )
-                )
-            }
-        }
-        
-        logger.info("Bulk field update completed: ${succeeded.size} succeeded, ${failed.size} failed")
-        
-        return if (failed.isEmpty()) {
-            com.astarworks.astarmanagement.core.table.api.dto.record.RecordBatchResponse.success(succeeded)
-        } else if (succeeded.isEmpty()) {
-            com.astarworks.astarmanagement.core.table.api.dto.record.RecordBatchResponse.failure(failed)
+        val beforeRecord = if (afterRecord != null) {
+            val index = tableRecords.indexOf(afterRecord)
+            if (index < tableRecords.size - 1) tableRecords[index + 1] else null
         } else {
-            com.astarworks.astarmanagement.core.table.api.dto.record.RecordBatchResponse.partial(succeeded, failed)
+            tableRecords.firstOrNull { it.id.value != recordId }
         }
+        
+        val newPosition = Record.positionBetween(
+            afterRecord?.position,
+            beforeRecord?.position
+        )
+        
+        return updateRecordPosition(recordId, newPosition)
+    }
+    
+    /**
+     * Reorders multiple records.
+     */
+    fun reorderRecords(
+        tableId: UUID,
+        recordIds: List<UUID>
+    ): List<Record> {
+        logger.debug("Reordering ${recordIds.size} records in table: $tableId")
+        
+        var position = Record.DEFAULT_POSITION
+        val reorderedRecords = recordIds.map { id ->
+            val record = findById(id)
+            position += Record.POSITION_INCREMENT
+            record.updatePosition(position)
+        }
+        
+        return recordRepository.saveAll(reorderedRecords)
     }
 }

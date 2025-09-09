@@ -2,6 +2,7 @@ package com.astarworks.astarmanagement.core.template.infrastructure.yaml
 
 import com.astarworks.astarmanagement.core.template.domain.model.Template
 import com.astarworks.astarmanagement.core.table.domain.model.PropertyDefinition
+import com.astarworks.astarmanagement.core.table.domain.model.PropertyType
 import com.charleskorn.kaml.Yaml
 import com.charleskorn.kaml.YamlConfiguration
 import kotlinx.serialization.Contextual
@@ -138,8 +139,9 @@ class TemplateYamlLoader {
                 }
             }
             
+            val propertyType = PropertyType.fromValue(propYaml.typeId) ?: throw IllegalArgumentException("Unknown property type: ${propYaml.typeId}")
             PropertyDefinition(
-                typeId = propYaml.typeId,
+                type = propertyType,
                 displayName = propYaml.displayName,
                 config = config
             )

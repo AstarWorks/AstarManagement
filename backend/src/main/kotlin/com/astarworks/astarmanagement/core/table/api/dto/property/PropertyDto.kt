@@ -1,5 +1,6 @@
 package com.astarworks.astarmanagement.core.table.api.dto.property
 
+import com.astarworks.astarmanagement.core.table.domain.model.PropertyType
 import com.astarworks.astarmanagement.core.table.infrastructure.validation.ValidPropertyKey
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.*
@@ -18,8 +19,8 @@ data class PropertyDefinitionDto(
     @field:ValidPropertyKey
     val key: String,
     
-    @field:NotBlank
-    val typeId: String,
+    @field:NotNull
+    val type: PropertyType,
     
     @field:NotBlank
     @field:Size(min = 1, max = 255)
@@ -77,7 +78,7 @@ data class PropertyDefinitionDto(
         ): PropertyDefinitionDto {
             return PropertyDefinitionDto(
                 key = key,
-                typeId = "text",
+                type = PropertyType.TEXT,
                 displayName = displayName,
                 config = buildJsonObject { put("maxLength", maxLength) },
                 required = required
@@ -101,7 +102,7 @@ data class PropertyDefinitionDto(
             
             return PropertyDefinitionDto(
                 key = key,
-                typeId = "number",
+                type = PropertyType.NUMBER,
                 displayName = displayName,
                 config = config,
                 required = required
@@ -120,7 +121,7 @@ data class PropertyDefinitionDto(
         ): PropertyDefinitionDto {
             return PropertyDefinitionDto(
                 key = key,
-                typeId = if (multiple) "multi_select" else "select",
+                type = if (multiple) PropertyType.MULTI_SELECT else PropertyType.SELECT,
                 displayName = displayName,
                 config = buildJsonObject {
                     putJsonArray("options") {
@@ -153,9 +154,7 @@ data class PropertyValueDto(
     
     val value: JsonElement?,
     
-    val displayValue: String? = null,
-    
-    val typeId: String? = null
+    val displayValue: String? = null
 ) {
     /**
      * Checks if the value is null or empty.

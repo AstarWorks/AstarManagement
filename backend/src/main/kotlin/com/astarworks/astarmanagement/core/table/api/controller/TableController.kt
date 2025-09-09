@@ -59,9 +59,6 @@ class TableController(
     fun createTable(
         @Valid @RequestBody request: TableCreateRequest
     ): TableResponse {
-        println("====== CONTROLLER METHOD CALLED: createTable ======")
-        println("====== Request: ${request} ======")
-        System.err.println("====== CONTROLLER METHOD CALLED: createTable ======")
         logger.info("Creating table '${request.name}' in workspace: ${request.workspaceId}")
         
         val table = if (request.properties.isNotEmpty()) {
@@ -78,45 +75,6 @@ class TableController(
         
         val response = dtoMapper.toResponse(table)
         logger.info("Created table with ID: ${table.id}")
-        
-        // 詳細なデバッグ出力
-        println("====== SERIALIZATION DEBUG ======")
-        println("Response object type: ${response::class.java}")
-        println("Response object content: ${response}")
-        
-        // **重要**: 直接Kotlin Serializationテスト（UUIDSerializer含む）
-        try {
-            val testJson = kotlinx.serialization.json.Json { 
-                ignoreUnknownKeys = true
-                coerceInputValues = true
-                serializersModule = kotlinx.serialization.modules.SerializersModule {
-                    contextual(java.util.UUID::class, com.astarworks.astarmanagement.shared.infrastructure.config.UUIDSerializer)
-                    contextual(java.time.Instant::class, com.astarworks.astarmanagement.shared.infrastructure.config.InstantSerializer)
-                }
-            }
-            val jsonString = testJson.encodeToString(response)
-            println("DIRECT KOTLIN SERIALIZATION SUCCESS:")
-            println("JSON: ${jsonString}")
-        } catch (e: Exception) {
-            println("DIRECT KOTLIN SERIALIZATION FAILED:")
-            println("Error: ${e.message}")
-            println("Exception type: ${e::class.java}")
-            e.printStackTrace()
-        }
-        
-        println("Properties in response:")
-        println("  id: ${response.id} (type: ${response.id::class.java})")
-        println("  workspaceId: ${response.workspaceId} (type: ${response.workspaceId::class.java})")
-        println("  name: ${response.name} (type: ${response.name::class.java})")
-        println("  properties: ${response.properties} (type: ${response.properties::class.java})")
-        println("  properties keys: ${response.properties.keys}")
-        response.properties.values.forEach { prop ->
-            println("    Property: ${prop} (type: ${prop::class.java})")
-        }
-        println("  propertyOrder: ${response.propertyOrder} (type: ${response.propertyOrder::class.java})")
-        println("  createdAt: ${response.createdAt} (type: ${response.createdAt::class.java})")
-        println("  updatedAt: ${response.updatedAt} (type: ${response.updatedAt::class.java})")
-        println("====== END SERIALIZATION DEBUG ======")
         
         return response
     }
@@ -371,7 +329,7 @@ class TableController(
         }
         
         val updatedDefinition = PropertyDefinition(
-            typeId = existingProperty.typeId,
+            type = existingProperty.type,
             displayName = request.displayName ?: existingProperty.displayName,
             config = updatedConfig
         )
@@ -504,16 +462,14 @@ class TableController(
             logger.info("Copying records from table $id to ${newTable.id}")
             
             // Get all records from source table
-            val sourceRecords = recordService.getRecordsByTable(sourceTable.id.value)
+            val sourceRecords = recordService.getRecordsByTableOrdered(sourceTable.id.value)
             
             if (sourceRecords.isNotEmpty()) {
                 // Copy all records to the new table
-                val recordIds = sourceRecords.map { it.id }
+                val recordIds = sourceRecords.map { it.id.value }
                 val copiedRecords = recordService.copyRecords(
-                    recordIds = recordIds.map { it.value },
-                    targetTableId = newTable.id.value,
-                    includeData = true,
-                    fieldMapping = null // No field mapping needed for exact duplicate
+                    sourceRecordIds = recordIds,
+                    targetTableId = newTable.id.value
                 )
                 
                 logger.info("Copied ${copiedRecords.size} records to new table ${newTable.id}")
@@ -550,7 +506,7 @@ class TableController(
         
         val table = tableService.getTableById(TableId(id))
         val records = if (includeRecords) {
-            recordService.getRecordsByTable(table.id.value)
+            recordService.getRecordsByTableOrdered(table.id.value)
         } else {
             emptyList()
         }
@@ -573,8 +529,8 @@ class TableController(
                 val schema = dtoMapper.toSchemaResponse(table)
                 val recordData = records.map { record ->
                     kotlinx.serialization.json.buildJsonObject {
-                        put("id", kotlinx.serialization.json.JsonPrimitive(record.id.toString()))
-                        put("data", record.data)
+                        put("id", kotlinx.serialization.json.JsonPrimitive(record.id.value.toString()))
+                        put("data", kotlinx.serialization.json.Json.parseToJsonElement(record.getDataJson()).jsonObject)
                         put("position", kotlinx.serialization.json.JsonPrimitive(record.position))
                         put("createdAt", kotlinx.serialization.json.JsonPrimitive(record.createdAt.toString()))
                         put("updatedAt", kotlinx.serialization.json.JsonPrimitive(record.updatedAt.toString()))
@@ -673,17 +629,19 @@ class TableController(
         
         val table = tableService.getTableById(TableId(id))
         val recordCount = recordService.countRecords(table.id.value)
-        val records = recordService.getRecordsByTable(table.id.value)
+        val records = recordService.getRecordsByTableOrdered(table.id.value)
         
         // Calculate field statistics
         val fieldStatistics = table.properties.map { (key, definition) ->
-            val values = records.mapNotNull { it.data[key] }
+            val values = records.mapNotNull { record ->
+                kotlinx.serialization.json.Json.parseToJsonElement(record.getDataJson()).jsonObject[key]
+            }
             val nonNullCount = values.size
             val nullCount = records.size - nonNullCount
             
             FieldStatistics(
                 fieldKey = key,
-                fieldType = definition.typeId,
+                fieldType = definition.type.name.lowercase(),
                 totalCount = records.size.toLong(),
                 nonNullCount = nonNullCount.toLong(),
                 nullCount = nullCount.toLong(),
@@ -696,16 +654,7 @@ class TableController(
         
         // Calculate storage size (simplified estimation)
         val estimatedSize = records.sumOf { record ->
-            record.data.values.sumOf { value ->
-                when (value) {
-                    is String -> value.length
-                    is Number -> 8
-                    is Boolean -> 1
-                    is List<*> -> value.size * 8
-                    is Map<*, *> -> value.size * 16
-                    else -> 8
-                }
-            }
+            record.getDataJson().length
         }
         
         val statistics = TableStatisticsResponse(
@@ -738,11 +687,18 @@ class TableController(
         
         // Add data rows
         records.forEach { record ->
+            val data = kotlinx.serialization.json.Json.parseToJsonElement(record.getDataJson()).jsonObject
             val row = headers.map { header ->
-                val value = record.data[header]
+                val value = data[header]
                 when (value) {
                     null -> ""
-                    is String -> "\"${value.replace("\"", "\"\"")}\""
+                    is kotlinx.serialization.json.JsonPrimitive -> {
+                        if (value.isString) {
+                            "\"${value.content.replace("\"", "\"\"")}\""
+                        } else {
+                            value.content
+                        }
+                    }
                     else -> value.toString()
                 }
             }

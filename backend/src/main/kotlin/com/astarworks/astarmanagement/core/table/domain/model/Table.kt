@@ -18,7 +18,7 @@ import java.util.UUID
  * @property updatedAt 更新日時
  */
 data class Table(
-    val id: TableId = TableId(java.util.UUID.randomUUID()),
+    val id: TableId = TableId(UUID.randomUUID()),
     val workspaceId: WorkspaceId,
     val name: String,
     val description: String? = null,

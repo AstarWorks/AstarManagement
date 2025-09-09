@@ -155,8 +155,13 @@ class RecordRepositoryImpl(
     }
     
     @Transactional
-    override fun deleteByTableId(tableId: TableId) {
-        jdbcRepository.deleteByTableId(tableId)
+    override fun deleteByIdIn(ids: List<RecordId>) {
+        deleteAllById(ids)
+    }
+    
+    @Transactional
+    override fun deleteByTableId(tableId: TableId): Int {
+        return jdbcRepository.deleteByTableId(tableId)
     }
     
     @Transactional(readOnly = true)
@@ -167,6 +172,12 @@ class RecordRepositoryImpl(
     @Transactional(readOnly = true)
     override fun countByTableId(tableId: TableId): Long {
         return jdbcRepository.countByTableId(tableId)
+    }
+    
+    @Transactional(readOnly = true)
+    override fun findTopByTableIdOrderByPositionDesc(tableId: TableId): Record? {
+        return jdbcRepository.findTopByTableIdOrderByPositionDesc(tableId)
+            ?.let { mapper.toDomain(it) }
     }
     
     @Transactional(readOnly = true)

@@ -7,27 +7,24 @@ import kotlinx.serialization.json.*
  * プロパティ定義
  * データベース（テーブル）のカラム定義を表現する値オブジェクト
  * 
- * @property typeId プロパティ型のID（PropertyTypesの定数を使用）
+ * @property type プロパティ型
  * @property displayName 表示名
  * @property config 型固有の設定（選択肢、最大文字数など）
  */
 @Serializable
 data class PropertyDefinition(
-    val typeId: String,
+    val type: PropertyType,
     val displayName: String,
     val config: JsonObject = JsonObject(emptyMap())
 ) {
     init {
-        require(PropertyTypes.isValid(typeId)) { 
-            "Unknown type ID: $typeId. Valid types: ${PropertyTypes.ALL}" 
-        }
         require(displayName.isNotBlank()) { "Display name must not be blank" }
         require(displayName.length <= 255) { "Display name too long (max 255 characters)" }
     }
     
     // ===== 型安全なプロパティアクセサ =====
     
-    /**
+    /**tu
      * 必須フィールドかどうか
      */
     val isRequired: Boolean 
@@ -132,16 +129,16 @@ data class PropertyDefinition(
         val errors = mutableListOf<String>()
         
         // 型固有のバリデーション
-        when (typeId) {
-            PropertyTypes.TEXT, PropertyTypes.LONG_TEXT -> {
+        when (type) {
+            PropertyType.TEXT, PropertyType.LONG_TEXT -> {
                 maxLength?.let { max ->
                     if (max <= 0) errors.add("Max length must be positive")
-                    if (typeId == PropertyTypes.TEXT && max > 5000) {
+                    if (type == PropertyType.TEXT && max > 5000) {
                         errors.add("Text type max length should not exceed 5000")
                     }
                 }
             }
-            PropertyTypes.NUMBER -> {
+            PropertyType.NUMBER -> {
                 minValue?.let { min ->
                     maxValue?.let { max ->
                         if (min.toDouble() > max.toDouble()) {
@@ -153,10 +150,13 @@ data class PropertyDefinition(
                     if (p < 0 || p > 10) errors.add("Precision must be between 0 and 10")
                 }
             }
-            PropertyTypes.SELECT, PropertyTypes.MULTI_SELECT -> {
+            PropertyType.SELECT, PropertyType.MULTI_SELECT -> {
                 if (options.isNullOrEmpty()) {
                     errors.add("Select type must have at least one option")
                 }
+            }
+            else -> {
+                // その他の型については特別なバリデーションなし
             }
         }
         

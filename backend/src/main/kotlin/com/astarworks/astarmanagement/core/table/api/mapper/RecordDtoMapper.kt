@@ -23,10 +23,11 @@ class RecordDtoMapper {
      * @return The corresponding RecordResponse DTO
      */
     fun toResponse(record: Record): RecordResponse {
+        val data = Json.parseToJsonElement(record.getDataJson()).jsonObject
         return RecordResponse(
             id = record.id.value,
             tableId = record.tableId.value,
-            data = record.data,
+            data = data,
             position = record.position,
             createdAt = record.createdAt,
             updatedAt = record.updatedAt
@@ -50,7 +51,8 @@ class RecordDtoMapper {
      * @return The corresponding RecordSummaryResponse DTO
      */
     fun toSummaryResponse(record: Record): RecordSummaryResponse {
-        val primaryField = record.data.entries.firstOrNull()?.value
+        val data = Json.parseToJsonElement(record.getDataJson()).jsonObject
+        val primaryField = data.entries.firstOrNull()?.value
         return RecordSummaryResponse(
             id = record.id.value,
             primaryField = primaryField,
@@ -76,8 +78,9 @@ class RecordDtoMapper {
      * @return The corresponding RecordMinimalResponse DTO
      */
     fun toMinimalResponse(record: Record, fields: Set<String>): RecordMinimalResponse {
+        val data = Json.parseToJsonElement(record.getDataJson()).jsonObject
         val filteredData = buildJsonObject {
-            record.data.forEach { (key, value) ->
+            data.forEach { (key, value) ->
                 if (key in fields) {
                     put(key, value)
                 }
@@ -277,7 +280,8 @@ class RecordDtoMapper {
         if (filter.hasFilters()) {
             filter.filters?.forEach { (field, value) ->
                 result = result.filter { record ->
-                    record.data[field] == value
+                    val data = Json.parseToJsonElement(record.getDataJson()).jsonObject
+                    data[field] == value
                 }
             }
         }

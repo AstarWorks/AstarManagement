@@ -30,8 +30,11 @@ interface SpringDataJdbcRecordRepository : CrudRepository<SpringDataJdbcRecordTa
     
     @Modifying
     @Query("DELETE FROM records WHERE table_id = :tableId")
-    fun deleteByTableId(@Param("tableId") tableId: TableId)
+    fun deleteByTableId(@Param("tableId") tableId: TableId): Int
     
     @Query("SELECT MAX(position) FROM records WHERE table_id = :tableId")
     fun findMaxPositionByTableId(@Param("tableId") tableId: TableId): Float?
+    
+    @Query("SELECT * FROM records WHERE table_id = :tableId ORDER BY position DESC LIMIT 1")
+    fun findTopByTableIdOrderByPositionDesc(@Param("tableId") tableId: TableId): SpringDataJdbcRecordTable?
 }
