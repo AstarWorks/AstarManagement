@@ -69,6 +69,10 @@ spring:
         jwt:
           issuer-uri: https://${auth0.domain}/
           jwk-set-uri: https://${auth0.domain}/.well-known/jwks.json
+          
+  http:
+    converters:
+      preferred-json-mapper: kotlin-serialization
 
 # Server Configuration
 server:
@@ -83,10 +87,11 @@ auth0:
 springdoc:
   api-docs:
     enabled: true
-    path: /api-docs
+    path: /v3/api-docs-original
   swagger-ui:
     enabled: true
     path: /swagger-ui
+    configUrl: /v3/api-docs
     try-it-out-enabled: true
     operations-sorter: method
     tags-sorter: alpha

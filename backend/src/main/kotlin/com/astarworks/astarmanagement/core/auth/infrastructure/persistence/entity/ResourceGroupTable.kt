@@ -1,5 +1,6 @@
 package com.astarworks.astarmanagement.core.auth.infrastructure.persistence.entity
 
+import com.astarworks.astarmanagement.core.auth.domain.model.ResourceType
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
@@ -31,7 +32,7 @@ data class SpringDataJdbcResourceGroupTable(
     val description: String? = null,
     
     @Column("resource_type")
-    val resourceType: String, // Enum stored as string (TABLE, DOCUMENT, etc.)
+    val resourceType: ResourceType, // Resource type enum
     
     @Column("created_at")
     val createdAt: Instant = Instant.now(),

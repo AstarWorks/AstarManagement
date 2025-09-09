@@ -70,6 +70,14 @@ class SecurityConfig(
                         "/api/v1/health",
                         "/api/v1/health/**"
                     ).permitAll()
+                    
+                    // OpenAPI and Swagger UI endpoints - Public
+                    .requestMatchers(
+                        "/v3/api-docs",
+                        "/v3/api-docs/**",
+                        "/swagger-ui/**",
+                        "/swagger-ui.html"
+                    ).permitAll()
 
                     // Mock auth endpoints (development only)
                     .requestMatchers("/mock-auth/**")
@@ -96,6 +104,8 @@ class SecurityConfig(
                     .requestMatchers(
                         "/swagger-ui/**",
                         "/v3/api-docs/**",
+                        "/v3/api-docs",
+                        "/v3/api-docs-original",
                         "/swagger-ui.html",
                         "/api-docs/**"
                     ).access { _, _ -> developmentOnlyAccess() }

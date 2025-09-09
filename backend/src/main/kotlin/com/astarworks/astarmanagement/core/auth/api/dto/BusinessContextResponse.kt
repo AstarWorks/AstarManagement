@@ -1,6 +1,5 @@
 package com.astarworks.astarmanagement.core.auth.api.dto
 
-import com.fasterxml.jackson.annotation.JsonProperty
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -39,8 +38,7 @@ data class AuthenticatedContextDto(
     
     val email: String?,
     
-    @JsonProperty("isActive")
-    @SerialName("isActive")
+    @SerialName("active")
     val isActive: Boolean
 )
 

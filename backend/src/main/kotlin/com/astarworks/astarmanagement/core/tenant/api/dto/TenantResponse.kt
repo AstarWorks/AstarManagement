@@ -1,7 +1,6 @@
 package com.astarworks.astarmanagement.core.tenant.api.dto
 
 import com.astarworks.astarmanagement.core.tenant.domain.model.Tenant
-import com.fasterxml.jackson.annotation.JsonProperty
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -17,10 +16,8 @@ data class TenantResponse(
     val id: UUID,
     val slug: String,
     val name: String,
-    @JsonProperty("auth0OrgId")
     @SerialName("auth0OrgId")
     val auth0OrgId: String?,
-    @JsonProperty("active")
     @SerialName("active")
     val isActive: Boolean,
     @Contextual

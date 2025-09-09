@@ -1,6 +1,5 @@
 package com.astarworks.astarmanagement.shared.domain.value
 
-import com.fasterxml.jackson.annotation.JsonValue
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import java.util.UUID
@@ -14,7 +13,7 @@ import java.util.UUID
  */
 @JvmInline
 @Serializable
-value class EntityId<T>(@JsonValue @Contextual val value: UUID) {
+value class EntityId<T>(@Contextual val value: UUID) {
     
     override fun toString(): String = value.toString()
 }

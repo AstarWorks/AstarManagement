@@ -8,6 +8,7 @@ plugins {
     kotlin("plugin.serialization") version "2.2.10"
     id("org.springframework.boot") version "4.0.0-M2"
     id("io.spring.dependency-management") version "1.1.7"
+    id("org.springdoc.openapi-gradle-plugin") version "1.9.0"
     // id("io.gitlab.arturbosch.detekt") version "1.23.6" // Temporarily disabled due to Kotlin 2.2.10 incompatibility
     jacoco
 }
@@ -74,6 +75,7 @@ dependencies {
     // === API Documentation ===
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.11")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.11")
+    implementation("com.google.code.gson:gson")  // OpenAPI JSON serialization
     
     // === Development ===
     developmentOnly("org.springframework.boot:spring-boot-devtools")
