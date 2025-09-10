@@ -4,7 +4,7 @@ import type { QuickActionStats } from './QuickActionCard.vue'
 
 // Storybookのメタデータを定義します
 const meta: Meta<typeof QuickActionCard> = {
-  title: 'Components/Cards/QuickActionCard',
+  title: 'Dashboard/Cards/QuickActionCard',
   component: QuickActionCard,
   tags: ['autodocs'], // Storybookの自動ドキュメント生成を有効にします
   argTypes: {

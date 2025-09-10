@@ -1,15 +1,14 @@
 <template>
   <header class="bg-background border-b border-border px-4 lg:px-6 h-16 flex items-center header-container">
-    <HeaderToggleButtons
-      :is-sidebar-collapsed="isSidebarCollapsed"
-      @toggle-sidebar="$emit('toggleSidebar')"
-      @toggle-mobile-menu="$emit('toggleMobileMenu')"
-    />
-    
-    <HeaderBreadcrumb />
-    
+    <HeaderToggleButtons :is-sidebar-collapsed="uiStore.isSidebarCollapsed" @toggle-sidebar='uiStore.toggleSidebar'
+      @toggle-mobile-menu='uiStore.toggleMobileMenu' />
+
+    <HeaderBreadcrumb class="mr-auto" />
+
     <HeaderSearch />
-    
+
+    <HeaderToggleAgentButton @toggle-agent='uiStore.toggleAgent' />
+
     <HeaderActions :notification-count="notificationCount" />
   </header>
 </template>
@@ -19,16 +18,9 @@ import HeaderToggleButtons from './HeaderToggleButtons.vue'
 import HeaderBreadcrumb from './HeaderBreadcrumb.vue'
 import HeaderSearch from './HeaderSearch.vue'
 import HeaderActions from './HeaderActions.vue'
-
-interface Props {
-  isSidebarCollapsed?: boolean
-}
-
-defineProps<Props>()
-defineEmits<{
-  toggleSidebar: []
-  toggleMobileMenu: []
-}>()
+import HeaderToggleAgentButton from './HeaderAgentToggleButton.vue'
+import { useUIStore } from '~/foundation/stores/ui';
+const uiStore = useUIStore()
 
 // Mock notification count (将来的にはstore/APIから取得)
 const notificationCount = ref(3)

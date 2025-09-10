@@ -3,7 +3,7 @@ import DashboardQuickActions from './DashboardQuickActions.vue'
 
 // コンポーネントのメタ情報を定義
 const meta: Meta<typeof DashboardQuickActions> = {
-  title: 'Modules/Dashboard/DashboardQuickActions',
+  title: 'Dashboard/DashboardQuickActions',
   component: DashboardQuickActions,
   tags: ['autodocs'],
   parameters: {

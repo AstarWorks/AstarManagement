@@ -15,7 +15,9 @@
     "sidebar": {
       "toggle": "サイドバーの表示/非表示",
       "openMobileMenu": "メニューを開く",
-      "closeMobileMenu": "メニューを閉じる"
+      "closeMobileMenu": "メニューを閉じる",
+      "openAgent": "Agentを開く",
+      "closeAgent": "Agentを閉じる"
     },
     "breadcrumb": {
       "home": "ホーム",

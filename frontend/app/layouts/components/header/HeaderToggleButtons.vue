@@ -3,12 +3,7 @@
   <TooltipProvider>
     <Tooltip>
       <TooltipTrigger as-child>
-        <Button
-          variant="ghost"
-          size="icon"
-          class="lg:hidden"
-          @click="$emit('toggleMobileMenu')"
-        >
+        <Button variant="ghost" size="icon" class="lg:hidden" @click='uiStore.toggleMobileMenu'>
           <Icon name="lucide:menu" class="w-5 h-5" />
         </Button>
       </TooltipTrigger>
@@ -17,21 +12,13 @@
       </TooltipContent>
     </Tooltip>
   </TooltipProvider>
-  
+
   <!-- Desktop Sidebar Toggle -->
   <TooltipProvider>
     <Tooltip>
       <TooltipTrigger as-child>
-        <Button
-          variant="ghost"
-          size="icon"
-          class="hidden lg:flex"
-          @click="$emit('toggleSidebar')"
-        >
-          <Icon 
-            :name="isSidebarCollapsed ? 'lucide:panel-left-open' : 'lucide:panel-left-close'" 
-            class="w-5 h-5" 
-          />
+        <Button variant="ghost" size="icon" class="hidden lg:flex" @click='uiStore.toggleSidebar'>
+          <Icon :name="uiStore.isSidebarCollapsed ? 'lucide:panel-left-open' : 'lucide:panel-left-close'" class="w-5 h-5" />
         </Button>
       </TooltipTrigger>
       <TooltipContent>
@@ -39,21 +26,12 @@
       </TooltipContent>
     </Tooltip>
   </TooltipProvider>
+
 </template>
 
 <script setup lang="ts">
 import { Button } from '~/foundation/components/ui/button/index'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/foundation/components/ui/tooltip'
-
-interface Props {
-  isSidebarCollapsed?: boolean
-}
-
-interface Emits {
-  toggleSidebar: []
-  toggleMobileMenu: []
-}
-
-defineProps<Props>()
-defineEmits<Emits>()
+import { useUIStore } from '~/foundation/stores/ui';
+const uiStore = useUIStore()
 </script>

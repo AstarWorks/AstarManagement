@@ -24,9 +24,9 @@
 </template>
 
 <script setup lang="ts">
-import SidebarUserInfo from './SidebarUserInfo.vue'
-import SidebarNavigation from './SidebarNavigation.vue'
-import SidebarHeader from './SidebarHeader.vue'
+import SidebarUserInfo from './components/SidebarUserInfo.vue'
+import SidebarNavigation from './components/SidebarNavigation.vue'
+import SidebarHeader from './components/SidebarHeader.vue'
 
 interface Props {
   collapsed?: boolean
