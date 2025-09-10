@@ -8,7 +8,11 @@ import { defineStore } from 'pinia'
 export interface IUIState {
   // Sidebar state
   isSidebarOpen: boolean
+  isSidebarCollapsed: boolean
   isMobileMenuOpen: boolean
+  isAgentOpen: boolean
+  isAgentCollapsed: boolean
+  isAgentSidebarCollapsed: boolean
   
   // Breadcrumbs
   breadcrumbs: Array<{ label: string; path?: string }>
@@ -28,7 +32,11 @@ export interface IUIState {
 export const useUIStore = defineStore('ui', {
   state: (): IUIState => ({
     isSidebarOpen: true,
+    isSidebarCollapsed: false,
     isMobileMenuOpen: false,
+    isAgentOpen: true,
+    isAgentCollapsed: false,
+    isAgentSidebarCollapsed: false,
     breadcrumbs: [],
     recentlyVisited: [],
     currentPath: '',
@@ -51,15 +59,15 @@ export const useUIStore = defineStore('ui', {
      * サイドバーの開閉
      */
     toggleSidebar() {
-      this.isSidebarOpen = !this.isSidebarOpen
+      this.isSidebarCollapsed = !this.isSidebarCollapsed
       this.persistSidebarState()
     },
 
     /**
      * サイドバーの開閉状態を設定
      */
-    setSidebarOpen(open: boolean) {
-      this.isSidebarOpen = open
+    toggleSidebarOpen() {
+      this.isSidebarOpen = !this.isSidebarOpen
       this.persistSidebarState()
     },
 
@@ -75,6 +83,23 @@ export const useUIStore = defineStore('ui', {
      */
     closeMobileMenu() {
       this.isMobileMenuOpen = false
+    },
+
+    /**
+     * エージェントの開閉
+     */
+    toggleAgent() {
+      this.isAgentCollapsed = !this.isAgentCollapsed
+      this.isAgentSidebarCollapsed = false
+      this.persistAgentState()
+    },
+
+    /**
+     * エージェント内サイドバーの開閉
+     */
+    toggleAgentSidebar() {
+      this.isAgentSidebarCollapsed = !this.isAgentSidebarCollapsed
+      this.persistAgentState()
     },
 
     /**
@@ -131,8 +156,24 @@ export const useUIStore = defineStore('ui', {
      */
     persistSidebarState() {
       if (import.meta.client) {
-        localStorage.setItem('sidebar-open', this.isSidebarOpen.toString())
+        localStorage.setItem('sidebar-collapsed', this.isSidebarCollapsed.toString())
       }
+    },
+
+    /**
+     * エージェント状態の永続化
+     */
+    persistAgentState() {
+      if (import.meta.client) {
+        localStorage.setItem('agent-collapsed', this.isAgentCollapsed.toString())
+        localStorage.setItem('agent-sidebar-collapsed', this.isAgentSidebarCollapsed.toString())
+      }
+    },
+
+    persistAgentSidebarState() {
+      if (import.meta.client) {
+        localStorage.setItem('agent-sidebar-collapsed', this.isAgentSidebarCollapsed.toString())
+      } 
     },
 
     /**
@@ -140,6 +181,10 @@ export const useUIStore = defineStore('ui', {
      */
     restoreSettings() {
       if (import.meta.client) {
+        const sidebarCollapsed = localStorage.getItem('sidebar-collapsed')
+        if (sidebarCollapsed !== null) {
+          this.isSidebarCollapsed = sidebarCollapsed === 'true'
+        }
         const sidebarOpen = localStorage.getItem('sidebar-open')
         if (sidebarOpen !== null) {
           this.isSidebarOpen = sidebarOpen === 'true'
@@ -151,6 +196,6 @@ export const useUIStore = defineStore('ui', {
   // 永続化設定
   persist: {
     key: 'ui-store',
-    pick: ['recentlyVisited', 'isSidebarOpen']
+    pick: ['recentlyVisited', 'isSidebarCollapsed', 'isAgentCollapsed', 'isAgentSidebarCollapsed']
   }
 })
