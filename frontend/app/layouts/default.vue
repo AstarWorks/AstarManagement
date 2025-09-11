@@ -52,6 +52,7 @@ import {useBreakpoints} from '@vueuse/core'
 import LayoutSidebar from "~/layouts/components/sidebar/LayoutSidebar.vue";
 import LayoutHeader from "~/layouts/components/header/LayoutHeader.vue";
 import LayoutFooter from "~/layouts/components/footer/LayoutFooter.vue";
+import { useUIStore } from '#imports';
 
 // Responsive breakpoints
 const breakpoints = useBreakpoints({

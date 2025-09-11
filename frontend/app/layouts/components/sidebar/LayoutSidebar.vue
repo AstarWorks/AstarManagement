@@ -5,7 +5,7 @@
   >
     <SidebarHeader 
       :collapsed="collapsed" 
-      :is-mobile="isMobile" 
+      :is-mobile="isMobile"
       @close="$emit('close')" 
     />
     
