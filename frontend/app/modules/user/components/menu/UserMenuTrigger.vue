@@ -62,7 +62,7 @@ const getPrimaryRoleDisplay = (roles?: DeepReadonly<UserProfile['roles']>): stri
   for (const roleName of roleHierarchy) {
     const role = mutableRoles.find(r => r.name === roleName)
     if (role) {
-      return role.displayName
+      return role.displayName || ''
     }
   }
   

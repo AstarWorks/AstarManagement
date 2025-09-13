@@ -5,26 +5,24 @@
  * Integrates session data with repository for complete user information
  */
 
-import { useApiClient, useIsMockMode } from '@shared/api/composables/useApiClient'
+import { useIsMockMode } from '@shared/api/composables/useApiClient'
 import { UserApiRepository } from '../repositories/UserApiRepository'
-import { UserMockRepository } from '../repositories/UserMockRepository'
-import type { IUserRepository } from '../repositories/IUserRepository'
-import type { UserProfile, IUserStats, IUpdateUserProfileDto } from '../types'
+import { MockUserRepository } from '../repositories/MockUserRepository'
+import type { UserRepository, UserProfile, UserStats, UpdateUserProfileDto, RoleResponse  } from '../types'
 
 /**
  * User profile composable for managing user data and permissions
  */
 export const useUserProfile = () => {
     const {data: session, status} = useAuth()
-    const client = useApiClient()
     const isMockMode = useIsMockMode()
     
     // Create appropriate repository based on mode
-    const repository = computed<IUserRepository>(() => {
+    const repository = computed<UserRepository>(() => {
         console.log(`[useUserProfile] Creating ${isMockMode ? 'mock' : 'API'} repository`)
         return isMockMode
-            ? new UserMockRepository(client)
-            : new UserApiRepository(client)
+            ? new MockUserRepository()
+            : new UserApiRepository()
     })
     
     // Compute profile from session data with repository enrichment
@@ -40,8 +38,18 @@ export const useUserProfile = () => {
             name: user.name || '',
             displayName: user.name || undefined,
             avatar: undefined, // Will be fetched from repository
-            roles: user.roles || [],
-            permissions: user.permissions || [],
+            roles: (user.roles || []).map(r => ({
+                ...r,
+                tenantId: (user as Record<string, unknown>).tenantId as string || '',
+                color: '#000000',
+                position: 0,
+                permissions: [],
+                userCount: 0,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                system: false
+            } as RoleResponse)),
+            permissions: (user.permissions || []) as readonly string[],
             isActive: user.isActive ?? true,
             
             // Optional fields from session
@@ -97,7 +105,7 @@ export const useUserProfile = () => {
                     activeCases: 0,
                     tasksToday: 0,
                     unreadMessages: 0
-                } as IUserStats
+                } as UserStats
             }
         },
         { 
@@ -119,7 +127,7 @@ export const useUserProfile = () => {
                 // Keep session auth data as source of truth
                 roles: profile.value.roles,
                 permissions: profile.value.permissions
-            }
+            } as UserProfile
         }
         
         // Otherwise return base profile from session
@@ -183,7 +191,7 @@ export const useUserProfile = () => {
     /**
      * Update user profile
      */
-    const updateProfile = async (data: IUpdateUserProfileDto): Promise<void> => {
+    const updateProfile = async (data: UpdateUserProfileDto): Promise<void> => {
         if (!profile.value?.id) {
             throw new Error('No user profile to update')
         }

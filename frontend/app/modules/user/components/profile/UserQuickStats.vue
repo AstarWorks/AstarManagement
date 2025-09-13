@@ -16,10 +16,10 @@
 </template>
 
 <script setup lang="ts">
-import type { IUserStats } from '@modules/user/types'
+import type { UserStats } from '@modules/user/types'
 
 interface Props {
-  stats: Pick<IUserStats, 'activeCases' | 'tasksToday' | 'unreadMessages'>
+  stats: Pick<UserStats, 'activeCases' | 'tasksToday' | 'unreadMessages'>
 }
 
 defineProps<Props>()

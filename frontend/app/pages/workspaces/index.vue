@@ -4,9 +4,9 @@
     <div class="mb-8">
       <div class="flex items-center justify-between">
         <div>
-          <h1 class="text-3xl font-bold">{{ $t('modules.matter.title') }}</h1>
+          <h1 class="text-3xl font-bold">{{ $t('modules.workspace.title') }}</h1>
           <p class="text-muted-foreground mt-2">
-            {{ $t('modules.matter.kanban.subtitle') }}
+            {{ $t('modules.workspace.subtitle') }}
           </p>
         </div>
         <Button @click="showCreateDialog = true">
@@ -42,68 +42,14 @@
 
     <!-- Workspace Grid -->
     <div v-else class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-      <Card
-        v-for="item in workspaces"
-        :key="item.id"
-        class="hover:shadow-lg transition-shadow cursor-pointer"
-        @click="navigateToWorkspace(item.id)"
-      >
-        <CardHeader>
-          <div class="flex items-start justify-between">
-            <div class="flex items-center gap-3">
-              <div
-                class="h-12 w-12 rounded-lg flex items-center justify-center text-2xl"
-                :style="{ backgroundColor: item.color + '20', color: item.color }"
-              >
-                {{ item.icon || '📁' }}
-              </div>
-              <div>
-                <CardTitle>{{ item.name }}</CardTitle>
-                <CardDescription v-if="item.description" class="mt-1">
-                  {{ item.description }}
-                </CardDescription>
-              </div>
-            </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger @click.stop>
-                <Button variant="ghost" size="icon">
-                  <Icon name="lucide:more-vertical" class="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem @click.stop="editWorkspace(workspace)">
-                  <Icon name="lucide:edit" class="mr-2 h-4 w-4" />
-                  {{ $t('foundation.actions.basic.edit') }}
-                </DropdownMenuItem>
-                <DropdownMenuItem @click.stop="duplicateWorkspace(workspace)">
-                  <Icon name="lucide:copy" class="mr-2 h-4 w-4" />
-                  {{ $t('foundation.actions.data.duplicate') }}
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem 
-                  class="text-destructive"
-                  @click.stop="deleteWorkspace(workspace)"
-                >
-                  <Icon name="lucide:trash" class="mr-2 h-4 w-4" />
-                  {{ $t('foundation.actions.basic.delete') }}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div class="flex items-center gap-4 text-sm text-muted-foreground">
-            <div class="flex items-center gap-1">
-              <Icon name="lucide:users" class="h-4 w-4" />
-              <span>{{ 1 }} {{ $t('foundation.common.general.users') }}</span>
-            </div>
-            <div class="flex items-center gap-1">
-              <Icon name="lucide:calendar" class="h-4 w-4" />
-              <span>{{ formatDate(item.createdAt) }}</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <WorkspaceCard
+        v-for="workspace in workspaces"
+        :key="workspace.id"
+        :workspace="workspace"
+        @edit="handleEditWorkspace"
+        @duplicate="handleDuplicateWorkspace"
+        @delete="handleDeleteWorkspace"
+      />
     </div>
 
     <!-- Create/Edit Dialog -->
@@ -115,98 +61,44 @@
           </DialogTitle>
           <DialogDescription>
             {{ editingWorkspace 
-              ? $t('foundation.common.fields.description') 
-              : $t('foundation.common.fields.description') 
+              ? $t('foundation.messages.dialog.editWorkspaceDescription') 
+              : $t('foundation.messages.dialog.createWorkspaceDescription') 
             }}
           </DialogDescription>
         </DialogHeader>
         
-        <form class="space-y-4" @submit.prevent="handleSubmit">
-          <div class="space-y-2">
-            <Label for="name">{{ $t('foundation.common.fields.name') }}</Label>
-            <Input
-              id="name"
-              v-model="formData.name"
-              :placeholder="$t('foundation.common.fields.name')"
-              required
-            />
-          </div>
-          
-          <div class="space-y-2">
-            <Label for="description">{{ $t('foundation.common.fields.description') }}</Label>
-            <Textarea
-              id="description"
-              v-model="formData.description"
-              :placeholder="$t('foundation.common.fields.description')"
-              rows="3"
-            />
-          </div>
-          
-          <div class="grid grid-cols-2 gap-4">
-            <div class="space-y-2">
-              <Label for="icon">{{ $t('foundation.common.fields.tags') }}</Label>
-              <Input
-                id="icon"
-                v-model="formData.icon"
-                placeholder="📁"
-                maxlength="2"
-              />
-            </div>
-            
-            <div class="space-y-2">
-              <Label for="color">{{ $t('foundation.common.fields.type') }}</Label>
-              <Input
-                id="color"
-                v-model="formData.color"
-                type="color"
-              />
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button type="button" variant="outline" @click="closeDialog">
-              {{ $t('foundation.actions.basic.cancel') }}
-            </Button>
-            <Button type="submit" :disabled="submitting">
-              <LoadingSpinner v-if="submitting" class="mr-2 h-4 w-4" />
-              {{ editingWorkspace ? $t('foundation.actions.basic.save') : $t('foundation.actions.basic.create') }}
-            </Button>
-          </DialogFooter>
-        </form>
+        <WorkspaceForm
+          ref="workspaceFormRef"
+          :editing-workspace="editingWorkspace"
+          :submitting="crud.creating.value || crud.updating.value"
+          @submit="handleFormSubmit"
+          @cancel="handleFormCancel"
+        />
       </DialogContent>
     </Dialog>
 
     <!-- Delete Confirmation Dialog -->
-    <Dialog v-model:open="showDeleteDialog">
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{{ $t('foundation.messages.confirmation.delete') }}</DialogTitle>
-          <DialogDescription>
-            {{ $t('foundation.messages.warning.irreversible') }}
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button variant="outline" @click="showDeleteDialog = false">
-            {{ $t('foundation.actions.basic.cancel') }}
-          </Button>
-          <Button 
-            variant="destructive" 
-            :disabled="deleting"
-            @click="confirmDelete"
-          >
-            <LoadingSpinner v-if="deleting" class="mr-2 h-4 w-4" />
-            {{ $t('foundation.actions.basic.delete') }}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <WorkspaceDeleteDialog
+      v-model:open="showDeleteDialog"
+      :workspace="deletingWorkspace"
+      :deleting="crud.deleting.value"
+      @confirm="handleDeleteConfirm"
+      @cancel="handleDeleteCancel"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { format } from 'date-fns'
-import { toast } from 'vue-sonner'
-import type { WorkspaceResponse, WorkspaceCreateRequest, WorkspaceUpdateRequest } from '~/modules/workspace/types'
+import { ref } from 'vue'
+import { useWorkspaceNavigation } from '~/composables/useWorkspaceNavigation'
+import type { WorkspaceResponse } from '~/modules/workspace/types'
+import { useWorkspaceCrud } from '~/modules/workspace/composables/useWorkspaceCrud'
+import ErrorDisplay from "@foundation/components/common/states/ErrorDisplay.vue"
+import EmptyState from "@foundation/components/common/states/EmptyState.vue"
+import LoadingSpinner from "@foundation/components/common/states/LoadingSpinner.vue"
+import WorkspaceCard from '~/modules/workspace/components/WorkspaceCard.vue'
+import WorkspaceForm from '~/modules/workspace/components/WorkspaceForm.vue'
+import WorkspaceDeleteDialog from '~/modules/workspace/components/WorkspaceDeleteDialog.vue'
 
 // Page meta
 definePageMeta({
@@ -214,134 +106,78 @@ definePageMeta({
 })
 
 // Composables
-const { t } = useI18n()
-const router = useRouter()
-const workspace = useWorkspace()
+const { clear } = useWorkspaceNavigation()
 const { workspaces, pending, error, refresh } = useWorkspaceList()
+const crud = useWorkspaceCrud()
+
+// Clear current workspace when on workspace list
+onMounted(() => {
+  clear()
+})
 
 // State
 const showCreateDialog = ref(false)
 const showDeleteDialog = ref(false)
 const editingWorkspace = ref<WorkspaceResponse | null>(null)
 const deletingWorkspace = ref<WorkspaceResponse | null>(null)
-const submitting = ref(false)
-const deleting = ref(false)
+const workspaceFormRef = ref()
 
-// Form data
-const formData = reactive({
-  name: '',
-  description: '',
-  icon: '📁',
-  color: '#3B82F6'
-})
-
-// Methods
-const formatDate = (date: string) => {
-  return format(new Date(date), 'yyyy/MM/dd')
-}
-
-const navigateToWorkspace = (id: string) => {
-  router.push(`/workspaces/${id}`)
-}
-
-const editWorkspace = (ws: WorkspaceResponse) => {
-  editingWorkspace.value = ws
-  formData.name = ws.name
-  formData.description = ws.description || ''
-  formData.icon = ws.icon || '📁'
-  formData.color = ws.color || '#3B82F6'
+// Event handlers for WorkspaceCard
+const handleEditWorkspace = (workspace: WorkspaceResponse) => {
+  editingWorkspace.value = workspace
   showCreateDialog.value = true
 }
 
-const duplicateWorkspace = async (ws: WorkspaceResponse) => {
-  try {
-    const data: WorkspaceCreateRequest = {
-      name: `${ws.name} (Copy)`,
-      description: ws.description,
-      icon: ws.icon,
-      color: ws.color,
-      settings: ws.settings
-    }
-    
-    await item.createWorkspace(data)
-    await refresh()
-    toast.success(t('foundation.messages.success.copied'))
-  } catch (error) {
-    console.error('Failed to duplicate workspace:', error)
-    toast.error(t('foundation.messages.error.copyFailed'))
-  }
+const handleDuplicateWorkspace = async (workspace: WorkspaceResponse) => {
+  await crud.duplicateWorkspace(workspace)
+  await refresh()
 }
 
-const deleteWorkspace = (ws: WorkspaceResponse) => {
-  deletingWorkspace.value = ws
+const handleDeleteWorkspace = (workspace: WorkspaceResponse) => {
+  deletingWorkspace.value = workspace
   showDeleteDialog.value = true
 }
 
-const confirmDelete = async () => {
-  if (!deletingWorkspace.value) return
-  
-  deleting.value = true
-  try {
-    await item.deleteWorkspace(deletingWorkspace.value.id)
-    await refresh()
-    toast.success(t('foundation.messages.success.deleted'))
-    showDeleteDialog.value = false
-  } catch (error) {
-    console.error('Failed to delete workspace:', error)
-    toast.error(t('foundation.messages.error.default'))
-  } finally {
-    deleting.value = false
-    deletingWorkspace.value = null
-  }
-}
+// Event handlers for WorkspaceForm
+const handleFormSubmit = async () => {
+  const formData = workspaceFormRef.value?.getFormData()
+  if (!formData?.isValid) return
 
-const handleSubmit = async () => {
-  submitting.value = true
-  
   try {
-    if (editingWorkspace.value) {
-      // Update existing workspace
-      const data: WorkspaceUpdateRequest = {
-        name: formData.name,
-        description: formData.description,
-        icon: formData.icon,
-        color: formData.color
-      }
-      
-      await item.updateWorkspace(editingWorkspace.value.id, data)
-      toast.success(t('foundation.messages.success.updated'))
+    if (formData.isEditMode && editingWorkspace.value?.id) {
+      await crud.updateWorkspace(editingWorkspace.value.id, formData.updateRequest)
     } else {
-      // Create new workspace
-      const data: WorkspaceCreateRequest = {
-        name: formData.name,
-        description: formData.description,
-        icon: formData.icon,
-        color: formData.color
-      }
-      
-      await item.createWorkspace(data)
-      toast.success(t('foundation.messages.success.created'))
+      await crud.createWorkspace(formData.createRequest)
     }
     
     await refresh()
-    closeDialog()
+    handleFormCancel()
   } catch (error) {
-    console.error('Failed to save workspace:', error)
-    toast.error(editingWorkspace.value 
-      ? t('foundation.messages.error.default')
-      : t('foundation.messages.error.default')
-    )
-  } finally {
-    submitting.value = false
+    // エラーはuseWorkspaceCrud内でハンドリング済み
   }
 }
 
-const closeDialog = () => {
+const handleFormCancel = () => {
   showCreateDialog.value = false
   editingWorkspace.value = null
-  formData.name = ''
-  formData.description = ''
-  formData.icon = '📁'
-  formData.color = '#3B82F6'
+  workspaceFormRef.value?.resetForm()
+}
+
+// Event handlers for WorkspaceDeleteDialog
+const handleDeleteConfirm = async (workspace: WorkspaceResponse) => {
+  if (!workspace.id) return
+  
+  try {
+    await crud.deleteWorkspace(workspace.id)
+    await refresh()
+    handleDeleteCancel()
+  } catch (error) {
+    // エラーはuseWorkspaceCrud内でハンドリング済み
+  }
+}
+
+const handleDeleteCancel = () => {
+  showDeleteDialog.value = false
+  deletingWorkspace.value = null
 }
 </script>

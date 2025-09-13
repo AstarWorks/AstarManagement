@@ -15,7 +15,7 @@
         <Badge
           v-for="role in user?.roles || []"
           :key="role.id"
-          :variant="getRoleBadgeVariant(role.name)"
+          :variant="getRoleBadgeVariant(role.name || '')"
           class="text-xs px-2 py-0.5"
         >
           {{ role.displayName }}

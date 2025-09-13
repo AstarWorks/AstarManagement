@@ -3,7 +3,7 @@
     <UserMenuItem 
       :item="item" 
       :notification-count="getNotificationCount(item.id)"
-      @click="emit('itemClick', $event)"
+      @click="emit('item-click', $event)"
     />
   </template>
 </template>
@@ -25,7 +25,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-  itemClick: [item: IMenuItemConfig]
+  'item-click': [item: IMenuItemConfig]
 }>()
 
 const visibleItems = computed(() => {

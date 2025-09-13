@@ -23,26 +23,26 @@ const props = withDefaults(defineProps<FilterEmptyStateProps>(), {
 })
 
 const emit = defineEmits<{
-  clearFilters: []
-  clearFilter: [filterKey: string]
-  modifyFilters: []
+  'clear-filters': []
+  'clear-filter': [filterKey: string]
+  'modify-filters': []
 }>()
 
 const { t } = useI18n()
 
 const handleClearFilters = () => {
   props.onClearFilters?.()
-  emit('clearFilters')
+  emit('clear-filters')
 }
 
 const handleClearFilter = (filterKey: string) => {
   props.onClearFilter?.(filterKey)
-  emit('clearFilter', filterKey)
+  emit('clear-filter', filterKey)
 }
 
 const handleModifyFilters = () => {
   props.onModifyFilters?.()
-  emit('modifyFilters')
+  emit('modify-filters')
 }
 
 const primaryAction = {

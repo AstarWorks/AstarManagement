@@ -3,31 +3,20 @@
  * Provides dashboard statistics and recent activities using Repository pattern
  */
 
-import { useApiClient, useIsMockMode } from '@shared/api/composables/useApiClient'
-import { DashboardApiRepository } from '../repositories/DashboardApiRepository'
-import { DashboardMockRepository } from '../repositories/DashboardMockRepository'
-import type { IDashboardRepository } from '../repositories/IDashboardRepository'
-import type { IDashboardRefreshParams, IDashboardStatsParams, IRecentActivitiesParams } from '../types'
+import { useDashboardRepository } from '../repositories'
+import type { DashboardRefreshParams, DashboardStatsParams, RecentActivitiesParams } from '../types'
 
 export function useDashboardData() {
-    const client = useApiClient()
-    const isMockMode = useIsMockMode()
-    
-    // Create appropriate repository based on mode
-    const repository = computed<IDashboardRepository>(() => {
-        console.log(`[useDashboardData] Creating ${isMockMode ? 'mock' : 'API'} repository`)
-        return isMockMode
-            ? new DashboardMockRepository(client)
-            : new DashboardApiRepository(client)
-    })
+    // Repository取得（Mock/Real自動切り替え）
+    const repository = useDashboardRepository()
     
     /**
      * Get complete dashboard data
      */
-    const getDashboardData = (params?: IDashboardRefreshParams) => {
+    const getDashboardData = (params?: DashboardRefreshParams) => {
         return useAsyncData(
             `dashboard:data:${JSON.stringify(params || {})}`,
-            () => repository.value.getDashboardData(params),
+            () => repository.getDashboardData(params),
             {
                 server: false,
                 lazy: true
@@ -38,10 +27,10 @@ export function useDashboardData() {
     /**
      * Get dashboard statistics only
      */
-    const getStats = (params?: IDashboardStatsParams) => {
+    const getStats = (params?: DashboardStatsParams) => {
         return useAsyncData(
             `dashboard:stats:${JSON.stringify(params || {})}`,
-            () => repository.value.getStats(params),
+            () => repository.getStats(params),
             {
                 server: false,
                 lazy: true
@@ -52,10 +41,10 @@ export function useDashboardData() {
     /**
      * Get recent activities only
      */
-    const getActivities = (params?: IRecentActivitiesParams) => {
+    const getActivities = (params?: RecentActivitiesParams) => {
         return useAsyncData(
             `dashboard:activities:${JSON.stringify(params || {})}`,
-            () => repository.value.getRecentActivities(params),
+            () => repository.getRecentActivities(params),
             {
                 server: false,
                 lazy: true
@@ -66,8 +55,8 @@ export function useDashboardData() {
     /**
      * Refresh dashboard data
      */
-    const refreshDashboard = async (params?: IDashboardRefreshParams) => {
-        await repository.value.refreshDashboard(params)
+    const refreshDashboard = async (params?: DashboardRefreshParams) => {
+        await repository.refreshDashboard(params)
         
         // Refresh cached data
         await refreshNuxtData('dashboard:data')

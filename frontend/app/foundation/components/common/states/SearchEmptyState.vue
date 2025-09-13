@@ -16,8 +16,8 @@ const props = withDefaults(defineProps<SearchEmptyStateProps>(), {
 })
 
 const emit = defineEmits<{
-  clearSearch: []
-  suggestionClick: [suggestion: string]
+  'clear-search': []
+  'suggestion-click': [suggestion: string]
   retry: []
 }>()
 
@@ -25,12 +25,12 @@ const { t } = useI18n()
 
 const handleClearSearch = () => {
   props.onClearSearch?.()
-  emit('clearSearch')
+  emit('clear-search')
 }
 
 const handleSuggestionClick = (suggestion: string) => {
   props.onSuggestionClick?.(suggestion)
-  emit('suggestionClick', suggestion)
+  emit('suggestion-click', suggestion)
 }
 
 const primaryAction = {

@@ -32,7 +32,7 @@
               :items="section.items"
               :user="user"
               :notification-counts="notificationCounts"
-              @item-click="emit('itemClick', $event)"
+              @item-click="emit('item-click', $event)"
           />
 
           <!-- Section Divider -->
@@ -62,25 +62,25 @@
   import UserInfo from '@modules/user/components/profile/UserInfo.vue'
   import UserQuickStats from '@modules/user/components/profile/UserQuickStats.vue'
   import UserMenuSection from "./UserMenuSection.vue";
-  import type { UserProfile, IUserStats } from "@modules/user/types";
+  import type { UserProfile, UserStats } from "@modules/user/types";
   import type { DeepReadonly } from 'vue'
 
   interface Props {
     user: DeepReadonly<UserProfile> | null
     isOpen: boolean
-    stats?: IUserStats
+    stats?: UserStats
     notificationCounts?: Record<string, number>
     showQuickStats?: boolean
   }
 
   const props = withDefaults(defineProps<Props>(), {
-    stats: () => ({activeCases: 0, tasksToday: 0, unreadMessages: 0} as IUserStats),
+    stats: () => ({activeCases: 0, tasksToday: 0, unreadMessages: 0} as UserStats),
     notificationCounts: () => ({}),
     showQuickStats: true
   })
 
   const emit = defineEmits<{
-    itemClick: [item: IMenuItemConfig]
+    'item-click': [item: IMenuItemConfig]
   }>()
 
   const menu = ref()
@@ -91,7 +91,7 @@
     // Show stats for lawyers and senior staff
     const userRoles = props.user.roles?.map(r => r.name) || []
     return userRoles.some(role =>
-        ['lawyer', 'senior_paralegal', 'admin'].includes(role)
+        ['lawyer', 'senior_paralegal', 'admin'].includes(role || '')
     )
   })
 

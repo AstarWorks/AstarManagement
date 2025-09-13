@@ -44,14 +44,14 @@
         </CardHeader>
         <CardContent class="grid grid-cols-2 gap-4">
           <Button
-              v-for="action in quickActions"
+              v-for="action in allQuickActions"
               :key="action.key"
               variant="outline"
               class="h-20 flex-col transition-all duration-200 hover:bg-muted/50"
               @click="handleQuickAction(action.action)"
           >
             <Icon :name="action.icon" class="w-6 h-6 mb-2"/>
-            {{ $t(action.labelKey) }}
+            {{ action.labelKey ? $t(action.labelKey) : action.label }}
           </Button>
         </CardContent>
       </Card>
@@ -104,6 +104,9 @@ import {Skeleton} from '~/foundation/components/ui/skeleton'
 import {useDashboardData} from '~/modules/dashboard/composables/useDashboardData'
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "~/foundation/components/ui/card";
 import {Button} from "~/foundation/components/ui/button";
+import { useIsMockMode } from '@shared/api/composables/useApiClient'
+import { MOCK_LABELS } from '~/modules/mock/i18n/mockLabels'
+import { MOCK_TABLE_IDS } from '~/modules/mock/constants/mockIds'
 
 // Page metadata
 definePageMeta({
@@ -122,12 +125,13 @@ interface IDashboardStat {
 
 interface IQuickAction {
   key: string
-  labelKey: string
+  labelKey?: string
+  label?: string
   icon: string
   action: string
 }
 
-interface IActivity {
+interface Activity {
   id: string
   type: 'case' | 'document' | 'deadline' | 'client'
   title: string
@@ -137,6 +141,7 @@ interface IActivity {
 
 // Composables
 const router = useRouter()
+const isMockMode = useIsMockMode()
 
 // Dashboard data composable
 const {getDashboardData, refreshDashboard} = useDashboardData()
@@ -176,6 +181,25 @@ const quickActions: IQuickAction[] = [
   }
 ]
 
+// Mock-specific quick actions
+const mockQuickActions: IQuickAction[] = isMockMode ? [
+  {
+    key: 'expenseTable',
+    label: MOCK_LABELS.dashboard.quickActions.expenseTable,
+    icon: 'lucide:receipt',
+    action: 'expenseTable'
+  },
+  {
+    key: 'tableList',
+    label: MOCK_LABELS.dashboard.quickActions.tableList,
+    icon: 'lucide:table',
+    action: 'tableList'
+  }
+] : []
+
+// Combined quick actions
+const allQuickActions = computed(() => [...quickActions, ...mockQuickActions])
+
 // Utility functions
 const {locale, n} = useI18n()
 
@@ -190,11 +214,11 @@ const formatRelativeTime = (timestamp: Date): string => {
   return formatRelative(timestamp, new Date(), {locale: ja})
 }
 
-const formatActivityInfo = (activity: IActivity): string => {
+const formatActivityInfo = (activity: Activity): string => {
   return `${activity.subtitle} - ${formatRelativeTime(activity.timestamp)}`
 }
 
-const getActivityColor = (type: IActivity['type']): string => {
+const getActivityColor = (type: Activity['type']): string => {
   const colors = {
     case: 'bg-blue-500',
     document: 'bg-green-500',
@@ -214,7 +238,10 @@ const handleQuickAction = (action: string) => {
     newCase: () => router.push('/cases/new'),
     newClient: () => router.push('/clients/new'),
     createDocument: () => router.push('/documents/upload'),
-    addExpense: () => router.push('/expenses/new')
+    addExpense: () => router.push('/expenses/new'),
+    // Mock-specific actions
+    expenseTable: () => router.push(`/tables/${MOCK_TABLE_IDS.EXPENSE_MANAGEMENT}`),
+    tableList: () => router.push('/tables')
   }
 
   const handler = actions[action]
