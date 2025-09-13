@@ -3,18 +3,18 @@
  * Mock/Real切り替えを管理
  */
 
-import type { IUserRepository } from '../types'
-import { UserRepository } from './UserRepository'
+import type { UserRepository } from '../types'
+import { UserApiRepository } from './UserApiRepository'
 import { MockUserRepository } from './MockUserRepository'
 
 // シングルトンインスタンス管理
-let repositoryInstance: IUserRepository | null = null
+let repositoryInstance: UserRepository | null = null
 
 /**
  * UserRepositoryを取得
  * 環境設定に応じてMock/Realを自動切り替え
  */
-export const useUserRepository = (): IUserRepository => {
+export const useUserRepository = (): UserRepository => {
   // 既存のインスタンスがあれば返す
   if (repositoryInstance) {
     return repositoryInstance
@@ -27,7 +27,7 @@ export const useUserRepository = (): IUserRepository => {
   console.log(`[UserRepository] Creating ${isMockMode ? 'Mock' : 'Real'} repository`)
   repositoryInstance = isMockMode 
     ? new MockUserRepository()
-    : new UserRepository()
+    : new UserApiRepository() as UserRepository
   
   // HMRサポート
   if (import.meta.hot) {
@@ -37,7 +37,7 @@ export const useUserRepository = (): IUserRepository => {
     })
   }
   
-  return repositoryInstance
+  return repositoryInstance!
 }
 
 /**
@@ -48,5 +48,5 @@ export const clearUserRepository = (): void => {
 }
 
 // 型のエクスポート
-export type { IUserRepository }
-export { UserRepository, MockUserRepository }
+export type { UserRepository }
+export { UserApiRepository, MockUserRepository }

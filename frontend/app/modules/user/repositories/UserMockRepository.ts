@@ -4,9 +4,10 @@
  */
 
 import { BaseRepository } from '@shared/api/core/BaseRepository'
+import { useApiClient } from '@shared/api/composables/useApiClient'
 import type { IPaginatedResponse } from '@shared/api/types'
-import type { IUserRepository } from './IUserRepository'
-import type { UserProfile, IUserStats, IUserStatsParams, IUpdateUserProfileDto, RoleResponse } from '../types'
+import type { UserRepository } from './UserRepository'
+import type { UserProfile, UserStats, UserStatsParams, UpdateUserProfileDto, RoleResponse } from '../types'
 
 // Mock user data
 const mockUsers = new Map<string, UserProfile>([
@@ -23,16 +24,23 @@ const mockUsers = new Map<string, UserProfile>([
     roles: [
       {
         id: 'role-admin',
+        tenantId: 'org-001',
         name: 'ADMIN',
         displayName: '管理者',
-        permissions: ['users.view', 'users.edit', 'settings.edit', 'all'] as const
-      }
+        color: '#FF0000',
+        position: 1,
+        permissions: [],
+        userCount: 1,
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z',
+        system: false
+      } as RoleResponse
     ],
-    permissions: ['users.view', 'users.edit', 'settings.edit', 'all'] as const,
+    permissions: ['users.view', 'users.edit', 'settings.edit', 'all'] as readonly string[],
     phone: '090-1234-5678',
     isActive: true,
-    createdAt: new Date('2024-01-01'),
-    updatedAt: new Date(),
+    createdAt: new Date('2024-01-01').toISOString(),
+    updatedAt: new Date().toISOString(),
     preferences: {
       language: 'ja',
       theme: 'light',
@@ -56,16 +64,23 @@ const mockUsers = new Map<string, UserProfile>([
     roles: [
       {
         id: 'role-admin',
+        tenantId: 'org-001',
         name: 'ADMIN',
         displayName: '管理者',
-        permissions: ['all'] as const
-      }
+        color: '#FF0000',
+        position: 1,
+        permissions: [],
+        userCount: 1,
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z',
+        system: false
+      } as RoleResponse
     ],
-    permissions: ['all'] as const,
+    permissions: ['all'] as readonly string[],
     phone: '090-9876-5432',
     isActive: true,
-    createdAt: new Date('2024-01-01'),
-    updatedAt: new Date(),
+    createdAt: new Date('2024-01-01').toISOString(),
+    updatedAt: new Date().toISOString(),
     preferences: {
       language: 'ja',
       theme: 'dark',
@@ -89,16 +104,23 @@ const mockUsers = new Map<string, UserProfile>([
     roles: [
       {
         id: 'role-user',
+        tenantId: 'org-001',
         name: 'USER',
         displayName: 'ユーザー',
-        permissions: ['users.view', 'self.edit'] as const
-      }
+        color: '#0000FF',
+        position: 2,
+        permissions: [],
+        userCount: 1,
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z',
+        system: false
+      } as RoleResponse
     ],
-    permissions: ['users.view', 'self.edit'] as const,
+    permissions: ['users.view', 'self.edit'] as readonly string[],
     phone: '090-5555-5555',
     isActive: true,
-    createdAt: new Date('2024-02-01'),
-    updatedAt: new Date(),
+    createdAt: new Date('2024-02-01').toISOString(),
+    updatedAt: new Date().toISOString(),
     preferences: {
       language: 'ja',
       theme: 'light',
@@ -112,7 +134,7 @@ const mockUsers = new Map<string, UserProfile>([
 ])
 
 // Mock user stats
-const mockStats = new Map<string, IUserStats>([
+const mockStats = new Map<string, UserStats>([
   ['dev-user-001', {
     activeCases: 12,
     tasksToday: 5,
@@ -148,7 +170,12 @@ const mockStats = new Map<string, IUserStats>([
   }]
 ])
 
-export class UserMockRepository extends BaseRepository implements IUserRepository {
+export class UserMockRepository extends BaseRepository implements UserRepository {
+  
+  constructor() {
+    const client = useApiClient()
+    super(client)
+  }
   
   async list(_params?: Record<string, unknown>): Promise<IPaginatedResponse<UserProfile>> {
     // Simulate API delay
@@ -201,8 +228,8 @@ export class UserMockRepository extends BaseRepository implements IUserRepositor
       permissions: [] as readonly string[],
       phone: data.phone,
       isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       preferences: {
         language: 'ja',
         theme: 'light',
@@ -219,19 +246,18 @@ export class UserMockRepository extends BaseRepository implements IUserRepositor
   }
   
   async update(id: string, data: Partial<UserProfile>): Promise<UserProfile> {
-    // Convert Partial<UserProfile> to IUpdateUserProfileDto
-    const updateDto: IUpdateUserProfileDto = {
-      name: data.name !== null ? data.name : undefined,
-      displayName: data.displayName,
+    // Convert Partial<UserProfile> to UpdateUserProfileDto
+    const updateDto: UpdateUserProfileDto = {
+      email: data.email || '',
       phone: data.phone,
       team: data.team,
       position: data.position,
-      preferences: data.preferences as IUpdateUserProfileDto['preferences']
+      preferences: data.preferences as UpdateUserProfileDto['preferences']
     }
     return this.updateProfile(id, updateDto)
   }
   
-  async updateProfile(id: string, data: IUpdateUserProfileDto): Promise<UserProfile> {
+  async updateProfile(id: string, data: UpdateUserProfileDto): Promise<UserProfile> {
     // Simulate API delay
     await this.delay(250)
     
@@ -242,8 +268,7 @@ export class UserMockRepository extends BaseRepository implements IUserRepositor
     
     const updatedUser: UserProfile = {
       ...user,
-      name: data.name !== undefined ? data.name : user.name,
-      displayName: data.displayName !== undefined ? data.displayName : user.displayName,
+      email: data.email !== undefined ? data.email : user.email,
       phone: data.phone !== undefined ? data.phone : user.phone,
       team: data.team !== undefined ? data.team : user.team,
       position: data.position !== undefined ? data.position : user.position,
@@ -251,7 +276,7 @@ export class UserMockRepository extends BaseRepository implements IUserRepositor
         ...user.preferences!,
         ...data.preferences
       } : user.preferences,
-      updatedAt: new Date()
+      updatedAt: new Date().toISOString()
     }
     
     mockUsers.set(id, updatedUser)
@@ -270,7 +295,7 @@ export class UserMockRepository extends BaseRepository implements IUserRepositor
     mockStats.delete(id)
   }
   
-  async getStats(id: string, params?: IUserStatsParams): Promise<IUserStats> {
+  async getStats(id: string, params?: UserStatsParams): Promise<UserStats> {
     // Simulate API delay
     await this.delay(100)
     
@@ -321,7 +346,7 @@ export class UserMockRepository extends BaseRepository implements IUserRepositor
     const avatarUrl = `/images/avatars/${id}-${Date.now()}.png`
     
     user.avatar = avatarUrl
-    user.updatedAt = new Date()
+    user.updatedAt = new Date().toISOString()
     mockUsers.set(id, user)
     
     return avatarUrl
@@ -337,7 +362,7 @@ export class UserMockRepository extends BaseRepository implements IUserRepositor
     }
     
     user.avatar = undefined
-    user.updatedAt = new Date()
+    user.updatedAt = new Date().toISOString()
     mockUsers.set(id, user)
   }
   

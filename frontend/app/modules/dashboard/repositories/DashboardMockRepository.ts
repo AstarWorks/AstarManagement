@@ -3,19 +3,18 @@
  * Implementation using mock data for development
  */
 
-import type { BaseApiClient } from '@shared/api/core/BaseApiClient'
-import type { IDashboardRepository } from './IDashboardRepository'
+import type { DashboardRepository } from './DashboardRepository'
 import type { 
-  IDashboardData,
-  IDashboardStats, 
-  IActivity, 
-  IDashboardStatsParams, 
-  IRecentActivitiesParams,
-  IDashboardRefreshParams
+  DashboardData,
+  DashboardStats, 
+  Activity, 
+  DashboardStatsParams, 
+  RecentActivitiesParams,
+  DashboardRefreshParams
 } from '../types'
 
 // Mock dashboard statistics
-const mockDashboardStats: IDashboardStats[] = [
+const mockDashboardStats: DashboardStats[] = [
   {
     key: 'activeCases',
     labelKey: 'modules.dashboard.stats.activeMatter',
@@ -51,7 +50,7 @@ const mockDashboardStats: IDashboardStats[] = [
 ]
 
 // Mock recent activities
-const mockRecentActivities: IActivity[] = [
+const mockRecentActivities: Activity[] = [
   {
     id: 'activity-001',
     type: 'case',
@@ -89,13 +88,9 @@ const mockRecentActivities: IActivity[] = [
   }
 ]
 
-export class DashboardMockRepository implements IDashboardRepository {
-  
-  constructor(private client: BaseApiClient) {
-    // Dashboard repository doesn't need BaseRepository functionality
-  }
+export class DashboardMockRepository implements DashboardRepository {
 
-  async getStats(params?: IDashboardStatsParams): Promise<IDashboardStats[]> {
+  async getStats(params?: DashboardStatsParams): Promise<DashboardStats[]> {
     await this.delay(150)
     
     let stats = [...mockDashboardStats]
@@ -124,7 +119,7 @@ export class DashboardMockRepository implements IDashboardRepository {
     return stats
   }
 
-  async getRecentActivities(params?: IRecentActivitiesParams): Promise<IActivity[]> {
+  async getRecentActivities(params?: RecentActivitiesParams): Promise<Activity[]> {
     await this.delay(100)
     
     let activities = [...mockRecentActivities]
@@ -156,7 +151,7 @@ export class DashboardMockRepository implements IDashboardRepository {
     return activities
   }
 
-  async getDashboardData(params?: IDashboardRefreshParams): Promise<IDashboardData> {
+  async getDashboardData(params?: DashboardRefreshParams): Promise<DashboardData> {
     await this.delay(200)
     
     const stats = params?.includeStats !== false 
@@ -173,7 +168,7 @@ export class DashboardMockRepository implements IDashboardRepository {
     }
   }
 
-  async refreshDashboard(params?: IDashboardRefreshParams): Promise<void> {
+  async refreshDashboard(params?: DashboardRefreshParams): Promise<void> {
     await this.delay(100)
     
     // In a real implementation, this would trigger cache invalidation

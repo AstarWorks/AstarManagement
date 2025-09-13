@@ -4,65 +4,144 @@
  */
 
 import type {
-  IUserRepository,
+  UserRepository,
   UserResponse,
   UserCreateRequest,
   UserUpdateRequest,
-  UserListResponse,
   UserListParams,
   UserRoleAssignmentRequest,
   UserRoleAssignmentResult,
-  CurrentUser,
   UserPermissionsResponse,
   UserProfile,
   UserPreferences,
   TenantUserListResponse,
-  TenantUser
+  TenantUser,
+  RoleResponse,
+  PermissionRule,
+  UserStats,
+  UserStatsParams,
+  UpdateUserProfileDto
 } from '../types'
-import type { RoleResponse } from '../../role/types'
+import type { CurrentUserResponse, UserSearchResponse } from '~/types'
+import { generateJapaneseName } from '../../table/scenarios/japaneseData'
 
-// モックデータ
-const mockUsers: UserResponse[] = [
+// 文字列権限をPermissionRuleオブジェクトに変換するヘルパー関数
+function parsePermissionString(permission: string): PermissionRule {
+  const parts = permission.split('.')
+  const resourceMap: Record<string, PermissionRule['resourceType']> = {
+    'workspace': 'WORKSPACE',
+    'table': 'TABLE',
+    'record': 'RECORD',
+    'user': 'USER',
+    'role': 'ROLE'
+  }
+  const actionMap: Record<string, PermissionRule['action']> = {
+    'view': 'VIEW',
+    'create': 'CREATE',
+    'edit': 'EDIT',
+    'update': 'EDIT',
+    'delete': 'DELETE',
+    '*': 'MANAGE'
+  }
+  
+  if (permission === '*') {
+    return { resourceType: 'TENANT', action: 'MANAGE', scope: 'ALL' }
+  }
+  
+  const [resource, action] = parts
+  return {
+    resourceType: (resource && resourceMap[resource]) || 'TABLE',
+    action: (action && actionMap[action]) || 'VIEW',
+    scope: 'ALL'
+  }
+}
+
+// 法律事務所スタッフ
+const legalStaffUsers: UserResponse[] = [
   {
-    id: 'user-1',
-    email: 'yamada@example.com',
-    name: '山田太郎',
-    displayName: 'Taro Yamada',
-    avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=yamada',
-    locale: 'ja',
-    timezone: 'Asia/Tokyo',
-    status: 'active',
-    emailVerified: true,
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z'
+    id: 'user-partner-1',
+    auth0Sub: 'auth0|partner-takahashi',
+    email: 'takahashi@takahashi-law.jp',
+    createdAt: '2023-04-01T00:00:00Z',
+    updatedAt: '2024-12-08T10:00:00Z'
   },
   {
-    id: 'user-2',
-    email: 'suzuki@example.com',
-    name: '鈴木花子',
-    displayName: 'Hanako Suzuki',
-    avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=suzuki',
-    locale: 'ja',
-    timezone: 'Asia/Tokyo',
-    status: 'active',
-    emailVerified: true,
-    createdAt: '2024-01-02T00:00:00Z',
-    updatedAt: '2024-01-02T00:00:00Z'
+    id: 'user-associate-1',
+    auth0Sub: 'auth0|associate-yamamoto',
+    email: 'yamamoto@takahashi-law.jp',
+    createdAt: '2023-04-15T00:00:00Z',
+    updatedAt: '2024-12-07T15:30:00Z'
   },
   {
-    id: 'user-3',
-    email: 'tanaka@example.com',
-    name: '田中一郎',
-    displayName: 'Ichiro Tanaka',
-    avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=tanaka',
-    locale: 'ja',
-    timezone: 'Asia/Tokyo',
-    status: 'inactive',
-    emailVerified: false,
-    createdAt: '2024-01-03T00:00:00Z',
-    updatedAt: '2024-01-03T00:00:00Z'
+    id: 'user-associate-2',
+    auth0Sub: 'auth0|associate-nakamura',
+    email: 'nakamura@takahashi-law.jp',
+    createdAt: '2023-06-01T00:00:00Z',
+    updatedAt: '2024-12-06T09:00:00Z'
+  },
+  {
+    id: 'user-paralegal-1',
+    auth0Sub: 'auth0|paralegal-sasaki',
+    email: 'sasaki@takahashi-law.jp',
+    createdAt: '2023-07-01T00:00:00Z',
+    updatedAt: '2024-12-05T14:20:00Z'
+  },
+  {
+    id: 'user-admin-1',
+    auth0Sub: 'auth0|admin-tanaka',
+    email: 'tanaka@takahashi-law.jp',
+    createdAt: '2023-04-01T00:00:00Z',
+    updatedAt: '2024-12-04T11:00:00Z'
   }
 ]
+
+// IT企業スタッフ
+const techStaffUsers: UserResponse[] = [
+  {
+    id: 'user-cto-1',
+    auth0Sub: 'auth0|cto-suzuki',
+    email: 'suzuki@next-innovation.jp',
+    createdAt: '2021-06-01T00:00:00Z',
+    updatedAt: '2024-12-08T08:30:00Z'
+  },
+  {
+    id: 'user-lead-1',
+    auth0Sub: 'auth0|lead-sato',
+    email: 'sato@next-innovation.jp',
+    createdAt: '2021-08-01T00:00:00Z',
+    updatedAt: '2024-12-07T17:00:00Z'
+  },
+  {
+    id: 'user-dev-1',
+    auth0Sub: 'auth0|dev-tanaka',
+    email: 'tanaka.t@next-innovation.jp',
+    createdAt: '2022-04-01T00:00:00Z',
+    updatedAt: '2024-12-06T13:45:00Z'
+  },
+  {
+    id: 'user-dev-2',
+    auth0Sub: 'auth0|dev-ito',
+    email: 'ito@next-innovation.jp',
+    createdAt: '2022-10-15T00:00:00Z',
+    updatedAt: '2024-12-05T10:15:00Z'
+  },
+  {
+    id: 'user-designer-1',
+    auth0Sub: 'auth0|designer-watanabe',
+    email: 'watanabe@next-innovation.jp',
+    createdAt: '2023-02-01T00:00:00Z',
+    updatedAt: '2024-12-04T16:30:00Z'
+  },
+  {
+    id: 'user-pm-1',
+    auth0Sub: 'auth0|pm-yamada',
+    email: 'yamada.h@next-innovation.jp',
+    createdAt: '2021-09-01T00:00:00Z',
+    updatedAt: '2024-12-08T07:00:00Z'
+  }
+]
+
+const mockUsers: UserResponse[] = [...legalStaffUsers, ...techStaffUsers]
 
 const mockRoles: RoleResponse[] = [
   {
@@ -71,8 +150,8 @@ const mockRoles: RoleResponse[] = [
     displayName: '管理者',
     color: '#FF6B6B',
     position: 100,
-    isSystem: false,
-    permissions: ['*'] as const,
+    system: false,
+    permissions: [parsePermissionString('*')],
     userCount: 1,
     createdAt: '2024-01-01T00:00:00Z',
     updatedAt: '2024-01-01T00:00:00Z'
@@ -83,8 +162,13 @@ const mockRoles: RoleResponse[] = [
     displayName: 'メンバー',
     color: '#4ECDC4',
     position: 50,
-    isSystem: false,
-    permissions: ['table.view', 'record.view', 'record.create', 'record.update'] as const,
+    system: false,
+    permissions: [
+      parsePermissionString('table.view'),
+      parsePermissionString('record.view'),
+      parsePermissionString('record.create'),
+      parsePermissionString('record.update')
+    ],
     userCount: 2,
     createdAt: '2024-01-01T00:00:00Z',
     updatedAt: '2024-01-01T00:00:00Z'
@@ -95,8 +179,11 @@ const mockRoles: RoleResponse[] = [
     displayName: '閲覧者',
     color: '#95E77E',
     position: 10,
-    isSystem: false,
-    permissions: ['table.view', 'record.view'] as const,
+    system: false,
+    permissions: [
+      parsePermissionString('table.view'),
+      parsePermissionString('record.view')
+    ],
     userCount: 0,
     createdAt: '2024-01-01T00:00:00Z',
     updatedAt: '2024-01-01T00:00:00Z'
@@ -104,46 +191,96 @@ const mockRoles: RoleResponse[] = [
 ]
 
 const mockUserProfiles: Map<string, UserProfile> = new Map([
-  ['user-1', {
-    id: 'user-1',
-    email: 'yamada@example.com',
-    name: '山田太郎',
-    bio: 'フルスタックエンジニア。TypeScriptとRustが好きです。',
-    phone: '090-1234-5678',
-    department: '開発部',
-    position: 'シニアエンジニア',
-    skills: ['TypeScript', 'React', 'Node.js', 'Rust'] as const,
-    socialLinks: {
-      twitter: '@yamada_dev',
-      github: 'yamada-taro',
-      linkedin: 'taro-yamada'
-    },
-    preferences: {
-      theme: 'dark',
-      language: 'ja',
-      notifications: {
-        email: true,
-        push: true,
-        inApp: true
-      },
-      defaultWorkspaceId: 'workspace-1'
-    }
+  // 法律事務所スタッフ
+  ['user-partner-1', {
+    id: 'user-partner-1',
+    email: 'takahashi@takahashi-law.jp',
+    name: '高橋 健一',
+    displayName: '高橋 健一',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=takahashi',
+    organizationId: 'org-legal-1',
+    organizationName: '高橋法律事務所',
+    isActive: true,
+    createdAt: '2023-04-01T00:00:00Z',
+    updatedAt: '2024-12-08T10:00:00Z'
+  }],
+  ['user-associate-1', {
+    id: 'user-associate-1',
+    email: 'yamamoto@takahashi-law.jp',
+    name: '山本 誠',
+    displayName: '山本 誠',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=yamamoto',
+    organizationId: 'org-legal-1',
+    organizationName: '高橋法律事務所',
+    isActive: true,
+    createdAt: '2023-04-15T00:00:00Z',
+    updatedAt: '2024-12-07T15:30:00Z'
+  }],
+  
+  // IT企業スタッフ
+  ['user-cto-1', {
+    id: 'user-cto-1',
+    email: 'suzuki@next-innovation.jp',
+    name: '鈴木 大輔',
+    displayName: '鈴木 大輔',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=suzuki',
+    organizationId: 'org-tech-1',
+    organizationName: 'ネクストイノベーション株式会社',
+    isActive: true,
+    createdAt: '2021-06-01T00:00:00Z',
+    updatedAt: '2024-12-08T08:30:00Z'
+  }],
+  ['user-lead-1', {
+    id: 'user-lead-1',
+    email: 'sato@next-innovation.jp',
+    name: '佐藤 翔',
+    displayName: '佐藤 翔',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=sato',
+    organizationId: 'org-tech-1',
+    organizationName: 'ネクストイノベーション株式会社',
+    isActive: true,
+    createdAt: '2021-08-01T00:00:00Z',
+    updatedAt: '2024-12-07T17:00:00Z'
   }]
 ])
 
-const mockCurrentUser: CurrentUser = {
-  id: 'user-1',
-  email: 'yamada@example.com',
-  name: '山田太郎',
-  displayName: 'Taro Yamada',
-  avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=yamada',
-  tenantUserId: 'tenant-user-1',
-  tenantId: 'tenant-1',
-  roles: mockRoles.filter(r => r !== undefined),
-  permissions: ['*'] as const
+const mockCurrentUser: CurrentUserResponse = {
+  user: {
+    id: 'user-cto-1',
+    email: 'suzuki@next-innovation.jp',
+    auth0Sub: 'auth0|cto-suzuki',
+    profile: {
+      id: 'profile-cto-1',
+      userId: 'user-cto-1',
+      displayName: '鈴木 大輔',
+      avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=suzuki',
+      createdAt: '2021-06-01T00:00:00Z',
+      updatedAt: '2024-12-08T08:30:00Z'
+    },
+    tenantCount: 1,
+    roleCount: mockRoles.length,
+    createdAt: '2021-06-01T00:00:00Z',
+    updatedAt: '2024-12-08T08:30:00Z'
+  },
+  currentTenantId: 'tenant-1',
+  permissions: []
 }
 
-export class MockUserRepository implements IUserRepository {
+// Mock user profile for legacy methods
+const mockUserProfile: UserProfile = {
+  id: 'user-cto-1',
+  email: 'suzuki@next-innovation.jp',
+  name: '鈴木 大輔',
+  displayName: '鈴木 大輔',
+  avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=suzuki',
+  organizationId: 'org-tech-1',
+  organizationName: 'ネクストイノベーション株式会社',
+  isActive: true,
+  createdAt: '2021-06-01T00:00:00Z',
+  updatedAt: '2024-12-08T08:30:00Z'
+}
+
+export class MockUserRepository implements UserRepository {
   
   // Simulate network delay
   private async delay(ms: number = 200): Promise<void> {
@@ -154,57 +291,53 @@ export class MockUserRepository implements IUserRepository {
   // Current User Operations
   // ===========================
   
-  async getCurrentUser(): Promise<CurrentUser> {
+  async getCurrentUser(): Promise<CurrentUserResponse> {
     await this.delay()
     return mockCurrentUser
   }
   
   async getMyRoles(): Promise<RoleResponse[]> {
     await this.delay()
-    return [...(mockCurrentUser.roles || [])] as RoleResponse[]
+    return [...mockRoles] as RoleResponse[]
   }
   
   async getMyPermissions(): Promise<UserPermissionsResponse> {
     await this.delay()
     return {
-      userId: mockCurrentUser.id || '',
-      tenantUserId: mockCurrentUser.tenantUserId || '',
-      roles: [...(mockCurrentUser.roles || [])] as RoleResponse[],
-      effectivePermissions: [...(mockCurrentUser.permissions || [])] as string[],
-      permissionsByRole: {
-        'admin': ['*']
-      }
+      userId: mockCurrentUser.user?.id || '',
+      tenantUserId: 'tenant-user-1',
+      roles: [...mockRoles] as RoleResponse[],
+      effectivePermissions: [parsePermissionString('*')],
+      permissionsByRole: [{
+        roleName: 'admin',
+        permissions: [parsePermissionString('*')]
+      }]
     }
   }
   
   async updateMyProfile(profileData: Partial<UserProfile>): Promise<UserProfile> {
   await this.delay()
-  const currentProfile = mockUserProfiles.get('user-1') || {
-    id: 'user-1', // UserProfile uses 'id', not 'userId'
-    email: 'yamada@example.com',
-    name: '山田太郎',
-    preferences: {}
-  }
+  const currentProfile = mockUserProfiles.get('user-cto-1') || mockUserProfile
   
   const updatedProfile: UserProfile = {
     ...currentProfile,
     ...profileData,
     // Ensure required fields are present
-    id: currentProfile.id || 'user-1',
-    email: profileData.email ?? currentProfile.email ?? 'yamada@example.com',
-    name: profileData.name ?? currentProfile.name ?? '山田太郎'
+    id: currentProfile.id || 'user-cto-1',
+    email: profileData.email ?? currentProfile.email ?? 'suzuki@next-innovation.jp',
+    name: profileData.name ?? currentProfile.name ?? '鈴木 大輔'
   }
   
-  mockUserProfiles.set('user-1', updatedProfile)
+  mockUserProfiles.set('user-cto-1', updatedProfile)
   return updatedProfile
 }
   
   async updateMyPreferences(preferences: UserPreferences): Promise<UserPreferences> {
     await this.delay()
-    const profile = mockUserProfiles.get('user-1')
+    const profile = mockUserProfiles.get('user-cto-1')
     if (profile) {
       profile.preferences = preferences
-      mockUserProfiles.set('user-1', profile)
+      mockUserProfiles.set('user-cto-1', profile)
     }
     return preferences
   }
@@ -213,22 +346,19 @@ export class MockUserRepository implements IUserRepository {
   // User CRUD Operations
   // ===========================
   
-  async listUsers(params?: UserListParams): Promise<UserListResponse> {
+  async listUsers(params?: UserListParams): Promise<UserSearchResponse> {
     await this.delay()
     
     let users = [...mockUsers]
     
     // Apply filters
-    if (params?.status && params.status !== 'all') {
-      users = users.filter(u => u.status === params.status)
-    }
+    // Note: UserResponse doesn't have status field in OpenAPI, skipping status filter
     
     if (params?.search) {
       const searchLower = params.search.toLowerCase()
       users = users.filter(u => 
-        u.name.toLowerCase().includes(searchLower) ||
-        u.email.toLowerCase().includes(searchLower) ||
-        u.displayName?.toLowerCase().includes(searchLower)
+        (u.email || '').toLowerCase().includes(searchLower) ||
+        (u.auth0Sub || '').toLowerCase().includes(searchLower)
       )
     }
     
@@ -268,22 +398,33 @@ export class MockUserRepository implements IUserRepository {
     await this.delay()
     const newUser: UserResponse = {
       id: `user-${Date.now()}`,
+      auth0Sub: `auth0|user-${Date.now()}`,
       email: data.email,
-      name: data.name,
-      displayName: data.displayName,
-      avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${data.email}`,
-      locale: 'ja',
-      timezone: 'Asia/Tokyo',
-      status: 'active',
-      emailVerified: false,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
     mockUsers.push(newUser)
+    
+    // 新しいユーザーのプロフィールも作成
+    const userName = generateJapaneseName()
+    const newProfile: UserProfile = {
+      id: newUser.id,
+      email: newUser.email ?? 'user@example.com',
+      name: userName.fullName,
+      displayName: userName.fullName,
+      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${userName.lastName}`,
+      organizationId: 'org-new',
+      organizationName: '新規組織',
+      isActive: true,
+      createdAt: newUser.createdAt,
+      updatedAt: newUser.updatedAt
+    }
+    mockUserProfiles.set(newUser.id ?? `user-${Date.now()}`, newProfile)
+    
     return newUser
   }
   
-  async updateUser(userId: string, data: UserUpdateRequest): Promise<UserResponse> {
+  async updateUser(userId: string, _data: UserUpdateRequest): Promise<UserResponse> {
   await this.delay()
   const index = mockUsers.findIndex(u => u.id === userId)
   if (index === -1) throw new Error(`User ${userId} not found`)
@@ -293,13 +434,11 @@ export class MockUserRepository implements IUserRepository {
   
   const updatedUser: UserResponse = {
     ...existingUser,
-    ...data,
+    // UserUpdateRequest doesn't have many fields in basic UserResponse
     // Ensure required fields are always present
     id: existingUser.id,
+    auth0Sub: existingUser.auth0Sub,
     email: existingUser.email, // email cannot be updated via UserUpdateRequest
-    name: data.name ?? existingUser.name,
-    status: data.status ?? existingUser.status,
-    emailVerified: existingUser.emailVerified, // emailVerified cannot be updated via UserUpdateRequest
     createdAt: existingUser.createdAt, // createdAt は必須なので明示的に保持
     updatedAt: new Date().toISOString()
   }
@@ -321,9 +460,9 @@ export class MockUserRepository implements IUserRepository {
   async getUserRoles(userId: string): Promise<RoleResponse[]> {
     await this.delay()
     // Mock: return different roles based on userId
-    if (userId === 'user-1' && mockRoles[0]) {
+    if ((userId === 'user-partner-1' || userId === 'user-cto-1') && mockRoles[0]) {
       return [mockRoles[0]] // admin
-    } else if (userId === 'user-2' && mockRoles[1]) {
+    } else if ((userId === 'user-associate-1' || userId === 'user-lead-1') && mockRoles[1]) {
       return [mockRoles[1]] // member
     }
     return mockRoles[2] ? [mockRoles[2]] : [] // viewer or empty
@@ -334,11 +473,12 @@ export class MockUserRepository implements IUserRepository {
     data: UserRoleAssignmentRequest
   ): Promise<UserRoleAssignmentResult> {
     await this.delay()
-    const assignedRoles = mockRoles.filter(r => data.roleIds.includes(r.id))
+    const assignedRoles = mockRoles.filter(r => r.id && data.roleIds?.includes(r.id))
     return {
-      success: true,
-      assignedRoles,
-      errors: []
+      userId,
+      assignedRoles: assignedRoles.map(r => r.id || ''),
+      failedRoles: [],
+      totalAssigned: assignedRoles.length
     }
   }
   
@@ -355,11 +495,11 @@ export class MockUserRepository implements IUserRepository {
     await this.delay()
     const tenantUsers: TenantUser[] = mockUsers.map((user, index) => ({
       id: `tenant-user-${index + 1}`,
-      userId: user.id,
+      userId: user.id || '',
       tenantId,
       roles: index === 0 && mockRoles[0] ? [mockRoles[0]] : mockRoles[1] ? [mockRoles[1]] : [],
       isOwner: index === 0,
-      joinedAt: user.createdAt,
+      joinedAt: user.createdAt || new Date().toISOString(),
       lastActiveAt: new Date().toISOString()
     }))
     
@@ -390,9 +530,8 @@ export class MockUserRepository implements IUserRepository {
     await this.delay()
     const searchLower = query.toLowerCase()
     return mockUsers.filter(u => 
-      u.name.toLowerCase().includes(searchLower) ||
-      u.email.toLowerCase().includes(searchLower) ||
-      u.displayName?.toLowerCase().includes(searchLower)
+      (u.email || '').toLowerCase().includes(searchLower) ||
+      (u.auth0Sub || '').toLowerCase().includes(searchLower)
     )
   }
   
@@ -410,8 +549,90 @@ export class MockUserRepository implements IUserRepository {
     return []
   }
   
-  async getUsersByStatus(status: 'active' | 'inactive' | 'suspended'): Promise<UserResponse[]> {
+  async getUsersByStatus(_status: 'active' | 'inactive' | 'suspended'): Promise<UserResponse[]> {
     await this.delay()
-    return mockUsers.filter(u => u.status === status)
+    // UserResponse doesn't have status field in OpenAPI, returning all users
+    return mockUsers
+  }
+  
+  // ===========================
+  // Legacy methods for backward compatibility
+  // ===========================
+  
+  async getProfile(id: string): Promise<UserProfile> {
+    await this.delay()
+    
+    // Return the mock user profile if it's the requested user
+    if (mockUserProfile.id === id) {
+      return mockUserProfile
+    }
+    
+    // This is a simplified mock - in real implementation would fetch from API
+    return {
+      id,
+      email: `user-${id}@example.com`,
+      name: `User ${id}`,
+      displayName: `User ${id}`,
+      avatar: undefined,
+      organizationId: mockUserProfile.organizationId,
+      organizationName: mockUserProfile.organizationName,
+      isActive: true,
+      createdAt: new Date('2024-01-01').toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+  }
+  
+  async getStats(_id: string, _params?: UserStatsParams): Promise<UserStats> {
+    await this.delay()
+    
+    return {
+      activeCases: 12,
+      tasksToday: 5,
+      unreadMessages: 7,
+      totalRevenue: 1500000,
+      pendingInvoices: 3,
+      hoursThisWeek: 32.5,
+      hoursThisMonth: 156.5,
+      completionRate: 85.5,
+      averageResponseTime: 3.2
+    }
+  }
+  
+  async updateProfile(id: string, data: UpdateUserProfileDto): Promise<UserProfile> {
+    await this.delay()
+    
+    // Update mockUserProfile if it's the current user
+    if (mockUserProfile.id === id) {
+      Object.assign(mockUserProfile, data)
+      mockUserProfile.updatedAt = new Date().toISOString()
+      return mockUserProfile
+    }
+    
+    // For other users, return updated data
+    const existingProfile = await this.getProfile(id)
+    return { ...existingProfile, ...data }
+  }
+  
+  async uploadAvatar(id: string, _file: File): Promise<string> {
+    await this.delay()
+    
+    // Return a mock avatar URL
+    const avatarUrl = `/api/avatars/${id}-${Date.now()}.jpg`
+    
+    // Update mockUserProfile if it's the current user
+    if (mockUserProfile.id === id) {
+      mockUserProfile.avatar = avatarUrl
+    }
+    
+    return avatarUrl
+  }
+  
+  async removeAvatar(id: string): Promise<void> {
+    await this.delay()
+    
+    // Update mockUserProfile if it's the current user
+    if (mockUserProfile.id === id) {
+      mockUserProfile.avatar = undefined
+    }
   }
 }

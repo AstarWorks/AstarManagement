@@ -5,7 +5,7 @@
  */
 
 import type {
-  IRoleRepository,
+  RoleRepository,
   RoleResponse,
   RoleCreateRequest,
   RoleUpdateRequest,
@@ -20,8 +20,45 @@ import type {
   PermissionCatalog,
   PermissionDefinition,
   RoleTemplateCategory,
-  RoleTemplate
+  RoleTemplate,
+  PermissionRule
 } from '../types'
+
+// 文字列権限をPermissionRuleオブジェクトに変換するヘルパー関数
+function parsePermissionString(permission: string): PermissionRule {
+  // 権限文字列を解析 (例: "table.view" -> { resourceType: 'TABLE', action: 'VIEW', scope: 'ALL' })
+  const parts = permission.split('.')
+  const resourceMap: Record<string, PermissionRule['resourceType']> = {
+    'workspace': 'WORKSPACE',
+    'table': 'TABLE',
+    'record': 'RECORD',
+    'document': 'DOCUMENT',
+    'user': 'USER',
+    'role': 'ROLE',
+    'tenant': 'TENANT',
+    'settings': 'SETTINGS'
+  }
+  const actionMap: Record<string, PermissionRule['action']> = {
+    'view': 'VIEW',
+    'create': 'CREATE',
+    'edit': 'EDIT',
+    'update': 'EDIT',
+    'delete': 'DELETE',
+    'manage': 'MANAGE',
+    '*': 'MANAGE'
+  }
+  
+  if (permission === '*') {
+    return { resourceType: 'TENANT', action: 'MANAGE', scope: 'ALL' }
+  }
+  
+  const [resource, action] = parts
+  return {
+    resourceType: (resource && resourceMap[resource]) || 'TABLE',
+    action: (action && actionMap[action]) || 'VIEW',
+    scope: 'ALL'
+  }
+}
 
 // Discord風のモックロールデータ
 const mockRoles: RoleResponse[] = [
@@ -32,8 +69,8 @@ const mockRoles: RoleResponse[] = [
     displayName: 'オーナー',
     color: '#FF6B6B',
     position: 100,
-    isSystem: false,
-    permissions: ['*'],
+    system: false,
+    permissions: [parsePermissionString('*')],
     userCount: 1,
     createdAt: '2024-01-01T00:00:00Z',
     updatedAt: '2024-01-01T00:00:00Z'
@@ -45,14 +82,14 @@ const mockRoles: RoleResponse[] = [
     displayName: '管理者',
     color: '#FFD93D',
     position: 90,
-    isSystem: false,
+    system: false,
     permissions: [
-      'workspace.*',
-      'table.*',
-      'record.*',
-      'user.view',
-      'user.update',
-      'role.view'
+      parsePermissionString('workspace.*'),
+      parsePermissionString('table.*'),
+      parsePermissionString('record.*'),
+      parsePermissionString('user.view'),
+      parsePermissionString('user.update'),
+      parsePermissionString('role.view')
     ],
     userCount: 2,
     createdAt: '2024-01-02T00:00:00Z',
@@ -65,13 +102,13 @@ const mockRoles: RoleResponse[] = [
     displayName: 'モデレーター',
     color: '#6BCB77',
     position: 70,
-    isSystem: false,
+    system: false,
     permissions: [
-      'table.view',
-      'table.create',
-      'table.update',
-      'record.*',
-      'user.view'
+      parsePermissionString('table.view'),
+      parsePermissionString('table.create'),
+      parsePermissionString('table.update'),
+      parsePermissionString('record.*'),
+      parsePermissionString('user.view')
     ],
     userCount: 3,
     createdAt: '2024-01-03T00:00:00Z',
@@ -84,12 +121,12 @@ const mockRoles: RoleResponse[] = [
     displayName: 'メンバー',
     color: '#4ECDC4',
     position: 50,
-    isSystem: false,
+    system: false,
     permissions: [
-      'table.view',
-      'record.view',
-      'record.create',
-      'record.update.own'
+      parsePermissionString('table.view'),
+      parsePermissionString('record.view'),
+      parsePermissionString('record.create'),
+      parsePermissionString('record.update.own')
     ],
     userCount: 10,
     createdAt: '2024-01-04T00:00:00Z',
@@ -102,10 +139,10 @@ const mockRoles: RoleResponse[] = [
     displayName: '閲覧者',
     color: '#95E77E',
     position: 10,
-    isSystem: false,
+    system: false,
     permissions: [
-      'table.view',
-      'record.view'
+      parsePermissionString('table.view'),
+      parsePermissionString('record.view')
     ],
     userCount: 5,
     createdAt: '2024-01-05T00:00:00Z',
@@ -356,7 +393,7 @@ const mockRoleTemplates: RoleTemplateCategory[] = [
   }
 ]
 
-export class MockRoleRepository implements IRoleRepository {
+export class MockRoleRepository implements RoleRepository {
   
   // Simulate network delay
   private async delay(ms: number = 200): Promise<void> {
@@ -374,7 +411,7 @@ export class MockRoleRepository implements IRoleRepository {
     
     // Filter system roles if needed
     if (params?.includeSystem === false) {
-      roles = roles.filter(r => !r.isSystem)
+      roles = roles.filter(r => !r.system)
     }
     
     // Sort roles
@@ -415,7 +452,7 @@ export class MockRoleRepository implements IRoleRepository {
       displayName: data.displayName || data.name,
       color: data.color || '#808080',
       position: data.position || 30,
-      isSystem: false,
+      system: false,
       permissions: data.permissions || [],
       userCount: 0,
       createdAt: new Date().toISOString(),
@@ -440,7 +477,7 @@ export class MockRoleRepository implements IRoleRepository {
       displayName: data.displayName ?? currentRole.displayName,
       color: data.color ?? currentRole.color,
       position: data.position ?? currentRole.position,
-      isSystem: currentRole.isSystem,
+      system: currentRole.system,
       permissions: currentRole.permissions,
       userCount: currentRole.userCount,
       createdAt: currentRole.createdAt,
@@ -485,13 +522,15 @@ export class MockRoleRepository implements IRoleRepository {
     await this.delay()
     
     // Update positions
-    Object.entries(data.positions).forEach(([roleId, position]) => {
-      const role = mockRoles.find(r => r.id === roleId)
-      if (role) {
-        role.position = position
-        role.updatedAt = new Date().toISOString()
-      }
-    })
+    if (data.positions) {
+      data.positions.forEach(positionUpdate => {
+        const role = mockRoles.find(r => r.id === positionUpdate.roleId)
+        if (role && positionUpdate.position !== undefined) {
+          role.position = positionUpdate.position
+          role.updatedAt = new Date().toISOString()
+        }
+      })
+    }
     
     // Return sorted roles
     return mockRoles.sort((a, b) => (b.position ?? 0) - (a.position ?? 0))
@@ -505,7 +544,10 @@ export class MockRoleRepository implements IRoleRepository {
     await this.delay()
     const role = mockRoles.find(r => r.id === roleId)
     if (!role) throw new Error(`Role ${roleId} not found`)
-    return [...(role.permissions || [])] as string[]
+    // Convert PermissionRule objects to strings for backward compatibility
+    return (role.permissions || []).map(p => 
+      typeof p === 'string' ? p : `${p.resourceType}.${p.action}`
+    )
   }
   
   async grantPermissions(
@@ -516,16 +558,28 @@ export class MockRoleRepository implements IRoleRepository {
     const role = mockRoles.find(r => r.id === roleId)
     if (!role) throw new Error(`Role ${roleId} not found`)
     
-    const currentPermissions = new Set(role.permissions || [])
-    data.permissions.forEach(p => currentPermissions.add(p))
-    role.permissions = Array.from(currentPermissions)
+    const currentPermissions = role.permissions || []
+    const newPermissions = data.permissions || []
+    // Merge permissions (avoid duplicates)
+    const mergedPermissions = [...currentPermissions]
+    newPermissions.forEach(newPerm => {
+      const exists = mergedPermissions.some(p => 
+        p.resourceType === newPerm.resourceType && 
+        p.action === newPerm.action && 
+        p.scope === newPerm.scope
+      )
+      if (!exists) {
+        mergedPermissions.push(newPerm)
+      }
+    })
+    role.permissions = mergedPermissions
     role.updatedAt = new Date().toISOString()
     
     return {
       roleId,
-      granted: data.permissions,
-      failed: {},
-      totalGranted: data.permissions.length
+      granted: data.permissions || [],
+      failed: [],
+      totalGranted: (data.permissions || []).length
     }
   }
   
@@ -537,9 +591,17 @@ export class MockRoleRepository implements IRoleRepository {
     const role = mockRoles.find(r => r.id === roleId)
     if (!role) throw new Error(`Role ${roleId} not found`)
     
-    const currentPermissions = new Set(role.permissions || [])
-    data.permissions.forEach(p => currentPermissions.delete(p))
-    role.permissions = Array.from(currentPermissions)
+    const currentPermissions = role.permissions || []
+    const toRemove = data.permissions || []
+    // Remove permissions
+    role.permissions = currentPermissions.filter(p => {
+      // Check if this permission should be removed
+      return !toRemove.some(removePerm => 
+        typeof removePerm === 'string' 
+          ? `${p.resourceType}.${p.action}` === removePerm
+          : false
+      )
+    })
     role.updatedAt = new Date().toISOString()
     
     return {
@@ -608,8 +670,10 @@ export class MockRoleRepository implements IRoleRepository {
       displayName: template.displayName,
       color: template.color,
       position: template.position,
-      isSystem: false,
-      permissions: template.permissions,
+      system: false,
+      permissions: template.permissions.map(p => 
+        typeof p === 'string' ? parsePermissionString(p) : p
+      ),
       userCount: 0,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()

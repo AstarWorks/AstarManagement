@@ -3,18 +3,18 @@
  * Mock/Real切り替えを管理
  */
 
-import type { IRoleRepository } from '../types'
-import { RoleRepository } from './RoleRepository'
+import type { RoleRepository } from '../types'
+import { RoleRepositoryImpl } from './RoleRepository'
 import { MockRoleRepository } from './MockRoleRepository'
 
 // シングルトンインスタンス管理
-let repositoryInstance: IRoleRepository | null = null
+let repositoryInstance: RoleRepository | null = null
 
 /**
  * RoleRepositoryを取得
  * 環境設定に応じてMock/Realを自動切り替え
  */
-export const useRoleRepository = (): IRoleRepository => {
+export const useRoleRepository = (): RoleRepository => {
   // 既存のインスタンスがあれば返す
   if (repositoryInstance) {
     return repositoryInstance
@@ -27,7 +27,7 @@ export const useRoleRepository = (): IRoleRepository => {
   console.log(`[RoleRepository] Creating ${isMockMode ? 'Mock' : 'Real'} repository`)
   repositoryInstance = isMockMode 
     ? new MockRoleRepository()
-    : new RoleRepository()
+    : new RoleRepositoryImpl()
   
   // HMRサポート
   if (import.meta.hot) {
@@ -48,5 +48,5 @@ export const clearRoleRepository = (): void => {
 }
 
 // 型のエクスポート
-export type { IRoleRepository }
-export { RoleRepository, MockRoleRepository }
+export type { RoleRepository }
+export { RoleRepositoryImpl, MockRoleRepository }

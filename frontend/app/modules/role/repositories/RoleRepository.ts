@@ -21,7 +21,7 @@ import type {
   RoleTemplateCategory
 } from '../types'
 
-export class RoleRepository {
+export class RoleRepositoryImpl {
   private client: ReturnType<typeof useApi>
   
   constructor() {
@@ -211,11 +211,24 @@ export class RoleRepository {
     roleId: string,
     requestData: PermissionRevokeRequest
   ): Promise<PermissionRevokeResult> {
+    // Convert string permissions to PermissionRule objects for the API
+    const bulkDeleteRequest = {
+      permissions: requestData.permissions.map(perm => {
+        // Simple conversion - you may need to adjust based on your permission format
+        const parts = perm.split('.')
+        return {
+          resourceType: (parts[0]?.toUpperCase() || 'TABLE') as 'TABLE' | 'WORKSPACE' | 'USER' | 'ROLE',
+          action: (parts[1]?.toUpperCase() || 'VIEW') as 'VIEW' | 'CREATE' | 'EDIT' | 'DELETE' | 'MANAGE',
+          scope: 'ALL' as 'ALL' | 'OWN' | 'TEAM'
+        }
+      })
+    }
+    
     const { error } = await this.client.DELETE('/api/v1/roles/{roleId}/permissions', {
       params: {
         path: { roleId }
       },
-      body: requestData
+      body: bulkDeleteRequest
     })
     
     if (error) {

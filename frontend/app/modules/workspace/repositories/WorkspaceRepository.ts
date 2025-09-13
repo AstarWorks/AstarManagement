@@ -21,7 +21,7 @@ type WorkspaceCreateRequest = components['schemas']['WorkspaceCreateRequest']
 type WorkspaceUpdateRequest = components['schemas']['WorkspaceUpdateRequest']
 type WorkspaceListResponse = components['schemas']['WorkspaceListResponse']
 
-export class WorkspaceRepository {
+export class WorkspaceRepositoryImpl {
   private client: ReturnType<typeof useApi>
   private currentWorkspaceId: string | null = null
   

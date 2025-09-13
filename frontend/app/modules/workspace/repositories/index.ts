@@ -3,18 +3,18 @@
  * Mock/Real切り替えを管理
  */
 
-import type { IWorkspaceRepository } from '../types'
-import { WorkspaceRepository } from './WorkspaceRepository'
+import type { WorkspaceRepository } from '../types'
+import { WorkspaceRepositoryImpl } from './WorkspaceRepository'
 import { MockWorkspaceRepository } from './MockWorkspaceRepository'
 
 // シングルトンインスタンス管理
-let repositoryInstance: IWorkspaceRepository | null = null
+let repositoryInstance: WorkspaceRepository | null = null
 
 /**
  * WorkspaceRepositoryを取得
  * 環境設定に応じてMock/Realを自動切り替え
  */
-export const useWorkspaceRepository = (): IWorkspaceRepository => {
+export const useWorkspaceRepository = (): WorkspaceRepository => {
   // 既存のインスタンスがあれば返す
   if (repositoryInstance) {
     return repositoryInstance
@@ -27,7 +27,7 @@ export const useWorkspaceRepository = (): IWorkspaceRepository => {
   console.log(`[WorkspaceRepository] Creating ${isMockMode ? 'Mock' : 'Real'} repository`)
   repositoryInstance = isMockMode 
     ? new MockWorkspaceRepository()
-    : new WorkspaceRepository()
+    : new WorkspaceRepositoryImpl()
   
   // HMRサポート
   if (import.meta.hot) {
@@ -48,5 +48,5 @@ export const clearWorkspaceRepository = (): void => {
 }
 
 // 型のエクスポート
-export type { IWorkspaceRepository }
-export { WorkspaceRepository, MockWorkspaceRepository }
+export type { WorkspaceRepository }
+export { WorkspaceRepositoryImpl, MockWorkspaceRepository }

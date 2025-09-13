@@ -1,85 +1,53 @@
 /**
  * Dashboard API Repository
  * Implementation using real API endpoints
+ * NOTE: Dashboard endpoints are not yet implemented in backend
  */
 
-import type { BaseApiClient } from '@shared/api/core/BaseApiClient'
-import type { IDashboardRepository } from './IDashboardRepository'
+import type { DashboardRepository } from './DashboardRepository'
 import type { 
-  IDashboardData,
-  IDashboardStats, 
-  IActivity, 
-  IDashboardStatsParams, 
-  IRecentActivitiesParams,
-  IDashboardRefreshParams
+  DashboardData,
+  DashboardStats, 
+  Activity, 
+  DashboardStatsParams, 
+  RecentActivitiesParams,
+  DashboardRefreshParams
 } from '../types'
 
-export class DashboardApiRepository implements IDashboardRepository {
+export class DashboardApiRepository implements DashboardRepository {
+  private api: ReturnType<typeof useApi>
   
-  constructor(private client: BaseApiClient) {
-    // Dashboard-specific API repository
+  constructor() {
+    this.api = useApi()
   }
 
-  async getStats(params?: IDashboardStatsParams): Promise<IDashboardStats[]> {
-    const queryString = this.buildQueryString(params as Record<string, unknown>)
-    return await this.client.request<IDashboardStats[]>({
-      endpoint: `/dashboard/stats${queryString}`,
-      method: 'GET'
+  // NOTE: Dashboard endpoints not available in current API
+  // Using mock implementation until backend provides these endpoints
+  
+  async getStats(_params?: DashboardStatsParams): Promise<DashboardStats[]> {
+    console.warn('Dashboard.getStats: Using mock implementation - endpoint not available')
+    // Return empty stats for now
+    return Promise.resolve([])
+  }
+
+  async getRecentActivities(_params?: RecentActivitiesParams): Promise<Activity[]> {
+    console.warn('Dashboard.getRecentActivities: Using mock implementation - endpoint not available')
+    // Return empty activities for now
+    return Promise.resolve([])
+  }
+
+  async getDashboardData(_params?: DashboardRefreshParams): Promise<DashboardData> {
+    console.warn('Dashboard.getDashboardData: Using mock implementation - endpoint not available')
+    // Return minimal dashboard data
+    return Promise.resolve({
+      stats: [],
+      recentActivities: []
     })
   }
 
-  async getRecentActivities(params?: IRecentActivitiesParams): Promise<IActivity[]> {
-    const queryString = this.buildQueryString(params as Record<string, unknown>)
-    return await this.client.request<IActivity[]>({
-      endpoint: `/dashboard/activities${queryString}`,
-      method: 'GET'
-    })
-  }
-
-  async getDashboardData(params?: IDashboardRefreshParams): Promise<IDashboardData> {
-    const queryString = this.buildQueryString(params as Record<string, unknown>)
-    return await this.client.request<IDashboardData>({
-      endpoint: `/dashboard/data${queryString}`,
-      method: 'GET'
-    })
-  }
-
-  async refreshDashboard(params?: IDashboardRefreshParams): Promise<void> {
+  async refreshDashboard(_params?: DashboardRefreshParams): Promise<void> {
     // Clear client-side cache by invalidating Nuxt data
     await clearNuxtData('dashboard')
-    
-    // If force refresh, also trigger a background refresh
-    if (params?.forceRefresh) {
-      try {
-        await this.client.request({
-          endpoint: '/dashboard/refresh',
-          method: 'POST',
-          body: params
-        })
-      } catch (error) {
-        // Non-critical operation, log but don't throw
-        console.warn('[DashboardApiRepository] Background refresh failed:', error)
-      }
-    }
-  }
-
-  /**
-   * Helper to build query string from params
-   */
-  private buildQueryString(params?: Record<string, unknown>): string {
-    if (!params || Object.keys(params).length === 0) {
-      return ''
-    }
-    
-    const queryParts = Object.entries(params)
-      .filter(([_, value]) => value !== undefined && value !== null)
-      .map(([key, value]) => {
-        if (Array.isArray(value)) {
-          return value.map(v => `${key}[]=${encodeURIComponent(String(v))}`).join('&')
-        }
-        return `${key}=${encodeURIComponent(String(value))}`
-      })
-    
-    return queryParts.length > 0 ? `?${queryParts.join('&')}` : ''
+    console.warn('Dashboard.refreshDashboard: Using mock implementation - endpoint not available')
   }
 }
