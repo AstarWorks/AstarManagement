@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Contextual
 
 import kotlinx.serialization.SerialName
+import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
@@ -175,45 +176,59 @@ data class FilterCondition(
  */
 enum class FilterOperation {
     @SerialName("eq")
+    @JsonProperty("eq")
     EQUALS,
     
     @SerialName("ne")
+    @JsonProperty("ne")
     NOT_EQUALS,
     
     @SerialName("gt")
+    @JsonProperty("gt")
     GREATER_THAN,
     
     @SerialName("gte")
+    @JsonProperty("gte")
     GREATER_THAN_OR_EQUALS,
     
     @SerialName("lt")
+    @JsonProperty("lt")
     LESS_THAN,
     
     @SerialName("lte")
+    @JsonProperty("lte")
     LESS_THAN_OR_EQUALS,
     
     @SerialName("contains")
+    @JsonProperty("contains")
     CONTAINS,
     
     @SerialName("startsWith")
+    @JsonProperty("startsWith")
     STARTS_WITH,
     
     @SerialName("endsWith")
+    @JsonProperty("endsWith")
     ENDS_WITH,
     
     @SerialName("in")
+    @JsonProperty("in")
     IN,
     
     @SerialName("notIn")
+    @JsonProperty("notIn")
     NOT_IN,
     
     @SerialName("between")
+    @JsonProperty("between")
     BETWEEN,
     
     @SerialName("isNull")
+    @JsonProperty("isNull")
     IS_NULL,
     
     @SerialName("isNotNull")
+    @JsonProperty("isNotNull")
     IS_NOT_NULL;
     
     /**
@@ -236,9 +251,11 @@ enum class FilterOperation {
  */
 enum class FilterOperator {
     @SerialName("and")
+    @JsonProperty("and")
     AND,
     
     @SerialName("or")
+    @JsonProperty("or")
     OR;
     
     /**
