@@ -1,7 +1,9 @@
 package com.astarworks.astarmanagement.core.table.domain.model
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import com.google.gson.annotations.SerializedName
 
 /**
  * プロパティ型のEnum定義
@@ -13,39 +15,66 @@ import kotlinx.serialization.Serializable
 enum class PropertyType {
     // 基本型
     @SerialName("text")
+    @SerializedName("text")
+    @JsonProperty("text")
     TEXT,
     
     @SerialName("long_text")
+    @SerializedName("long_text")
+    @JsonProperty("long_text")
     LONG_TEXT,
     
     @SerialName("number")
+    @SerializedName("number")
+    @JsonProperty("number")
     NUMBER,
     
     @SerialName("checkbox")
+    @SerializedName("checkbox")
+    @JsonProperty("checkbox")
     CHECKBOX,
     
     @SerialName("date")
+    @SerializedName("date")
+    @JsonProperty("date")
     DATE,
     
     @SerialName("datetime")
+    @SerializedName("datetime")
+    @JsonProperty("datetime")
     DATETIME,
     
     // 選択型
     @SerialName("select")
+    @SerializedName("select")
+    @JsonProperty("select")
     SELECT,
     
     @SerialName("multi_select")
+    @SerializedName("multi_select")
+    @JsonProperty("multi_select")
     MULTI_SELECT,
     
     // 特殊型（検証付きテキスト）
     @SerialName("email")
+    @SerializedName("email")
+    @JsonProperty("email")
     EMAIL,
     
     @SerialName("url")
+    @SerializedName("url")
+    @JsonProperty("url")
     URL,
     
     @SerialName("file")
-    FILE;
+    @SerializedName("file")
+    @JsonProperty("file")
+    FILE,
+    
+    @SerialName("relation")
+    @SerializedName("relation")
+    @JsonProperty("relation")
+    RELATION;
     
     /**
      * 基本的なテキスト型かどうか
@@ -66,6 +95,11 @@ enum class PropertyType {
      * 日付型かどうか
      */
     fun isDateType(): Boolean = this in setOf(DATE, DATETIME)
+    
+    /**
+     * リレーション型かどうか
+     */
+    fun isRelationType(): Boolean = this == RELATION
     
     companion object {
         /**
