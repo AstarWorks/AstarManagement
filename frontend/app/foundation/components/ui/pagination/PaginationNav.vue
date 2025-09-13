@@ -30,7 +30,7 @@
           :variant="page === currentPage ? 'default' : 'outline'"
           size="sm"
           class="min-w-[2.5rem]"
-          @click="$emit('goToPage', page)"
+          @click="$emit('go-to-page', page)"
         >
           {{ page }}
         </Button>
@@ -84,6 +84,6 @@ defineEmits<{
   prev: []
   next: []
   last: []
-  goToPage: [page: number]
+  'go-to-page': [page: number]
 }>()
 </script>
