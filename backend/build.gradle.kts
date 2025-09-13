@@ -76,6 +76,8 @@ dependencies {
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.11")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.11")
     implementation("com.google.code.gson:gson")  // OpenAPI JSON serialization
+//    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+//    implementation("org.springdoc:springdoc-openapi-kotlin:1.8.0")
     
     // === Development ===
     developmentOnly("org.springframework.boot:spring-boot-devtools")
