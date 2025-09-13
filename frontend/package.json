@@ -15,7 +15,8 @@
     "@tanstack/vue-table": "^8.21.3",
     "@tanstack/vue-virtual": "^3.10.8",
     "@vee-validate/zod": "^4.15.1",
-    "@vueuse/core": "^13.7.0",
+    "@vueuse/core": "^13.9.0",
+    "@vueuse/motion": "^3.0.3",
     "@vueuse/nuxt": "^13.5.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -30,7 +31,7 @@
     "pinia": "^3.0.3",
     "postcss": "^8.5.6",
     "radix-vue": "^1.9.17",
-    "reka-ui": "^2.4.1",
+    "reka-ui": "^2.5.0",
     "shadcn-nuxt": "2.2.0",
     "tailwind-merge": "^3.3.1",
     "tailwindcss": "^4.1.11",
@@ -45,6 +46,8 @@
   "private": true,
   "scripts": {
     "dev": "nuxt dev",
+    "dev:mock": "nuxt dev --dotenv .env.frontend-only",
+    "dev:api": "nuxt dev --dotenv .env.development",
     "dev:frontend": "nuxt dev --dotenv .env.frontend-only",
     "dev:integrated": "nuxt dev --dotenv .env.development",
     "build": "nuxt build",
@@ -66,10 +69,12 @@
     "precommit": "bun run typecheck && bun run test && bun run lint",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "openapi:fetch": "curl -s http://localhost:8080/api-docs > openapi.json",
+    "openapi:fetch": "curl -s http://localhost:8080/v3/api-docs > openapi.json",
     "openapi:generate": "openapi-typescript openapi.json -o app/types/api.d.ts",
+    "openapi:zod": "openapi-zod-client openapi.json -o app/shared/api/zod-client.ts --export-schemas --with-docs --strict-objects --api-client-name astarApi --with-description",
     "openapi:sync": "bun run openapi:fetch && bun run openapi:generate",
-    "openapi:clean": "rm -f app/types/api.d.ts && rm -f openapi.json"
+    "openapi:all": "bun run openapi:sync && bun run openapi:zod",
+    "openapi:clean": "rm -f app/types/api.d.ts && rm -f openapi.json && rm -f app/shared/api/zod-client.ts"
   },
   "type": "module",
   "devDependencies": {

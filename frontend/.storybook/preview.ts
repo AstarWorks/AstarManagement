@@ -9,8 +9,14 @@ import '../app/assets/css/main.css';
 // Nuxtの自動インポートをモック
 setup(() => {
   // vi.stubGlobalの代わりに、windowオブジェクトに直接ダミー関数を定義します
-  const global = window as any;
-  global.useState = (key: string, init: () => any) => ref(init());
+  const global = window as Window & {
+    useState: (key: string, init: () => unknown) => Ref<unknown>
+    useFetch: () => Promise<{ data: Ref<null>, error: Ref<null> }>
+    useRuntimeConfig: () => { public: Record<string, unknown> }
+    navigateTo: () => void
+    useRoute: () => Record<string, unknown>
+  };
+  global.useState = (key: string, init: () => unknown) => ref(init());
   global.useFetch = () => Promise.resolve({ data: ref(null), error: ref(null) });
   global.useRuntimeConfig = () => ({ public: {} });
   global.navigateTo = () => {};

@@ -33,7 +33,7 @@ export default createConfigForNuxt({
             files: ['**/*.vue'], rules: {
                 // Vue component naming
                 'vue/component-name-in-template-casing': ['error', 'PascalCase'],
-                'vue/custom-event-name-casing': ['error', 'camelCase'],
+                'vue/custom-event-name-casing': ['error', 'kebab-case'],
                 'vue/component-definition-name-casing': ['error', 'PascalCase'],
 
                 // Allow single-word component names for UI library components
