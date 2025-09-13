@@ -84,7 +84,7 @@ interface Props {
 }
 
 interface Emits {
-  (e: 'fillCredentials', credentials: ILoginCredentials): void
+  (e: 'fill-credentials', credentials: ILoginCredentials): void
 }
 
 withDefaults(defineProps<Props>(), {
@@ -125,7 +125,7 @@ const buildTime = computed(() => new Date().toLocaleString(locale.value))
 
 // Fill credentials handler
 const fillCredentials = (credential: DebugCredential) => {
-  emit('fillCredentials', credential.credentials)
+  emit('fill-credentials', credential.credentials)
 }
 
 // Analytics for debug usage (development only)

@@ -14,7 +14,7 @@
         variant="link"
         size="sm"
         class="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
-        @click="$emit('privacyClick')"
+        @click="$emit('privacy-click')"
       >
         {{ $t('modules.auth.login.footer.privacy') }}
       </Button>
@@ -25,7 +25,7 @@
         variant="link"
         size="sm"
         class="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
-        @click="$emit('termsClick')"
+        @click="$emit('terms-click')"
       >
         {{ $t('modules.auth.login.footer.terms') }}
       </Button>
@@ -46,7 +46,7 @@ withDefaults(defineProps<Props>(), {
 })
 
 interface Emits {
-  (e: 'privacyClick' | 'termsClick'): void
+  (e: 'privacy-click' | 'terms-click'): void
 }
 
 const _emit = defineEmits<Emits>()

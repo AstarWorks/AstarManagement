@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import type { UserProfile } from '@modules/user/types'
+import type { RouteLocationNormalized } from 'vue-router'
 
 // ミドルウェアのインポート（モック設定後に行う）
 // TODO: Implement guest middleware
@@ -39,7 +40,7 @@ const mockUseAuthStore = vi.fn(() => mockAuthStore)
 // Nuxt composables のモック - これらは最初に設定する必要がある
 vi.mock('#app', () => ({
   navigateTo: mockNavigateTo,
-  defineNuxtRouteMiddleware: (fn: any) => fn
+  defineNuxtRouteMiddleware: (fn: Function) => fn
 }))
 
 vi.mock('~/stores/auth', () => ({
@@ -88,13 +89,13 @@ describe('Guest Middleware', () => {
     mockAuthStore.isAuthenticated = false
     
     // Create a mock middleware that simulates server side behavior
-    const serverSideMiddleware = (_to: any, _from: any) => {
+    const serverSideMiddleware = (_to: RouteLocationNormalized, _from: RouteLocationNormalized) => {
       // Mock import.meta.server = true behavior
       return // Should return undefined and not call any functions
     }
 
-    const to = { fullPath: '/signin' }
-    const from = { fullPath: '/dashboard', query: {} }
+    const to = { fullPath: '/signin' } as RouteLocationNormalized
+    const from = { fullPath: '/dashboard', query: {} } as RouteLocationNormalized
 
     const result = serverSideMiddleware(to, from)
 
@@ -108,8 +109,8 @@ describe('Guest Middleware', () => {
     mockAuthStore.isAuthenticated = false
     mockAuthStore.tokens = null
 
-    const to = { fullPath: '/signin' }
-    const from = { fullPath: '/dashboard', query: {} }
+    const to = { fullPath: '/signin' } as RouteLocationNormalized
+    const from = { fullPath: '/dashboard', query: {} } as RouteLocationNormalized
 
     guestMiddleware(to as any, from as any)
 
@@ -122,8 +123,8 @@ describe('Guest Middleware', () => {
     mockAuthStore.requiresTwoFactor = false
     mockAuthStore.tokens = null // Not checking tokens path
 
-    const to = { fullPath: '/signin' }
-    const from = { fullPath: '/dashboard', query: {} }
+    const to = { fullPath: '/signin' } as RouteLocationNormalized
+    const from = { fullPath: '/dashboard', query: {} } as RouteLocationNormalized
 
     guestMiddleware(to as any, from as any)
 
@@ -141,8 +142,8 @@ describe('Guest Middleware', () => {
     mockAuthStore.requiresTwoFactor = false
     mockAuthStore.tokens = null // Not checking tokens path
 
-    const to = { fullPath: '/signin' }
-    const from = { fullPath: '/dashboard', query: { redirect: '/matters' } }
+    const to = { fullPath: '/signin' } as RouteLocationNormalized
+    const from = { fullPath: '/dashboard', query: { redirect: '/matters' } } as unknown as RouteLocationNormalized
 
     guestMiddleware(to as any, from as any)
 
@@ -158,8 +159,8 @@ describe('Guest Middleware', () => {
     mockAuthStore.status = 'unauthenticated'
     mockAuthStore.isAuthenticated = false
 
-    const to = { fullPath: '/signin' }
-    const from = { fullPath: '/dashboard', query: {} }
+    const to = { fullPath: '/signin' } as RouteLocationNormalized
+    const from = { fullPath: '/dashboard', query: {} } as RouteLocationNormalized
 
     const result = guestMiddleware(to as any, from as any)
 
@@ -172,8 +173,8 @@ describe('Guest Middleware', () => {
     mockAuthStore.isAuthenticated = true
     mockAuthStore.requiresTwoFactor = true
 
-    const to = { fullPath: '/signin' }
-    const from = { fullPath: '/dashboard', query: {} }
+    const to = { fullPath: '/signin' } as RouteLocationNormalized
+    const from = { fullPath: '/dashboard', query: {} } as RouteLocationNormalized
 
     const result = guestMiddleware(to as any, from as any)
 
@@ -195,8 +196,8 @@ describe('Guest Middleware', () => {
       return Promise.resolve()
     })
 
-    const to = { fullPath: '/signin' }
-    const from = { fullPath: '/dashboard', query: {} }
+    const to = { fullPath: '/signin' } as RouteLocationNormalized
+    const from = { fullPath: '/dashboard', query: {} } as RouteLocationNormalized
 
     const result = guestMiddleware(to as any, from as any)
 
@@ -217,8 +218,8 @@ describe('Guest Middleware', () => {
     mockAuthStore.isTokenExpired = false
     mockAuthStore.fetchUser.mockRejectedValue(new Error('Invalid token'))
 
-    const to = { fullPath: '/signin' }
-    const from = { fullPath: '/dashboard', query: {} }
+    const to = { fullPath: '/signin' } as RouteLocationNormalized
+    const from = { fullPath: '/dashboard', query: {} } as RouteLocationNormalized
 
     const result = guestMiddleware(to as any, from as any)
 

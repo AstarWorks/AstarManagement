@@ -4,4 +4,4 @@
  */
 
 // Re-export from business-profile for backward compatibility
-export type { IBusinessRole as IRole, IBusinessProfile as UserProfile } from './business-profile'
+export type { BusinessRole as IRole, BusinessProfile as UserProfile } from './business-profile'

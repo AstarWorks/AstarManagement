@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import type { UserProfile } from '@modules/user/types'
+import type { RouteLocationNormalized } from 'vue-router'
 
 // ミドルウェアのインポート（モック設定後に行う）
 // TODO: Implement auth middleware
@@ -39,7 +40,7 @@ const mockUseAuthStore = vi.fn(() => mockAuthStore)
 // Nuxt composables のモック - これらは最初に設定する必要がある
 vi.mock('#app', () => ({
   navigateTo: mockNavigateTo,
-  defineNuxtRouteMiddleware: (fn: any) => fn
+  defineNuxtRouteMiddleware: (fn: Function) => fn
 }))
 
 vi.mock('~/stores/auth', () => ({
@@ -88,13 +89,13 @@ describe('Auth Middleware', () => {
     mockAuthStore.isAuthenticated = false
     
     // Create a mock middleware that simulates server side behavior
-    const serverSideMiddleware = (_to: any, _from: any) => {
+    const serverSideMiddleware = (_to: RouteLocationNormalized, _from: RouteLocationNormalized) => {
       // Mock import.meta.server = true behavior
       return // Should return undefined and not call any functions
     }
 
-    const to = { fullPath: '/dashboard' }
-    const from = { fullPath: '/signin' }
+    const to = { fullPath: '/dashboard' } as RouteLocationNormalized
+    const from = { fullPath: '/signin' } as RouteLocationNormalized
 
     const result = serverSideMiddleware(to, from)
 
@@ -107,8 +108,8 @@ describe('Auth Middleware', () => {
     mockAuthStore.status = 'unauthenticated'
     mockAuthStore.isAuthenticated = false
     
-    const to = { fullPath: '/dashboard' }
-    const from = { fullPath: '/signin' }
+    const to = { fullPath: '/dashboard' } as RouteLocationNormalized
+    const from = { fullPath: '/signin' } as RouteLocationNormalized
 
     authMiddleware(to as any, from as any)
 
@@ -121,8 +122,8 @@ describe('Auth Middleware', () => {
     mockAuthStore.tokens = null // No tokens to refresh
     mockAuthStore.isTokenExpired = false
 
-    const to = { fullPath: '/dashboard' }
-    const from = { fullPath: '/signin' }
+    const to = { fullPath: '/dashboard' } as RouteLocationNormalized
+    const from = { fullPath: '/signin' } as RouteLocationNormalized
 
     authMiddleware(to as any, from as any)
 
@@ -140,8 +141,8 @@ describe('Auth Middleware', () => {
     mockAuthStore.isAuthenticated = true
     mockAuthStore.requiresTwoFactor = true
 
-    const to = { fullPath: '/dashboard' }
-    const from = { fullPath: '/signin' }
+    const to = { fullPath: '/dashboard' } as RouteLocationNormalized
+    const from = { fullPath: '/signin' } as RouteLocationNormalized
 
     authMiddleware(to as any, from as any)
 
@@ -158,8 +159,8 @@ describe('Auth Middleware', () => {
     mockAuthStore.isAuthenticated = true
     mockAuthStore.requiresTwoFactor = false
 
-    const to = { fullPath: '/dashboard' }
-    const from = { fullPath: '/signin' }
+    const to = { fullPath: '/dashboard' } as RouteLocationNormalized
+    const from = { fullPath: '/signin' } as RouteLocationNormalized
 
     const result = authMiddleware(to as any, from as any)
 
@@ -174,8 +175,8 @@ describe('Auth Middleware', () => {
     mockAuthStore.isTokenExpired = true
     mockAuthStore.refreshTokens.mockResolvedValue(false)
 
-    const to = { fullPath: '/dashboard' }
-    const from = { fullPath: '/signin' }
+    const to = { fullPath: '/dashboard' } as RouteLocationNormalized
+    const from = { fullPath: '/signin' } as RouteLocationNormalized
 
     const result = authMiddleware(to as any, from as any)
 
@@ -202,8 +203,8 @@ describe('Auth Middleware', () => {
     mockAuthStore.isTokenExpired = true
     mockAuthStore.refreshTokens.mockResolvedValue(true)
 
-    const to = { fullPath: '/dashboard' }
-    const from = { fullPath: '/signin' }
+    const to = { fullPath: '/dashboard' } as RouteLocationNormalized
+    const from = { fullPath: '/signin' } as RouteLocationNormalized
 
     const result = authMiddleware(to as any, from as any)
 

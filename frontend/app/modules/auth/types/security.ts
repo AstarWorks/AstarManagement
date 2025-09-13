@@ -6,7 +6,7 @@
 /**
  * User security settings
  */
-export interface ISecuritySettings {
+export interface SecuritySettings {
   userId: string
   twoFactorEnabled: boolean
   twoFactorVerified?: boolean
@@ -24,7 +24,7 @@ export interface ISecuritySettings {
 /**
  * Security session state
  */
-export interface ISecuritySession {
+export interface SecuritySession {
   twoFactorRequired: boolean
   twoFactorVerified: boolean
   sessionExpiresAt: Date
@@ -50,7 +50,7 @@ export type SecurityEventType =
 /**
  * Security audit log entry
  */
-export interface ISecurityAuditLog {
+export interface SecurityAuditLog {
   id: string
   userId: string
   eventType: SecurityEventType

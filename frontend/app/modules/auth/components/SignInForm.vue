@@ -66,7 +66,7 @@ name="password"
 variant="link"
 class="text-sm text-blue-600 hover:text-blue-500"
 :disabled="isLoading"
-            @click="$emit('forgotPassword')">
+            @click="$emit('forgot-password')">
             {{ $t('modules.auth.login.actions.forgotPassword') }}
           </Button>
         </div>
@@ -74,7 +74,7 @@ class="text-sm text-blue-600 hover:text-blue-500"
     </Card>
 
     <!-- フッター -->
-    <AuthFormFooter @privacy-click="$emit('privacyClick')" @terms-click="$emit('termsClick')" />
+    <AuthFormFooter @privacy-click="$emit('privacy-click')" @terms-click="$emit('terms-click')" />
   </div>
 </template>
 
@@ -107,7 +107,7 @@ withDefaults(defineProps<Props>(), {
 // Emits
 interface Emits {
   (e: 'submit', credentials: { email: string; password: string; rememberMe?: boolean }): void
-  (e: 'forgotPassword' | 'privacyClick' | 'termsClick'): void
+  (e: 'forgot-password' | 'privacy-click' | 'terms-click'): void
 }
 
 const emit = defineEmits<Emits>()

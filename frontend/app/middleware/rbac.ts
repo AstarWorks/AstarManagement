@@ -62,7 +62,7 @@ export const createRBACMiddleware = (options: IRBACOptions) => {
         requiredPermissions: permissions,
         requiredRoles: roles,
         userPermissions: profile.value?.permissions,
-        userRoles: profile.value?.roles?.map((r: { name: string }) => r.name),
+        userRoles: profile.value?.roles?.map(r => r.name).filter(Boolean),
         path: to.fullPath
       })
 

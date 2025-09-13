@@ -7,7 +7,7 @@
 /**
  * Role information for business logic
  */
-export interface IBusinessRole {
+export interface BusinessRole {
   id: string
   name: string
   displayName: string
@@ -19,7 +19,7 @@ export interface IBusinessRole {
  * Generic business user profile
  * Industry-standard fields only, no domain-specific information
  */
-export interface IBusinessProfile {
+export interface BusinessProfile {
   // Basic info
   id: string
   email: string
@@ -34,7 +34,7 @@ export interface IBusinessProfile {
   position?: string
   
   // Access control (generic)
-  roles: readonly IBusinessRole[]
+  roles: readonly BusinessRole[]
   permissions: readonly string[]
   
   // Contact info (generic)
@@ -62,7 +62,7 @@ export interface IBusinessProfile {
 /**
  * Simplified profile for UI components
  */
-export interface IUserDisplayProfile {
+export interface UserDisplayProfile {
   id: string
   name?: string | null
   email: string

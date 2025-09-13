@@ -4,12 +4,12 @@
  * Industry-standard implementation without business logic
  */
 
-import type { ISecuritySettings } from '@modules/auth/types/security'
+import type { SecuritySettings } from '@modules/auth/types/security'
 
 export default defineNuxtRouteMiddleware((to, _from) => {
     // Get security settings from a dedicated security composable
     // This should be implemented separately from business profile
-    const securitySettings = useState<ISecuritySettings | null>('security-settings')
+    const securitySettings = useState<SecuritySettings | null>('security-settings')
     const twoFactorVerified = useState<boolean>('2fa-verified', () => false)
 
     // Skip on server-side (SPA mode)
