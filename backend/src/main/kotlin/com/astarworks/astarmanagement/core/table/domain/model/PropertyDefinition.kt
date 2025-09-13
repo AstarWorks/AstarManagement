@@ -90,6 +90,32 @@ data class PropertyDefinition(
             }
         }
     
+    // ===== リレーション用のプロパティアクセサ =====
+    
+    /**
+     * リレーション先のテーブルID（RELATION型用）
+     */
+    val targetTableId: String?
+        get() = config["targetTableId"]?.jsonPrimitive?.contentOrNull
+    
+    /**
+     * リレーションのターゲットタイプ（RELATION型用）
+     */
+    val targetType: String?
+        get() = config["targetType"]?.jsonPrimitive?.contentOrNull ?: "table"
+    
+    /**
+     * リレーション関係のタイプ（RELATION型用）
+     */
+    val relationshipType: String?
+        get() = config["relationshipType"]?.jsonPrimitive?.contentOrNull ?: "one-to-many"
+    
+    /**
+     * 表示用フィールド名（RELATION型用）
+     */
+    val displayField: String?
+        get() = config["displayField"]?.jsonPrimitive?.contentOrNull ?: "name"
+    
     // ===== ユーティリティメソッド =====
     
     /**
@@ -153,6 +179,14 @@ data class PropertyDefinition(
             PropertyType.SELECT, PropertyType.MULTI_SELECT -> {
                 if (options.isNullOrEmpty()) {
                     errors.add("Select type must have at least one option")
+                }
+            }
+            PropertyType.RELATION -> {
+                if (targetTableId.isNullOrBlank()) {
+                    errors.add("Relation type must have a targetTableId")
+                }
+                if (targetType !in listOf("table", "document", "record")) {
+                    errors.add("Invalid target type for relation: $targetType")
                 }
             }
             else -> {

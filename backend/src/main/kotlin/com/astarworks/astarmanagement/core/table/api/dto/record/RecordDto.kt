@@ -5,6 +5,7 @@ import kotlinx.serialization.json.*
 import com.astarworks.astarmanagement.core.table.infrastructure.validation.ValidRecordData
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
+import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Positive
@@ -298,9 +299,11 @@ data class RecordSortRequest(
  */
 enum class SortDirection {
     @SerialName("asc")
+    @JsonProperty("asc") 
     ASC,
     
     @SerialName("desc")
+    @JsonProperty("desc")
     DESC
 }
 
@@ -542,44 +545,58 @@ data class RecordSearchFilter(
  */
 enum class FilterOperator {
     @SerialName("eq")
+    @JsonProperty("eq")
     EQUALS,
     
     @SerialName("neq")
+    @JsonProperty("neq")
     NOT_EQUALS,
     
     @SerialName("gt")
+    @JsonProperty("gt")
     GREATER_THAN,
     
     @SerialName("gte")
+    @JsonProperty("gte")
     GREATER_THAN_OR_EQUAL,
     
     @SerialName("lt")
+    @JsonProperty("lt")
     LESS_THAN,
     
     @SerialName("lte")
+    @JsonProperty("lte")
     LESS_THAN_OR_EQUAL,
     
     @SerialName("between")
+    @JsonProperty("between")
     BETWEEN,
     
     @SerialName("in")
+    @JsonProperty("in")
     IN,
     
     @SerialName("not_in")
+    @JsonProperty("not_in")
     NOT_IN,
     
     @SerialName("contains")
+    @JsonProperty("contains")
     CONTAINS,
     
     @SerialName("starts_with")
+    @JsonProperty("starts_with")
     STARTS_WITH,
     
     @SerialName("ends_with")
+    @JsonProperty("ends_with")
     ENDS_WITH,
     
     @SerialName("is_null")
+    @JsonProperty("is_null")
     IS_NULL,
     
     @SerialName("is_not_null")
+    @JsonProperty("is_not_null")
     IS_NOT_NULL
 }
