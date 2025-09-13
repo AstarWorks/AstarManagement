@@ -82,7 +82,7 @@
               :item="child"
               :is-collapsed="false"
               :depth="depth + 1"
-              @item-click="emit('itemClick', $event)"
+              @item-click="emit('item-click', $event)"
           />
         </div>
       </CollapsibleContent>
@@ -110,7 +110,7 @@
 
   // Emits
   const emit = defineEmits<{
-    itemClick: [item: NavigationItem]
+    'item-click': [item: NavigationItem]
   }>()
 
   // コンポーザブル - 業界標準のuseAuthを使用
@@ -184,12 +184,12 @@
 
     // 外部リンクの場合はそのまま処理
     if (props.item.isExternal) {
-      emit('itemClick', props.item)
+      emit('item-click', props.item)
       return
     }
 
     // 内部リンクの場合
-    emit('itemClick', props.item)
+    emit('item-click', props.item)
   }
 
   // アクティブ項目の場合は自動的に展開

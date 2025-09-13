@@ -7,11 +7,12 @@
             v-if="crumb.href"
             :as="NuxtLink"
             :to="crumb.href"
+            class="font-semibold text-blue-600 underline underline-offset-2 hover:text-blue-800 hover:decoration-2 transition-all cursor-pointer"
           >
-            {{ crumb.label }}
+            {{ crumb.labelKey ? $t(crumb.labelKey) : crumb.label }}
           </BreadcrumbLink>
-          <BreadcrumbPage v-else>
-            {{ crumb.label }}
+          <BreadcrumbPage v-else class="font-semibold text-gray-600">
+            {{ crumb.labelKey ? $t(crumb.labelKey) : crumb.label }}
           </BreadcrumbPage>
         </BreadcrumbItem>
         <BreadcrumbSeparator v-if="index < breadcrumbs.length - 1" />

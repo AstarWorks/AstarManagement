@@ -1,17 +1,57 @@
 <template>
-  <div v-if="!collapsed || isMobile" class="p-4 border-t border-border">
+  <!-- Expanded state -->
+  <div 
+    v-show="!collapsed || isMobile" 
+    v-motion-slide-visible-bottom
+    class="p-4 border-t border-primary-foreground/20"
+  >
     <div class="flex items-center user-info-container">
-      <Avatar class="w-8 h-8">
+      <Avatar 
+        v-motion-pop-visible
+        class="w-8 h-8"
+      >
         <AvatarImage :src="user?.avatar ?? ''" />
         <AvatarFallback>
           {{ getInitials(user?.name ?? '') }}
         </AvatarFallback>
       </Avatar>
-      <div class="flex-1 min-w-0">
-        <p class="text-sm font-medium truncate">{{ user?.name }}</p>
-        <p class="text-xs text-muted-foreground">{{ getRoleLabel(user?.roles) }}</p>
+      <div 
+        v-show="!collapsed" 
+        v-motion-slide-visible-right
+        class="flex-1 min-w-0 overflow-hidden"
+      >
+        <p class="text-sm font-medium truncate text-primary-foreground">{{ user?.name }}</p>
+        <p class="text-xs text-primary-foreground/70 truncate">{{ getRoleLabel(user?.roles) }}</p>
       </div>
     </div>
+  </div>
+  
+  <div 
+    v-show="collapsed && !isMobile" 
+    v-motion-pop-visible
+    class="p-4 border-t border-primary-foreground/20 flex justify-center"
+  >
+    <TooltipProvider>
+      <Tooltip :delay-duration="0">
+        <TooltipTrigger as-child>
+          <Avatar 
+            v-motion-pop-visible
+            class="w-8 h-8 cursor-pointer"
+          >
+            <AvatarImage :src="user?.avatar ?? ''" />
+            <AvatarFallback>
+              {{ getInitials(user?.name ?? '') }}
+            </AvatarFallback>
+          </Avatar>
+        </TooltipTrigger>
+        <TooltipContent side="right" :side-offset="12">
+          <div>
+            <p class="font-medium">{{ user?.name }}</p>
+            <p class="text-xs text-muted-foreground">{{ getRoleLabel(user?.roles) }}</p>
+          </div>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   </div>
 </template>
 

@@ -15,19 +15,16 @@
     <!-- Desktop Sidebar -->
     <LayoutSidebar
         v-if="!isMobile"
-        class="fixed left-0 top-0 z-40 h-screen transition-transform duration-300"
-        :class="[
-        sidebarCollapsed ? '-translate-x-48' : 'translate-x-0'
-      ]"
+        class="fixed left-0 top-0 z-40 h-screen"
         :collapsed="sidebarCollapsed"
+        hover-expand
+        @hover-change="handleSidebarHover"
     />
 
     <!-- Main Content Area -->
     <div
-        class="transition-all duration-300"
-        :class="[
-        !isMobile && !sidebarCollapsed ? 'lg:ml-64' : 'lg:ml-16'
-        ]"
+        class="transition-all duration-300 ease-in-out"
+        :class="mainContentClasses"
     >
       <!-- Header -->
       <LayoutHeader
@@ -63,13 +60,27 @@ const breakpoints = useBreakpoints({
 
 const isMobile = breakpoints.smaller('lg')
 
-// Sidebar state with persistence
-const sidebarCollapsed = useLocalStorage('sidebar-collapsed', false)
+// Sidebar state - シンプルな状態管理
+const sidebarCollapsed = ref(true)  // 常に折りたたみから開始
 const isMobileMenuOpen = ref(false)
+const isSidebarHovered = ref(false)
+
+// Computed for main content classes
+const mainContentClasses = computed(() => {
+  if (isMobile.value) return ''
+  
+  // ホバー中またはサイドバーが展開されている場合
+  const isExpanded = !sidebarCollapsed.value || isSidebarHovered.value
+  return isExpanded ? 'lg:ml-64' : 'lg:ml-16'
+})
 
 // Sidebar controls
 const toggleSidebar = () => {
   sidebarCollapsed.value = !sidebarCollapsed.value
+}
+
+const handleSidebarHover = (isHovered: boolean) => {
+  isSidebarHovered.value = isHovered
 }
 
 const toggleMobileMenu = () => {
@@ -89,26 +100,26 @@ watch(() => route.path, () => {
 })
 
 // Keyboard shortcuts
-onMounted(() => {
-  const handleKeydown = (event: KeyboardEvent) => {
-    // ESC to close mobile menu
-    if (event.key === 'Escape' && isMobileMenuOpen.value) {
-      closeMobileMenu()
-    }
-
-    // Ctrl/Cmd + B to toggle sidebar
-    if ((event.ctrlKey || event.metaKey) && event.key === 'b') {
-      event.preventDefault()
-      if (!isMobile.value) {
-        toggleSidebar()
-      }
-    }
+const handleKeydown = (event: KeyboardEvent) => {
+  // ESC to close mobile menu
+  if (event.key === 'Escape' && isMobileMenuOpen.value) {
+    closeMobileMenu()
   }
 
-  document.addEventListener('keydown', handleKeydown)
+  // Ctrl/Cmd + B to toggle sidebar
+  if ((event.ctrlKey || event.metaKey) && event.key === 'b') {
+    event.preventDefault()
+    if (!isMobile.value) {
+      toggleSidebar()
+    }
+  }
+}
 
-  onUnmounted(() => {
-    document.removeEventListener('keydown', handleKeydown)
-  })
+onMounted(() => {
+  document.addEventListener('keydown', handleKeydown)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleKeydown)
 })
 </script>

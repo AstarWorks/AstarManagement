@@ -1,14 +1,14 @@
 <template>
-  <div class="flex-1 max-w-md">
+  <div class="w-full">
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger as-child>
           <div class="relative">
-            <Icon name="lucide:search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Icon name="lucide:search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <Input
               v-model="searchQuery"
               :placeholder="$t('modules.header.search.placeholder')"
-              class="pl-10 bg-muted/50"
+              class="pl-10 bg-white border border-gray-300 focus:border-primary font-medium"
               @keydown.enter="handleSearch"
             />
           </div>

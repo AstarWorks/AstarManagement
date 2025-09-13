@@ -6,10 +6,10 @@
         <Button
           variant="ghost"
           size="icon"
-          class="lg:hidden"
-          @click="$emit('toggleMobileMenu')"
+          class="lg:hidden h-8 w-8 text-foreground hover:bg-accent"
+          @click="$emit('toggle-mobile-menu')"
         >
-          <Icon name="lucide:menu" class="w-5 h-5" />
+          <Icon name="lucide:menu" class="w-4 h-4" />
         </Button>
       </TooltipTrigger>
       <TooltipContent>
@@ -25,12 +25,12 @@
         <Button
           variant="ghost"
           size="icon"
-          class="hidden lg:flex"
-          @click="$emit('toggleSidebar')"
+          class="hidden lg:flex h-8 w-8 text-foreground hover:bg-accent"
+          @click="$emit('toggle-sidebar')"
         >
           <Icon 
             :name="isSidebarCollapsed ? 'lucide:panel-left-open' : 'lucide:panel-left-close'" 
-            class="w-5 h-5" 
+            class="w-4 h-4" 
           />
         </Button>
       </TooltipTrigger>
@@ -50,8 +50,8 @@ interface Props {
 }
 
 interface Emits {
-  toggleSidebar: []
-  toggleMobileMenu: []
+  'toggle-sidebar': []
+  'toggle-mobile-menu': []
 }
 
 defineProps<Props>()

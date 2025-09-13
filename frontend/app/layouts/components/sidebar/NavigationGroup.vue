@@ -1,47 +1,54 @@
 <template>
   <div class="mb-2">
-    <!-- Group Header (collapsible) -->
-    <button
-        v-if="!collapsed"
-        class="w-full flex items-center gap-2 px-3 py-2 text-left text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors duration-200"
-        :aria-expanded="isOpen"
-        @click="toggleGroup"
-    >
-      <Icon
-          v-if="icon"
-          :name="icon"
-          class="w-4 h-4"
-      />
-      <span class="flex-1">{{ title }}</span>
-      <Icon
-          name="lucide:chevron-down"
-          class="w-4 h-4 transition-transform duration-200"
-          :class="{ 'rotate-180': isOpen }"
-      />
-    </button>
+    <!-- Group Header (expandable) -->
+    <div v-show="!collapsed">
+      <button
+          v-motion-slide-visible-right
+          class="w-full flex items-center gap-2 px-3 py-2 text-left text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors duration-200"
+          :aria-expanded="isOpen"
+          @click="toggleGroup"
+      >
+        <Icon
+            v-if="icon"
+            :name="icon"
+            class="w-4 h-4"
+        />
+        <span class="flex-1 whitespace-nowrap">{{ title }}</span>
+        <Icon
+            v-motion-pop-visible
+            name="lucide:chevron-down"
+            class="w-4 h-4"
+        />
+      </button>
+    </div>
 
     <!-- Collapsed state - single icon -->
-    <div v-else class="flex justify-center px-2 py-2">
+    <div 
+      v-show="collapsed" 
+      v-motion-pop-visible
+      class="flex justify-center px-2 py-2"
+    >
       <TooltipProvider>
-        <Tooltip>
+        <Tooltip :delay-duration="0">
           <TooltipTrigger as-child>
             <Icon
                 v-if="icon"
                 :name="icon"
-                class="w-5 h-5 text-muted-foreground"
+                class="w-5 h-5 text-muted-foreground hover:text-foreground transition-colors duration-200"
             />
           </TooltipTrigger>
-          <TooltipContent side="right">
+          <TooltipContent side="right" :side-offset="12">
             {{ title }}
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
     </div>
 
-    <!-- Navigation Items -->
+    <!-- Navigation Items with v-motion animation -->
     <div
-        v-if="isOpen && !collapsed"
-        class="ml-4 space-y-1"
+        v-show="isOpen && !collapsed"
+        v-motion-fade-visible
+        class="ml-4 space-y-1 overflow-hidden"
     >
       <slot />
     </div>

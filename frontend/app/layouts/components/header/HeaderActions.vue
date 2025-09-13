@@ -4,8 +4,8 @@
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger as-child>
-          <Button variant="ghost" size="icon" class="relative">
-            <Icon name="lucide:bell" class="w-5 h-5" />
+          <Button variant="ghost" size="icon" class="relative h-8 w-8 text-foreground hover:bg-accent">
+            <Icon name="lucide:bell" class="w-4 h-4" />
             <Badge 
               v-if="notificationCount > 0"
               variant="destructive" 
