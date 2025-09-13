@@ -26,7 +26,7 @@ export const useTypedFetch = <T>(
     headers: {
       'Content-Type': 'application/json',
       ...authHeaders.value,
-      ...options?.headers
+      ...(options?.headers as Record<string, string> || {})
     }
   })
 }

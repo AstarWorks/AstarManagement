@@ -12,7 +12,7 @@ export const useApi = () => {
   
   // openapi-fetchクライアントの作成
   const client = createClient<paths>({
-    baseUrl: config.public.apiBaseUrl || 'http://localhost:8080',
+    baseUrl: config.public.apiBaseUrl || 'http://localhost:8080/api/v1',
     headers: {
       'Content-Type': 'application/json',
       ...(session.value?.user && {

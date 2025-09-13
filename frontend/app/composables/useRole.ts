@@ -14,7 +14,8 @@ import type {
   PermissionGrantRequest,
   PermissionRevokeRequest,
   PermissionDefinition,
-  RoleTemplate
+  RoleTemplate,
+  PermissionRule
 } from '~/modules/role/types'
 
 export const useRole = () => {
@@ -114,7 +115,7 @@ export const useRoleList = (params?: MaybeRef<RoleListParams>) => {
   
   // システムロール除外
   const nonSystemRoles = computed(() => {
-    return sortedRoles.value.filter(role => !role.isSystem)
+    return sortedRoles.value.filter(role => !role.system)
   })
   
   return {
@@ -320,7 +321,7 @@ export const useRoleData = (roleId: MaybeRef<string>) => {
   )
   
   // 権限の追加
-  const addPermissions = async (permissions: string[]) => {
+  const addPermissions = async (permissions: PermissionRule[]) => {
     await roleApi.grantPermissions(id.value, { permissions })
     await refreshPermissions()
     await refreshStats()
@@ -365,7 +366,11 @@ export const useRoleReorder = () => {
   // ロールの並び替え
   const reorderRoles = async (newPositions: Record<string, number>) => {
     try {
-      await roleApi.reorderRoles({ positions: newPositions })
+      const positions = Object.entries(newPositions).map(([roleId, position]) => ({
+        roleId,
+        position
+      }))
+      await roleApi.reorderRoles({ positions })
       // 一覧を更新
       await refreshRoleList()
     } catch (error) {
@@ -383,7 +388,7 @@ export const useRoleReorder = () => {
       const targetRole = sortedRoles[currentIndex]
       const aboveRole = sortedRoles[currentIndex - 1]
       
-      if (targetRole && aboveRole) {
+      if (targetRole && aboveRole && targetRole.id && aboveRole.id) {
         const newPositions: Record<string, number> = {
           [targetRole.id]: (aboveRole.position ?? 0) + 1,
           [aboveRole.id]: targetRole.position ?? 0
@@ -403,7 +408,7 @@ export const useRoleReorder = () => {
       const targetRole = sortedRoles[currentIndex]
       const belowRole = sortedRoles[currentIndex + 1]
       
-      if (targetRole && belowRole) {
+      if (targetRole && belowRole && targetRole.id && belowRole.id) {
         const newPositions: Record<string, number> = {
           [targetRole.id]: (belowRole.position ?? 0) - 1,
           [belowRole.id]: targetRole.position ?? 0

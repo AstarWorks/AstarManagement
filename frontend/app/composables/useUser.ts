@@ -9,12 +9,12 @@ import type {
   UserUpdateRequest,
   UserListParams,
   UserRoleAssignmentRequest,
-  CurrentUser,
   RoleResponse,
   UserPermissionsResponse,
   UserProfile,
   UserPreferences
 } from '~/modules/user/types'
+import type { CurrentUserResponse } from '~/types'
 
 export const useUser = () => {
   // Repository取得（Mock/Real自動切り替え）
@@ -80,7 +80,7 @@ export const useCurrentUser = () => {
   const { data: session } = useAuth()
   
   // 現在のユーザー（リアクティブ）
-  const currentUser = useState<CurrentUser | null>('currentUser', () => null)
+  const currentUser = useState<CurrentUserResponse | null>('currentUser', () => null)
   const roles = useState<RoleResponse[]>('currentUserRoles', () => [])
   const permissions = useState<UserPermissionsResponse | null>('currentUserPermissions', () => null)
   const loading = useState('currentUserLoading', () => false)
@@ -130,10 +130,16 @@ export const useCurrentUser = () => {
   }
   
   const hasPermission = (permission: string): boolean => {
-    if (!permissions.value) return false
+    if (!permissions.value || !permissions.value.effectivePermissions) return false
     // Check for wildcard permission
-    if (permissions.value.effectivePermissions.includes('*')) return true
-    return permissions.value.effectivePermissions.includes(permission)
+    const hasWildcard = permissions.value.effectivePermissions.some(
+      p => p.resourceType === 'TENANT' && p.action === 'MANAGE'
+    )
+    if (hasWildcard) return true
+    // Check specific permission (simplified check)
+    return permissions.value.effectivePermissions.some(
+      p => `${p.resourceType}.${p.action}`.toLowerCase() === permission.toLowerCase()
+    )
   }
   
   const hasAllPermissions = (perms: string[]): boolean => {
