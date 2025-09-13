@@ -11,7 +11,12 @@
         "view": "表示",
         "viewDetails": "詳細を表示",
         "close": "閉じる",
-        "open": "開く"
+        "open": "開く",
+        "search": "検索",
+        "filter": "フィルター",
+        "clear": "クリア",
+        "select": "選択",
+        "settings": "設定"
       },
       "data": {
         "export": "エクスポート",
@@ -21,7 +26,8 @@
         "download": "ダウンロード",
         "upload": "アップロード",
         "print": "印刷",
-        "share": "共有"
+        "share": "共有",
+        "loadMore": "もっと読み込む"
       },
       "selection": {
         "select": "選択",

@@ -24,6 +24,7 @@
         "clearFilter": "",
         "clearAllFilters": "",
         "activeFilters": "適用中のフィルター",
+        "selectedCount": "{count}件選択",
         "showFilters": "",
         "hideFilters": "",
         "title": "フィルター",

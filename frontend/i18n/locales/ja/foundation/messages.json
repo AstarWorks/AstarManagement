@@ -42,7 +42,8 @@
         "conflict": "データの競合が発生しました",
         "retry": "再試行",
         "copyFailed": "コピーに失敗しました",
-        "copyFailedDescription": "クリップボードへのコピーに失敗しました"
+        "copyFailedDescription": "クリップボードへのコピーに失敗しました",
+        "copyError": "コピーエラー"
       },
       "info": {
         "default": "お知らせ",
@@ -54,10 +55,12 @@
         "unknownError": "不明なエラーが発生しました",
         "redirecting": "リダイレクト中...",
         "unknownEmail": "unknown{'@'}example.com",
+        "comingSoon": "この機能は近日公開予定です",
         "tip": "",
         "hint": "",
         "help": "",
-        "notice": ""
+        "notice": "",
+        "states": "状態"
       },
       "warning": {
         "default": "注意が必要です",

@@ -28,7 +28,8 @@
         "password": "パスワード",
         "memo": "メモ",
         "tags": "タグ",
-        "file": "ファイル"
+        "file": "ファイル",
+        "table": "テーブル"
       },
       "time": {
         "created": "",
@@ -162,6 +163,11 @@
       },
       "ui": {
         "actions": "操作"
+      },
+      "labels": {
+        "actions": "操作",
+        "loading": "読み込み中",
+        "enabled": "有効"
       }
     }
   }

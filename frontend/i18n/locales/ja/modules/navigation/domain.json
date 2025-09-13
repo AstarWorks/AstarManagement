@@ -19,6 +19,10 @@
     "finance": "財務管理"
   },
   "dashboard": "ダッシュボード",
+  "workspaces": "ワークスペース",
+  "workspace": "ワークスペース",
+  "tables": "テーブル",
+  "table": "テーブル",
   "matters": "案件管理",
   "clients": "依頼者管理",
   "documents": "書類管理",

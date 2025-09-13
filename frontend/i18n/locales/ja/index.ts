@@ -7,6 +7,9 @@
  * - modules/: 機能別翻訳
  */
 
+// General translations
+import general from './general.json'
+
 // Foundation translations
 import foundationActions from './foundation/actions.json'
 import foundationCommon from './foundation/common.json'
@@ -32,9 +35,14 @@ import moduleNavigationDomain from './modules/navigation/domain.json'
 import notificationDomain from './modules/notification/domain.json'
 import settingsDomain from './modules/settings/domain.json'
 import moduleStatesDomain from './modules/states/domain.json'
+import tableDomain from './modules/table/domain.json'
+import workspaceDomain from './modules/workspace/domain.json'
 
 // Merge with deep nesting support - JSON structure is guaranteed
 export default {
+    // General translations
+    ...general,
+    
     // Foundation layer - extract nested keys from JSON files
     foundation: {
         actions: foundationActions.foundation.actions,
@@ -44,7 +52,8 @@ export default {
         messages: foundationMessages.foundation.messages,
         navigation: foundationNavigation.foundation.navigation,
         search: foundationSearch.foundation.search,
-        table: foundationTable.foundation.table
+        table: foundationTable.foundation.table,
+        labels: foundationCommon.foundation.common.labels
     },
     
     // Modules layer - extract nested keys from JSON files
@@ -62,6 +71,8 @@ export default {
         navigation: moduleNavigationDomain.modules.navigation,
         notification: notificationDomain.modules.notification,
         settings: settingsDomain.modules.settings,
-        states: moduleStatesDomain.modules.states
+        states: moduleStatesDomain.modules.states,
+        table: tableDomain.modules.table,
+        workspace: workspaceDomain.modules.workspace
     }
 }

@@ -14,7 +14,9 @@
           "ADMIN": "管理者",
           "USER": "一般ユーザー",
           "ASSISTANT": "事務員",
-          "PARALEGAL": "パラリーガル"
+          "PARALEGAL": "パラリーガル",
+          "OWNER": "オーナー",
+          "MEMBER": "メンバー"
         },
         "permissions": {
           "admin": "管理者権限"
@@ -28,7 +30,8 @@
         "never": "未ログイン",
         "minutesAgo": "{minutes}分前",
         "hoursAgo": "{hours}時間前",
-        "daysAgo": "{days}日前"
+        "daysAgo": "{days}日前",
+        "unavailable": "最終ログイン情報はありません"
       },
       "status": {
         "online": "オンライン",
