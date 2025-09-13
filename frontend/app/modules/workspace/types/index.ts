@@ -3,38 +3,42 @@
  * ワークスペース関連の型定義
  */
 
+import type { schemas } from '@shared/api/zod-client'
+import type { z } from 'zod'
+
+// OpenAPI型は中央集約型からインポート
+import type {
+  WorkspaceResponse,
+  WorkspaceCreateRequest,
+  WorkspaceUpdateRequest,
+  WorkspaceListResponse,
+  JsonObject
+} from '~/types'
+
+// OpenAPI型を再エクスポート（互換性のため）
+export type {
+  WorkspaceResponse,
+  WorkspaceCreateRequest,
+  WorkspaceUpdateRequest,
+  WorkspaceListResponse
+}
+
 // ===========================
-// Base Workspace Types
+// Zod Validated Types
 // ===========================
 
-export interface WorkspaceResponse {
-  id: string
-  name: string
-  description?: string
-  icon?: string
-  color?: string
-  settings?: WorkspaceSettings
-  createdAt: string
-  updatedAt: string
-}
+// Zod検証済み型（必要に応じて使用）
+export type WorkspaceResponseValidated = z.infer<typeof schemas.WorkspaceResponse>
+export type WorkspaceCreateRequestValidated = z.infer<typeof schemas.WorkspaceCreateRequest>
+export type WorkspaceUpdateRequestValidated = z.infer<typeof schemas.WorkspaceUpdateRequest>
 
-export interface WorkspaceCreateRequest {
-  name: string
-  description?: string
-  icon?: string
-  color?: string
-  settings?: WorkspaceSettings
-}
+// ===========================
+// Custom Extension Types
+// ===========================
 
-export interface WorkspaceUpdateRequest {
-  name?: string
-  description?: string
-  icon?: string
-  color?: string
-  settings?: WorkspaceSettings
-}
-
-export interface WorkspaceSettings {
+// 独自のWorkspace設定型（OpenAPIに含まれない詳細設定）
+// WorkspaceSettingsはOpenAPIのJsonObjectと互換性を持たせつつ型安全性を提供
+export interface WorkspaceSettings extends Partial<JsonObject> {
   defaultTableView?: 'board' | 'table' | 'calendar'
   allowGuestAccess?: boolean
   features?: {
@@ -43,15 +47,8 @@ export interface WorkspaceSettings {
     expenses?: boolean
     projects?: boolean
   }
-}
-
-// ===========================
-// List Response Types
-// ===========================
-
-export interface WorkspaceListResponse {
-  workspaces: WorkspaceResponse[]
-  totalCount: number
+  // Additional settings can be added while maintaining JsonObject compatibility
+  [key: string]: unknown
 }
 
 export interface WorkspaceListParams {
@@ -100,7 +97,7 @@ export interface WorkspaceInviteResponse {
 // Repository Interface
 // ===========================
 
-export interface IWorkspaceRepository {
+export interface WorkspaceRepository {
   // Workspace CRUD
   listWorkspaces(params?: WorkspaceListParams): Promise<WorkspaceListResponse>
   getWorkspace(id: string): Promise<WorkspaceResponse>

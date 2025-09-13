@@ -114,7 +114,7 @@ export const useCurrentWorkspace = () => {
     error.value = null
     
     try {
-      const updated = await workspace.updateWorkspace(currentWorkspace.value.id, data)
+      const updated = await workspace.updateWorkspace(currentWorkspace.value.id || '', data)
       currentWorkspace.value = updated
       return updated
     } catch (e) {

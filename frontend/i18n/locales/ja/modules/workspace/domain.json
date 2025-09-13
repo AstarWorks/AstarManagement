@@ -1,0 +1,41 @@
+{
+  "modules": {
+    "workspace": {
+      "title": "ワークスペース",
+      "subtitle": "チームごとのワークスペースを管理",
+      "description": "ワークスペースを選択してプロジェクトを開始",
+      "actions": {
+        "create": "新規ワークスペース",
+        "edit": "ワークスペースを編集",
+        "delete": "ワークスペースを削除",
+        "duplicate": "ワークスペースを複製",
+        "select": "ワークスペースを選択"
+      },
+      "form": {
+        "name": {
+          "label": "ワークスペース名",
+          "placeholder": "ワークスペース名を入力"
+        },
+        "description": {
+          "label": "説明",
+          "placeholder": "ワークスペースの説明を入力"
+        },
+        "settings": {
+          "label": "設定",
+          "icon": "アイコン",
+          "color": "カラー"
+        }
+      },
+      "messages": {
+        "createSuccess": "ワークスペースを作成しました",
+        "updateSuccess": "ワークスペースを更新しました",
+        "deleteSuccess": "ワークスペースを削除しました",
+        "duplicateSuccess": "ワークスペースを複製しました",
+        "createError": "ワークスペースの作成に失敗しました",
+        "updateError": "ワークスペースの更新に失敗しました",
+        "deleteError": "ワークスペースの削除に失敗しました",
+        "duplicateError": "ワークスペースの複製に失敗しました"
+      }
+    }
+  }
+}
