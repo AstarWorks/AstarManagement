@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.converter.HttpMessageConverter
 import org.springframework.http.converter.HttpMessageConverters
+import org.springframework.http.converter.KotlinSerializationStringHttpMessageConverter
 import org.springframework.http.converter.json.KotlinSerializationJsonHttpMessageConverter
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 
@@ -21,9 +22,13 @@ class WebMvcConfig(
 
     @Bean
     fun kotlinSerializationJsonHttpMessageConverter(): HttpMessageConverter<*> = converter
+
+    @Bean
+    fun ktxMessageConverterWithMediaType() : KotlinSerializationStringHttpMessageConverter<Json> = converter
     
 
     override fun configureMessageConverters(builder: HttpMessageConverters.ServerBuilder) {
         builder.jsonMessageConverter(converter)
+        builder.stringMessageConverter(converter)
     }
 }

@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Contextual
 
 import kotlinx.serialization.SerialName
+import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.Positive
@@ -60,9 +61,11 @@ data class SortRequest(
  */
 enum class SortDirection {
     @SerialName("asc")
+    @JsonProperty("asc")
     ASC,
     
-    @SerialName("desc")
+    @SerialName("desc") 
+    @JsonProperty("desc")
     DESC
 }
 
