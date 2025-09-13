@@ -1,0 +1,350 @@
+{
+  "modules": {
+    "table": {
+      "title": "テーブル",
+      "subtitle": "{count}個のテーブル",
+      "list": {
+        "subtitle": "全ワークスペースのテーブルを管理"
+      },
+      "tabs": {
+        "all": "すべて",
+        "recent": "最近使用",
+        "favorites": "お気に入り"
+      },
+      "favorites": {
+        "empty": "お気に入りのテーブルはありません"
+      },
+      "empty": {
+        "title": "テーブルがありません",
+        "description": "最初のテーブルを作成して、データの管理を開始しましょう",
+        "search": "検索結果がありません",
+        "searchDescription": "検索条件を変更してみてください"
+      },
+      "fields": {
+        "name": "テーブル名",
+        "description": "説明",
+        "properties": "プロパティ",
+        "records": "レコード数",
+        "updated": "更新日時",
+        "created": "作成日時",
+        "initialProperties": "初期プロパティ"
+      },
+      "placeholders": {
+        "name": "例: タスク管理",
+        "description": "このテーブルの説明を入力",
+        "propertyKey": "property_key",
+        "propertyName": "表示名"
+      },
+      "search": {
+        "placeholder": "テーブルを検索..."
+      },
+      "sort": {
+        "label": "並び替え",
+        "name": "名前順",
+        "updated": "更新日時順",
+        "created": "作成日時順",
+        "asc": "昇順でソート",
+        "desc": "降順でソート",
+        "clear": "ソート解除"
+      },
+      "actions": {
+        "create": "新規テーブル",
+        "createFirst": "最初のテーブルを作成",
+        "edit": "編集",
+        "duplicate": "複製",
+        "delete": "削除",
+        "addProperty": "プロパティを追加",
+        "clearSelection": "選択解除",
+        "deleteSelected": "選択項目を削除"
+      },
+      "dialog": {
+        "createTitle": "新規テーブル作成",
+        "editTitle": "テーブル編集",
+        "description": "テーブル情報を入力してください",
+        "propertiesHint": "テーブル作成後もプロパティは追加・編集できます"
+      },
+      "delete": {
+        "title": "テーブルの削除",
+        "description": "「{name}」を削除しますか？この操作は取り消せません。"
+      },
+      "messages": {
+        "created": "テーブルを作成しました",
+        "updated": "テーブルを更新しました",
+        "deleted": "テーブルを削除しました",
+        "duplicated": "テーブルを複製しました",
+        "deleteError": "テーブルの削除に失敗しました",
+        "duplicateError": "テーブルの複製に失敗しました",
+        "batchDeleted": "{count}個のテーブルを削除しました",
+        "batchDeleteError": "一部のテーブルの削除に失敗しました",
+        "notFound": "テーブルが見つかりません",
+        "createError": "テーブルの作成に失敗しました",
+        "updateError": "テーブルの更新に失敗しました"
+      },
+      "selected": "{count}個選択中",
+      "detail": {
+        "title": "テーブル詳細",
+        "tabs": {
+          "records": "レコード",
+          "properties": "プロパティ",
+          "settings": "設定"
+        },
+        "stats": {
+          "records": "レコード数",
+          "properties": "プロパティ数",
+          "created": "作成日時",
+          "updated": "更新日時"
+        },
+        "comingSoon": "この機能は近日公開予定です"
+      },
+      "property": {
+        "title": "プロパティ管理",
+        "description": "テーブルのプロパティを定義します",
+        "fields": {
+          "key": "キー",
+          "displayName": "表示名",
+          "type": "タイプ",
+          "description": "説明",
+          "requiredDescription": "必須項目にする"
+        },
+        "errors": {
+          "valueRequired": "この項目は必須です",
+          "invalidEmail": "有効なメールアドレスを入力してください",
+          "invalidUrl": "有効なURLを入力してください",
+          "invalidNumber": "有効な数値を入力してください",
+          "numberTooSmall": "値が小さすぎます",
+          "numberTooLarge": "値が大きすぎます",
+          "invalidJson": "有効なJSONを入力してください",
+          "keyRequired": "キーは必須です",
+          "keyInvalid": "キーは英数字とアンダースコアのみ使用できます",
+          "keyExists": "このキーは既に存在します",
+          "displayNameRequired": "表示名は必須です"
+        },
+        "actions": {
+          "add": "プロパティを追加",
+          "addFirst": "最初のプロパティを追加"
+        },
+        "empty": {
+          "title": "プロパティがありません",
+          "description": "プロパティを追加してテーブルの構造を定義しましょう"
+        },
+        "delete": {
+          "title": "プロパティの削除",
+          "description": "「{name}」を削除しますか？関連するデータも影響を受ける可能性があります。"
+        },
+        "create": {
+          "title": "新規プロパティ",
+          "description": "テーブルに新しいプロパティを追加します"
+        },
+        "edit": {
+          "title": "プロパティ編集",
+          "description": "プロパティの設定を編集します"
+        },
+        "hints": {
+          "key": "英数字とアンダースコアのみ使用可能",
+          "keyImmutable": "キーは作成後に変更できません",
+          "typeImmutable": "タイプは作成後に変更できません"
+        },
+        "config": {
+          "title": "詳細設定",
+          "defaultValue": "デフォルト値",
+          "min": "最小値",
+          "max": "最大値",
+          "options": "選択肢",
+          "addOption": "選択肢を追加",
+          "placeholder": "プレースホルダー"
+        },
+        "messages": {
+          "added": "プロパティを追加しました",
+          "updated": "プロパティを更新しました",
+          "removed": "プロパティを削除しました",
+          "reordered": "プロパティの順序を変更しました",
+          "addError": "プロパティの追加に失敗しました",
+          "updateError": "プロパティの更新に失敗しました",
+          "removeError": "プロパティの削除に失敗しました",
+          "reorderError": "プロパティの順序変更に失敗しました",
+          "duplicated": "プロパティを複製しました",
+          "duplicateError": "プロパティの複製に失敗しました"
+        },
+        "types": {
+          "advanced": "高度なタイプ",
+          "showAdvanced": "高度なタイプを表示",
+          "hideAdvanced": "高度なタイプを非表示",
+          "unknown": "不明なタイプ",
+          "text": {
+            "label": "テキスト",
+            "description": "短いテキスト"
+          },
+          "textarea": {
+            "label": "長文テキスト",
+            "description": "複数行のテキスト"
+          },
+          "number": {
+            "label": "数値",
+            "description": "整数または小数"
+          },
+          "date": {
+            "label": "日付",
+            "description": "日付のみ"
+          },
+          "datetime": {
+            "label": "日時",
+            "description": "日付と時刻"
+          },
+          "time": {
+            "label": "時刻",
+            "description": "時刻のみ"
+          },
+          "percent": {
+            "label": "パーセント",
+            "description": "パーセント値"
+          },
+          "checkbox": {
+            "label": "チェックボックス",
+            "description": "はい/いいえ"
+          },
+          "select": {
+            "label": "選択",
+            "description": "単一選択"
+          },
+          "multiselect": {
+            "label": "複数選択",
+            "description": "複数の選択肢"
+          },
+          "currency": {
+            "label": "通貨",
+            "description": "金額"
+          },
+          "email": {
+            "label": "メール",
+            "description": "メールアドレス"
+          },
+          "url": {
+            "label": "URL",
+            "description": "ウェブアドレス"
+          },
+          "richtext": {
+            "label": "リッチテキスト",
+            "description": "書式付きテキスト"
+          },
+          "json": {
+            "label": "JSON",
+            "description": "JSON形式のデータ"
+          }
+        }
+      },
+      "record": {
+        "title": "レコード",
+        "empty": {
+          "title": "レコードがありません",
+          "description": "最初のレコードを追加してデータの入力を開始しましょう"
+        },
+        "filterEmpty": {
+          "title": "該当するレコードがありません",
+          "description": "フィルター条件に一致するレコードが見つかりませんでした"
+        },
+        "actions": {
+          "create": "レコード追加",
+          "createFirst": "最初のレコードを追加",
+          "edit": "編集",
+          "duplicate": "複製",
+          "delete": "削除"
+        },
+        "create": {
+          "title": "新規レコード",
+          "description": "新しいレコードを作成します"
+        },
+        "edit": {
+          "title": "レコード編集",
+          "description": "レコードの内容を編集します"
+        },
+        "view": {
+          "title": "レコード詳細"
+        },
+        "delete": {
+          "title": "レコードの削除",
+          "description": "このレコードを削除しますか？この操作は取り消せません。",
+          "batchDescription": "{count}個のレコードを削除しますか？この操作は取り消せません。"
+        },
+        "filters": {
+          "title": "フィルター",
+          "clear": "フィルターをクリア"
+        },
+        "columns": {
+          "title": "表示列",
+          "hide": "カラムを非表示",
+          "hidden": "{column}を非表示にしました",
+          "autoSize": "幅を自動調整"
+        },
+        "viewSettings": {
+          "title": "表示設定",
+          "compact": "コンパクト",
+          "normal": "標準",
+          "comfortable": "ゆったり"
+        },
+        "messages": {
+          "created": "レコードを作成しました",
+          "updated": "レコードを更新しました",
+          "deleted": "レコードを削除しました",
+          "createError": "レコードの作成に失敗しました",
+          "updateError": "レコードの更新に失敗しました",
+          "deleteError": "レコードの削除に失敗しました",
+          "loadError": "レコードの読み込みに失敗しました",
+          "batchDeleted": "{count}個のレコードを削除しました",
+          "batchDeleteError": "レコードの削除に失敗しました",
+          "batchDuplicated": "{count}個のレコードを複製しました",
+          "batchDuplicateError": "レコードの複製に失敗しました",
+          "exportStarted": "エクスポートを開始しました",
+          "exported": "エクスポートが完了しました",
+          "exportError": "エクスポートに失敗しました",
+          "invalidRecord": "無効なレコードです"
+        },
+        "draftSaved": "下書き保存済み",
+        "unsavedChanges": "未保存の変更があります",
+        "noChanges": "変更はありません"
+      },
+      "validation": {
+        "checkErrors": "入力内容を確認してください"
+      },
+      "inline": {
+        "autoSaving": "保存中...",
+        "createNewRecord": "+ 新しいレコードを追加",
+        "fillRequiredFields": "必須項目を入力してください",
+        "clickToEdit": "クリックして入力"
+      },
+      "view": {
+        "teamDefault": "チーム標準ビュー",
+        "customView": "カスタムビュー",
+        "resetToDefault": "標準に戻す"
+      },
+      "pinning": {
+        "title": "固定設定",
+        "pinLeft": "左に固定",
+        "pinRight": "右に固定",
+        "pinTop": "上に固定",
+        "pinBottom": "下に固定",
+        "unpin": "固定解除",
+        "clearAll": "すべての固定を解除",
+        "clearColumns": "列の固定を解除",
+        "clearRows": "行の固定を解除",
+        "left": "左",
+        "right": "右",
+        "top": "上",
+        "bottom": "下",
+        "columnPinned": "{column}を{position}に固定しました",
+        "columnUnpinned": "{column}の固定を解除しました",
+        "rowPinned": "行を{position}に固定しました",
+        "rowUnpinned": "行の固定を解除しました",
+        "allCleared": "すべての固定を解除しました",
+        "columnsCleared": "列の固定を解除しました",
+        "rowsCleared": "行の固定を解除しました",
+        "maxColumnsReached": "最大{max}列まで固定できます",
+        "maxRowsReached": "最大{max}行まで固定できます",
+        "minScrollableRequired": "スクロール可能な列を{min}列以上残す必要があります",
+        "error": "固定操作に失敗しました",
+        "preferencesSaved": "固定設定を保存しました",
+        "preferencesLoaded": "固定設定を読み込みました",
+        "preferencesCleared": "固定設定をクリアしました"
+      }
+    }
+  }
+}

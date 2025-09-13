@@ -4,7 +4,7 @@
  */
 
 import type {
-  ITableRepository,
+  TableRepository,
   TableResponse,
   TableCreateRequest,
   TableUpdateRequest,
@@ -18,7 +18,7 @@ import type {
   PropertyUpdateRequest
 } from '../types'
 
-export class TableRepository implements ITableRepository {
+export class TableRepositoryImpl implements TableRepository {
   private api = useApi()
   
   // ===========================

@@ -3,22 +3,35 @@
  * ドメイン固有の型定義とインターフェース
  */
 
-import type { components } from '~/types/api'
+// OpenAPI型は中央集約型からインポート
+import type {
+  TableResponse,
+  TableCreateRequest,
+  TableUpdateRequest,
+  TableListResponse,
+  RecordResponse,
+  RecordCreateRequest,
+  RecordUpdateRequest,
+  RecordListResponse,
+  PropertyDefinitionDto,
+  PropertyAddRequest,
+  PropertyUpdateRequest
+} from '~/types'
 
-// OpenAPI生成型のエイリアス
-export type TableResponse = components['schemas']['TableResponse']
-export type TableCreateRequest = components['schemas']['TableCreateRequest']
-export type TableUpdateRequest = components['schemas']['TableUpdateRequest']
-export type TableListResponse = components['schemas']['TableListResponse']
-
-export type RecordResponse = components['schemas']['RecordResponse']
-export type RecordCreateRequest = components['schemas']['RecordCreateRequest']
-export type RecordUpdateRequest = components['schemas']['RecordUpdateRequest']
-export type RecordListResponse = components['schemas']['RecordListResponse']
-
-export type PropertyDefinitionDto = components['schemas']['PropertyDefinitionDto']
-export type PropertyAddRequest = components['schemas']['PropertyAddRequest']
-export type PropertyUpdateRequest = components['schemas']['PropertyUpdateRequest']
+// OpenAPI型を再エクスポート（互換性のため）
+export type {
+  TableResponse,
+  TableCreateRequest,
+  TableUpdateRequest,
+  TableListResponse,
+  RecordResponse,
+  RecordCreateRequest,
+  RecordUpdateRequest,
+  RecordListResponse,
+  PropertyDefinitionDto,
+  PropertyAddRequest,
+  PropertyUpdateRequest
+}
 
 // ドメイン固有の拡張型
 export interface TableWithRecords extends TableResponse {
@@ -35,8 +48,21 @@ export interface TableWithStats extends TableResponse {
   }
 }
 
+// ビュー設定の型定義 (Zodスキーマから自動推論)
+export type { 
+  DefaultViewSettings, 
+  ViewPreferences,
+  TableSettings,
+  SavedView,
+  FilterCondition,
+  FilterGroup,
+  ColumnWidth,
+  Density,
+  SortOrder
+} from '../ui-types/settings'
+
 // Repository インターフェース
-export interface ITableRepository {
+export interface TableRepository {
   // Table operations
   listTables(workspaceId: string): Promise<TableListResponse>
   getTable(id: string): Promise<TableResponse>
@@ -66,7 +92,32 @@ export interface ITableRepository {
 export interface RecordListParams {
   page?: number
   pageSize?: number
+  limit?: number
+  offset?: number
   sortBy?: string
   sortOrder?: 'asc' | 'desc'
   filter?: Record<string, unknown>
+}
+
+// Pinning機能の型をエクスポート
+export * from './pinning'
+
+// Inline editing機能の型をエクスポート
+export * from './inline-editing'
+
+// RecordListコンポーネントのプロパティ型
+export interface RecordListProps {
+  // 必須プロパティ
+  tableId: string
+  properties: Record<string, PropertyDefinitionDto>
+  
+  // オプション：固定機能
+  enablePinning?: boolean
+  initialPinning?: {
+    columns?: { left?: string[], right?: string[] }
+    rows?: { top?: string[], bottom?: string[] }
+  }
+  
+  // イベントハンドラー
+  onUpdateRecordCount?: (count: number) => void
 }

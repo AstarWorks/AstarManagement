@@ -1,10 +1,10 @@
 /**
  * MockTableRepository
- * 開発・テスト用のモック実装
+ * 開発・テスト用のモック実装（静的データ使用）
  */
 
 import type {
-  ITableRepository,
+  TableRepository,
   TableResponse,
   TableCreateRequest,
   TableUpdateRequest,
@@ -17,293 +17,478 @@ import type {
   PropertyAddRequest,
   PropertyUpdateRequest
 } from '../types'
+// OpenAPIから自動生成されたZodスキーマを使用
+import { schemas } from '~/shared/api/zod-client'
+import { 
+  MOCK_WORKSPACE_IDS, 
+  getTableId, 
+  getRecordId 
+} from '~/modules/mock/constants/mockIds'
+import { generateSampleTables, generateRecords } from '../utils/mockDataGenerator'
+import { generateLegalExpenseRecords } from '../scenarios/legalOfficeExpenses'
 
-// モックデータ
-const mockTables: TableResponse[] = [
-  {
-    id: '1',
-    workspaceId: 'workspace-1',
-    name: 'タスク管理',
-    description: 'プロジェクトのタスク管理テーブル',
-    properties: {},
-    propertyOrder: ['title', 'status', 'assignee', 'dueDate'],
-    icon: '📋',
-    color: '#3B82F6',
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z',
-    orderedProperties: [
-      {
-        key: 'title',
-        typeId: 'text',
-        displayName: 'タイトル',
-        config: {},
-        required: true
-      },
-      {
-        key: 'status',
-        typeId: 'select',
-        displayName: 'ステータス',
-        config: { options: ['未着手', '進行中', '完了'] },
-        required: true
-      }
+const {
+  TableResponse: TableResponseSchema,
+  RecordResponse: RecordResponseSchema,
+  TableListResponse: TableListResponseSchema,
+  RecordListResponse: RecordListResponseSchema
+} = schemas
+
+export class MockTableRepository implements TableRepository {
+  private tables: Map<string, TableResponse> = new Map()
+  private records: Map<string, RecordResponse[]> = new Map()
+  private initialized = false
+
+  constructor() {
+    this.initialize()
+  }
+
+  /**
+   * データストアの初期化（静的データで初期化）
+   */
+  private initialize(): void {
+    if (this.initialized) return
+
+    // ワークスペースごとにテーブルを生成（固定UUIDを使用）
+    const workspaceConfigs = [
+      { workspaceId: MOCK_WORKSPACE_IDS.LEGAL_1, scenario: 'legal' as const },
+      { workspaceId: MOCK_WORKSPACE_IDS.LEGAL_2, scenario: 'legal' as const }
     ]
-  }
-]
 
-const mockRecords: RecordResponse[] = [
-  {
-    id: 'record-1',
-    tableId: '1',
-    data: {
-      title: 'API設計',
-      status: '進行中',
-      assignee: 'user-1',
-      dueDate: '2024-12-31'
-    },
-    position: 0,
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z'
-  }
-]
+    workspaceConfigs.forEach(({ workspaceId, scenario }) => {
+      // 各ワークスペース用のテーブルを生成
+      const tables = generateSampleTables(workspaceId)
+      
+      tables.forEach(table => {
+        // 固定UUID形式のテーブルIDを生成
+        const uniqueId = getTableId(workspaceId, table.name ?? 'default-table')
+        const tableWithUniqueId = { 
+          ...table, 
+          id: uniqueId,
+          workspaceId 
+        }
+        
+        // Zodでバリデーション
+        const validated = TableResponseSchema.parse(tableWithUniqueId)
+        this.tables.set(uniqueId, validated)
+        
+        // レコードも生成
+        if (validated.properties) {
+          const recordCount = scenario === 'legal' ? 30 : scenario === 'tech' ? 50 : 20
+          
+          // 法律事務所の経費テーブルの場合は専用のレコード生成を使用
+          let records: RecordResponse[]
+          if (scenario === 'legal' && table.id === 'table-legal-expenses') {
+            records = generateLegalExpenseRecords(uniqueId, recordCount)
+          } else {
+            records = generateRecords(uniqueId, validated.properties, recordCount)
+          }
+          
+          this.records.set(uniqueId, records)
+        }
+      })
+    })
 
-export class MockTableRepository implements ITableRepository {
-  
-  // Simulate network delay
+    this.initialized = true
+    console.log('[MockTableRepository] Initialized with static data')
+  }
+
+  /**
+   * ネットワーク遅延のシミュレーション
+   */
   private async delay(ms: number = 200): Promise<void> {
-    await new Promise(resolve => setTimeout(resolve, ms))
+    const variance = 100
+    const actualDelay = ms + Math.random() * variance - variance / 2
+    await new Promise(resolve => setTimeout(resolve, actualDelay))
   }
-  
-  // ===========================
-  // Table Operations
-  // ===========================
-  
+
+  /**
+   * フィルタリング処理
+   */
+  private applyFilters(records: RecordResponse[], filters: Record<string, unknown>): RecordResponse[] {
+    if (!filters || Object.keys(filters).length === 0) {
+      return records
+    }
+
+    return records.filter(record => {
+      return Object.entries(filters).every(([key, filterValue]) => {
+        if (filterValue === null || filterValue === undefined || filterValue === '') {
+          return true
+        }
+
+        const recordValue = record.data?.[key]
+        
+        // 配列の場合（multiselect等）
+        if (Array.isArray(filterValue)) {
+          if (Array.isArray(recordValue)) {
+            return filterValue.some(v => recordValue.includes(v))
+          }
+          return filterValue.includes(recordValue)
+        }
+
+        // 文字列の場合（部分一致）
+        if (typeof filterValue === 'string' && typeof recordValue === 'string') {
+          return recordValue.toLowerCase().includes(filterValue.toLowerCase())
+        }
+
+        // その他（完全一致）
+        return recordValue === filterValue
+      })
+    })
+  }
+
+  // ===== Table Operations =====
+
   async listTables(workspaceId: string): Promise<TableListResponse> {
+    console.log('[MockTableRepository] listTables called with:', workspaceId)
     await this.delay()
-    const tables = mockTables.filter(t => t.workspaceId === workspaceId)
-    return {
+    
+    const tables = Array.from(this.tables.values())
+      .filter(t => t.workspaceId === workspaceId)
+    
+    console.log('[MockTableRepository] Found tables:', tables.length, 'for workspace:', workspaceId)
+    
+    return TableListResponseSchema.parse({
       tables,
       totalCount: tables.length
-    } as TableListResponse
+    })
   }
-  
+
   async getTable(id: string): Promise<TableResponse> {
     await this.delay()
-    const table = mockTables.find(t => t.id === id)
-    if (!table) throw new Error(`Table ${id} not found`)
-    return table
+    
+    const table = this.tables.get(id)
+    if (!table) {
+      throw new Error(`Table not found: ${id}`)
+    }
+    
+    return TableResponseSchema.parse(table)
   }
-  
+
   async createTable(data: TableCreateRequest): Promise<TableResponse> {
     await this.delay()
+    
+    const id = getTableId(data.workspaceId, data.name)
+    const now = new Date().toISOString()
+    
+    const properties: TableResponse['properties'] = {}
+    if (data.properties) {
+      data.properties.forEach(prop => {
+        properties[prop.key] = prop
+      })
+    }
+    
     const newTable: TableResponse = {
-      id: `table-${Date.now()}`,
+      id,
       workspaceId: data.workspaceId,
       name: data.name,
       description: data.description,
-      properties: {},
-      propertyOrder: [],
       icon: data.icon,
       color: data.color,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      orderedProperties: data.properties || []
+      properties,
+      propertyOrder: data.properties?.map(p => p.key),
+      createdAt: now,
+      updatedAt: now
     }
-    mockTables.push(newTable)
-    return newTable
+    
+    const validated = TableResponseSchema.parse(newTable)
+    this.tables.set(id, validated)
+    this.records.set(id, [])
+    
+    return validated
   }
-  
+
   async updateTable(id: string, data: TableUpdateRequest): Promise<TableResponse> {
     await this.delay()
-    const index = mockTables.findIndex(t => t.id === id)
-    if (index === -1) throw new Error(`Table ${id} not found`)
     
-    const existingTable = mockTables[index]
-    if (!existingTable) throw new Error(`Table ${id} not found`)
+    const table = this.tables.get(id)
+    if (!table) {
+      throw new Error(`Table not found: ${id}`)
+    }
     
-    const updatedTable: TableResponse = {
-      ...existingTable,
+    const updated = {
+      ...table,
       ...data,
-      id: existingTable.id, // 必須プロパティを明示的に保持
-      workspaceId: existingTable.workspaceId,
-      name: data.name ?? existingTable.name,
-      properties: existingTable.properties,
-      propertyOrder: existingTable.propertyOrder,
-      orderedProperties: existingTable.orderedProperties,
-      createdAt: existingTable.createdAt, // createdAt も必須
       updatedAt: new Date().toISOString()
     }
-    mockTables[index] = updatedTable
-    return updatedTable
+    
+    const validated = TableResponseSchema.parse(updated)
+    this.tables.set(id, validated)
+    
+    return validated
   }
-  
+
   async deleteTable(id: string): Promise<void> {
     await this.delay()
-    const index = mockTables.findIndex(t => t.id === id)
-    if (index === -1) throw new Error(`Table ${id} not found`)
-    mockTables.splice(index, 1)
+    
+    if (!this.tables.has(id)) {
+      throw new Error(`Table not found: ${id}`)
+    }
+    
+    this.tables.delete(id)
+    this.records.delete(id)
   }
-  
-  // ===========================
-  // Property Operations
-  // ===========================
-  
+
+  // ===== Property Operations =====
+
   async addProperty(tableId: string, property: PropertyAddRequest): Promise<TableResponse> {
     await this.delay()
-    const table = mockTables.find(t => t.id === tableId)
-    if (!table) throw new Error(`Table ${tableId} not found`)
     
-    table.orderedProperties.push(property.definition)
-    table.propertyOrder.push(property.definition.key)
-    table.updatedAt = new Date().toISOString()
-    
-    return table
-  }
-  
-  async updateProperty(
-    tableId: string,
-    propertyKey: string,
-    data: PropertyUpdateRequest
-  ): Promise<TableResponse> {
-    await this.delay()
-    const table = mockTables.find(t => t.id === tableId)
-    if (!table) throw new Error(`Table ${tableId} not found`)
-    
-    const propIndex = table.orderedProperties.findIndex(p => p.key === propertyKey)
-    if (propIndex === -1) throw new Error(`Property ${propertyKey} not found`)
-    
-    const existingProperty = table.orderedProperties[propIndex]
-    if (!existingProperty) throw new Error(`Property ${propertyKey} not found in ordered properties`)
-    
-    table.orderedProperties[propIndex] = {
-      key: existingProperty.key,
-      typeId: existingProperty.typeId,
-      displayName: data.displayName ?? existingProperty.displayName,
-      config: { ...existingProperty.config, ...(data.config || {}) },
-      required: data.required ?? existingProperty.required,
-      defaultValue: data.defaultValue ?? existingProperty.defaultValue,
-      description: data.description ?? existingProperty.description
+    const table = this.tables.get(tableId)
+    if (!table) {
+      throw new Error(`Table not found: ${tableId}`)
     }
-    table.updatedAt = new Date().toISOString()
     
-    return table
+    const key = property.definition.key
+    const updatedProperties = {
+      ...table.properties,
+      [key]: {
+        key,
+        type: property.definition.type,
+        displayName: property.definition.displayName,
+        required: property.definition.required,
+        config: property.definition.config
+      }
+    }
+    
+    const updatedOrder = [...(table.propertyOrder || [])]
+    // PropertyAddRequestには position があるが afterKey はない
+    // positionが指定されていればその位置に挿入
+    if (property.position !== undefined && property.position >= 0 && property.position <= updatedOrder.length) {
+      updatedOrder.splice(property.position, 0, key)
+    } else {
+      updatedOrder.push(key)
+    }
+    
+    const updated = {
+      ...table,
+      properties: updatedProperties,
+      propertyOrder: updatedOrder,
+      updatedAt: new Date().toISOString()
+    }
+    
+    const validated = TableResponseSchema.parse(updated)
+    this.tables.set(tableId, validated)
+    
+    return validated
   }
-  
-  async removeProperty(tableId: string, propertyKey: string): Promise<TableResponse> {
+
+  async updateProperty(tableId: string, key: string, data: PropertyUpdateRequest): Promise<TableResponse> {
     await this.delay()
-    const table = mockTables.find(t => t.id === tableId)
-    if (!table) throw new Error(`Table ${tableId} not found`)
     
-    table.orderedProperties = table.orderedProperties.filter(p => p.key !== propertyKey)
-    table.propertyOrder = table.propertyOrder.filter(key => key !== propertyKey)
-    table.updatedAt = new Date().toISOString()
+    const table = this.tables.get(tableId)
+    if (!table) {
+      throw new Error(`Table not found: ${tableId}`)
+    }
     
-    return table
+    const property = table.properties?.[key]
+    if (!property) {
+      throw new Error(`Property not found: ${key}`)
+    }
+    
+    const updatedProperties = {
+      ...table.properties,
+      [key]: {
+        ...property,
+        ...data
+      }
+    }
+    
+    const updated = {
+      ...table,
+      properties: updatedProperties,
+      updatedAt: new Date().toISOString()
+    }
+    
+    const validated = TableResponseSchema.parse(updated)
+    this.tables.set(tableId, validated)
+    
+    return validated
   }
-  
-  // ===========================
-  // Record Operations
-  // ===========================
-  
+
+  async removeProperty(tableId: string, key: string): Promise<TableResponse> {
+    await this.delay()
+    
+    const table = this.tables.get(tableId)
+    if (!table) {
+      throw new Error(`Table not found: ${tableId}`)
+    }
+    
+    const properties = table.properties || {}
+    const { [key]: _removed, ...remainingProperties } = properties
+    const updatedOrder = table.propertyOrder?.filter(k => k !== key)
+    
+    const updated = {
+      ...table,
+      properties: remainingProperties,
+      propertyOrder: updatedOrder,
+      updatedAt: new Date().toISOString()
+    }
+    
+    const validated = TableResponseSchema.parse(updated)
+    this.tables.set(tableId, validated)
+    
+    return validated
+  }
+
+  // ===== Record Operations =====
+
   async listRecords(tableId: string, params?: RecordListParams): Promise<RecordListResponse> {
     await this.delay()
-    const records = mockRecords.filter(r => r.tableId === tableId)
     
-    // Apply pagination
-    const page = params?.page || 1
-    const pageSize = params?.pageSize || 20
-    const start = (page - 1) * pageSize
-    const paginatedRecords = records.slice(start, start + pageSize)
+    let records = this.records.get(tableId) || []
     
-    return {
+    // フィルタリング
+    if (params?.filter) {
+      records = this.applyFilters(records, params.filter)
+    }
+    
+    // ソート
+    if (params?.sortBy) {
+      records = [...records].sort((a, b) => {
+        const aVal = (a.data?.[params.sortBy!] ?? '') as string | number
+        const bVal = (b.data?.[params.sortBy!] ?? '') as string | number
+        
+        if (aVal < bVal) return params.sortOrder === 'asc' ? -1 : 1
+        if (aVal > bVal) return params.sortOrder === 'asc' ? 1 : -1
+        return 0
+      })
+    }
+    
+    // ページネーション
+    const limit = params?.limit || 100
+    const offset = params?.offset || 0
+    const paginatedRecords = records.slice(offset, offset + limit)
+    
+    return RecordListResponseSchema.parse({
       records: paginatedRecords,
       totalCount: records.length,
-      tableId
-    }
+      hasMore: offset + limit < records.length
+    })
   }
-  
+
   async getRecord(id: string): Promise<RecordResponse> {
     await this.delay()
-    const record = mockRecords.find(r => r.id === id)
-    if (!record) throw new Error(`Record ${id} not found`)
-    return record
+    
+    for (const records of this.records.values()) {
+      const record = records.find(r => r.id === id)
+      if (record) {
+        return RecordResponseSchema.parse(record)
+      }
+    }
+    
+    throw new Error(`Record not found: ${id}`)
   }
-  
+
   async createRecord(data: RecordCreateRequest): Promise<RecordResponse> {
     await this.delay()
+    
+    const records = this.records.get(data.tableId) || []
+    const id = getRecordId(data.tableId, records.length)
+    const now = new Date().toISOString()
+    
     const newRecord: RecordResponse = {
-      id: `record-${Date.now()}`,
+      id,
       tableId: data.tableId,
       data: data.data,
-      position: mockRecords.filter(r => r.tableId === data.tableId).length,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      createdAt: now,
+      updatedAt: now
     }
-    mockRecords.push(newRecord)
-    return newRecord
+    
+    const validated = RecordResponseSchema.parse(newRecord)
+    records.push(validated)
+    this.records.set(data.tableId, records)
+    
+    return validated
   }
-  
+
   async updateRecord(id: string, data: RecordUpdateRequest): Promise<RecordResponse> {
     await this.delay()
-    const index = mockRecords.findIndex(r => r.id === id)
-    if (index === -1) throw new Error(`Record ${id} not found`)
     
-    const existingRecord = mockRecords[index]
-    if (!existingRecord) throw new Error(`Record ${id} not found`)
-    
-    const updatedRecord: RecordResponse = {
-      ...existingRecord,
-      data: { ...existingRecord.data, ...data.data },
-      id: existingRecord.id,
-      tableId: existingRecord.tableId,
-      position: existingRecord.position,
-      createdAt: existingRecord.createdAt,
-      updatedAt: new Date().toISOString()
+    for (const [tableId, records] of this.records.entries()) {
+      const index = records.findIndex(r => r.id === id)
+      if (index !== -1) {
+        const updated = {
+          ...records[index],
+          data: { ...records[index]?.data, ...data.data },
+          updatedAt: new Date().toISOString()
+        }
+        
+        const validated = RecordResponseSchema.parse(updated)
+        records[index] = validated
+        this.records.set(tableId, records)
+        
+        return validated
+      }
     }
-    mockRecords[index] = updatedRecord
-    return updatedRecord
+    
+    throw new Error(`Record not found: ${id}`)
   }
-  
+
   async deleteRecord(id: string): Promise<void> {
     await this.delay()
-    const index = mockRecords.findIndex(r => r.id === id)
-    if (index === -1) throw new Error(`Record ${id} not found`)
-    mockRecords.splice(index, 1)
+    
+    for (const [tableId, records] of this.records.entries()) {
+      const index = records.findIndex(r => r.id === id)
+      if (index !== -1) {
+        records.splice(index, 1)
+        this.records.set(tableId, records)
+        return
+      }
+    }
+    
+    throw new Error(`Record not found: ${id}`)
   }
-  
-  // ===========================
-  // Batch Operations
-  // ===========================
-  
+
+  // ===== Batch Operations =====
+
   async createRecordsBatch(records: RecordCreateRequest[]): Promise<RecordResponse[]> {
-    await this.delay(300)
-    const created: RecordResponse[] = []
+    await this.delay(500)
+    
+    const results: RecordResponse[] = []
     
     for (const record of records) {
-      const newRecord = await this.createRecord(record)
-      created.push(newRecord)
+      const result = await this.createRecord(record)
+      results.push(result)
     }
     
-    return created
+    return results
   }
-  
-  async updateRecordsBatch(
-    updates: Array<{ id: string; data: RecordUpdateRequest }>
-  ): Promise<RecordResponse[]> {
-    await this.delay(300)
-    const updated: RecordResponse[] = []
+
+  async updateRecordsBatch(updates: Array<{ id: string; data: RecordUpdateRequest }>): Promise<RecordResponse[]> {
+    await this.delay(500)
+    
+    const results: RecordResponse[] = []
     
     for (const update of updates) {
-      const record = await this.updateRecord(update.id, update.data)
-      updated.push(record)
+      const result = await this.updateRecord(update.id, update.data)
+      results.push(result)
     }
     
-    return updated
+    return results
   }
-  
+
   async deleteRecordsBatch(ids: string[]): Promise<void> {
-    await this.delay(300)
+    await this.delay(500)
+    
     for (const id of ids) {
       await this.deleteRecord(id)
+    }
+  }
+
+  // Reset mock data to initial state
+  resetMockData(): void {
+    this.tables.clear()
+    this.records.clear()
+    this.initialized = false
+    this.initialize()
+  }
+
+  // Get data statistics
+  getDataStats(): { tables: number; records: number } {
+    return {
+      tables: this.tables.size,
+      records: this.records.size
     }
   }
 }

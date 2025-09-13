@@ -3,18 +3,18 @@
  * Mock/Real切り替えを管理
  */
 
-import type { ITableRepository } from '../types'
-import { TableRepository } from './TableRepository'
+import type { TableRepository } from '../types'
+import { TableRepositoryImpl } from './TableRepository'
 import { MockTableRepository } from './MockTableRepository'
 
 // シングルトンインスタンス管理
-let repositoryInstance: ITableRepository | null = null
+let repositoryInstance: TableRepository | null = null
 
 /**
  * TableRepositoryを取得
  * 環境設定に応じてMock/Realを自動切り替え
  */
-export const useTableRepository = (): ITableRepository => {
+export const useTableRepository = (): TableRepository => {
   // 既存のインスタンスがあれば返す
   if (repositoryInstance) {
     return repositoryInstance
@@ -27,7 +27,7 @@ export const useTableRepository = (): ITableRepository => {
   console.log(`[TableRepository] Creating ${isMockMode ? 'Mock' : 'Real'} repository`)
   repositoryInstance = isMockMode 
     ? new MockTableRepository()
-    : new TableRepository()
+    : new TableRepositoryImpl()
   
   // HMRサポート
   if (import.meta.hot) {
@@ -48,5 +48,5 @@ export const clearTableRepository = (): void => {
 }
 
 // 型のエクスポート
-export type { ITableRepository }
-export { TableRepository, MockTableRepository }
+export type { TableRepository }
+export { TableRepositoryImpl, MockTableRepository }

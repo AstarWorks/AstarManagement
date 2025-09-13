@@ -73,10 +73,11 @@ export const useTable = () => {
 
 /**
  * リアクティブなテーブルデータ管理
- * useFetchを使用したSSR対応実装
+ * Repository経由でのデータ取得
  */
 export const useTableData = (tableId: MaybeRef<string>) => {
   const id = toRef(tableId)
+  const repository = useTableRepository()
   
   // テーブル情報の取得
   const { 
@@ -84,7 +85,13 @@ export const useTableData = (tableId: MaybeRef<string>) => {
     pending: tablePending, 
     refresh: refreshTable,
     error: tableError 
-  } = useTypedFetch<TableResponse>(`/api/v1/tables/${id.value}`)
+  } = useAsyncData(
+    `table-${id.value}`,
+    () => repository.getTable(id.value),
+    {
+      watch: [id]
+    }
+  )
   
   // レコード一覧の取得
   const { 
@@ -92,7 +99,16 @@ export const useTableData = (tableId: MaybeRef<string>) => {
     pending: recordsPending, 
     refresh: refreshRecords,
     error: recordsError
-  } = useTypedFetch<RecordResponse[]>(`/api/v1/records/table/${id.value}`)
+  } = useAsyncData(
+    `table-records-${id.value}`,
+    async () => {
+      const response = await repository.listRecords(id.value)
+      return response.records
+    },
+    {
+      watch: [id]
+    }
+  )
   
   // データのリフレッシュ
   const refresh = async () => {
