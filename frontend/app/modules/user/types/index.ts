@@ -3,62 +3,68 @@
  * ユーザー関連の型定義
  */
 
-import { z } from 'zod'
+import type { schemas } from '@shared/api/zod-client'
+import type { z } from 'zod'
 
-// Local type definitions (replacing missing generated types)
-export interface RoleResponse {
-  id: string
-  name: string
-  displayName: string
-  permissions: readonly string[]
-}
-
-export interface UserRoleAssignmentResult {
-  success: boolean
-  assignedRoles: RoleResponse[]
-  errors?: string[]
-}
-
-// Zod schemas for validation
-const _UserRoleAssignmentRequestSchema = z.object({
-  roleIds: z.array(z.string()),
-  replace: z.boolean().optional()
-})
-
-export type UserRoleAssignmentRequest = z.infer<typeof _UserRoleAssignmentRequestSchema>
+// OpenAPI型は中央集約型からインポート
+import type {
+  UserResponse,
+  UserUpdateRequest,
+  UserProfileResponse,
+  UserProfileUpdateRequest,
+  UserRoleAssignmentRequest,
+  UserRoleAssignmentResult,
+  CurrentUserResponse,
+  UserDetailResponse,
+  UserSearchResponse,
+  UserPermissionsResponse,
+  RoleResponse,
+  PermissionRule
+} from '~/types'
 
 // ===========================
-// Base User Types
+// OpenAPI/Zod Generated Types
 // ===========================
 
-export interface UserResponse {
-  id: string
-  email: string
-  name: string
-  displayName?: string
-  avatarUrl?: string
-  locale?: string
-  timezone?: string
-  status: 'active' | 'inactive' | 'suspended'
-  emailVerified: boolean
-  createdAt: string
-  updatedAt: string
+// OpenAPI型を再エクスポート（互換性のため）
+export type {
+  UserResponse,
+  UserUpdateRequest,
+  UserProfileResponse,
+  UserProfileUpdateRequest,
+  UserRoleAssignmentRequest,
+  UserRoleAssignmentResult,
+  CurrentUserResponse,
+  UserDetailResponse,
+  UserSearchResponse,
+  UserPermissionsResponse,
+  RoleResponse,
+  PermissionRule
 }
+
+// Zod検証済み型（必要に応じて使用）
+export type UserResponseValidated = z.infer<typeof schemas.UserResponse>
+export type UserProfileResponseValidated = z.infer<typeof schemas.UserProfileResponse>
+// RoleResponseValidatedは削除（role/typesで定義済み）
+export type UserRoleAssignmentResultValidated = z.infer<typeof schemas.UserRoleAssignmentResult>
+
+// ===========================
+// Custom Extension Types
+// ===========================
 
 // UserProfileは完全なユーザー情報を表す型
 // Vue 3 Composition APIパターンに準拠してreadonly配列を使用
-export interface UserProfile {
-  id: string  // Changed from userId to id for consistency
+// UserProfileをOpenAPIのUserProfileResponseを拡張して定義
+export interface UserProfile extends Partial<UserProfileResponse> {
+  // Additional fields not in UserProfileResponse
   email: string
   name: string
-  displayName?: string
-  avatar?: string  // avatarUrl -> avatar for consistency
   bio?: string
   phone?: string
   department?: string
   position?: string
   team?: string
-  skills?: readonly string[]  // readonly配列に変更
+  skills?: readonly string[]
   socialLinks?: {
     twitter?: string
     github?: string
@@ -73,13 +79,12 @@ export interface UserProfile {
   tenantUserId?: string
   
   // Roles and permissions
-  roles?: readonly RoleResponse[]  // readonly配列に変更
-  permissions?: readonly string[]  // readonly配列に変更
+  roles?: readonly RoleResponse[]
+  permissions?: readonly string[]
   isActive?: boolean
   
-  // Timestamps
-  createdAt?: Date | string
-  updatedAt?: Date | string
+  // Note: avatarUrl from UserProfileResponse is mapped to avatar in UI
+  avatar?: string
 }
 
 export interface UserPreferences {
@@ -94,21 +99,15 @@ export interface UserPreferences {
 }
 
 // ===========================
-// Role & Permission Types
+// Role & Permission Types  
 // ===========================
-
-export interface UserPermissionsResponse {
-  userId: string
-  tenantUserId: string
-  roles: RoleResponse[]
-  effectivePermissions: string[]
-  permissionsByRole: Record<string, string[]>
-}
+// UserPermissionsResponse is already exported from OpenAPI schemas above
 
 // ===========================
 // User Management Types
 // ===========================
 
+// UserCreateRequestはAPIに存在しないため独自定義
 export interface UserCreateRequest {
   email: string
   name: string
@@ -118,24 +117,12 @@ export interface UserCreateRequest {
   sendWelcomeEmail?: boolean
 }
 
-export interface UserUpdateRequest {
-  name?: string
-  displayName?: string
-  avatarUrl?: string
-  locale?: string
-  timezone?: string
-  status?: 'active' | 'inactive' | 'suspended'
-}
-
 
 // ===========================
 // List & Filter Types
 // ===========================
 
-export interface UserListResponse {
-  users: UserResponse[]
-  totalCount: number
-}
+// UserListResponseは削除済み - UserSearchResponseを直接使用してください
 
 export interface UserListParams {
   page?: number
@@ -170,18 +157,13 @@ export interface TenantUserListResponse {
 // Authentication Types
 // ===========================
 
-// CurrentUserはUserProfileのサブセット（セッションで利用可能な情報）
-export type CurrentUser = Pick<UserProfile, 
-  'id' | 'email' | 'name' | 'displayName' | 
-  'tenantUserId' | 'tenantId' | 'roles' | 'permissions'> & {
-  avatarUrl?: string  // Keep for backward compatibility
-}
+// CurrentUserは削除済み - CurrentUserResponseを直接使用してください
 
 // ===========================
 // User Statistics (既存互換性維持)
 // ===========================
 
-export interface IUserStats {
+export interface UserStats {
   // Activity stats
   activeCases: number
   tasksToday: number
@@ -200,7 +182,7 @@ export interface IUserStats {
   averageResponseTime?: number
 }
 
-export interface IUserStatsParams {
+export interface UserStatsParams {
   period?: 'day' | 'week' | 'month' | 'year'
   from?: string
   to?: string
@@ -210,16 +192,16 @@ export interface IUserStatsParams {
 // Repository Interface
 // ===========================
 
-export interface IUserRepository {
+export interface UserRepository {
   // Current User Operations
-  getCurrentUser(): Promise<CurrentUser>
+  getCurrentUser(): Promise<CurrentUserResponse>
   getMyRoles(): Promise<RoleResponse[]>
   getMyPermissions(): Promise<UserPermissionsResponse>
   updateMyProfile(data: Partial<UserProfile>): Promise<UserProfile>
   updateMyPreferences(preferences: UserPreferences): Promise<UserPreferences>
   
   // User CRUD Operations
-  listUsers(params?: UserListParams): Promise<UserListResponse>
+  listUsers(params?: UserListParams): Promise<UserSearchResponse>
   getUser(userId: string): Promise<UserResponse>
   createUser(data: UserCreateRequest): Promise<UserResponse>
   updateUser(userId: string, data: UserUpdateRequest): Promise<UserResponse>
@@ -238,14 +220,21 @@ export interface IUserRepository {
   searchUsers(query: string): Promise<UserResponse[]>
   getUsersByRole(roleId: string): Promise<UserResponse[]>
   getUsersByStatus(status: 'active' | 'inactive' | 'suspended'): Promise<UserResponse[]>
+  
+  // Legacy methods for backward compatibility
+  getProfile(id: string): Promise<UserProfile>
+  getStats(id: string, params?: UserStatsParams): Promise<UserStats>
+  updateProfile(id: string, data: UpdateUserProfileDto): Promise<UserProfile>
+  uploadAvatar(id: string, file: File): Promise<string>
+  removeAvatar(id: string): Promise<void>
 }
 
 // ===========================
 // Legacy Re-exports (互換性維持)
 // ===========================
 
-export type IUserPreferences = UserPreferences
-export type IUpdateUserProfileDto = UserUpdateRequest & {
+// IUserPreferencesは削除済み - UserPreferencesを直接使用してください
+export type UpdateUserProfileDto = UserUpdateRequest & {
   phone?: string
   team?: string
   position?: string

@@ -6,7 +6,7 @@
 /**
  * Dashboard statistics item
  */
-export interface IDashboardStats {
+export interface DashboardStats {
   key: string
   labelKey: string
   icon: string
@@ -23,7 +23,7 @@ export type ActivityType = 'case' | 'document' | 'deadline' | 'client'
 /**
  * Recent activity item
  */
-export interface IActivity {
+export interface Activity {
   id: string
   type: ActivityType
   title: string
@@ -34,15 +34,15 @@ export interface IActivity {
 /**
  * Complete dashboard data response
  */
-export interface IDashboardData {
-  stats: IDashboardStats[]
-  recentActivities: IActivity[]
+export interface DashboardData {
+  stats: DashboardStats[]
+  recentActivities: Activity[]
 }
 
 /**
  * Dashboard statistics parameters
  */
-export interface IDashboardStatsParams {
+export interface DashboardStatsParams {
   period?: 'day' | 'week' | 'month' | 'year'
   dateFrom?: string
   dateTo?: string
@@ -51,7 +51,7 @@ export interface IDashboardStatsParams {
 /**
  * Recent activities parameters
  */
-export interface IRecentActivitiesParams {
+export interface RecentActivitiesParams {
   limit?: number
   type?: ActivityType
   dateFrom?: string
@@ -61,7 +61,7 @@ export interface IRecentActivitiesParams {
 /**
  * Dashboard refresh parameters
  */
-export interface IDashboardRefreshParams {
+export interface DashboardRefreshParams {
   forceRefresh?: boolean
   includeStats?: boolean
   includeActivities?: boolean

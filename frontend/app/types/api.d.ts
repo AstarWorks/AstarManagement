@@ -32,7 +32,55 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/users/{userId}/roles": {
+    "/api/v1/users/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get current user information
+         * @description Retrieves the authenticated user's details including profile
+         */
+        get: operations["getCurrentUser"];
+        /**
+         * Update current user information
+         * @description Updates the authenticated user's information
+         */
+        put: operations["updateCurrentUser"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/me/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get current user profile
+         * @description Retrieves the authenticated user's profile information
+         */
+        get: operations["getCurrentUserProfile"];
+        /**
+         * Update current user profile
+         * @description Updates or creates the authenticated user's profile information
+         */
+        put: operations["updateCurrentUserProfile"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/user-roles/{userId}/roles": {
         parameters: {
             query?: never;
             header?: never;
@@ -344,7 +392,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/users/me/permissions/check-resource": {
+    "/api/v1/users/sync-auth0": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sync users with Auth0
+         * @description Manually synchronizes user data with Auth0 (admin only)
+         */
+        post: operations["syncWithAuth0"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/user-roles/me/permissions/check-resource": {
         parameters: {
             query?: never;
             header?: never;
@@ -556,22 +624,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/roles/{roleId}/permissions/apply-template": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["applyPermissionTemplate"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/roles/{id}/duplicate": {
         parameters: {
             query?: never;
@@ -704,7 +756,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/property-types/{typeId}/deactivate": {
+    "/api/v1/auth/setup": {
         parameters: {
             query?: never;
             header?: never;
@@ -713,18 +765,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * Deactivate property type
-         * @description Deactivates an active property type
-         */
-        post: operations["deactivatePropertyType"];
+        post: operations["completeSetup"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/property-types/{typeId}/activate": {
+    "/api/v1/auth/setup/create-default-workspace": {
         parameters: {
             query?: never;
             header?: never;
@@ -733,63 +781,11 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * Activate property type
-         * @description Activates a deactivated property type
-         */
-        post: operations["activatePropertyType"];
+        post: operations["createDefaultWorkspace_1"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
-        trace?: never;
-    };
-    "/api/v1/property-types/custom": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get custom property types
-         * @description Retrieves only user-defined custom property types
-         */
-        get: operations["getCustomPropertyTypes"];
-        put?: never;
-        /**
-         * Create custom property type
-         * @description Creates a new user-defined property type
-         */
-        post: operations["createCustomPropertyType"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/property-types/custom/{typeId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /**
-         * Delete custom property type
-         * @description Permanently deletes a custom property type
-         */
-        delete: operations["deleteCustomPropertyType"];
-        options?: never;
-        head?: never;
-        /**
-         * Update custom property type
-         * @description Updates an existing custom property type
-         */
-        patch: operations["updateCustomPropertyType"];
         trace?: never;
     };
     "/api/v1/workspaces/{id}/statistics": {
@@ -832,7 +828,67 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/users/{userId}/permissions": {
+    "/api/v1/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List users in tenant
+         * @description Retrieves all users in the current tenant (admin only)
+         */
+        get: operations["listUsers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get user by ID
+         * @description Retrieves a specific user's information
+         */
+        get: operations["getUserById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/{userId}/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get user profile
+         * @description Retrieves a specific user's profile information
+         */
+        get: operations["getUserProfile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/user-roles/{userId}/permissions": {
         parameters: {
             query?: never;
             header?: never;
@@ -848,7 +904,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/users/me/roles": {
+    "/api/v1/user-roles/me/roles": {
         parameters: {
             query?: never;
             header?: never;
@@ -864,7 +920,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/users/me/permissions": {
+    "/api/v1/user-roles/me/permissions": {
         parameters: {
             query?: never;
             header?: never;
@@ -880,7 +936,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/users/me/permissions/check": {
+    "/api/v1/user-roles/me/permissions/check": {
         parameters: {
             query?: never;
             header?: never;
@@ -888,214 +944,6 @@ export interface paths {
             cookie?: never;
         };
         get: operations["checkMyPermission"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/test/viewer-only": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["viewerOnly"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/test/user-only": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["userOnly"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/test/public": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["publicEndpoint"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/test/permission/table-view": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["tableView"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/test/permission/table-delete": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["tableDelete"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/test/permission/settings-manage": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["settingsManage"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/test/permission/document-view-team": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["documentViewTeam"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/test/permission/document-edit-own": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["documentEditOwn"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/test/permission/any-view": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["anyView"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/test/hybrid/table-create": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["tableCreateHybrid"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/test/authenticated": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["authenticatedEndpoint"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/test/admin-or-user": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["adminOrUser"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/test/admin-only": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["adminOnly"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1404,7 +1252,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/property-types": {
+    "/api/v1/my-workspaces": {
         parameters: {
             query?: never;
             header?: never;
@@ -1412,10 +1260,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get all property types
-         * @description Retrieves all available property types in the catalog
+         * List my workspaces
+         * @description Gets all workspaces/tenants accessible to the authenticated user
          */
-        get: operations["getAllPropertyTypes"];
+        get: operations["getMyWorkspaces"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1424,7 +1272,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/property-types/{typeId}": {
+    "/api/v1/my-tenants": {
         parameters: {
             query?: never;
             header?: never;
@@ -1432,10 +1280,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get property type by ID
-         * @description Retrieves a specific property type by its ID
+         * List my tenants
+         * @description Legacy endpoint - use /my-workspaces instead
          */
-        get: operations["getPropertyTypeById"];
+        get: operations["getMyTenants"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1444,18 +1292,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/property-types/summary": {
+    "/api/v1/auth/test/viewer-only": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /**
-         * Get property type summaries
-         * @description Retrieves lightweight property type information for UI dropdowns
-         */
-        get: operations["getPropertyTypeSummaries"];
+        get: operations["viewerOnly"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1464,18 +1308,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/property-types/category/{category}": {
+    "/api/v1/auth/test/user-only": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /**
-         * Get property types by category
-         * @description Retrieves property types filtered by category
-         */
-        get: operations["getPropertyTypesByCategory"];
+        get: operations["userOnly"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1484,18 +1324,190 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/property-types/built-in": {
+    "/api/v1/auth/test/public": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /**
-         * Get built-in property types
-         * @description Retrieves only system-provided property types
-         */
-        get: operations["getBuiltInPropertyTypes"];
+        get: operations["publicEndpoint"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/test/permission/table-view": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["tableView"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/test/permission/table-delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["tableDelete"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/test/permission/settings-manage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["settingsManage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/test/permission/document-view-team": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["documentViewTeam"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/test/permission/document-edit-own": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["documentEditOwn"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/test/permission/any-view": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["anyView"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/test/hybrid/table-create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["tableCreateHybrid"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/test/authenticated": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["authenticatedEndpoint"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/test/admin-or-user": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["adminOrUser"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/test/admin-only": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["adminOnly"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/setup/my-tenants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getMyTenants_1"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1511,7 +1523,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["getCurrentUser"];
+        get: operations["getCurrentUser_1"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1552,7 +1564,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/users/{userId}/roles/{roleId}": {
+    "/api/v1/user-roles/{userId}/roles/{roleId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1624,19 +1636,43 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        JsonElement: unknown;
+        JsonObject: {
+            values?: components["schemas"]["JsonElement"][];
+            empty?: boolean;
+            /** Format: int32 */
+            size?: number;
+            entries?: {
+                value?: components["schemas"]["JsonElement"];
+                key?: string;
+            }[];
+            keys?: string[];
+        } & {
+            [key: string]: components["schemas"]["JsonElement"];
+        };
         WorkspaceUpdateRequest: {
             name?: string;
             description?: string;
             settings?: {
-                [key: string]: unknown;
+                values?: components["schemas"]["JsonElement"][];
+                empty?: boolean;
+                /** Format: int32 */
+                size?: number;
+                entries?: {
+                    value?: components["schemas"]["JsonElement"];
+                    key?: string;
+                }[];
+                keys?: string[];
+            } & {
+                [key: string]: components["schemas"]["JsonElement"];
             };
         };
         WorkspaceResponse: {
             /** Format: uuid */
-            id: string;
+            id?: string;
             /** Format: uuid */
             tenantId?: string;
-            name: string;
+            name?: string;
             description?: string;
             /** Format: uuid */
             createdBy?: string;
@@ -1647,40 +1683,83 @@ export interface components {
             /** Format: int64 */
             recordCount?: number;
             settings?: {
-                [key: string]: unknown;
+                values?: components["schemas"]["JsonElement"][];
+                empty?: boolean;
+                /** Format: int32 */
+                size?: number;
+                entries?: {
+                    value?: components["schemas"]["JsonElement"];
+                    key?: string;
+                }[];
+                keys?: string[];
+            } & {
+                [key: string]: components["schemas"]["JsonElement"];
             };
             /** Format: date-time */
-            createdAt: string;
+            createdAt?: string;
             /** Format: date-time */
-            updatedAt: string;
+            updatedAt?: string;
+        };
+        UserUpdateRequest: {
+            /** Format: email */
+            email: string;
+        };
+        UserResponse: {
+            /** Format: uuid */
+            id?: string;
+            auth0Sub?: string;
+            email?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        UserProfileUpdateRequest: {
+            displayName?: string;
+            avatarUrl?: string;
+        };
+        UserProfileResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            userId?: string;
+            displayName?: string;
+            avatarUrl?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
         };
         UserRoleAssignmentRequest: {
-            roleIds: string[];
+            roleIds?: string[];
+        };
+        FailedRoleAssignment: {
+            /** Format: uuid */
+            roleId?: string;
+            reason?: string;
         };
         UserRoleAssignmentResult: {
             /** Format: uuid */
-            userId: string;
-            assignedRoles: string[];
-            failedRoles: {
-                [key: string]: string;
-            };
+            userId?: string;
+            assignedRoles?: string[];
+            failedRoles?: components["schemas"]["FailedRoleAssignment"][];
             /** Format: int32 */
-            totalAssigned: number;
+            totalAssigned?: number;
         };
         UpdateTenantRequest: {
             name: string;
         };
         TenantResponse: {
             /** Format: uuid */
-            id: string;
-            slug: string;
-            name: string;
+            id?: string;
+            slug?: string;
+            name?: string;
             auth0OrgId?: string;
-            isActive: boolean;
             /** Format: date-time */
-            createdAt: string;
+            createdAt?: string;
             /** Format: date-time */
-            updatedAt: string;
+            updatedAt?: string;
+            active?: boolean;
         };
         TableUpdateRequest: {
             name?: string;
@@ -1689,74 +1768,121 @@ export interface components {
             icon?: string;
             color?: string;
             settings?: {
-                [key: string]: unknown;
+                values?: components["schemas"]["JsonElement"][];
+                empty?: boolean;
+                /** Format: int32 */
+                size?: number;
+                entries?: {
+                    value?: components["schemas"]["JsonElement"];
+                    key?: string;
+                }[];
+                keys?: string[];
+            } & {
+                [key: string]: components["schemas"]["JsonElement"];
             };
         };
         PropertyDefinitionDto: {
             key: string;
-            typeId: string;
+            /** @enum {string} */
+            type: "text" | "long_text" | "number" | "checkbox" | "date" | "datetime" | "select" | "multi_select" | "email" | "url" | "file" | "relation";
             displayName: string;
-            config: {
-                [key: string]: unknown;
+            config?: {
+                values?: components["schemas"]["JsonElement"][];
+                empty?: boolean;
+                /** Format: int32 */
+                size?: number;
+                entries?: {
+                    value?: components["schemas"]["JsonElement"];
+                    key?: string;
+                }[];
+                keys?: string[];
+            } & {
+                [key: string]: components["schemas"]["JsonElement"];
             };
-            required: boolean;
-            defaultValue?: unknown;
+            required?: boolean;
+            defaultValue?: components["schemas"]["JsonElement"];
             description?: string;
         };
         TableResponse: {
             /** Format: uuid */
-            id: string;
+            id?: string;
             /** Format: uuid */
-            workspaceId: string;
-            name: string;
+            workspaceId?: string;
+            name?: string;
             description?: string;
-            properties: {
+            properties?: {
                 [key: string]: components["schemas"]["PropertyDefinitionDto"];
             };
-            propertyOrder: string[];
+            propertyOrder?: string[];
             /** Format: int64 */
             recordCount?: number;
             icon?: string;
             color?: string;
             settings?: {
-                [key: string]: unknown;
+                values?: components["schemas"]["JsonElement"][];
+                empty?: boolean;
+                /** Format: int32 */
+                size?: number;
+                entries?: {
+                    value?: components["schemas"]["JsonElement"];
+                    key?: string;
+                }[];
+                keys?: string[];
+            } & {
+                [key: string]: components["schemas"]["JsonElement"];
             };
             /** Format: date-time */
-            createdAt: string;
+            createdAt?: string;
             /** Format: date-time */
-            updatedAt: string;
-            orderedProperties: components["schemas"]["PropertyDefinitionDto"][];
+            updatedAt?: string;
+            orderedProperties?: components["schemas"]["PropertyDefinitionDto"][];
         };
         PropertyUpdateRequest: {
             displayName?: string;
             config?: {
-                [key: string]: unknown;
+                values?: components["schemas"]["JsonElement"][];
+                empty?: boolean;
+                /** Format: int32 */
+                size?: number;
+                entries?: {
+                    value?: components["schemas"]["JsonElement"];
+                    key?: string;
+                }[];
+                keys?: string[];
+            } & {
+                [key: string]: components["schemas"]["JsonElement"];
             };
             required?: boolean;
-            defaultValue?: unknown;
+            defaultValue?: components["schemas"]["JsonElement"];
             description?: string;
         };
         PropertyReorderRequest: {
             order: string[];
         };
-        PermissionSyncRequest: {
-            permissions: string[];
+        GeneralRule: components["schemas"]["PermissionRule"];
+        PermissionRule: {
+            /** @enum {string} */
+            resourceType?: "TABLE" | "RECORD" | "DOCUMENT" | "DIRECTORY" | "WORKSPACE" | "TENANT" | "USER" | "ROLE" | "PROPERTY_TYPE" | "RESOURCE_GROUP" | "SETTINGS";
+            /** @enum {string} */
+            action?: "VIEW" | "CREATE" | "EDIT" | "DELETE" | "MANAGE" | "EXPORT" | "IMPORT";
+            /** @enum {string} */
+            scope?: "ALL" | "TEAM" | "OWN" | "RESOURCE_GROUP" | "RESOURCE_ID";
         };
-        SyncResult: {
+        PermissionSyncRequest: {
+            permissions?: (components["schemas"]["GeneralRule"] | components["schemas"]["ResourceGroupRule"] | components["schemas"]["ResourceIdRule"])[];
+        };
+        ResourceGroupRule: components["schemas"]["PermissionRule"] & {
             /** Format: uuid */
-            roleId: string;
-            added: string[];
-            removed: string[];
-            unchanged: string[];
-            failed: {
-                [key: string]: string;
-            };
-            /** Format: date-time */
-            syncedAt: string;
-            /** Format: int32 */
-            totalChanges: number;
-            isSuccessful: boolean;
-            summary: string;
+            groupId?: string;
+        };
+        ResourceIdRule: components["schemas"]["PermissionRule"] & {
+            /** Format: uuid */
+            resourceId?: string;
+        };
+        PermissionSyncResult: {
+            added?: (components["schemas"]["GeneralRule"] | components["schemas"]["ResourceGroupRule"] | components["schemas"]["ResourceIdRule"])[];
+            removed?: (components["schemas"]["GeneralRule"] | components["schemas"]["ResourceGroupRule"] | components["schemas"]["ResourceIdRule"])[];
+            unchanged?: (components["schemas"]["GeneralRule"] | components["schemas"]["ResourceGroupRule"] | components["schemas"]["ResourceIdRule"])[];
         };
         RoleUpdateRequest: {
             displayName?: string;
@@ -1766,73 +1892,85 @@ export interface components {
         };
         RoleResponse: {
             /** Format: uuid */
-            id: string;
+            id?: string;
             /** Format: uuid */
             tenantId?: string;
-            name: string;
+            name?: string;
             displayName?: string;
             color?: string;
             /** Format: int32 */
-            position: number;
-            isSystem: boolean;
-            permissions?: string[];
+            position?: number;
+            permissions?: (components["schemas"]["GeneralRule"] | components["schemas"]["ResourceGroupRule"] | components["schemas"]["ResourceIdRule"])[];
             /** Format: int32 */
             userCount?: number;
             /** Format: date-time */
-            createdAt: string;
+            createdAt?: string;
             /** Format: date-time */
-            updatedAt: string;
+            updatedAt?: string;
+            system?: boolean;
+        };
+        RolePositionUpdate: {
+            /** Format: uuid */
+            roleId?: string;
+            /** Format: int32 */
+            position?: number;
         };
         RoleReorderRequest: {
-            positions: {
-                [key: string]: number;
-            };
+            positions?: components["schemas"]["RolePositionUpdate"][];
         };
         RecordUpdateRequest: {
-            data: {
-                [key: string]: unknown;
-            };
-            merge: boolean;
+            data: components["schemas"]["JsonObject"];
+            merge?: boolean;
         };
         RecordResponse: {
             /** Format: uuid */
-            id: string;
+            id?: string;
             /** Format: uuid */
-            tableId: string;
-            data: {
-                [key: string]: unknown;
+            tableId?: string;
+            data?: {
+                values?: components["schemas"]["JsonElement"][];
+                empty?: boolean;
+                /** Format: int32 */
+                size?: number;
+                entries?: {
+                    value?: components["schemas"]["JsonElement"];
+                    key?: string;
+                }[];
+                keys?: string[];
+            } & {
+                [key: string]: components["schemas"]["JsonElement"];
             };
             /** Format: float */
-            position: number;
+            position?: number;
             /** Format: date-time */
-            createdAt: string;
+            createdAt?: string;
             /** Format: date-time */
-            updatedAt: string;
-            primaryFieldValue?: unknown;
+            updatedAt?: string;
+            primaryFieldValue?: components["schemas"]["JsonElement"];
         };
         RecordMoveRequest: {
             /** Format: uuid */
             afterRecordId?: string;
             /** Format: uuid */
             beforeRecordId?: string;
-            isMovingToFirst: boolean;
-            isMovingToLast: boolean;
+            movingToFirst?: boolean;
+            movingToLast?: boolean;
         };
         RecordReorderRequest: {
             recordIds: string[];
         };
         RecordListResponse: {
-            records: components["schemas"]["RecordResponse"][];
+            records?: components["schemas"]["RecordResponse"][];
             /** Format: int64 */
-            totalCount: number;
+            totalCount?: number;
             /** Format: uuid */
             tableId?: string;
         };
         RecordBulkFieldUpdateRequest: {
             recordIds: string[];
             field: string;
-            value?: unknown;
-            isClearingField: boolean;
+            value?: components["schemas"]["JsonElement"];
+            clearingField?: boolean;
         };
         RecordBatchError: {
             /** Format: uuid */
@@ -1840,49 +1978,67 @@ export interface components {
             /** Format: int32 */
             index?: number;
             data?: {
-                [key: string]: unknown;
+                values?: components["schemas"]["JsonElement"][];
+                empty?: boolean;
+                /** Format: int32 */
+                size?: number;
+                entries?: {
+                    value?: components["schemas"]["JsonElement"];
+                    key?: string;
+                }[];
+                keys?: string[];
+            } & {
+                [key: string]: components["schemas"]["JsonElement"];
             };
-            error: string;
+            error?: string;
             validationErrors?: components["schemas"]["RecordValidationError"][];
         };
         RecordBatchResponse: {
-            succeeded: components["schemas"]["RecordResponse"][];
-            failed: components["schemas"]["RecordBatchError"][];
+            succeeded?: components["schemas"]["RecordResponse"][];
+            failed?: components["schemas"]["RecordBatchError"][];
             /** Format: int32 */
-            totalProcessed: number;
+            totalProcessed?: number;
             /** Format: int32 */
-            successCount: number;
+            successCount?: number;
             /** Format: int32 */
-            failureCount: number;
-            isCompleteSuccess: boolean;
-            isCompleteFailure: boolean;
-            isPartialSuccess: boolean;
+            failureCount?: number;
+            completeSuccess?: boolean;
+            completeFailure?: boolean;
+            partialSuccess?: boolean;
             /** Format: double */
-            successRate: number;
+            successRate?: number;
         };
         RecordValidationError: {
-            field: string;
-            message: string;
+            field?: string;
+            message?: string;
             value?: unknown;
         };
         RecordBatchUpdateRequest: {
             updates: {
-                [key: string]: {
-                    [key: string]: unknown;
-                };
+                [key: string]: components["schemas"]["JsonObject"];
             };
-            merge: boolean;
+            merge?: boolean;
             /** Format: int32 */
-            batchSize: number;
-            recordIds: string[];
+            batchSize?: number;
+            recordIds?: string[];
         };
         WorkspaceCreateRequest: {
             name: string;
             description?: string;
             settings?: {
-                [key: string]: unknown;
+                values?: components["schemas"]["JsonElement"][];
+                empty?: boolean;
+                /** Format: int32 */
+                size?: number;
+                entries?: {
+                    value?: components["schemas"]["JsonElement"];
+                    key?: string;
+                }[];
+                keys?: string[];
+            } & {
+                [key: string]: components["schemas"]["JsonElement"];
             };
-            isValidName: boolean;
+            validName?: boolean;
         };
         CreateTenantRequest: {
             slug: string;
@@ -1894,12 +2050,11 @@ export interface components {
             workspaceId: string;
             name: string;
             description?: string;
-            properties: components["schemas"]["PropertyDefinitionDto"][];
-            /** @enum {string} */
-            template?: "TASK" | "CUSTOMER" | "PROJECT" | "EXPENSE" | "INVENTORY" | "CUSTOM";
+            properties?: components["schemas"]["PropertyDefinitionDto"][];
+            templateName?: string;
             icon?: string;
             color?: string;
-            propertiesMap: {
+            propertiesMap?: {
                 [key: string]: components["schemas"]["PropertyDefinitionDto"];
             };
         };
@@ -1910,291 +2065,351 @@ export interface components {
         };
         TableImportRequest: {
             format: string;
-            records?: {
-                [key: string]: unknown;
-            }[];
+            records?: components["schemas"]["JsonObject"][];
             csvData?: string;
             skipHeader?: boolean;
             fieldMapping?: {
-                [key: string]: string;
+                values?: components["schemas"]["JsonElement"][];
+                empty?: boolean;
+                /** Format: int32 */
+                size?: number;
+                entries?: {
+                    value?: components["schemas"]["JsonElement"];
+                    key?: string;
+                }[];
+                keys?: string[];
+            } & {
+                [key: string]: components["schemas"]["JsonElement"];
             };
-            updateExisting: boolean;
+            updateExisting?: boolean;
             upsertKey?: string;
-            isUpsert: boolean;
+            upsert?: boolean;
         };
         ImportError: {
             /** Format: int32 */
             row?: number;
             field?: string;
             value?: unknown;
-            message: string;
+            message?: string;
             recordData?: {
-                [key: string]: unknown;
+                values?: components["schemas"]["JsonElement"][];
+                empty?: boolean;
+                /** Format: int32 */
+                size?: number;
+                entries?: {
+                    value?: components["schemas"]["JsonElement"];
+                    key?: string;
+                }[];
+                keys?: string[];
+            } & {
+                [key: string]: components["schemas"]["JsonElement"];
             };
         };
         TableImportResponse: {
             /** Format: uuid */
-            tableId: string;
-            tableName: string;
+            tableId?: string;
+            tableName?: string;
             /** Format: int64 */
-            importedCount: number;
+            importedCount?: number;
             /** Format: int64 */
-            updatedCount: number;
+            updatedCount?: number;
             /** Format: int64 */
-            failedCount: number;
-            errors: components["schemas"]["ImportError"][];
+            failedCount?: number;
+            errors?: components["schemas"]["ImportError"][];
             /** Format: date-time */
-            importedAt: string;
+            importedAt?: string;
         };
         TableDuplicateRequest: {
             name: string;
-            includeRecords: boolean;
+            includeRecords?: boolean;
             /** Format: uuid */
             targetWorkspaceId?: string;
         };
         RoleCreateRequestDto: {
-            name: string;
+            name?: string;
             displayName?: string;
             color?: string;
             /** Format: int32 */
-            position: number;
-            permissions: string[];
+            position?: number;
+            permissions?: (components["schemas"]["GeneralRule"] | components["schemas"]["ResourceGroupRule"] | components["schemas"]["ResourceIdRule"])[];
         };
         PermissionGrantRequest: {
-            permissions: string[];
+            permissions?: (components["schemas"]["GeneralRule"] | components["schemas"]["ResourceGroupRule"] | components["schemas"]["ResourceIdRule"])[];
+        };
+        FailedPermissionGrant: {
+            permission?: components["schemas"]["GeneralRule"] | components["schemas"]["ResourceGroupRule"] | components["schemas"]["ResourceIdRule"];
+            reason?: string;
         };
         PermissionGrantResult: {
             /** Format: uuid */
-            roleId: string;
-            granted: string[];
-            failed: {
-                [key: string]: string;
-            };
+            roleId?: string;
+            granted?: (components["schemas"]["GeneralRule"] | components["schemas"]["ResourceGroupRule"] | components["schemas"]["ResourceIdRule"])[];
+            failed?: components["schemas"]["FailedPermissionGrant"][];
             /** Format: int32 */
-            totalGranted: number;
+            totalGranted?: number;
         };
-        ValidationResult: {
-            valid: string[];
-            invalid: {
-                [key: string]: string;
-            };
-            warnings: {
-                [key: string]: string;
-            };
-            isValid: boolean;
-            hasWarnings: boolean;
-            /** Format: int32 */
-            totalChecked: number;
-            summary: string;
+        InvalidPermission: {
+            input?: string;
+            reason?: string;
+        };
+        PermissionValidationResult: {
+            valid?: (components["schemas"]["GeneralRule"] | components["schemas"]["ResourceGroupRule"] | components["schemas"]["ResourceIdRule"])[];
+            invalid?: components["schemas"]["InvalidPermission"][];
+            warnings?: components["schemas"]["PermissionWarning"][];
+        };
+        PermissionWarning: {
+            rule?: components["schemas"]["GeneralRule"] | components["schemas"]["ResourceGroupRule"] | components["schemas"]["ResourceIdRule"];
+            message?: string;
         };
         PermissionCopyRequest: {
-            overwrite: boolean;
-        };
-        PermissionTemplateRequest: {
-            template: string;
+            overwrite?: boolean;
         };
         RoleDuplicateRequest: {
-            newName: string;
-            includePermissions: boolean;
+            newName?: string;
+            includePermissions?: boolean;
         };
         RecordCreateRequest: {
             /** Format: uuid */
             tableId: string;
-            data: {
-                [key: string]: unknown;
-            };
+            data: components["schemas"]["JsonObject"];
             /** Format: float */
             position?: number;
         };
         RecordValidateRequest: {
             /** Format: uuid */
             tableId: string;
-            data: {
-                [key: string]: unknown;
-            };
+            data: components["schemas"]["JsonObject"];
             /** Format: uuid */
             recordId?: string;
-            partial: boolean;
-            isPartialValidation: boolean;
-            isFullValidation: boolean;
+            partial?: boolean;
+            partialValidation?: boolean;
+            fullValidation?: boolean;
         };
         RecordValidationResponse: {
-            valid: boolean;
-            errors: components["schemas"]["RecordValidationError"][];
-            warnings: components["schemas"]["RecordValidationWarning"][];
+            valid?: boolean;
+            errors?: components["schemas"]["RecordValidationError"][];
+            warnings?: components["schemas"]["RecordValidationWarning"][];
             processedData?: {
-                [key: string]: unknown;
+                values?: components["schemas"]["JsonElement"][];
+                empty?: boolean;
+                /** Format: int32 */
+                size?: number;
+                entries?: {
+                    value?: components["schemas"]["JsonElement"];
+                    key?: string;
+                }[];
+                keys?: string[];
+            } & {
+                [key: string]: components["schemas"]["JsonElement"];
             };
         };
         RecordValidationWarning: {
-            field: string;
-            message: string;
-            suggestedValue?: unknown;
+            field?: string;
+            message?: string;
+            suggestedValue?: components["schemas"]["JsonElement"];
         };
         RecordSearchFilter: {
-            field: string;
+            field?: string;
             /** @enum {string} */
-            operator: "EQUALS" | "NOT_EQUALS" | "GREATER_THAN" | "GREATER_THAN_OR_EQUAL" | "LESS_THAN" | "LESS_THAN_OR_EQUAL" | "BETWEEN" | "IN" | "NOT_IN" | "CONTAINS" | "STARTS_WITH" | "ENDS_WITH" | "IS_NULL" | "IS_NOT_NULL";
-            value?: unknown;
-            values?: unknown[];
-            isRangeFilter: boolean;
-            isTextFilter: boolean;
+            operator?: "eq" | "neq" | "gt" | "gte" | "lt" | "lte" | "between" | "in" | "not_in" | "contains" | "starts_with" | "ends_with" | "is_null" | "is_not_null";
+            value?: components["schemas"]["JsonElement"];
+            values?: components["schemas"]["JsonElement"][];
+            rangeFilter?: boolean;
+            textFilter?: boolean;
         };
         RecordSearchRequest: {
             query?: string;
-            filters: components["schemas"]["RecordSearchFilter"][];
+            filters?: components["schemas"]["RecordSearchFilter"][];
             fields?: string[];
             sort?: components["schemas"]["RecordSortRequest"][];
             /** Format: int32 */
-            limit: number;
-            includeArchived: boolean;
+            limit?: number;
+            includeArchived?: boolean;
         };
         RecordSortRequest: {
-            field: string;
+            field?: string;
             /** @enum {string} */
-            direction: "ASC" | "DESC";
+            direction?: "asc" | "desc";
         };
         RecordFilterRequest: {
             filters?: {
-                [key: string]: unknown;
+                values?: components["schemas"]["JsonElement"][];
+                empty?: boolean;
+                /** Format: int32 */
+                size?: number;
+                entries?: {
+                    value?: components["schemas"]["JsonElement"];
+                    key?: string;
+                }[];
+                keys?: string[];
+            } & {
+                [key: string]: components["schemas"]["JsonElement"];
             };
             sort?: components["schemas"]["RecordSortRequest"];
             fields?: string[];
         };
         PageResponseRecordResponse: {
-            content: components["schemas"]["RecordResponse"][];
+            content?: components["schemas"]["RecordResponse"][];
             /** Format: int32 */
-            page: number;
+            page?: number;
             /** Format: int32 */
-            size: number;
+            size?: number;
             /** Format: int64 */
-            totalElements: number;
+            totalElements?: number;
             /** Format: int32 */
-            totalPages: number;
-            first: boolean;
-            last: boolean;
+            totalPages?: number;
+            first?: boolean;
+            last?: boolean;
             /** Format: int32 */
-            numberOfElements: number;
+            numberOfElements?: number;
         };
         RecordCopyRequest: {
             recordIds: string[];
             /** Format: uuid */
             targetTableId?: string;
-            includeData: boolean;
+            includeData?: boolean;
             fieldMapping?: {
                 [key: string]: string;
             };
-            isCrossTableCopy: boolean;
+            crossTableCopy?: boolean;
         };
         RecordCopyResponse: {
-            originalIds: string[];
-            copiedRecords: components["schemas"]["RecordResponse"][];
-            mapping: {
+            originalIds?: string[];
+            copiedRecords?: components["schemas"]["RecordResponse"][];
+            mapping?: {
                 [key: string]: string;
             };
             /** Format: int32 */
-            copyCount: number;
+            copyCount?: number;
         };
         RecordBatchCreateRequest: {
             /** Format: uuid */
             tableId: string;
-            records: {
-                [key: string]: unknown;
-            }[];
+            records: components["schemas"]["JsonObject"][];
             /** Format: int32 */
-            batchSize: number;
-            isWithinSizeLimit: boolean;
+            batchSize?: number;
+            withinSizeLimit?: boolean;
         };
-        PropertyTypeCatalogDto: {
-            typeId: string;
-            category: string;
-            uiComponent?: string;
-            icon?: string;
-            configSchema?: {
-                [key: string]: unknown;
-            };
-            defaultConfig?: {
-                [key: string]: unknown;
-            };
-            validationRules?: {
-                [key: string]: unknown;
-            };
-            description?: string;
-            isCustom: boolean;
-            isActive: boolean;
+        SetupRequest: {
+            tenantName?: string;
+            /** @enum {string} */
+            tenantType?: "PERSONAL" | "TEAM" | "ENTERPRISE";
+            userProfile?: components["schemas"]["UserProfileDto"];
         };
-        CustomPropertyTypeRequest: {
-            typeId: string;
-            category: string;
-            description?: string;
-            icon?: string;
-            uiComponent?: string;
-            configSchema?: {
-                [key: string]: unknown;
-            };
-            defaultConfig?: {
-                [key: string]: unknown;
-            };
-            validationRules?: {
-                [key: string]: unknown;
-            };
+        UserProfileDto: {
+            displayName?: string;
+            email?: string;
+            avatarUrl?: string;
         };
-        PropertyTypeUpdateRequest: {
-            description?: string;
-            icon?: string;
-            configSchema?: {
-                [key: string]: unknown;
-            };
-            defaultConfig?: {
-                [key: string]: unknown;
-            };
-            validationRules?: {
-                [key: string]: unknown;
-            };
-            isActive?: boolean;
+        SetupResponse: {
+            /** Format: uuid */
+            userId?: string;
+            /** Format: uuid */
+            tenantId?: string;
+            /** Format: uuid */
+            tenantUserId?: string;
+            tenant?: components["schemas"]["TenantDto"];
+            user?: components["schemas"]["UserDto"];
+            message?: string;
+        };
+        TenantDto: {
+            /** Format: uuid */
+            id?: string;
+            name?: string;
+            /** @enum {string} */
+            type?: "PERSONAL" | "TEAM" | "ENTERPRISE";
+            orgId?: string;
+            active?: boolean;
+        };
+        UserDto: {
+            /** Format: uuid */
+            id?: string;
+            auth0Sub?: string;
+            email?: string;
+            displayName?: string;
+            avatarUrl?: string;
+            active?: boolean;
+        };
+        SimpleSetupResponse: {
+            /** Format: uuid */
+            userId?: string;
+            /** Format: uuid */
+            tenantId?: string;
+            tenantName?: string;
+            success?: boolean;
+            message?: string;
         };
         WorkspaceListResponse: {
-            workspaces: components["schemas"]["WorkspaceResponse"][];
+            workspaces?: components["schemas"]["WorkspaceResponse"][];
             /** Format: int64 */
-            totalCount: number;
-            hasMore: boolean;
+            totalCount?: number;
+            hasMore?: boolean;
         };
         WorkspaceStatistics: {
             /** Format: int32 */
-            totalTables: number;
+            totalTables?: number;
             /** Format: int64 */
-            totalRecords: number;
+            totalRecords?: number;
             /** Format: int32 */
-            totalUsers: number;
+            totalUsers?: number;
             /** Format: int64 */
             storageUsed?: number;
             /** Format: date-time */
             lastActivity?: string;
         };
+        UserSearchResponse: {
+            users?: components["schemas"]["UserResponse"][];
+            /** Format: int64 */
+            totalCount?: number;
+            hasMore?: boolean;
+        };
+        UserDetailResponse: {
+            /** Format: uuid */
+            id?: string;
+            auth0Sub?: string;
+            email?: string;
+            profile?: components["schemas"]["UserProfileResponse"];
+            /** Format: int32 */
+            tenantCount?: number;
+            /** Format: int32 */
+            roleCount?: number;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        CurrentUserResponse: {
+            user?: components["schemas"]["UserDetailResponse"];
+            /** Format: uuid */
+            currentTenantId?: string;
+            permissions?: (components["schemas"]["GeneralRule"] | components["schemas"]["ResourceGroupRule"] | components["schemas"]["ResourceIdRule"])[];
+        };
+        RolePermissions: {
+            roleName?: string;
+            permissions?: (components["schemas"]["GeneralRule"] | components["schemas"]["ResourceGroupRule"] | components["schemas"]["ResourceIdRule"])[];
+        };
         UserPermissionsResponse: {
             /** Format: uuid */
-            userId: string;
+            userId?: string;
             /** Format: uuid */
-            tenantUserId: string;
-            roles: components["schemas"]["RoleResponse"][];
-            effectivePermissions: string[];
-            permissionsByRole: {
-                [key: string]: string[];
-            };
+            tenantUserId?: string;
+            roles?: components["schemas"]["RoleResponse"][];
+            effectivePermissions?: (components["schemas"]["GeneralRule"] | components["schemas"]["ResourceGroupRule"] | components["schemas"]["ResourceIdRule"])[];
+            permissionsByRole?: components["schemas"]["RolePermissions"][];
         };
         FieldStatistics: {
-            fieldKey: string;
-            fieldType: string;
+            fieldKey?: string;
+            fieldType?: string;
             /** Format: int64 */
-            totalCount: number;
+            totalCount?: number;
             /** Format: int64 */
-            nonNullCount: number;
+            nonNullCount?: number;
             /** Format: int64 */
-            nullCount: number;
+            nullCount?: number;
             /** Format: double */
-            fillRate: number;
+            fillRate?: number;
             /** Format: int64 */
-            uniqueCount: number;
+            uniqueCount?: number;
             minValue?: unknown;
             maxValue?: unknown;
             /** Format: double */
@@ -2204,25 +2419,25 @@ export interface components {
         FrequencyItem: {
             value?: unknown;
             /** Format: int64 */
-            count: number;
+            count?: number;
             /** Format: double */
-            percentage: number;
+            percentage?: number;
         };
         TableStatisticsResponse: {
             /** Format: uuid */
-            tableId: string;
-            tableName: string;
+            tableId?: string;
+            tableName?: string;
             /** Format: int64 */
-            recordCount: number;
+            recordCount?: number;
             /** Format: int32 */
-            propertyCount: number;
-            fieldStatistics: components["schemas"]["FieldStatistics"][];
+            propertyCount?: number;
+            fieldStatistics?: components["schemas"]["FieldStatistics"][];
             /** Format: int64 */
-            storageSize: number;
+            storageSize?: number;
             /** Format: date-time */
-            createdAt: string;
+            createdAt?: string;
             /** Format: date-time */
-            updatedAt: string;
+            updatedAt?: string;
             /** Format: date-time */
             lastRecordCreatedAt?: string;
             /** Format: date-time */
@@ -2230,87 +2445,164 @@ export interface components {
         };
         TableSchemaResponse: {
             /** Format: uuid */
-            id: string;
-            name: string;
+            id?: string;
+            name?: string;
             description?: string;
-            properties: {
+            properties?: {
                 [key: string]: components["schemas"]["PropertyDefinitionDto"];
             };
-            propertyOrder: string[];
-            version: string;
+            propertyOrder?: string[];
+            version?: string;
             /** Format: date-time */
-            exportedAt: string;
+            exportedAt?: string;
         };
         TableExportResponse: {
             /** Format: uuid */
-            tableId: string;
-            tableName: string;
-            format: string;
+            tableId?: string;
+            tableName?: string;
+            format?: string;
             schema?: components["schemas"]["TableSchemaResponse"];
-            records?: {
-                [key: string]: unknown;
-            }[];
+            records?: components["schemas"]["JsonObject"][];
             data?: string;
             /** Format: int64 */
-            recordCount: number;
+            recordCount?: number;
             /** Format: date-time */
-            exportedAt: string;
+            exportedAt?: string;
         };
         TableListResponse: {
-            tables: components["schemas"]["TableResponse"][];
+            tables?: components["schemas"]["TableResponse"][];
             /** Format: int64 */
-            totalCount: number;
+            totalCount?: number;
         };
         EffectivePermissionsResponse: {
-            directPermissions: string[];
-            effectivePermissions: string[];
-            wildcardExpansions: {
-                [key: string]: string[];
-            };
+            directPermissions?: (components["schemas"]["GeneralRule"] | components["schemas"]["ResourceGroupRule"] | components["schemas"]["ResourceIdRule"])[];
+            effectivePermissions?: (components["schemas"]["GeneralRule"] | components["schemas"]["ResourceGroupRule"] | components["schemas"]["ResourceIdRule"])[];
         };
-        PermissionDiff: {
-            /** Format: uuid */
-            role1Id: string;
-            /** Format: uuid */
-            role2Id: string;
-            onlyInFirst: string[];
-            onlyInSecond: string[];
-            inBoth: string[];
-            areIdentical: boolean;
-            /** Format: int32 */
-            totalDifferences: number;
-            additionsForFirst: string[];
-            removalsForFirst: string[];
-            mergedPermissions: string[];
+        RolePermissionDiff: {
+            onlyInFirst?: (components["schemas"]["GeneralRule"] | components["schemas"]["ResourceGroupRule"] | components["schemas"]["ResourceIdRule"])[];
+            onlyInSecond?: (components["schemas"]["GeneralRule"] | components["schemas"]["ResourceGroupRule"] | components["schemas"]["ResourceIdRule"])[];
+            common?: (components["schemas"]["GeneralRule"] | components["schemas"]["ResourceGroupRule"] | components["schemas"]["ResourceIdRule"])[];
         };
         PermissionCheckResult: {
-            permission: string;
-            hasPermission: boolean;
+            rule?: components["schemas"]["GeneralRule"] | components["schemas"]["ResourceGroupRule"] | components["schemas"]["ResourceIdRule"];
+            hasPermission?: boolean;
             matchedBy?: string;
-            isWildcardMatch: boolean;
         };
-        PropertyTypeCatalogResponse: {
-            types: components["schemas"]["PropertyTypeCatalogDto"][];
-            categories: {
-                [key: string]: components["schemas"]["PropertyTypeCatalogDto"][];
-            };
+        MyWorkspacesResponse: {
+            workspaces?: components["schemas"]["WorkspaceDto"][];
+            /** Format: int32 */
+            totalCount?: number;
+            /** Format: int32 */
+            activeCount?: number;
         };
-        AuthenticatedContextDto: {
-            auth0Sub: string;
+        WorkspaceDto: {
             /** Format: uuid */
-            userId: string;
+            id?: string;
+            name?: string;
+            displayName?: string;
+            role?: string;
+            /** Format: date-time */
+            lastAccessedAt?: string;
+            active?: boolean;
+        };
+        AuthTestResponse: {
+            message?: string;
+            endpoint?: string;
+            userRoles?: components["schemas"]["RoleResponse"][];
+            userId?: string;
+            /** @enum {string} */
+            testResult?: "SUCCESS" | "FAILED" | "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND";
+        };
+        PublicTestResponse: {
+            message?: string;
+            endpoint?: string;
+            /** @enum {string} */
+            testResult?: "SUCCESS" | "FAILED" | "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND";
+        };
+        PermissionTestResponse: {
+            message?: string;
+            endpoint?: string;
+            requiredPermission?: components["schemas"]["GeneralRule"] | components["schemas"]["ResourceGroupRule"] | components["schemas"]["ResourceIdRule"];
+            userPermissions?: (components["schemas"]["GeneralRule"] | components["schemas"]["ResourceGroupRule"] | components["schemas"]["ResourceIdRule"])[];
+            hasRequiredPermission?: boolean;
+            userId?: string;
+            /** @enum {string} */
+            testResult?: "SUCCESS" | "FAILED" | "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND";
+        };
+        MultiPermissionTestResponse: {
+            message?: string;
+            endpoint?: string;
+            requiredPermissions?: (components["schemas"]["GeneralRule"] | components["schemas"]["ResourceGroupRule"] | components["schemas"]["ResourceIdRule"])[];
+            userPermissions?: (components["schemas"]["GeneralRule"] | components["schemas"]["ResourceGroupRule"] | components["schemas"]["ResourceIdRule"])[];
+            matchedPermissions?: (components["schemas"]["GeneralRule"] | components["schemas"]["ResourceGroupRule"] | components["schemas"]["ResourceIdRule"])[];
+            hasAnyRequiredPermission?: boolean;
+            userId?: string;
+            /** @enum {string} */
+            testResult?: "SUCCESS" | "FAILED" | "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND";
+        };
+        HybridAuthTestResponse: {
+            message?: string;
+            endpoint?: string;
+            authMethod?: string;
+            userRoles?: components["schemas"]["RoleResponse"][];
+            userPermissions?: (components["schemas"]["GeneralRule"] | components["schemas"]["ResourceGroupRule"] | components["schemas"]["ResourceIdRule"])[];
+            userId?: string;
+            /** @enum {string} */
+            testResult?: "SUCCESS" | "FAILED" | "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND";
+        };
+        AuthenticatedTestResponse: {
+            message?: string;
+            endpoint?: string;
+            userRoles?: components["schemas"]["RoleResponse"][];
+            userPermissions?: (components["schemas"]["GeneralRule"] | components["schemas"]["ResourceGroupRule"] | components["schemas"]["ResourceIdRule"])[];
+            userId?: string;
+            /** @enum {string} */
+            testResult?: "SUCCESS" | "FAILED" | "UNAUTHORIZED" | "FORBIDDEN" | "NOT_FOUND";
+        };
+        MyTenantsResponse: {
+            tenants?: components["schemas"]["UserTenantDto"][];
             /** Format: uuid */
-            tenantUserId: string;
+            defaultTenantId?: string;
+        };
+        UserTenantDto: {
             /** Format: uuid */
             tenantId?: string;
-            roles: string[];
+            tenantName?: string;
+            orgId?: string;
+            roles?: string[];
+            joinedAt?: string;
+            active?: boolean;
+        };
+        JwtClaimsResponse: {
+            sub?: string;
             email?: string;
-            isActive: boolean;
+            emailVerified?: boolean;
+            name?: string;
+            picture?: string;
+            aud?: string[];
+            iss?: string;
+            /** Format: date-time */
+            iat?: string;
+            /** Format: date-time */
+            exp?: string;
+            scope?: string;
+        };
+        AuthenticatedContextDto: {
+            auth0Sub?: string;
+            /** Format: uuid */
+            userId?: string;
+            /** Format: uuid */
+            tenantUserId?: string;
+            /** Format: uuid */
+            tenantId?: string;
+            roles?: string[];
+            email?: string;
+            active?: boolean;
         };
         BusinessContextResponse: {
-            authenticatedContext: components["schemas"]["AuthenticatedContextDto"];
-            springSecurityAuthorities: string[];
-            rawJwtClaims: components["schemas"]["RawJwtClaimsDto"];
+            authenticatedContext?: components["schemas"]["AuthenticatedContextDto"];
+            springSecurityAuthorities?: string[];
+            rawJwtClaims?: components["schemas"]["RawJwtClaimsDto"];
         };
         RawJwtClaimsDto: {
             orgId?: string;
@@ -2318,12 +2610,12 @@ export interface components {
             roles?: string[];
         };
         PermissionBulkDeleteRequest: {
-            permissions: string[];
+            permissions?: (components["schemas"]["GeneralRule"] | components["schemas"]["ResourceGroupRule"] | components["schemas"]["ResourceIdRule"])[];
         };
         RecordBatchDeleteRequest: {
             recordIds: string[];
             /** Format: int32 */
-            batchSize: number;
+            batchSize?: number;
         };
     };
     responses: never;
@@ -2508,6 +2800,193 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    getCurrentUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description User information retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CurrentUserResponse"];
+                };
+            };
+            /** @description Unauthorized - invalid or missing JWT token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CurrentUserResponse"];
+                };
+            };
+            /** @description User not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CurrentUserResponse"];
+                };
+            };
+        };
+    };
+    updateCurrentUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description User updated successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserResponse"];
+                };
+            };
+            /** @description Invalid request data */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserResponse"];
+                };
+            };
+            /** @description User not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserResponse"];
+                };
+            };
+            /** @description Email already in use */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserResponse"];
+                };
+            };
+        };
+    };
+    getCurrentUserProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Profile retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserProfileResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserProfileResponse"];
+                };
+            };
+            /** @description Profile not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserProfileResponse"];
+                };
+            };
+        };
+    };
+    updateCurrentUserProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserProfileUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Profile updated successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserProfileResponse"];
+                };
+            };
+            /** @description Profile created successfully */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserProfileResponse"];
+                };
+            };
+            /** @description Invalid request data */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserProfileResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserProfileResponse"];
+                };
             };
         };
     };
@@ -3056,7 +3535,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SyncResult"];
+                    "application/json": components["schemas"]["PermissionSyncResult"];
                 };
             };
         };
@@ -3829,6 +4308,28 @@ export interface operations {
             };
         };
     };
+    syncWithAuth0: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
     checkMyResourceAccess: {
         parameters: {
             query: {
@@ -4358,7 +4859,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ValidationResult"];
+                    "application/json": components["schemas"]["PermissionValidationResult"];
                 };
             };
         };
@@ -4387,30 +4888,6 @@ export interface operations {
                 content: {
                     "application/json": string[];
                 };
-            };
-        };
-    };
-    applyPermissionTemplate: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                roleId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PermissionTemplateRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };
@@ -4773,136 +5250,7 @@ export interface operations {
             };
         };
     };
-    deactivatePropertyType: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Property type ID */
-                typeId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Property type deactivated successfully */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PropertyTypeCatalogDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PropertyTypeCatalogDto"];
-                };
-            };
-            /** @description Forbidden - insufficient permissions or cannot deactivate system type */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PropertyTypeCatalogDto"];
-                };
-            };
-            /** @description Property type not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PropertyTypeCatalogDto"];
-                };
-            };
-        };
-    };
-    activatePropertyType: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Property type ID */
-                typeId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Property type activated successfully */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PropertyTypeCatalogDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PropertyTypeCatalogDto"];
-                };
-            };
-            /** @description Forbidden - insufficient permissions */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PropertyTypeCatalogDto"];
-                };
-            };
-            /** @description Property type not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PropertyTypeCatalogDto"];
-                };
-            };
-        };
-    };
-    getCustomPropertyTypes: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successfully retrieved custom types */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PropertyTypeCatalogDto"][];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PropertyTypeCatalogDto"][];
-                };
-            };
-        };
-    };
-    createCustomPropertyType: {
+    completeSetup: {
         parameters: {
             query?: never;
             header?: never;
@@ -4911,165 +5259,37 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CustomPropertyTypeRequest"];
+                "application/json": components["schemas"]["SetupRequest"];
             };
         };
         responses: {
-            /** @description Property type created successfully */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PropertyTypeCatalogDto"];
-                };
-            };
-            /** @description Invalid request data */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PropertyTypeCatalogDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PropertyTypeCatalogDto"];
-                };
-            };
-            /** @description Forbidden - insufficient permissions */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PropertyTypeCatalogDto"];
-                };
-            };
-            /** @description Property type already exists */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PropertyTypeCatalogDto"];
-                };
-            };
-        };
-    };
-    deleteCustomPropertyType: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Property type ID */
-                typeId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Property type deleted successfully */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden - cannot delete system types */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Property type not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Property type is in use */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    updateCustomPropertyType: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Property type ID */
-                typeId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PropertyTypeUpdateRequest"];
-            };
-        };
-        responses: {
-            /** @description Property type updated successfully */
+            /** @description OK */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PropertyTypeCatalogDto"];
+                    "application/json": components["schemas"]["SetupResponse"];
                 };
             };
-            /** @description Invalid request data */
-            400: {
+        };
+    };
+    createDefaultWorkspace_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PropertyTypeCatalogDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PropertyTypeCatalogDto"];
-                };
-            };
-            /** @description Forbidden - cannot modify system types */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PropertyTypeCatalogDto"];
-                };
-            };
-            /** @description Property type not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PropertyTypeCatalogDto"];
+                    "application/json": components["schemas"]["SimpleSetupResponse"];
                 };
             };
         };
@@ -5157,6 +5377,72 @@ export interface operations {
             };
         };
     };
+    listUsers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserSearchResponse"];
+                };
+            };
+        };
+    };
+    getUserById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description User ID */
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserDetailResponse"];
+                };
+            };
+        };
+    };
+    getUserProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description User ID */
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserProfileResponse"];
+                };
+            };
+        };
+    };
     getUserPermissions: {
         parameters: {
             query?: never;
@@ -5224,292 +5510,6 @@ export interface operations {
             query: {
                 permission: string;
             };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-        };
-    };
-    viewerOnly: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-        };
-    };
-    userOnly: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-        };
-    };
-    publicEndpoint: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-        };
-    };
-    tableView: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-        };
-    };
-    tableDelete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-        };
-    };
-    settingsManage: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-        };
-    };
-    documentViewTeam: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-        };
-    };
-    documentEditOwn: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-        };
-    };
-    anyView: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-        };
-    };
-    tableCreateHybrid: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-        };
-    };
-    authenticatedEndpoint: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-        };
-    };
-    adminOrUser: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-        };
-    };
-    adminOnly: {
-        parameters: {
-            query?: never;
             header?: never;
             path?: never;
             cookie?: never;
@@ -5862,7 +5862,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PermissionDiff"];
+                    "application/json": components["schemas"]["RolePermissionDiff"];
                 };
             };
         };
@@ -6143,153 +6143,7 @@ export interface operations {
             };
         };
     };
-    getAllPropertyTypes: {
-        parameters: {
-            query?: {
-                /** @description Include only active types */
-                activeOnly?: boolean;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successfully retrieved property types */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PropertyTypeCatalogResponse"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PropertyTypeCatalogResponse"];
-                };
-            };
-        };
-    };
-    getPropertyTypeById: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Property type ID */
-                typeId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successfully retrieved property type */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PropertyTypeCatalogDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PropertyTypeCatalogDto"];
-                };
-            };
-            /** @description Property type not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PropertyTypeCatalogDto"];
-                };
-            };
-        };
-    };
-    getPropertyTypeSummaries: {
-        parameters: {
-            query?: {
-                /** @description Include only active types */
-                activeOnly?: boolean;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successfully retrieved property type summaries */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PropertyTypeCatalogDto"][];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PropertyTypeCatalogDto"][];
-                };
-            };
-        };
-    };
-    getPropertyTypesByCategory: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Category to filter by (basic, advanced, relation, system) */
-                category: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successfully retrieved property types */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PropertyTypeCatalogDto"][];
-                };
-            };
-            /** @description Invalid category */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PropertyTypeCatalogDto"][];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PropertyTypeCatalogDto"][];
-                };
-            };
-        };
-    };
-    getBuiltInPropertyTypes: {
+    getMyWorkspaces: {
         parameters: {
             query?: never;
             header?: never;
@@ -6298,13 +6152,51 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Successfully retrieved built-in types */
+            /** @description Successfully retrieved accessible workspaces */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PropertyTypeCatalogDto"][];
+                    "application/json": components["schemas"]["MyWorkspacesResponse"];
+                };
+            };
+            /** @description Unauthorized - authentication required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyWorkspacesResponse"];
+                };
+            };
+            /** @description Forbidden - setup mode users cannot access workspaces */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyWorkspacesResponse"];
+                };
+            };
+        };
+    };
+    getMyTenants: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successfully retrieved accessible tenants */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyWorkspacesResponse"];
                 };
             };
             /** @description Unauthorized */
@@ -6313,12 +6205,21 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PropertyTypeCatalogDto"][];
+                    "application/json": components["schemas"]["MyWorkspacesResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyWorkspacesResponse"];
                 };
             };
         };
     };
-    getCurrentUser: {
+    viewerOnly: {
         parameters: {
             query?: never;
             header?: never;
@@ -6333,9 +6234,287 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["AuthTestResponse"];
+                };
+            };
+        };
+    };
+    userOnly: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthTestResponse"];
+                };
+            };
+        };
+    };
+    publicEndpoint: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicTestResponse"];
+                };
+            };
+        };
+    };
+    tableView: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PermissionTestResponse"];
+                };
+            };
+        };
+    };
+    tableDelete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PermissionTestResponse"];
+                };
+            };
+        };
+    };
+    settingsManage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PermissionTestResponse"];
+                };
+            };
+        };
+    };
+    documentViewTeam: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PermissionTestResponse"];
+                };
+            };
+        };
+    };
+    documentEditOwn: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PermissionTestResponse"];
+                };
+            };
+        };
+    };
+    anyView: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MultiPermissionTestResponse"];
+                };
+            };
+        };
+    };
+    tableCreateHybrid: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HybridAuthTestResponse"];
+                };
+            };
+        };
+    };
+    authenticatedEndpoint: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthenticatedTestResponse"];
+                };
+            };
+        };
+    };
+    adminOrUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthTestResponse"];
+                };
+            };
+        };
+    };
+    adminOnly: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthTestResponse"];
+                };
+            };
+        };
+    };
+    getMyTenants_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyTenantsResponse"];
+                };
+            };
+        };
+    };
+    getCurrentUser_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
                 };
             };
         };
@@ -6355,9 +6534,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["JwtClaimsResponse"];
                 };
             };
         };

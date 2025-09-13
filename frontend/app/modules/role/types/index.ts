@@ -3,84 +3,61 @@
  * ロール管理関連の型定義
  */
 
-// ===========================
-// Base Role Types
-// ===========================
+import type { schemas } from '@shared/api/zod-client'
+import type { z } from 'zod'
 
-// Local type definitions and schemas
-import { z } from 'zod'
+// OpenAPI型は中央集約型からインポート
+import type {
+  RoleResponse,
+  RoleCreateRequestDto,
+  RoleUpdateRequest,
+  RoleReorderRequest,
+  PermissionRule,
+  PermissionGrantRequest,
+  PermissionGrantResult,
+  PermissionSyncRequest,
+  PermissionSyncResult,
+  PermissionBulkDeleteRequest
+} from '~/types'
 
-// Local type definitions (replacing missing generated types)
-export interface RoleResponse {
-  id: string
-  name: string
-  displayName: string
-  permissions: readonly string[]
-  tenantId?: string
-  position?: number
-  color?: string
-  isSystem?: boolean
-  userCount?: number
-  createdAt?: string
-  updatedAt?: string
+// OpenAPI型を再エクスポート（互換性のため）
+export type {
+  RoleResponse,
+  RoleUpdateRequest,
+  RoleReorderRequest,
+  PermissionRule,
+  PermissionGrantRequest,
+  PermissionGrantResult,
+  PermissionSyncRequest,
+  PermissionSyncResult,
+  PermissionBulkDeleteRequest
 }
 
-// Zod schemas for validation
-const _RoleCreateRequestSchema = z.object({
-  name: z.string(),
-  displayName: z.string(),
-  permissions: z.array(z.string()).optional(),
-  color: z.string().optional(),
-  position: z.number().optional()
-})
+// RoleCreateRequestのエイリアス
+export type RoleCreateRequest = RoleCreateRequestDto
 
-const _RoleUpdateRequestSchema = z.object({
-  name: z.string().optional(),
-  displayName: z.string().optional(),
-  permissions: z.array(z.string()).optional(),
-  color: z.string().optional(),
-  position: z.number().optional()
-})
+// ===========================
+// Zod Validated Types
+// ===========================
 
-// Extract types from Zod schemas
-export type RoleCreateRequest = z.infer<typeof _RoleCreateRequestSchema>
-export type RoleUpdateRequest = z.infer<typeof _RoleUpdateRequestSchema>
+// Zod検証済み型（必要に応じて使用）
+export type RoleResponseValidated = z.infer<typeof schemas.RoleResponse>
+export type RoleUpdateRequestValidated = z.infer<typeof schemas.RoleUpdateRequest>
+export type PermissionGrantResultValidated = z.infer<typeof schemas.PermissionGrantResult>
+export type RoleCreateRequestValidated = z.infer<typeof schemas.RoleCreateRequestDto>
 
+// ===========================
+// Custom Extension Types
+// ===========================
 
-export interface RoleReorderRequest {
-  positions: Record<string, number>
-}
-
+// API仕様にない独自の型定義
 export interface RoleDuplicateRequest {
   newName: string
-  includePermissions: boolean  // オプショナルを削除してAPI契約と一致
-}
-
-// ===========================
-// Permission Types
-// ===========================
-
-export interface Permission {
-  rule: string
-  resource?: string
-  action?: string
-  description?: string
-  category?: string
-}
-
-export interface PermissionGrantRequest {
-  permissions: string[]
+  includePermissions: boolean
 }
 
 export interface PermissionRevokeRequest {
   permissions: string[]
-}
-
-export interface PermissionGrantResult {
-  roleId: string
-  granted: string[]
-  failed: Record<string, string>
-  totalGranted: number
 }
 
 export interface PermissionRevokeResult {
@@ -161,7 +138,7 @@ export interface PermissionDefinition {
 // Repository Interface
 // ===========================
 
-export interface IRoleRepository {
+export interface RoleRepository {
   // Role CRUD Operations
   listRoles(params?: RoleListParams): Promise<RoleListResponse>
   getRole(roleId: string): Promise<RoleResponse>
