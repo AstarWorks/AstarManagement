@@ -326,6 +326,15 @@ class TableController(
             if (request.required != null) {
                 put("required", kotlinx.serialization.json.JsonPrimitive(request.required))
             }
+            // defaultValue を追加（PropertyUpdateRequestでは null可能フィールドなので、存在確認が必要）
+            // PropertyUpdateRequest のフィールドは全て nullable なので、存在しない場合は更新しない
+            request.defaultValue?.let {
+                put("default", it)
+            }
+            // description を追加
+            request.description?.let {
+                put("description", kotlinx.serialization.json.JsonPrimitive(it))
+            }
         }
         
         val updatedDefinition = PropertyDefinition(

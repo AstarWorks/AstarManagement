@@ -147,13 +147,7 @@ class TableDtoMapper {
      * @return The corresponding PropertyDefinitionDto
      */
     fun toPropertyDefinitionDto(definition: PropertyDefinition): PropertyDefinitionDto {
-        println("====== PROPERTY DTO MAPPING DEBUG ======")
-        println("Input PropertyDefinition: ${definition}")
-        println("  type: ${definition.type} (type: ${definition.type::class.java})")
-        println("  displayName: ${definition.displayName} (type: ${definition.displayName::class.java})")
-        println("  config: ${definition.config} (type: ${definition.config::class.java})")
-        
-        // Extract 'required' from config if present
+        // Extract top-level fields from config
         val isRequired = definition.config["required"]?.let { element ->
             when (element) {
                 is kotlinx.serialization.json.JsonPrimitive -> element.booleanOrNull ?: false
@@ -161,34 +155,35 @@ class TableDtoMapper {
             }
         } ?: false
         
-        // Remove 'required' from config for DTO
+        // Extract defaultValue from config["default"]
+        val defaultValue = definition.config["default"]
+        
+        // Extract description from config
+        val description = definition.config["description"]?.let { element ->
+            when (element) {
+                is kotlinx.serialization.json.JsonPrimitive -> element.contentOrNull
+                else -> null
+            }
+        }
+        
+        // Build DTO config (excluding required, default, and description)
         val dtoConfig = buildJsonObject {
             definition.config.forEach { (key, value) ->
-                if (key != "required") {
+                if (key !in listOf("required", "default", "description")) {
                     put(key, value)
                 }
             }
         }
         
-        val result = PropertyDefinitionDto(
+        return PropertyDefinitionDto(
             key = "", // Key will be set from the map key
             type = definition.type,
             displayName = definition.displayName,
-            config = dtoConfig,
+            config = if (dtoConfig.isEmpty()) JsonObject(emptyMap()) else dtoConfig,
             required = isRequired,
-            defaultValue = null, // Default value not in domain model
-            description = null // Description not in domain model
+            defaultValue = defaultValue,
+            description = description
         )
-        
-        println("Output PropertyDefinitionDto: ${result}")
-        println("  key: ${result.key} (type: ${result.key::class.java})")
-        println("  type: ${result.type} (type: ${result.type::class.java})")
-        println("  displayName: ${result.displayName} (type: ${result.displayName::class.java})")
-        println("  config: ${result.config} (type: ${result.config::class.java})")
-        println("  required: ${result.required} (type: ${result.required::class.java})")
-        println("====== END PROPERTY DTO MAPPING DEBUG ======")
-        
-        return result
     }
     
     /**
@@ -198,13 +193,26 @@ class TableDtoMapper {
      * @return The corresponding PropertyDefinition domain model
      */
     fun fromPropertyDefinitionDto(dto: PropertyDefinitionDto): PropertyDefinition {
-        // Add 'required' to config for domain model
+        // Build config for domain model including DTOs top-level fields
         val domainConfig = buildJsonObject {
+            // Copy existing config elements
             dto.config?.forEach { (key, value) ->
                 put(key, value)
             }
+            
+            // Add 'required' to config if true
             if (dto.required) {
                 put("required", JsonPrimitive(true))
+            }
+            
+            // Add defaultValue to config["default"] if present
+            dto.defaultValue?.let {
+                put("default", it)
+            }
+            
+            // Add description to config if present
+            dto.description?.let {
+                put("description", JsonPrimitive(it))
             }
         }
         
