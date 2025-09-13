@@ -161,6 +161,89 @@ class TableDtoMapperPropertyTest {
             assertThat(dto.config).isEmpty()
             assertThat(dto.required).isFalse()
         }
+        
+        @Test
+        @DisplayName("Should extract default value from config")
+        fun `should extract default value from config`() {
+            // Given
+            val propertyDef = PropertyDefinition(
+                type = PropertyType.TEXT,
+                displayName = "Text with Default",
+                config = buildJsonObject {
+                    put("default", "Default Text Value")
+                    put("maxLength", 100)
+                }
+            )
+            
+            // When
+            val dto = mapper.toPropertyDefinitionDto(propertyDef)
+            
+            // Then
+            assertThat(dto.defaultValue?.jsonPrimitive?.content).isEqualTo("Default Text Value")
+            assertThat(dto.config["maxLength"]?.jsonPrimitive?.int).isEqualTo(100)
+            assertThat(dto.config.containsKey("default")).isFalse() // Should be removed from config
+        }
+        
+        @Test
+        @DisplayName("Should extract description from config")
+        fun `should extract description from config`() {
+            // Given
+            val propertyDef = PropertyDefinition(
+                type = PropertyType.NUMBER,
+                displayName = "Documented Number",
+                config = buildJsonObject {
+                    put("description", "This is a number field for age")
+                    put("min", 0)
+                    put("max", 120)
+                }
+            )
+            
+            // When
+            val dto = mapper.toPropertyDefinitionDto(propertyDef)
+            
+            // Then
+            assertThat(dto.description).isEqualTo("This is a number field for age")
+            assertThat(dto.config["min"]?.jsonPrimitive?.int).isEqualTo(0)
+            assertThat(dto.config["max"]?.jsonPrimitive?.int).isEqualTo(120)
+            assertThat(dto.config.containsKey("description")).isFalse() // Should be removed from config
+        }
+        
+        @Test
+        @DisplayName("Should handle complex default values")
+        fun `should handle complex default values`() {
+            // Given
+            val propertyDef = PropertyDefinition(
+                type = PropertyType.SELECT,
+                displayName = "Select with Default",
+                config = buildJsonObject {
+                    put("default", buildJsonObject {
+                        put("value", "option1")
+                        put("label", "Option 1")
+                    })
+                    putJsonArray("options") {
+                        addJsonObject {
+                            put("value", "option1")
+                            put("label", "Option 1")
+                        }
+                        addJsonObject {
+                            put("value", "option2")
+                            put("label", "Option 2")
+                        }
+                    }
+                }
+            )
+            
+            // When
+            val dto = mapper.toPropertyDefinitionDto(propertyDef)
+            
+            // Then
+            val defaultValue = dto.defaultValue?.jsonObject
+            assertThat(defaultValue).isNotNull()
+            assertThat(defaultValue?.get("value")?.jsonPrimitive?.content).isEqualTo("option1")
+            assertThat(defaultValue?.get("label")?.jsonPrimitive?.content).isEqualTo("Option 1")
+            assertThat(dto.config["options"]).isNotNull()
+            assertThat(dto.config.containsKey("default")).isFalse()
+        }
     }
     
     @Nested
@@ -192,8 +275,9 @@ class TableDtoMapperPropertyTest {
             assertThat(propertyDef.displayName).isEqualTo("Test Property")
             assertThat(propertyDef.config["required"]?.jsonPrimitive?.boolean).isTrue()
             assertThat(propertyDef.config["maxLength"]?.jsonPrimitive?.int).isEqualTo(1000)
-            // Note: defaultValue and description are not currently embedded in config by the mapper
-            // They are DTO-only fields not present in the domain model
+            // defaultValue and description should now be embedded in config
+            assertThat(propertyDef.config["default"]?.jsonPrimitive?.content).isEqualTo("default")
+            assertThat(propertyDef.config["description"]?.jsonPrimitive?.content).isEqualTo("Test description")
         }
         
         @Test
@@ -258,10 +342,10 @@ class TableDtoMapperPropertyTest {
             val propertyDef = mapper.fromPropertyDefinitionDto(dto)
             
             // Then
-            // defaultValue is not embedded in config (it's a DTO-only field)
             assertThat(propertyDef.type).isEqualTo(PropertyType.CHECKBOX)
             assertThat(propertyDef.displayName).isEqualTo("Checkbox Field")
-            // The defaultValue field is preserved in the DTO but not transferred to domain model
+            // defaultValue should now be transferred to config["default"]
+            assertThat(propertyDef.config["default"]?.jsonPrimitive?.boolean).isTrue()
         }
     }
     
@@ -299,6 +383,9 @@ class TableDtoMapperPropertyTest {
             assertThat(convertedDto.config["maxLength"]).isEqualTo(originalDto.config["maxLength"])
             assertThat(convertedDto.config["minLength"]).isEqualTo(originalDto.config["minLength"])
             assertThat(convertedDto.config["pattern"]).isEqualTo(originalDto.config["pattern"])
+            // defaultValue and description should be preserved in round-trip
+            assertThat(convertedDto.defaultValue).isEqualTo(originalDto.defaultValue)
+            assertThat(convertedDto.description).isEqualTo(originalDto.description)
         }
         
         @Test
