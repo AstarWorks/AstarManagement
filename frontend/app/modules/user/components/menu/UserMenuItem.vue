@@ -9,7 +9,7 @@
   >
     <Icon :name="item.icon" class="mr-3 h-4 w-4" />
     <span class="flex-1">{{ $t(item.labelKey) }}</span>
-    
+
     <!-- Notification Badge -->
     <Badge
       v-if="showNotificationBadge"
@@ -18,7 +18,7 @@
     >
       {{ formatNotificationCount(notificationCount) }}
     </Badge>
-    
+
     <!-- External Link Indicator -->
     <Icon 
       v-if="item.external" 

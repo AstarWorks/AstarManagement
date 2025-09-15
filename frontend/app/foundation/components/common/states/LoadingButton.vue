@@ -59,9 +59,8 @@ const handleClick = (event: MouseEvent) => {
       <span v-if="loading && loadingText">
         {{ loadingText }}
       </span>
-      <span v-else>
-        <slot />
-      </span>
+
+      <slot  v-else/>
     </div>
   </Button>
 </template>
