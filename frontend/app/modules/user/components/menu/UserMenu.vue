@@ -2,6 +2,7 @@
   <div class="relative">
     <!-- User Menu Trigger -->
     <UserMenuTrigger
+      ref="trigger"
       :user="user"
       :is-open="isOpen"
       @toggle="toggleMenu"
@@ -48,6 +49,7 @@ const router = useRouter()
 // State
 const isOpen = ref(false)
 const dropdown = ref()
+const trigger = ref()
 
 // Computed
 const user = computed(() => profile.value)
@@ -108,7 +110,7 @@ const handleLogout = async () => {
 
 // Close menu when clicking outside
 const menuElement = computed(() => dropdown.value?.menu)
-onClickOutside(menuElement, closeMenu)
+onClickOutside(dropdown, closeMenu, { ignore: [trigger] })
 
 // Close menu on escape key
 onKeyStroke('Escape', () => {
