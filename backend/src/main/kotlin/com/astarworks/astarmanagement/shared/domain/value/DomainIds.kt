@@ -1,5 +1,7 @@
 package com.astarworks.astarmanagement.shared.domain.value
 
+import com.astarworks.astarmanagement.core.editor.domain.model.DocumentNode
+import com.astarworks.astarmanagement.core.editor.domain.model.DocumentRevision
 import com.astarworks.astarmanagement.core.table.domain.model.Table
 import com.astarworks.astarmanagement.core.table.domain.model.Record
 import com.astarworks.astarmanagement.core.user.domain.model.User
@@ -19,6 +21,10 @@ class Team
 // Table domain
 typealias TableId = EntityId<Table>
 typealias RecordId = EntityId<Record>
+
+// Editor domain
+typealias DocumentNodeId = EntityId<DocumentNode>
+typealias DocumentRevisionId = EntityId<DocumentRevision>
 
 // User domain
 typealias UserId = EntityId<User>

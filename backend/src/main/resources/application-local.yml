@@ -1,7 +1,7 @@
 # Local Development Profile Configuration
 spring:
   datasource:
-    url: jdbc:postgresql://172.17.0.1:5433/astarmanagement_dev
+    url: jdbc:postgresql://172.80.0.1:5433/astarmanagement_dev
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:postgres}
   
@@ -40,3 +40,8 @@ logging:
     com.astarworks.astarmanagement: INFO
     # Disable OAuth2 debugging in local
     org.springframework.security: WARN
+
+app:
+  features:
+    editor:
+      enabled: true

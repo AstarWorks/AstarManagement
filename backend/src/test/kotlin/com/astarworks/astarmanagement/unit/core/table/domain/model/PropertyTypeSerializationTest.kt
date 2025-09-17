@@ -38,7 +38,7 @@ class PropertyTypeSerializationTest {
         val serialized = json.encodeToString(PropertyType.serializer(), propertyType)
         
         // Then
-        assertEquals("\"multiselect\"", serialized)
+        assertEquals("\"multi_select\"", serialized)
         println("✅ PropertyType.MULTI_SELECT serializes to: $serialized")
     }
 
@@ -80,27 +80,18 @@ class PropertyTypeSerializationTest {
     fun `fromValue method case sensitivity test`() {
         // Test lowercase (expected)
         assertEquals(PropertyType.SELECT, PropertyType.fromValue("select"))
+        assertEquals(PropertyType.MULTI_SELECT, PropertyType.fromValue("multi_select"))
         assertEquals(PropertyType.MULTI_SELECT, PropertyType.fromValue("multiselect"))
-        
+
         // Test uppercase (frontend currently receives this)
         val uppercaseSelect = PropertyType.fromValue("SELECT")
         val uppercaseMultiSelect = PropertyType.fromValue("MULTI_SELECT")
-        
+
         println("🔍 fromValue('SELECT') returns: $uppercaseSelect")
         println("🔍 fromValue('MULTI_SELECT') returns: $uppercaseMultiSelect")
-        
-        // Document the behavior for analysis
-        if (uppercaseSelect == null) {
-            println("❌ fromValue does not handle uppercase 'SELECT'")
-        } else {
-            println("✅ fromValue handles uppercase 'SELECT' → $uppercaseSelect")
-        }
-        
-        if (uppercaseMultiSelect == null) {
-            println("❌ fromValue does not handle uppercase 'MULTI_SELECT'")
-        } else {
-            println("✅ fromValue handles uppercase 'MULTI_SELECT' → $uppercaseMultiSelect")
-        }
+
+        assertEquals(PropertyType.SELECT, uppercaseSelect)
+        assertEquals(PropertyType.MULTI_SELECT, uppercaseMultiSelect)
     }
 
     @Test

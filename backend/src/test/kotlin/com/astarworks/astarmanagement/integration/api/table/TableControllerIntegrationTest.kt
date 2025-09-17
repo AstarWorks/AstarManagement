@@ -38,6 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
+import java.util.Locale
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
@@ -299,7 +300,9 @@ class TableControllerIntegrationTest : IntegrationTestBase() {
                 id = RoleId(roleId),
                 tenantId = TenantId(tenantId),
                 name = roleName,
-                displayName = roleName.capitalize(),
+                displayName = roleName.replaceFirstChar { char ->
+                    if (char.isLowerCase()) char.titlecase(Locale.ROOT) else char.toString()
+                },
                 color = "#FF5733",
                 position = 0,
                 isSystem = false,
@@ -750,7 +753,9 @@ class TableControllerIntegrationTest : IntegrationTestBase() {
                     definition = PropertyDefinitionDto(
                         key = propKey,
                         type = PropertyType.TEXT,
-                        displayName = propKey.capitalize()
+                        displayName = propKey.replaceFirstChar { char ->
+                            if (char.isLowerCase()) char.titlecase(Locale.ROOT) else char.toString()
+                        }
                     )
                 )
                 

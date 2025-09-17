@@ -99,6 +99,12 @@ springdoc:
   packages-to-scan: com.astarworks.astarmanagement.core
   default-produces-media-type: application/json
 
+# Feature toggles
+app:
+  features:
+    editor:
+      enabled: false
+
 # Resilience4j Configuration
 resilience4j:
   circuitbreaker:

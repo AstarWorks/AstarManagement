@@ -1,9 +1,12 @@
 package com.astarworks.astarmanagement.core.table.domain.model
 
+import com.google.gson.annotations.SerializedName
+import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonProperty
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.json.JsonNames
 
 /**
  * プロパティ型のEnum定義
@@ -11,6 +14,7 @@ import com.google.gson.annotations.SerializedName
  * システムで利用可能なプロパティ型を定義します。
  * シンプルで実用的な型のみを含みます。
  */
+@OptIn(ExperimentalSerializationApi::class)
 @Serializable
 enum class PropertyType {
     // 基本型
@@ -51,8 +55,10 @@ enum class PropertyType {
     SELECT,
     
     @SerialName("multi_select")
-    @SerializedName("multi_select")
+    @JsonNames("multiselect")
+    @SerializedName(value = "multi_select", alternate = ["multiselect"])
     @JsonProperty("multi_select")
+    @JsonAlias("multiselect")
     MULTI_SELECT,
     
     // 特殊型（検証付きテキスト）
@@ -108,7 +114,13 @@ enum class PropertyType {
          * @return 対応する PropertyType、存在しない場合は null
          */
         fun fromValue(value: String): PropertyType? {
-            return entries.find { it.name.lowercase() == value.lowercase() }
+            val normalized = value.trim().lowercase()
+            return entries.firstOrNull { type ->
+                val canonical = type.name.lowercase()
+                normalized == canonical ||
+                    normalized == canonical.replace("_", "") ||
+                    normalized == canonical.replace("_", "-")
+            }
         }
     }
 }

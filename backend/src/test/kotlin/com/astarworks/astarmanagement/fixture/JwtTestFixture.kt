@@ -117,8 +117,16 @@ object JwtTestFixture {
         orgId: String = "org_ABC123"
     ): String {
         val validJwt = createValidJwt(subject, orgId)
-        // Corrupt the signature by changing the last character
-        return validJwt.dropLast(1) + "X"
+        val parts = validJwt.split('.')
+        if (parts.size != 3) {
+            return validJwt.dropLast(1) + "X" // fallback to legacy behaviour
+        }
+        val tamperedSignature = buildString(parts[2].length) {
+            parts[2].forEach { char ->
+                append(if (char == 'a') 'b' else 'a')
+            }
+        }
+        return listOf(parts[0], parts[1], tamperedSignature).joinToString(".")
     }
     
     /**
