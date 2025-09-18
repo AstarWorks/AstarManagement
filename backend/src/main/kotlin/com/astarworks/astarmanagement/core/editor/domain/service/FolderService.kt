@@ -13,6 +13,7 @@ import com.astarworks.astarmanagement.shared.domain.value.DocumentNodeId
 import com.astarworks.astarmanagement.shared.domain.value.TenantId
 import com.astarworks.astarmanagement.shared.domain.value.UserId
 import com.astarworks.astarmanagement.shared.domain.value.WorkspaceId
+import com.astarworks.astarmanagement.shared.exception.OptimisticLockException
 import java.text.Normalizer
 import java.util.ArrayDeque
 import java.util.UUID
@@ -75,12 +76,16 @@ class FolderService(
         folderId: DocumentNodeId,
         newTitle: String,
         updatedBy: UserId,
+        expectedVersion: Long,
     ): DocumentNode {
         require(newTitle.isNotBlank()) { "Folder title must not be blank" }
 
         val tenantId = currentTenantId()
         val folder = requireFolder(folderId, tenantId, null)
         val workspaceId = folder.workspaceId
+        if (folder.version != expectedVersion) {
+            throw OptimisticLockException("Folder ${folderId.value} was modified by another transaction")
+        }
 
         val parentPath = folder.parentId?.let { folder.materializedPath.substringBeforeLast("/") } ?: ""
         val slug = generateUniqueSlug(newTitle, tenantId, workspaceId, folder.parentId, folder.id)
@@ -91,21 +96,25 @@ class FolderService(
             .moveTo(folder.parentId, newPath, folder.depth, folder.position)
             .copy(updatedBy = updatedBy)
 
-        documentNodeRepository.save(updatedRoot)
+        val persistedRoot = documentNodeRepository.save(updatedRoot)
         updateDescendantPaths(folder.materializedPath, newPath, descendants, updatedBy)
 
         logger.debug("Renamed folder $folderId to '$newTitle' with slug '$slug'")
-        return updatedRoot
+        return persistedRoot
     }
 
     fun moveFolder(
         folderId: DocumentNodeId,
         targetParentId: DocumentNodeId?,
         updatedBy: UserId,
+        expectedVersion: Long,
         newPosition: Double? = null,
     ): DocumentNode {
         val tenantId = currentTenantId()
         val folder = requireFolder(folderId, tenantId, null)
+        if (folder.version != expectedVersion) {
+            throw OptimisticLockException("Folder ${folderId.value} was modified by another transaction")
+        }
         val workspaceId = folder.workspaceId
 
         val targetParent = targetParentId?.let { requireFolder(it, tenantId, workspaceId) }
@@ -123,25 +132,29 @@ class FolderService(
 
         val updatedRoot = folder.moveTo(targetParentId, newPath, newDepth, resolvedPosition)
             .copy(updatedBy = updatedBy)
-        documentNodeRepository.save(updatedRoot)
+        val persistedRoot = documentNodeRepository.save(updatedRoot)
 
         updateDescendantPaths(oldPath, newPath, descendants, updatedBy, depthDelta)
 
         logger.debug("Moved folder $folderId to parent ${targetParentId ?: "<root>"}")
-        return updatedRoot
+        return persistedRoot
     }
 
     fun archiveFolder(
         folderId: DocumentNodeId,
         archived: Boolean,
         updatedBy: UserId,
+        expectedVersion: Long,
     ): DocumentNode {
         val tenantId = currentTenantId()
         val folder = requireFolder(folderId, tenantId, null)
+        if (folder.version != expectedVersion) {
+            throw OptimisticLockException("Folder ${folderId.value} was modified by another transaction")
+        }
         val descendants = loadDescendants(folder, tenantId)
 
         val updatedRoot = folder.markArchived(archived).copy(updatedBy = updatedBy)
-        documentNodeRepository.save(updatedRoot)
+        val persistedRoot = documentNodeRepository.save(updatedRoot)
 
         descendants.forEach { node ->
             val updated = node.markArchived(archived).copy(updatedBy = updatedBy)
@@ -149,13 +162,19 @@ class FolderService(
         }
 
         logger.debug("${if (archived) "Archived" else "Unarchived"} folder $folderId and ${descendants.size} descendants")
-        return updatedRoot
+        return persistedRoot
     }
 
-    fun deleteFolder(folderId: DocumentNodeId) {
+    fun deleteFolder(folderId: DocumentNodeId, expectedVersion: Long) {
         val tenantId = currentTenantId()
         val folder = requireFolder(folderId, tenantId, null)
-        documentNodeRepository.deleteById(folder.id)
+        if (folder.version != expectedVersion) {
+            throw OptimisticLockException("Folder ${folderId.value} was modified by another transaction")
+        }
+        val deleted = documentNodeRepository.deleteById(folder.id, expectedVersion)
+        if (!deleted) {
+            throw OptimisticLockException("Folder ${folderId.value} was modified by another transaction")
+        }
         logger.debug("Deleted folder $folderId (cascade deletes applied)")
     }
 

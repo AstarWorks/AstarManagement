@@ -251,3 +251,13 @@ tasks.jacocoTestCoverageVerification {
         }
     }
 }
+
+openApi {
+    apiDocsUrl.set("http://localhost:8080/v3/api-docs")
+    outputFileName.set("openapi.json")
+    outputDir.set(layout.projectDirectory)
+    customBootRun {
+        args.set(listOf("--spring.profiles.active=local"))
+        environment.set(mapOf("APP_FEATURES_EDITOR_ENABLED" to "true"))
+    }
+}

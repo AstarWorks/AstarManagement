@@ -46,7 +46,8 @@ class DocumentMetadataMapper(
             lastViewedAt = rs.getTimestamp("last_viewed_at")?.toInstant(),
             lastIndexedAt = rs.getTimestamp("last_indexed_at")?.toInstant(),
             createdAt = createdAt,
-            updatedAt = updatedAt
+            updatedAt = updatedAt,
+            version = rs.getLong("version"),
         )
     }
 

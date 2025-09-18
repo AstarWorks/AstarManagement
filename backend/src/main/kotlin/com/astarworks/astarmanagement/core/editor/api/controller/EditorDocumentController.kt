@@ -13,6 +13,7 @@ import com.astarworks.astarmanagement.core.editor.domain.service.DocumentService
 import com.astarworks.astarmanagement.shared.domain.value.DocumentNodeId
 import com.astarworks.astarmanagement.shared.domain.value.UserId
 import com.astarworks.astarmanagement.shared.domain.value.WorkspaceId
+import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import java.util.UUID
 import kotlinx.serialization.json.JsonObject
@@ -27,12 +28,17 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api/v1/editor/documents")
 @ConditionalOnProperty(prefix = "app.features.editor", name = ["enabled"], havingValue = "true")
 @PreAuthorize("isAuthenticated()")
+@Tag(
+    name = "Editor Documents",
+    description = "Document CRUD and revision endpoints for the editor module"
+)
 class EditorDocumentController(
     private val documentService: DocumentService,
     private val dtoMapper: EditorDtoMapper,
@@ -82,6 +88,8 @@ class EditorDocumentController(
         val aggregate = documentService.updateDocument(
             documentId = DocumentNodeId(documentId),
             authorId = UserId(principal.userId),
+            nodeVersion = request.nodeVersion,
+            metadataVersion = request.metadataVersion,
             title = request.title,
             summary = request.summary,
             content = request.content,
@@ -124,10 +132,11 @@ class EditorDocumentController(
     @PreAuthorize("hasPermissionRule('document.delete.all')")
     fun deleteDocument(
         @PathVariable documentId: UUID,
+        @RequestParam version: Long,
     ): EditorApiResponse<DocumentDeletionResponse> {
         logger.info("Deleting document {}", documentId)
 
-        documentService.deleteDocument(DocumentNodeId(documentId))
+        documentService.deleteDocument(DocumentNodeId(documentId), version)
         val response = DocumentDeletionResponse(deleted = true)
         return EditorApiResponse(success = true, data = response)
     }

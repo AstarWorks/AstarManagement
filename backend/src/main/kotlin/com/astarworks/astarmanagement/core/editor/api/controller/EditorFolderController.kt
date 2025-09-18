@@ -14,6 +14,7 @@ import com.astarworks.astarmanagement.core.editor.domain.service.FolderService
 import com.astarworks.astarmanagement.shared.domain.value.DocumentNodeId
 import com.astarworks.astarmanagement.shared.domain.value.UserId
 import com.astarworks.astarmanagement.shared.domain.value.WorkspaceId
+import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import java.util.UUID
 import org.slf4j.LoggerFactory
@@ -34,6 +35,10 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/v1/editor/folders")
 @ConditionalOnProperty(prefix = "app.features.editor", name = ["enabled"], havingValue = "true")
 @PreAuthorize("isAuthenticated()")
+@Tag(
+    name = "Editor Folders",
+    description = "Folder and hierarchy management for the document editor module"
+)
 class EditorFolderController(
     private val folderService: FolderService,
     private val dtoMapper: EditorDtoMapper,
@@ -74,6 +79,7 @@ class EditorFolderController(
             folderId = DocumentNodeId(folderId),
             newTitle = request.title,
             updatedBy = UserId(principal.userId),
+            expectedVersion = request.version,
         )
 
         val response = FolderResponse(node = dtoMapper.toNodeResponse(updated))
@@ -93,6 +99,7 @@ class EditorFolderController(
             folderId = DocumentNodeId(folderId),
             targetParentId = request.targetParentId?.let(::DocumentNodeId),
             updatedBy = UserId(principal.userId),
+            expectedVersion = request.version,
             newPosition = request.position,
         )
 
@@ -113,6 +120,7 @@ class EditorFolderController(
             folderId = DocumentNodeId(folderId),
             archived = request.archived,
             updatedBy = UserId(principal.userId),
+            expectedVersion = request.version,
         )
 
         val response = FolderResponse(node = dtoMapper.toNodeResponse(updated))
@@ -123,10 +131,11 @@ class EditorFolderController(
     @PreAuthorize("hasPermissionRule('directory.delete.all')")
     fun deleteFolder(
         @PathVariable folderId: UUID,
+        @RequestParam version: Long,
     ): EditorApiResponse<Unit> {
         logger.info("Deleting folder {}", folderId)
 
-        folderService.deleteFolder(DocumentNodeId(folderId))
+        folderService.deleteFolder(DocumentNodeId(folderId), version)
         return EditorApiResponse(success = true)
     }
 

@@ -10,7 +10,7 @@
   },
   "servers": [
     {
-      "url": "http://localhost:8080",
+      "url": "http://local",
       "description": "Generated server url"
     }
   ],
@@ -29,12 +29,16 @@
       "description": "Manage tables in the flexible table system"
     },
     {
+      "name": "Editor Documents",
+      "description": "Document CRUD and revision endpoints for the editor module"
+    },
+    {
       "name": "Workspaces",
       "description": "Manage workspaces in the flexible table system"
     },
     {
-      "name": "Property Type Catalog",
-      "description": "Manage property types for flexible tables"
+      "name": "Editor Folders",
+      "description": "Folder and hierarchy management for the document editor module"
     },
     {
       "name": "Records",
@@ -265,7 +269,7 @@
           "Users"
         ],
         "summary": "Get current user information",
-        "description": "Retrieves the authenticated user's details including profile",
+        "description": "Retrieves the authenticated user\u0027s details including profile",
         "operationId": "getCurrentUser",
         "responses": {
           "200": {
@@ -305,7 +309,7 @@
           "Users"
         ],
         "summary": "Update current user information",
-        "description": "Updates the authenticated user's information",
+        "description": "Updates the authenticated user\u0027s information",
         "operationId": "updateCurrentUser",
         "requestBody": {
           "content": {
@@ -377,7 +381,7 @@
           "Users"
         ],
         "summary": "Get current user profile",
-        "description": "Retrieves the authenticated user's profile information",
+        "description": "Retrieves the authenticated user\u0027s profile information",
         "operationId": "getCurrentUserProfile",
         "responses": {
           "200": {
@@ -417,7 +421,7 @@
           "Users"
         ],
         "summary": "Update current user profile",
-        "description": "Updates or creates the authenticated user's profile information",
+        "description": "Updates or creates the authenticated user\u0027s profile information",
         "operationId": "updateCurrentUserProfile",
         "requestBody": {
           "content": {
@@ -2021,6 +2025,105 @@
         }
       }
     },
+    "/api/v1/editor/documents/{documentId}": {
+      "get": {
+        "tags": [
+          "Editor Documents"
+        ],
+        "operationId": "getDocument",
+        "parameters": [
+          {
+            "name": "documentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EditorApiResponseDocumentResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Editor Documents"
+        ],
+        "operationId": "updateDocument",
+        "parameters": [
+          {
+            "name": "documentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EditorApiResponseDocumentResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Editor Documents"
+        ],
+        "operationId": "deleteDocument",
+        "parameters": [
+          {
+            "name": "documentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EditorApiResponseDocumentDeletionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/workspaces": {
       "get": {
         "tags": [
@@ -3286,7 +3389,7 @@
             "schema": {
               "type": "integer",
               "format": "int32",
-              "default": 0
+              "default": 0.0
             }
           },
           {
@@ -3297,7 +3400,7 @@
             "schema": {
               "type": "integer",
               "format": "int32",
-              "default": 20
+              "default": 20.0
             }
           }
         ],
@@ -3437,163 +3540,48 @@
         }
       }
     },
-    "/api/v1/property-types/{typeId}/deactivate": {
-      "post": {
-        "tags": [
-          "Property Type Catalog"
-        ],
-        "summary": "Deactivate property type",
-        "description": "Deactivates an active property type",
-        "operationId": "deactivatePropertyType",
-        "parameters": [
-          {
-            "name": "typeId",
-            "in": "path",
-            "description": "Property type ID",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Property type deactivated successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PropertyTypeCatalogDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PropertyTypeCatalogDto"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden - insufficient permissions or cannot deactivate system type",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PropertyTypeCatalogDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Property type not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PropertyTypeCatalogDto"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/property-types/{typeId}/activate": {
-      "post": {
-        "tags": [
-          "Property Type Catalog"
-        ],
-        "summary": "Activate property type",
-        "description": "Activates a deactivated property type",
-        "operationId": "activatePropertyType",
-        "parameters": [
-          {
-            "name": "typeId",
-            "in": "path",
-            "description": "Property type ID",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Property type activated successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PropertyTypeCatalogDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PropertyTypeCatalogDto"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden - insufficient permissions",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PropertyTypeCatalogDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Property type not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PropertyTypeCatalogDto"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/property-types/custom": {
+    "/api/v1/editor/folders": {
       "get": {
         "tags": [
-          "Property Type Catalog"
+          "Editor Folders"
         ],
-        "summary": "Get custom property types",
-        "description": "Retrieves only user-defined custom property types",
-        "operationId": "getCustomPropertyTypes",
-        "responses": {
-          "200": {
-            "description": "Successfully retrieved custom types",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/PropertyTypeCatalogDto"
-                  }
-                }
-              }
+        "operationId": "listNodes",
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
             }
           },
-          "401": {
-            "description": "Unauthorized",
+          {
+            "name": "parentId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "includeArchived",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/PropertyTypeCatalogDto"
-                  }
+                  "$ref": "#/components/schemas/EditorApiResponseFolderChildrenResponse"
                 }
               }
             }
@@ -3602,68 +3590,56 @@
       },
       "post": {
         "tags": [
-          "Property Type Catalog"
+          "Editor Folders"
         ],
-        "summary": "Create custom property type",
-        "description": "Creates a new user-defined property type",
-        "operationId": "createCustomPropertyType",
+        "operationId": "createFolder",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CustomPropertyTypeRequest"
+                "$ref": "#/components/schemas/FolderCreateRequest"
               }
             }
           },
           "required": true
         },
         "responses": {
-          "201": {
-            "description": "Property type created successfully",
+          "200": {
+            "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PropertyTypeCatalogDto"
+                  "$ref": "#/components/schemas/EditorApiResponseFolderResponse"
                 }
               }
             }
-          },
-          "400": {
-            "description": "Invalid request data",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PropertyTypeCatalogDto"
-                }
+          }
+        }
+      }
+    },
+    "/api/v1/editor/documents": {
+      "post": {
+        "tags": [
+          "Editor Documents"
+        ],
+        "operationId": "createDocument",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentCreateRequest"
               }
             }
           },
-          "401": {
-            "description": "Unauthorized",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PropertyTypeCatalogDto"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden - insufficient permissions",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PropertyTypeCatalogDto"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Property type already exists",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PropertyTypeCatalogDto"
+                  "$ref": "#/components/schemas/EditorApiResponseDocumentResponse"
                 }
               }
             }
@@ -3721,58 +3697,20 @@
         }
       }
     },
-    "/api/v1/property-types/custom/{typeId}": {
-      "delete": {
-        "tags": [
-          "Property Type Catalog"
-        ],
-        "summary": "Delete custom property type",
-        "description": "Permanently deletes a custom property type",
-        "operationId": "deleteCustomPropertyType",
-        "parameters": [
-          {
-            "name": "typeId",
-            "in": "path",
-            "description": "Property type ID",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Property type deleted successfully"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden - cannot delete system types"
-          },
-          "404": {
-            "description": "Property type not found"
-          },
-          "409": {
-            "description": "Property type is in use"
-          }
-        }
-      },
+    "/api/v1/editor/folders/{folderId}/rename": {
       "patch": {
         "tags": [
-          "Property Type Catalog"
+          "Editor Folders"
         ],
-        "summary": "Update custom property type",
-        "description": "Updates an existing custom property type",
-        "operationId": "updateCustomPropertyType",
+        "operationId": "renameFolder",
         "parameters": [
           {
-            "name": "typeId",
+            "name": "folderId",
             "in": "path",
-            "description": "Property type ID",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -3780,7 +3718,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/PropertyTypeUpdateRequest"
+                "$ref": "#/components/schemas/FolderRenameRequest"
               }
             }
           },
@@ -3788,51 +3726,93 @@
         },
         "responses": {
           "200": {
-            "description": "Property type updated successfully",
+            "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PropertyTypeCatalogDto"
+                  "$ref": "#/components/schemas/EditorApiResponseFolderResponse"
                 }
               }
             }
-          },
-          "400": {
-            "description": "Invalid request data",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PropertyTypeCatalogDto"
-                }
+          }
+        }
+      }
+    },
+    "/api/v1/editor/folders/{folderId}/move": {
+      "patch": {
+        "tags": [
+          "Editor Folders"
+        ],
+        "operationId": "moveFolder",
+        "parameters": [
+          {
+            "name": "folderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FolderMoveRequest"
               }
             }
           },
-          "401": {
-            "description": "Unauthorized",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PropertyTypeCatalogDto"
+                  "$ref": "#/components/schemas/EditorApiResponseFolderResponse"
                 }
               }
             }
-          },
-          "403": {
-            "description": "Forbidden - cannot modify system types",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PropertyTypeCatalogDto"
-                }
+          }
+        }
+      }
+    },
+    "/api/v1/editor/folders/{folderId}/archive": {
+      "patch": {
+        "tags": [
+          "Editor Folders"
+        ],
+        "operationId": "archiveFolder",
+        "parameters": [
+          {
+            "name": "folderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FolderArchiveRequest"
               }
             }
           },
-          "404": {
-            "description": "Property type not found",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PropertyTypeCatalogDto"
+                  "$ref": "#/components/schemas/EditorApiResponseFolderResponse"
                 }
               }
             }
@@ -3966,7 +3946,7 @@
           "Users"
         ],
         "summary": "Get user by ID",
-        "description": "Retrieves a specific user's information",
+        "description": "Retrieves a specific user\u0027s information",
         "operationId": "getUserById",
         "parameters": [
           {
@@ -4000,7 +3980,7 @@
           "Users"
         ],
         "summary": "Get user profile",
-        "description": "Retrieves a specific user's profile information",
+        "description": "Retrieves a specific user\u0027s profile information",
         "operationId": "getUserProfile",
         "parameters": [
           {
@@ -4340,7 +4320,7 @@
           "Tables"
         ],
         "summary": "Export table",
-        "description": "Exports a table's schema and optionally its data",
+        "description": "Exports a table\u0027s schema and optionally its data",
         "operationId": "exportTable",
         "parameters": [
           {
@@ -4769,7 +4749,7 @@
             "schema": {
               "type": "integer",
               "format": "int32",
-              "default": 0
+              "default": 0.0
             }
           },
           {
@@ -4780,7 +4760,7 @@
             "schema": {
               "type": "integer",
               "format": "int32",
-              "default": 20
+              "default": 20.0
             }
           },
           {
@@ -4874,7 +4854,7 @@
             "schema": {
               "type": "integer",
               "format": "int32",
-              "default": 0
+              "default": 0.0
             }
           },
           {
@@ -4885,7 +4865,7 @@
             "schema": {
               "type": "integer",
               "format": "int32",
-              "default": 20
+              "default": 20.0
             }
           },
           {
@@ -5042,253 +5022,6 @@
         }
       }
     },
-    "/api/v1/property-types": {
-      "get": {
-        "tags": [
-          "Property Type Catalog"
-        ],
-        "summary": "Get all property types",
-        "description": "Retrieves all available property types in the catalog",
-        "operationId": "getAllPropertyTypes",
-        "parameters": [
-          {
-            "name": "activeOnly",
-            "in": "query",
-            "description": "Include only active types",
-            "required": false,
-            "schema": {
-              "type": "boolean",
-              "default": false
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successfully retrieved property types",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PropertyTypeCatalogResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PropertyTypeCatalogResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/property-types/{typeId}": {
-      "get": {
-        "tags": [
-          "Property Type Catalog"
-        ],
-        "summary": "Get property type by ID",
-        "description": "Retrieves a specific property type by its ID",
-        "operationId": "getPropertyTypeById",
-        "parameters": [
-          {
-            "name": "typeId",
-            "in": "path",
-            "description": "Property type ID",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successfully retrieved property type",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PropertyTypeCatalogDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Property type not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PropertyTypeCatalogDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PropertyTypeCatalogDto"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/property-types/summary": {
-      "get": {
-        "tags": [
-          "Property Type Catalog"
-        ],
-        "summary": "Get property type summaries",
-        "description": "Retrieves lightweight property type information for UI dropdowns",
-        "operationId": "getPropertyTypeSummaries",
-        "parameters": [
-          {
-            "name": "activeOnly",
-            "in": "query",
-            "description": "Include only active types",
-            "required": false,
-            "schema": {
-              "type": "boolean",
-              "default": true
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successfully retrieved property type summaries",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/PropertyTypeCatalogDto"
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/PropertyTypeCatalogDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/property-types/category/{category}": {
-      "get": {
-        "tags": [
-          "Property Type Catalog"
-        ],
-        "summary": "Get property types by category",
-        "description": "Retrieves property types filtered by category",
-        "operationId": "getPropertyTypesByCategory",
-        "parameters": [
-          {
-            "name": "category",
-            "in": "path",
-            "description": "Category to filter by (basic, advanced, relation, system)",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successfully retrieved property types",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/PropertyTypeCatalogDto"
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid category",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/PropertyTypeCatalogDto"
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/PropertyTypeCatalogDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/property-types/built-in": {
-      "get": {
-        "tags": [
-          "Property Type Catalog"
-        ],
-        "summary": "Get built-in property types",
-        "description": "Retrieves only system-provided property types",
-        "operationId": "getBuiltInPropertyTypes",
-        "responses": {
-          "200": {
-            "description": "Successfully retrieved built-in types",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/PropertyTypeCatalogDto"
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/PropertyTypeCatalogDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/my-workspaces": {
       "get": {
         "tags": [
@@ -5366,6 +5099,108 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/MyWorkspacesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/editor/folders/{nodeId}/breadcrumb": {
+      "get": {
+        "tags": [
+          "Editor Folders"
+        ],
+        "operationId": "getBreadcrumb",
+        "parameters": [
+          {
+            "name": "nodeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EditorApiResponseFolderBreadcrumbResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/editor/folders/{folderId}/children": {
+      "get": {
+        "tags": [
+          "Editor Folders"
+        ],
+        "operationId": "listFolderChildren",
+        "parameters": [
+          {
+            "name": "folderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "includeArchived",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EditorApiResponseFolderChildrenResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/editor/documents/{documentId}/revisions": {
+      "get": {
+        "tags": [
+          "Editor Documents"
+        ],
+        "operationId": "listRevisions",
+        "parameters": [
+          {
+            "name": "documentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EditorApiResponseDocumentRevisionsResponse"
                 }
               }
             }
@@ -5846,6 +5681,37 @@
           }
         }
       }
+    },
+    "/api/v1/editor/folders/{folderId}": {
+      "delete": {
+        "tags": [
+          "Editor Folders"
+        ],
+        "operationId": "deleteFolder",
+        "parameters": [
+          {
+            "name": "folderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EditorApiResponseUnit"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -5899,13 +5765,13 @@
         "properties": {
           "name": {
             "type": "string",
-            "maxLength": 255,
-            "minLength": 1
+            "maxLength": 255.0,
+            "minLength": 1.0
           },
           "description": {
             "type": "string",
-            "maxLength": 1000,
-            "minLength": 0
+            "maxLength": 1000.0,
+            "minLength": 0.0
           },
           "settings": {
             "type": "object",
@@ -6044,7 +5910,7 @@
           "email": {
             "type": "string",
             "format": "email",
-            "minLength": 1
+            "minLength": 1.0
           }
         },
         "required": [
@@ -6079,13 +5945,13 @@
         "properties": {
           "displayName": {
             "type": "string",
-            "maxLength": 255,
-            "minLength": 0
+            "maxLength": 255.0,
+            "minLength": 0.0
           },
           "avatarUrl": {
             "type": "string",
-            "maxLength": 500,
-            "minLength": 0
+            "maxLength": 500.0,
+            "minLength": 0.0
           }
         }
       },
@@ -6171,8 +6037,8 @@
         "properties": {
           "name": {
             "type": "string",
-            "maxLength": 255,
-            "minLength": 1
+            "maxLength": 255.0,
+            "minLength": 1.0
           }
         },
         "required": [
@@ -6182,12 +6048,6 @@
       "TenantResponse": {
         "type": "object",
         "properties": {
-          "auth0OrgId": {
-            "type": "string"
-          },
-          "active": {
-            "type": "boolean"
-          },
           "id": {
             "type": "string",
             "format": "uuid"
@@ -6198,6 +6058,9 @@
           "name": {
             "type": "string"
           },
+          "auth0OrgId": {
+            "type": "string"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -6205,6 +6068,9 @@
           "updatedAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "active": {
+            "type": "boolean"
           }
         }
       },
@@ -6213,13 +6079,13 @@
         "properties": {
           "name": {
             "type": "string",
-            "maxLength": 255,
-            "minLength": 1
+            "maxLength": 255.0,
+            "minLength": 1.0
           },
           "description": {
             "type": "string",
-            "maxLength": 1000,
-            "minLength": 0
+            "maxLength": 1000.0,
+            "minLength": 0.0
           },
           "propertyOrder": {
             "type": "array",
@@ -6283,17 +6149,30 @@
         "properties": {
           "key": {
             "type": "string",
-            "maxLength": 50,
-            "minLength": 1
+            "maxLength": 50.0,
+            "minLength": 1.0
           },
-          "typeId": {
+          "type": {
             "type": "string",
-            "minLength": 1
+            "enum": [
+              "text",
+              "long_text",
+              "number",
+              "checkbox",
+              "date",
+              "datetime",
+              "select",
+              "multi_select",
+              "email",
+              "url",
+              "file",
+              "relation"
+            ]
           },
           "displayName": {
             "type": "string",
-            "maxLength": 255,
-            "minLength": 1
+            "maxLength": 255.0,
+            "minLength": 1.0
           },
           "config": {
             "type": "object",
@@ -6351,7 +6230,7 @@
         "required": [
           "displayName",
           "key",
-          "typeId"
+          "type"
         ]
       },
       "TableResponse": {
@@ -6520,8 +6399,8 @@
             "items": {
               "type": "string"
             },
-            "maxItems": 2147483647,
-            "minItems": 1
+            "maxItems": 2.147483647E9,
+            "minItems": 1.0
           }
         },
         "required": [
@@ -6928,8 +6807,8 @@
               "type": "string",
               "format": "uuid"
             },
-            "maxItems": 1000,
-            "minItems": 1
+            "maxItems": 1000.0,
+            "minItems": 1.0
           },
           "field": {
             "type": "string"
@@ -7094,18 +6973,317 @@
           "updates"
         ]
       },
+      "DocumentUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 255.0,
+            "minLength": 1.0
+          },
+          "summary": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "contentType": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonElement"
+            },
+            "properties": {
+              "values": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/JsonElement"
+                }
+              },
+              "empty": {
+                "type": "boolean"
+              },
+              "size": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "entries": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "$ref": "#/components/schemas/JsonElement"
+                    },
+                    "key": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "uniqueItems": true
+              },
+              "keys": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "uniqueItems": true
+              }
+            }
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "published": {
+            "type": "boolean"
+          },
+          "favorited": {
+            "type": "boolean"
+          }
+        }
+      },
+      "DocumentMetadataResponse": {
+        "type": "object",
+        "properties": {
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonElement"
+            },
+            "properties": {
+              "values": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/JsonElement"
+                }
+              },
+              "empty": {
+                "type": "boolean"
+              },
+              "size": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "entries": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "$ref": "#/components/schemas/JsonElement"
+                    },
+                    "key": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "uniqueItems": true
+              },
+              "keys": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "uniqueItems": true
+              }
+            }
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "lastViewedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastIndexedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "published": {
+            "type": "boolean"
+          },
+          "favorited": {
+            "type": "boolean"
+          }
+        }
+      },
+      "DocumentResponse": {
+        "type": "object",
+        "properties": {
+          "node": {
+            "$ref": "#/components/schemas/EditorNodeResponse"
+          },
+          "latestRevision": {
+            "$ref": "#/components/schemas/DocumentRevisionResponse"
+          },
+          "metadata": {
+            "$ref": "#/components/schemas/DocumentMetadataResponse"
+          },
+          "revisionCount": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "DocumentRevisionResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revisionNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "titleSnapshot": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "contentType": {
+            "type": "string"
+          },
+          "sizeBytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "checksum": {
+            "type": "string"
+          },
+          "authorId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "EditorApiResponseDocumentResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/DocumentResponse"
+          },
+          "error": {
+            "$ref": "#/components/schemas/EditorErrorResponse"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "EditorErrorResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "details": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "EditorNodeResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "workspaceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "parentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "materializedPath": {
+            "type": "string"
+          },
+          "depth": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "position": {
+            "type": "number",
+            "format": "double"
+          },
+          "createdBy": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "updatedBy": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "archived": {
+            "type": "boolean"
+          }
+        }
+      },
       "WorkspaceCreateRequest": {
         "type": "object",
         "properties": {
           "name": {
             "type": "string",
-            "maxLength": 255,
-            "minLength": 1
+            "maxLength": 255.0,
+            "minLength": 1.0
           },
           "description": {
             "type": "string",
-            "maxLength": 1000,
-            "minLength": 0
+            "maxLength": 1000.0,
+            "minLength": 0.0
           },
           "settings": {
             "type": "object",
@@ -7163,19 +7341,19 @@
         "properties": {
           "slug": {
             "type": "string",
-            "maxLength": 100,
-            "minLength": 3,
+            "maxLength": 100.0,
+            "minLength": 3.0,
             "pattern": "^[a-z0-9-]+$"
           },
           "name": {
             "type": "string",
-            "maxLength": 255,
-            "minLength": 1
+            "maxLength": 255.0,
+            "minLength": 1.0
           },
           "auth0OrgId": {
             "type": "string",
-            "maxLength": 255,
-            "minLength": 0
+            "maxLength": 255.0,
+            "minLength": 0.0
           }
         },
         "required": [
@@ -7192,13 +7370,13 @@
           },
           "name": {
             "type": "string",
-            "maxLength": 255,
-            "minLength": 1
+            "maxLength": 255.0,
+            "minLength": 1.0
           },
           "description": {
             "type": "string",
-            "maxLength": 1000,
-            "minLength": 0
+            "maxLength": 1000.0,
+            "minLength": 0.0
           },
           "properties": {
             "type": "array",
@@ -7415,7 +7593,7 @@
         "properties": {
           "name": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1.0
           },
           "includeRecords": {
             "type": "boolean"
@@ -7759,20 +7937,20 @@
           "operator": {
             "type": "string",
             "enum": [
-              "EQUALS",
-              "NOT_EQUALS",
-              "GREATER_THAN",
-              "GREATER_THAN_OR_EQUAL",
-              "LESS_THAN",
-              "LESS_THAN_OR_EQUAL",
-              "BETWEEN",
-              "IN",
-              "NOT_IN",
-              "CONTAINS",
-              "STARTS_WITH",
-              "ENDS_WITH",
-              "IS_NULL",
-              "IS_NOT_NULL"
+              "eq",
+              "neq",
+              "gt",
+              "gte",
+              "lt",
+              "lte",
+              "between",
+              "in",
+              "not_in",
+              "contains",
+              "starts_with",
+              "ends_with",
+              "is_null",
+              "is_not_null"
             ]
           },
           "value": {
@@ -7799,10 +7977,10 @@
               }
             }
           },
-          "rangeFilter": {
+          "textFilter": {
             "type": "boolean"
           },
-          "textFilter": {
+          "rangeFilter": {
             "type": "boolean"
           }
         }
@@ -7834,7 +8012,7 @@
           "limit": {
             "type": "integer",
             "format": "int32",
-            "maximum": 1000
+            "maximum": 1000.0
           },
           "includeArchived": {
             "type": "boolean"
@@ -7850,8 +8028,8 @@
           "direction": {
             "type": "string",
             "enum": [
-              "ASC",
-              "DESC"
+              "asc",
+              "desc"
             ]
           }
         }
@@ -7960,8 +8138,8 @@
               "type": "string",
               "format": "uuid"
             },
-            "maxItems": 100,
-            "minItems": 1
+            "maxItems": 100.0,
+            "minItems": 1.0
           },
           "targetTableId": {
             "type": "string",
@@ -8025,8 +8203,8 @@
             "items": {
               "$ref": "#/components/schemas/JsonObject"
             },
-            "maxItems": 1000,
-            "minItems": 1
+            "maxItems": 1000.0,
+            "minItems": 1.0
           },
           "batchSize": {
             "type": "integer",
@@ -8041,188 +8219,83 @@
           "tableId"
         ]
       },
-      "PropertyTypeCatalogDto": {
+      "FolderCreateRequest": {
         "type": "object",
         "properties": {
-          "typeId": {
+          "workspaceId": {
             "type": "string",
-            "minLength": 1
+            "format": "uuid"
           },
-          "category": {
-            "type": "string"
+          "title": {
+            "type": "string",
+            "maxLength": 255.0,
+            "minLength": 0.0
           },
-          "uiComponent": {
-            "type": "string"
+          "parentId": {
+            "type": "string",
+            "format": "uuid"
           },
-          "icon": {
-            "type": "string"
-          },
-          "configSchema": {
-            "type": "object",
-            "additionalProperties": {
-              "$ref": "#/components/schemas/JsonElement"
-            },
-            "properties": {
-              "values": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/JsonElement"
-                }
-              },
-              "empty": {
-                "type": "boolean"
-              },
-              "size": {
-                "type": "integer",
-                "format": "int32"
-              },
-              "entries": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "value": {
-                      "$ref": "#/components/schemas/JsonElement"
-                    },
-                    "key": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "uniqueItems": true
-              },
-              "keys": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                },
-                "uniqueItems": true
-              }
-            }
-          },
-          "defaultConfig": {
-            "type": "object",
-            "additionalProperties": {
-              "$ref": "#/components/schemas/JsonElement"
-            },
-            "properties": {
-              "values": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/JsonElement"
-                }
-              },
-              "empty": {
-                "type": "boolean"
-              },
-              "size": {
-                "type": "integer",
-                "format": "int32"
-              },
-              "entries": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "value": {
-                      "$ref": "#/components/schemas/JsonElement"
-                    },
-                    "key": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "uniqueItems": true
-              },
-              "keys": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                },
-                "uniqueItems": true
-              }
-            }
-          },
-          "validationRules": {
-            "type": "object",
-            "additionalProperties": {
-              "$ref": "#/components/schemas/JsonElement"
-            },
-            "properties": {
-              "values": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/JsonElement"
-                }
-              },
-              "empty": {
-                "type": "boolean"
-              },
-              "size": {
-                "type": "integer",
-                "format": "int32"
-              },
-              "entries": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "value": {
-                      "$ref": "#/components/schemas/JsonElement"
-                    },
-                    "key": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "uniqueItems": true
-              },
-              "keys": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                },
-                "uniqueItems": true
-              }
-            }
-          },
-          "description": {
-            "type": "string"
-          },
-          "custom": {
-            "type": "boolean"
-          },
-          "active": {
-            "type": "boolean"
+          "position": {
+            "type": "number",
+            "format": "double"
           }
         },
         "required": [
-          "typeId"
+          "title"
         ]
       },
-      "CustomPropertyTypeRequest": {
+      "EditorApiResponseFolderResponse": {
         "type": "object",
         "properties": {
-          "typeId": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/FolderResponse"
+          },
+          "error": {
+            "$ref": "#/components/schemas/EditorErrorResponse"
+          },
+          "timestamp": {
             "type": "string",
-            "maxLength": 50,
-            "minLength": 3
-          },
-          "category": {
-            "type": "string"
-          },
-          "description": {
+            "format": "date-time"
+          }
+        }
+      },
+      "FolderResponse": {
+        "type": "object",
+        "properties": {
+          "node": {
+            "$ref": "#/components/schemas/EditorNodeResponse"
+          }
+        }
+      },
+      "DocumentCreateRequest": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
             "type": "string",
-            "maxLength": 500,
-            "minLength": 0
+            "format": "uuid"
           },
-          "icon": {
+          "parentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 255.0,
+            "minLength": 1.0
+          },
+          "summary": {
             "type": "string"
           },
-          "uiComponent": {
+          "content": {
             "type": "string"
           },
-          "configSchema": {
+          "contentType": {
+            "type": "string"
+          },
+          "metadata": {
             "type": "object",
             "additionalProperties": {
               "$ref": "#/components/schemas/JsonElement"
@@ -8265,95 +8338,25 @@
               }
             }
           },
-          "defaultConfig": {
-            "type": "object",
-            "additionalProperties": {
-              "$ref": "#/components/schemas/JsonElement"
-            },
-            "properties": {
-              "values": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/JsonElement"
-                }
-              },
-              "empty": {
-                "type": "boolean"
-              },
-              "size": {
-                "type": "integer",
-                "format": "int32"
-              },
-              "entries": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "value": {
-                      "$ref": "#/components/schemas/JsonElement"
-                    },
-                    "key": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "uniqueItems": true
-              },
-              "keys": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                },
-                "uniqueItems": true
-              }
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
             }
           },
-          "validationRules": {
-            "type": "object",
-            "additionalProperties": {
-              "$ref": "#/components/schemas/JsonElement"
-            },
-            "properties": {
-              "values": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/JsonElement"
-                }
-              },
-              "empty": {
-                "type": "boolean"
-              },
-              "size": {
-                "type": "integer",
-                "format": "int32"
-              },
-              "entries": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "value": {
-                      "$ref": "#/components/schemas/JsonElement"
-                    },
-                    "key": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "uniqueItems": true
-              },
-              "keys": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                },
-                "uniqueItems": true
-              }
-            }
+          "position": {
+            "type": "number",
+            "format": "double"
+          },
+          "published": {
+            "type": "boolean"
+          },
+          "favorited": {
+            "type": "boolean"
           }
         },
         "required": [
-          "typeId"
+          "title"
         ]
       },
       "SetupRequest": {
@@ -8487,145 +8490,36 @@
           }
         }
       },
-      "PropertyTypeUpdateRequest": {
+      "FolderRenameRequest": {
         "type": "object",
         "properties": {
-          "description": {
-            "type": "string"
+          "title": {
+            "type": "string",
+            "maxLength": 255.0,
+            "minLength": 0.0
+          }
+        },
+        "required": [
+          "title"
+        ]
+      },
+      "FolderMoveRequest": {
+        "type": "object",
+        "properties": {
+          "targetParentId": {
+            "type": "string",
+            "format": "uuid"
           },
-          "icon": {
-            "type": "string"
-          },
-          "configSchema": {
-            "type": "object",
-            "additionalProperties": {
-              "$ref": "#/components/schemas/JsonElement"
-            },
-            "properties": {
-              "values": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/JsonElement"
-                }
-              },
-              "empty": {
-                "type": "boolean"
-              },
-              "size": {
-                "type": "integer",
-                "format": "int32"
-              },
-              "entries": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "value": {
-                      "$ref": "#/components/schemas/JsonElement"
-                    },
-                    "key": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "uniqueItems": true
-              },
-              "keys": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                },
-                "uniqueItems": true
-              }
-            }
-          },
-          "defaultConfig": {
-            "type": "object",
-            "additionalProperties": {
-              "$ref": "#/components/schemas/JsonElement"
-            },
-            "properties": {
-              "values": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/JsonElement"
-                }
-              },
-              "empty": {
-                "type": "boolean"
-              },
-              "size": {
-                "type": "integer",
-                "format": "int32"
-              },
-              "entries": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "value": {
-                      "$ref": "#/components/schemas/JsonElement"
-                    },
-                    "key": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "uniqueItems": true
-              },
-              "keys": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                },
-                "uniqueItems": true
-              }
-            }
-          },
-          "validationRules": {
-            "type": "object",
-            "additionalProperties": {
-              "$ref": "#/components/schemas/JsonElement"
-            },
-            "properties": {
-              "values": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/JsonElement"
-                }
-              },
-              "empty": {
-                "type": "boolean"
-              },
-              "size": {
-                "type": "integer",
-                "format": "int32"
-              },
-              "entries": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "value": {
-                      "$ref": "#/components/schemas/JsonElement"
-                    },
-                    "key": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "uniqueItems": true
-              },
-              "keys": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                },
-                "uniqueItems": true
-              }
-            }
-          },
-          "active": {
+          "position": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "FolderArchiveRequest": {
+        "type": "object",
+        "properties": {
+          "archived": {
             "type": "boolean"
           }
         }
@@ -9124,26 +9018,6 @@
           }
         }
       },
-      "PropertyTypeCatalogResponse": {
-        "type": "object",
-        "properties": {
-          "types": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PropertyTypeCatalogDto"
-            }
-          },
-          "categories": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "array",
-              "items": {
-                "$ref": "#/components/schemas/PropertyTypeCatalogDto"
-              }
-            }
-          }
-        }
-      },
       "MyWorkspacesResponse": {
         "type": "object",
         "properties": {
@@ -9185,6 +9059,148 @@
           },
           "active": {
             "type": "boolean"
+          }
+        }
+      },
+      "EditorApiResponseFolderChildrenResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/FolderChildrenResponse"
+          },
+          "error": {
+            "$ref": "#/components/schemas/EditorErrorResponse"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "FolderChildrenResponse": {
+        "type": "object",
+        "properties": {
+          "nodes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EditorNodeResponse"
+            }
+          }
+        }
+      },
+      "EditorApiResponseFolderBreadcrumbResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/FolderBreadcrumbResponse"
+          },
+          "error": {
+            "$ref": "#/components/schemas/EditorErrorResponse"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "EditorBreadcrumbItemResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "materializedPath": {
+            "type": "string"
+          }
+        }
+      },
+      "FolderBreadcrumbResponse": {
+        "type": "object",
+        "properties": {
+          "breadcrumb": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EditorBreadcrumbItemResponse"
+            }
+          }
+        }
+      },
+      "DocumentRevisionSummaryResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revisionNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "titleSnapshot": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "contentType": {
+            "type": "string"
+          },
+          "sizeBytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "checksum": {
+            "type": "string"
+          },
+          "authorId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "DocumentRevisionsResponse": {
+        "type": "object",
+        "properties": {
+          "revisions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DocumentRevisionSummaryResponse"
+            }
+          }
+        }
+      },
+      "EditorApiResponseDocumentRevisionsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/DocumentRevisionsResponse"
+          },
+          "error": {
+            "$ref": "#/components/schemas/EditorErrorResponse"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -9550,10 +9566,6 @@
       "AuthenticatedContextDto": {
         "type": "object",
         "properties": {
-          "isActive": {
-            "type": "boolean",
-            "writeOnly": true
-          },
           "auth0Sub": {
             "type": "string"
           },
@@ -9647,8 +9659,8 @@
               "type": "string",
               "format": "uuid"
             },
-            "maxItems": 1000,
-            "minItems": 1
+            "maxItems": 1000.0,
+            "minItems": 1.0
           },
           "batchSize": {
             "type": "integer",
@@ -9658,6 +9670,47 @@
         "required": [
           "recordIds"
         ]
+      },
+      "EditorApiResponseUnit": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "error": {
+            "$ref": "#/components/schemas/EditorErrorResponse"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "DocumentDeletionResponse": {
+        "type": "object",
+        "properties": {
+          "deleted": {
+            "type": "boolean"
+          }
+        }
+      },
+      "EditorApiResponseDocumentDeletionResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/DocumentDeletionResponse"
+          },
+          "error": {
+            "$ref": "#/components/schemas/EditorErrorResponse"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
       }
     },
     "securitySchemes": {

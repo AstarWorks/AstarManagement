@@ -10,6 +10,9 @@ _Last updated: 2025-09-17 (session by Codex agent)._ Keep expanding this file wh
   - Role/permission model with dynamic roles, resource groups, and fine-grained permission rules that map onto Spring Security authorities.
 
 ## Recent Updates (2025-09-17)
+- M1-T8 完了: エディタモジュール向け README を `docs/backend/features/editor/` に追加し、`app.features.editor.enabled` トグルの利用方法（`local` プロファイル既定有効 / 環境変数での上書き）を整理。`docs/backend/README.md` を更新して機能一覧へ編入。
+- M1-T9 進行中: OpenAPI 生成設定を `build.gradle.kts` の `openApi` ブロックに追加し、`generateOpenApiDocs` で editor フィーチャが常時有効になるように調整。コントローラへ `@Tag` を付与し、バックエンドドキュメントに OpenAPI 更新手順とフロント型再生成コマンドを追記。
+- M1-T10 着手: `DocumentNode` / `DocumentMetadata` に `version` を追加し、更新・削除をバージョンチェック付きにリファクタ。API DTO へ `nodeVersion` / `metadataVersion` を追加し、409 `EDITOR_CONFLICT` を返すハンドラと競合検知テスト（フォルダ・ドキュメント）を実装。
 - M1-T7 完了: `EditorControllerIntegrationTest` を整備し、MockMvc でフォルダ/ドキュメント CRUD・パンくず・リビジョン・削除後 404 まで検証。テスト専用の `EditorSecurityTestConfig` で JWT 変換/Authorization をスタブ化しつつ、`TenantContextService` を各リクエスト前に明示セットして RLS コンテキストを再現。`./gradlew test`（ローカル実行）でグリーン確認済み。
 - M1-T6 完了: エディタのフォルダ/ドキュメント REST コントローラ、DTO、例外ハンドラを実装。機能トグル配下で `success/data/error/timestamp` エンベロープを返すよう統一。
 - M1-T5 完了: `DocumentService` を実装し、プレーンテキスト CRUD + リビジョン管理に対応。`DocumentAggregate` でノード/最新リビジョン/メタデータをまとめて返却。

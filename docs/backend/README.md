@@ -67,9 +67,9 @@ backend/
 5. **[ユーザー管理](./features/user/)**: ユーザーCRUD
 6. **[メンバーシップ](./features/membership/)**: ワークスペースメンバー管理
 7. **[テンプレート](./features/template/)**: 業界別テンプレート
+8. **[ドキュメント管理](./features/editor/)**: 階層型フォルダ + ドキュメント CRUD（M1: 平文版）
 
 ### 計画中の機能
-- **ドキュメント管理**: Markdown階層型ドキュメント
 - **AIエージェント**: MCP統合によるAI操作
 
 ## 開発規約
@@ -128,6 +128,9 @@ class FlexibleTableController { ... }
 
 # 起動
 ./gradlew bootRun
+
+# OpenAPI（ローカル環境で最新化）
+./gradlew generateOpenApiDocs
 
 # Docker起動
 docker-compose up -d

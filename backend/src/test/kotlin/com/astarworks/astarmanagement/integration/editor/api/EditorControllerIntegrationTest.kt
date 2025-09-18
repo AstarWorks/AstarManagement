@@ -11,6 +11,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.int
+import kotlinx.serialization.json.long
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -53,6 +54,9 @@ class EditorControllerIntegrationTest : IntegrationTestBase() {
     private lateinit var auth0OrgId: String
     private lateinit var jwtToken: String
 
+    private data class NodeInfo(val id: UUID, val version: Long)
+    private data class DocumentInfo(val id: UUID, val nodeVersion: Long, val metadataVersion: Long?)
+
     @BeforeEach
     fun setUp() {
         cleanupDatabase()
@@ -88,7 +92,7 @@ class EditorControllerIntegrationTest : IntegrationTestBase() {
 
     @Test
     fun `should create folder and list children`() {
-        val rootFolderId = createFolder("Main Folder")
+        val rootFolder = createFolder("Main Folder")
 
         val listJson = performJson(
             get("/api/v1/editor/folders")
@@ -101,23 +105,24 @@ class EditorControllerIntegrationTest : IntegrationTestBase() {
         assertEquals(1, nodes.size)
         val firstNode = nodes.first().jsonObject
         assertEquals("Main Folder", firstNode.getValue("title").jsonPrimitive.content)
-        assertEquals(rootFolderId.toString(), firstNode.getValue("id").jsonPrimitive.content)
+        assertEquals(rootFolder.id.toString(), firstNode.getValue("id").jsonPrimitive.content)
     }
 
     @Test
     fun `should rename folder and return breadcrumb`() {
-        val parentId = createFolder("Projects")
-        val childId = createFolder("Kickoff", parentId)
+        val parent = createFolder("Projects")
+        var child = createFolder("Kickoff", parent.id)
 
         val renameJson = performJson(
-            patch("/api/v1/editor/folders/{folderId}/rename", childId)
+            patch("/api/v1/editor/folders/{folderId}/rename", child.id)
                 .header("Authorization", "Bearer $jwtToken")
                 .header("X-Tenant-Id", tenantId.toString())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """
                     {
-                      "title": "Kickoff Plan"
+                      "title": "Kickoff Plan",
+                      "version": ${child.version}
                     }
                     """.trimIndent()
                 )
@@ -125,9 +130,10 @@ class EditorControllerIntegrationTest : IntegrationTestBase() {
 
         assertEquals("Kickoff Plan", renameJson.getValue("title").jsonPrimitive.content)
         assertEquals("kickoff-plan", renameJson.getValue("slug").jsonPrimitive.content)
+        child = child.copy(version = renameJson.getValue("version").jsonPrimitive.long)
 
         val breadcrumb = performJson(
-            get("/api/v1/editor/folders/{nodeId}/breadcrumb", childId)
+            get("/api/v1/editor/folders/{nodeId}/breadcrumb", child.id)
                 .header("Authorization", "Bearer $jwtToken")
                 .header("X-Tenant-Id", tenantId.toString())
         ).getValue("data").jsonObject.getValue("breadcrumb").jsonArray
@@ -137,18 +143,57 @@ class EditorControllerIntegrationTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `should create update and retrieve document`() {
-        val folderId = createFolder("Docs")
+    fun `should reject folder rename with stale version`() {
+        var folder = createFolder("Stale Folder")
 
-        val documentId = createDocument(
-            parentId = folderId,
+        val firstRename = performJson(
+            patch("/api/v1/editor/folders/{folderId}/rename", folder.id)
+                .header("Authorization", "Bearer $jwtToken")
+                .header("X-Tenant-Id", tenantId.toString())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {
+                      "title": "Stale Folder Renamed",
+                      "version": ${folder.version}
+                    }
+                    """.trimIndent()
+                )
+        ).getValue("data").jsonObject.getValue("node").jsonObject
+
+        folder = folder.copy(version = firstRename.getValue("version").jsonPrimitive.long)
+
+        val conflictResponse = perform(
+            patch("/api/v1/editor/folders/{folderId}/rename", folder.id)
+                .header("Authorization", "Bearer $jwtToken")
+                .header("X-Tenant-Id", tenantId.toString())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {
+                      "title": "Another Name",
+                      "version": 0
+                    }
+                    """.trimIndent()
+                ),
+            expectedStatus = 409
+        )
+        assertEquals(409, conflictResponse.status)
+    }
+
+    @Test
+    fun `should create update and retrieve document`() {
+        val folder = createFolder("Docs")
+
+        var document = createDocument(
+            parentId = folder.id,
             title = "Meeting Notes",
             summary = "Sprint planning",
             content = "Initial draft"
         )
 
         val documentJson = performJson(
-            get("/api/v1/editor/documents/{id}", documentId)
+            get("/api/v1/editor/documents/{id}", document.id)
                 .header("Authorization", "Bearer $jwtToken")
                 .header("X-Tenant-Id", tenantId.toString())
         )
@@ -165,13 +210,15 @@ class EditorControllerIntegrationTest : IntegrationTestBase() {
         )
 
         val updateJson = performJson(
-            put("/api/v1/editor/documents/{id}", documentId)
+            put("/api/v1/editor/documents/{id}", document.id)
                 .header("Authorization", "Bearer $jwtToken")
                 .header("X-Tenant-Id", tenantId.toString())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """
                     {
+                      "nodeVersion": ${document.nodeVersion},
+                      "metadataVersion": ${document.metadataVersion ?: 0},
                       "title": "Meeting Notes Updated",
                       "summary": "Sprint planning recap",
                       "content": "Updated content"
@@ -193,9 +240,15 @@ class EditorControllerIntegrationTest : IntegrationTestBase() {
             "Updated content",
             updateData.getValue("latestRevision").jsonObject.getValue("content").jsonPrimitive.content
         )
+        val updatedNode = updateData.getValue("node").jsonObject
+        val updatedMetadata = updateData.getValue("metadata").jsonObject
+        document = document.copy(
+            nodeVersion = updatedNode.getValue("version").jsonPrimitive.long,
+            metadataVersion = updatedMetadata.getValue("version").jsonPrimitive.long
+        )
 
         val revisionsJson = performJson(
-            get("/api/v1/editor/documents/{id}/revisions", documentId)
+            get("/api/v1/editor/documents/{id}/revisions", document.id)
                 .header("Authorization", "Bearer $jwtToken")
                 .header("X-Tenant-Id", tenantId.toString())
         )
@@ -206,8 +259,59 @@ class EditorControllerIntegrationTest : IntegrationTestBase() {
     }
 
     @Test
+    fun `should reject document update with stale version`() {
+        val document = createDocument(
+            parentId = null,
+            title = "Conflict Doc",
+            summary = null,
+            content = "initial"
+        )
+
+        val firstUpdate = performJson(
+            put("/api/v1/editor/documents/{id}", document.id)
+                .header("Authorization", "Bearer $jwtToken")
+                .header("X-Tenant-Id", tenantId.toString())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {
+                      "nodeVersion": ${document.nodeVersion},
+                      "metadataVersion": ${document.metadataVersion ?: 0},
+                      "content": "first revision"
+                    }
+                    """.trimIndent()
+                )
+        ).getValue("data").jsonObject
+
+        val updatedNodeVersion = firstUpdate.getValue("node").jsonObject.getValue("version").jsonPrimitive.long
+        val updatedMetadataVersion = firstUpdate.getValue("metadata").jsonObject.getValue("version").jsonPrimitive.long
+
+        val conflictResponse = perform(
+            put("/api/v1/editor/documents/{id}", document.id)
+                .header("Authorization", "Bearer $jwtToken")
+                .header("X-Tenant-Id", tenantId.toString())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {
+                      "nodeVersion": ${document.nodeVersion},
+                      "metadataVersion": ${document.metadataVersion ?: 0},
+                      "title": "Conflict Attempt"
+                    }
+                    """.trimIndent()
+                ),
+            expectedStatus = 409
+        )
+        assertEquals(409, conflictResponse.status)
+
+        // Ensure current versions remain the ones returned by the successful update
+        assertEquals(updatedNodeVersion, justFetchNodeVersion(document.id))
+        assertEquals(updatedMetadataVersion, justFetchMetadataVersion(document.id))
+    }
+
+    @Test
     fun `should delete document`() {
-        val docId = createDocument(
+        val document = createDocument(
             parentId = null,
             title = "Temp Doc",
             summary = null,
@@ -215,21 +319,22 @@ class EditorControllerIntegrationTest : IntegrationTestBase() {
         )
 
         val deleteJson = performJson(
-            delete("/api/v1/editor/documents/{id}", docId)
+            delete("/api/v1/editor/documents/{id}", document.id)
                 .header("Authorization", "Bearer $jwtToken")
                 .header("X-Tenant-Id", tenantId.toString())
+                .param("version", document.nodeVersion.toString())
         )
 
         assertEquals(true, deleteJson.getValue("data").jsonObject.getValue("deleted").jsonPrimitive.boolean)
 
         val deletedResponse = perform(
-            get("/api/v1/editor/documents/{id}", docId)
+            get("/api/v1/editor/documents/{id}", document.id)
                 .header("Authorization", "Bearer $jwtToken")
                 .header("X-Tenant-Id", tenantId.toString())
         , expectedStatus = 404)
     }
 
-    private fun createFolder(title: String, parentId: UUID? = null): UUID {
+    private fun createFolder(title: String, parentId: UUID? = null): NodeInfo {
         tenantContextService.setTenantContext(tenantId)
         val payload = buildString {
             append("{")
@@ -250,7 +355,9 @@ class EditorControllerIntegrationTest : IntegrationTestBase() {
         )
 
         val node = content.getValue("data").jsonObject.getValue("node").jsonObject
-        return UUID.fromString(node.getValue("id").jsonPrimitive.content)
+        val id = UUID.fromString(node.getValue("id").jsonPrimitive.content)
+        val version = node.getValue("version").jsonPrimitive.long
+        return NodeInfo(id, version)
     }
 
     private fun createDocument(
@@ -258,7 +365,7 @@ class EditorControllerIntegrationTest : IntegrationTestBase() {
         title: String,
         summary: String?,
         content: String
-    ): UUID {
+    ): DocumentInfo {
         tenantContextService.setTenantContext(tenantId)
         val payloadBuilder = StringBuilder()
         payloadBuilder.append("{")
@@ -280,7 +387,34 @@ class EditorControllerIntegrationTest : IntegrationTestBase() {
         )
 
         val node = contentJson.getValue("data").jsonObject.getValue("node").jsonObject
-        return UUID.fromString(node.getValue("id").jsonPrimitive.content)
+        val id = UUID.fromString(node.getValue("id").jsonPrimitive.content)
+        val nodeVersion = node.getValue("version").jsonPrimitive.long
+        val metadataVersion = contentJson.getValue("data").jsonObject
+            .getValue("metadata").jsonObject
+            .getValue("version").jsonPrimitive.long
+        return DocumentInfo(id, nodeVersion, metadataVersion)
+    }
+
+    private fun justFetchNodeVersion(documentId: UUID): Long {
+        val payload = performJson(
+            get("/api/v1/editor/documents/{id}", documentId)
+                .header("Authorization", "Bearer $jwtToken")
+                .header("X-Tenant-Id", tenantId.toString())
+        )
+        return payload.getValue("data").jsonObject
+            .getValue("node").jsonObject
+            .getValue("version").jsonPrimitive.long
+    }
+
+    private fun justFetchMetadataVersion(documentId: UUID): Long {
+        val payload = performJson(
+            get("/api/v1/editor/documents/{id}", documentId)
+                .header("Authorization", "Bearer $jwtToken")
+                .header("X-Tenant-Id", tenantId.toString())
+        )
+        return payload.getValue("data").jsonObject
+            .getValue("metadata").jsonObject
+            .getValue("version").jsonPrimitive.long
     }
 
     private fun seedTenantUserAndWorkspace() {
@@ -340,7 +474,14 @@ class EditorControllerIntegrationTest : IntegrationTestBase() {
     private fun performJson(builder: RequestBuilder, expectedStatus: Int = 200): JsonObject {
         val response = perform(builder, expectedStatus)
         val content = response.contentAsString
+        require(content.isNotBlank()) { "Expected JSON body but response was empty" }
         return json.decodeFromString(JsonObject.serializer(), content)
+    }
+
+    private fun performJsonAllowingEmpty(builder: RequestBuilder, expectedStatus: Int = 200): JsonObject? {
+        val response = perform(builder, expectedStatus)
+        val content = response.contentAsString
+        return if (content.isBlank()) null else json.decodeFromString(JsonObject.serializer(), content)
     }
 
     private fun perform(builder: RequestBuilder, expectedStatus: Int = 200): MockHttpServletResponse {

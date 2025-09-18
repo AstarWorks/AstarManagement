@@ -8,6 +8,7 @@ import com.astarworks.astarmanagement.shared.domain.value.TenantId
 import com.astarworks.astarmanagement.shared.domain.value.WorkspaceId
 import java.sql.Timestamp
 import java.sql.Array as SqlArray
+import com.astarworks.astarmanagement.shared.exception.OptimisticLockException
 import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.RowMapper
@@ -117,7 +118,7 @@ class DocumentMetadataRepositoryImpl(
                 last_indexed_at = ?,
                 updated_at = ?,
                 version = version + 1
-            WHERE document_id = ?
+            WHERE document_id = ? AND version = ?
             RETURNING *
         """.trimIndent()
 
@@ -130,12 +131,13 @@ class DocumentMetadataRepositoryImpl(
             metadata.lastViewedAt?.let { Timestamp.from(it) },
             metadata.lastIndexedAt?.let { Timestamp.from(it) },
             Timestamp.from(metadata.updatedAt),
-            metadata.documentId.value
+            metadata.documentId.value,
+            metadata.version,
         )
 
         val result = jdbcTemplate.query(sql, rowMapper, *params).firstOrNull()
         tagsArray?.free()
-        return result ?: throw IllegalStateException("Failed to update document metadata ${metadata.documentId}")
+        return result ?: throw OptimisticLockException("Document metadata for ${metadata.documentId.value} was modified by another transaction")
     }
 
     private fun querySingle(sql: String, params: Array<Any?>): DocumentMetadata? {

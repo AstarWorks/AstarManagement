@@ -25,7 +25,8 @@ data class DocumentNode(
     val createdBy: UserId,
     val updatedBy: UserId? = null,
     val createdAt: Instant = Instant.now(),
-    val updatedAt: Instant = Instant.now()
+    val updatedAt: Instant = Instant.now(),
+    val version: Long = 0,
 ) {
 
     init {

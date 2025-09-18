@@ -28,6 +28,7 @@ data class EditorNodeResponse(
     val createdAt: Instant,
     @Contextual
     val updatedAt: Instant,
+    val version: Long,
 )
 
 @Serializable

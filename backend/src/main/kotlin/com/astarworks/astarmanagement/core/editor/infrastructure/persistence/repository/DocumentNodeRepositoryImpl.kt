@@ -7,6 +7,7 @@ import com.astarworks.astarmanagement.shared.domain.value.DocumentNodeId
 import com.astarworks.astarmanagement.shared.domain.value.TenantId
 import com.astarworks.astarmanagement.shared.domain.value.WorkspaceId
 import java.sql.Timestamp
+import com.astarworks.astarmanagement.shared.exception.OptimisticLockException
 import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.RowMapper
@@ -111,9 +112,10 @@ class DocumentNodeRepositoryImpl(
     }
 
     @Transactional
-    override fun deleteById(id: DocumentNodeId) {
-        val sql = "DELETE FROM document_nodes WHERE id = ?"
-        jdbcTemplate.update(sql, id.value)
+    override fun deleteById(id: DocumentNodeId, version: Long): Boolean {
+        val sql = "DELETE FROM document_nodes WHERE id = ? AND version = ?"
+        val rows = jdbcTemplate.update(sql, id.value, version)
+        return rows > 0
     }
 
     private fun insert(node: DocumentNode): DocumentNode {
@@ -157,8 +159,8 @@ class DocumentNodeRepositoryImpl(
             Timestamp.from(node.updatedAt)
         )
 
-        return jdbcTemplate.query(sql, rowMapper, *params).firstOrNull()
-            ?: throw IllegalStateException("Failed to insert document node")
+            return jdbcTemplate.query(sql, rowMapper, *params).firstOrNull()
+                ?: throw IllegalStateException("Failed to insert document node")
     }
 
     private fun update(node: DocumentNode): DocumentNode {
@@ -174,7 +176,7 @@ class DocumentNodeRepositoryImpl(
                 updated_by = ?,
                 updated_at = ?,
                 version = version + 1
-            WHERE id = ?
+            WHERE id = ? AND version = ?
             RETURNING *
         """.trimIndent()
 
@@ -188,11 +190,12 @@ class DocumentNodeRepositoryImpl(
             node.parentId?.value,
             node.updatedBy?.value,
             Timestamp.from(node.updatedAt),
-            node.id.value
+            node.id.value,
+            node.version,
         )
 
         return jdbcTemplate.query(sql, rowMapper, *params).firstOrNull()
-            ?: throw IllegalStateException("Failed to update document node ${node.id}")
+            ?: throw OptimisticLockException("Document node ${node.id.value} was modified by another transaction")
     }
 
     private fun querySingle(sql: String, params: Array<Any?>): DocumentNode? {

@@ -3,6 +3,7 @@ package com.astarworks.astarmanagement.core.editor.api.dto.folder
 import com.astarworks.astarmanagement.core.editor.api.dto.common.EditorBreadcrumbItemResponse
 import com.astarworks.astarmanagement.core.editor.api.dto.common.EditorNodeResponse
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.PositiveOrZero
 import jakarta.validation.constraints.Size
 import java.util.UUID
 import kotlinx.serialization.Contextual
@@ -25,6 +26,8 @@ data class FolderRenameRequest(
     @field:NotBlank
     @field:Size(max = 255)
     val title: String,
+    @field:PositiveOrZero
+    val version: Long,
 )
 
 @Serializable
@@ -32,11 +35,15 @@ data class FolderMoveRequest(
     @Contextual
     val targetParentId: UUID? = null,
     val position: Double? = null,
+    @field:PositiveOrZero
+    val version: Long,
 )
 
 @Serializable
 data class FolderArchiveRequest(
     val archived: Boolean,
+    @field:PositiveOrZero
+    val version: Long,
 )
 
 @Serializable

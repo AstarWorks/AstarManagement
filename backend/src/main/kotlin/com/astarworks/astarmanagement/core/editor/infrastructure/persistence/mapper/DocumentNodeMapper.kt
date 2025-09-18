@@ -32,7 +32,8 @@ class DocumentNodeMapper {
             createdBy = UserId(UUID.fromString(rs.getString("created_by"))),
             updatedBy = updatedBy,
             createdAt = rs.getTimestamp("created_at").toInstant(),
-            updatedAt = rs.getTimestamp("updated_at").toInstant()
+            updatedAt = rs.getTimestamp("updated_at").toInstant(),
+            version = rs.getLong("version"),
         )
     }
 }

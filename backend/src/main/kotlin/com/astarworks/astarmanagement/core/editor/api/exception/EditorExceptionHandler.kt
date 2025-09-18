@@ -5,6 +5,7 @@ import com.astarworks.astarmanagement.core.editor.api.controller.EditorFolderCon
 import com.astarworks.astarmanagement.core.editor.api.dto.EditorApiResponse
 import com.astarworks.astarmanagement.core.editor.api.dto.EditorErrorResponse
 import com.astarworks.astarmanagement.core.workspace.api.exception.WorkspaceException
+import com.astarworks.astarmanagement.shared.exception.OptimisticLockException
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.contentOrNull
 import org.slf4j.LoggerFactory
@@ -57,6 +58,12 @@ class EditorExceptionHandler {
         logger.warn("Workspace error during editor operation", ex)
         val details = ex.details?.mapValues { (_, value) -> value.toReadableString() }
         return buildErrorResponse(HttpStatus.valueOf(ex.httpStatus), ex.errorCode, ex.message, details)
+    }
+
+    @ExceptionHandler(OptimisticLockException::class)
+    fun handleOptimisticLock(ex: OptimisticLockException): ResponseEntity<EditorApiResponse<Unit>> {
+        logger.warn("Optimistic lock conflict", ex)
+        return buildErrorResponse(HttpStatus.CONFLICT, "EDITOR_CONFLICT", ex.message)
     }
 
     private fun buildErrorResponse(

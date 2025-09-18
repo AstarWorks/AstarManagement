@@ -31,6 +31,7 @@ class EditorDtoMapper {
             updatedBy = node.updatedBy?.value,
             createdAt = node.createdAt,
             updatedAt = node.updatedAt,
+            version = node.version,
         )
     }
 
@@ -82,6 +83,7 @@ class EditorDtoMapper {
             lastIndexedAt = metadata.lastIndexedAt,
             createdAt = metadata.createdAt,
             updatedAt = metadata.updatedAt,
+            version = metadata.version,
         )
     }
 

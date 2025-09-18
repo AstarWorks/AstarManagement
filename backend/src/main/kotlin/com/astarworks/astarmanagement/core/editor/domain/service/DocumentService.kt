@@ -16,6 +16,7 @@ import com.astarworks.astarmanagement.core.editor.domain.repository.DocumentRevi
 import com.astarworks.astarmanagement.core.tenant.infrastructure.context.TenantContextService
 import com.astarworks.astarmanagement.core.workspace.api.exception.WorkspaceNotFoundException
 import com.astarworks.astarmanagement.core.workspace.domain.service.WorkspaceService
+import com.astarworks.astarmanagement.shared.exception.OptimisticLockException
 import com.astarworks.astarmanagement.shared.domain.value.DocumentNodeId
 import com.astarworks.astarmanagement.shared.domain.value.TenantId
 import com.astarworks.astarmanagement.shared.domain.value.UserId
@@ -125,6 +126,8 @@ class DocumentService(
     fun updateDocument(
         documentId: DocumentNodeId,
         authorId: UserId,
+        nodeVersion: Long,
+        metadataVersion: Long?,
         title: String? = null,
         summary: String? = null,
         content: String? = null,
@@ -136,6 +139,9 @@ class DocumentService(
     ): DocumentAggregate {
         val tenantId = currentTenantId()
         val existingNode = requireDocument(documentId, tenantId)
+        if (existingNode.version != nodeVersion) {
+            throw OptimisticLockException("Document ${documentId.value} was modified by another transaction")
+        }
         val workspaceId = existingNode.workspaceId
 
         val updatedNode = updateDocumentNode(existingNode, title, authorId, tenantId)
@@ -176,6 +182,7 @@ class DocumentService(
             tags = tags,
             isPublished = isPublished,
             isFavorited = isFavorited,
+            expectedVersion = metadataVersion,
         )
 
         logger.debug(
@@ -209,10 +216,16 @@ class DocumentService(
         return documentRevisionRepository.findByDocumentId(documentId)
     }
 
-    fun deleteDocument(documentId: DocumentNodeId) {
+    fun deleteDocument(documentId: DocumentNodeId, expectedVersion: Long) {
         val tenantId = currentTenantId()
         val node = requireDocument(documentId, tenantId)
-        documentNodeRepository.deleteById(node.id)
+        if (node.version != expectedVersion) {
+            throw OptimisticLockException("Document ${documentId.value} was modified by another transaction")
+        }
+        val deleted = documentNodeRepository.deleteById(node.id, expectedVersion)
+        if (!deleted) {
+            throw OptimisticLockException("Document ${documentId.value} was modified by another transaction")
+        }
         logger.debug("Deleted document ${documentId.value}")
     }
 
@@ -253,9 +266,18 @@ class DocumentService(
         tags: List<String>?,
         isPublished: Boolean?,
         isFavorited: Boolean?,
+        expectedVersion: Long?,
     ): DocumentMetadata? {
         val existing = documentMetadataRepository.findByDocumentId(documentId)
         val now = Instant.now()
+
+        if (existing != null) {
+            if (expectedVersion == null || existing.version != expectedVersion) {
+                throw OptimisticLockException("Document metadata for ${documentId.value} was modified by another transaction")
+            }
+        } else if (expectedVersion != null && expectedVersion != 0L) {
+            throw OptimisticLockException("Document metadata for ${documentId.value} no longer exists")
+        }
 
         val base = existing ?: DocumentMetadata(
             documentId = documentId,
@@ -265,6 +287,7 @@ class DocumentService(
             tags = tags ?: emptyList(),
             isPublished = isPublished ?: false,
             isFavorited = isFavorited ?: false,
+            version = 0,
         )
 
         var mutated = base

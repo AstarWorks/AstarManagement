@@ -20,7 +20,8 @@ data class DocumentMetadata(
     val lastViewedAt: Instant? = null,
     val lastIndexedAt: Instant? = null,
     val createdAt: Instant = Instant.now(),
-    val updatedAt: Instant = Instant.now()
+    val updatedAt: Instant = Instant.now(),
+    val version: Long = 0,
 ) {
 
     init {

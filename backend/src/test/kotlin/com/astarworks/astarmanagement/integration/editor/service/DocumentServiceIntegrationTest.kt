@@ -119,6 +119,8 @@ class DocumentServiceIntegrationTest : IntegrationTestBase() {
         val updated = documentService.updateDocument(
             documentId = created.node.id,
             authorId = authorId,
+            nodeVersion = created.node.version,
+            metadataVersion = created.metadata?.version,
             title = "Project Charter v2",
             content = "Version 2",
             summary = "Updated",
@@ -134,10 +136,12 @@ class DocumentServiceIntegrationTest : IntegrationTestBase() {
         assertEquals("Version 2", updated.latestRevision.contentPlaintext)
         assertEquals("Updated", updated.latestRevision.summary)
         assertEquals(2, updated.revisionCount)
+        assertEquals(created.node.version + 1, updated.node.version)
         assertEquals(updatedMetadata, updated.metadata?.metadata)
         assertEquals(listOf("project", "approved"), updated.metadata?.tags)
         assertTrue(updated.metadata?.isPublished == false)
         assertTrue(updated.metadata?.isFavorited == true)
+        assertEquals((created.metadata?.version ?: 0) + 1, updated.metadata?.version)
 
         val revisions = documentService.listRevisions(created.node.id)
         assertEquals(2, revisions.size)
@@ -155,7 +159,7 @@ class DocumentServiceIntegrationTest : IntegrationTestBase() {
             content = "Temporary",
         )
 
-        documentService.deleteDocument(created.node.id)
+        documentService.deleteDocument(created.node.id, created.node.version)
 
         assertNull(documentNodeRepository.findById(created.node.id))
         assertEquals(0L, documentRevisionRepository.countByDocumentId(created.node.id))

@@ -34,5 +34,5 @@ interface DocumentNodeRepository {
 
     fun existsById(id: DocumentNodeId): Boolean
 
-    fun deleteById(id: DocumentNodeId)
+    fun deleteById(id: DocumentNodeId, version: Long): Boolean
 }

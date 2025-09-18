@@ -2,6 +2,7 @@ package com.astarworks.astarmanagement.core.editor.api.dto.document
 
 import com.astarworks.astarmanagement.core.editor.api.dto.common.EditorNodeResponse
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.PositiveOrZero
 import jakarta.validation.constraints.Size
 import java.time.Instant
 import java.util.UUID
@@ -30,6 +31,10 @@ data class DocumentCreateRequest(
 
 @Serializable
 data class DocumentUpdateRequest(
+    @field:PositiveOrZero
+    val nodeVersion: Long,
+    @field:PositiveOrZero
+    val metadataVersion: Long? = null,
     @field:Size(min = 1, max = 255)
     val title: String? = null,
     val summary: String? = null,
@@ -80,6 +85,7 @@ data class DocumentMetadataResponse(
     val createdAt: Instant,
     @Contextual
     val updatedAt: Instant,
+    val version: Long,
 )
 
 @Serializable
