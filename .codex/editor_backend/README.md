@@ -247,6 +247,8 @@ These notes should evolve as we validate requirements with stakeholders and inte
 要求の検証や既存の認証/テナントモジュールとの統合状況に合わせて、今後内容を更新していきます。
 
 ## Progress Log (2025-09-17)
+- **M1-T7 進行中**: `EditorControllerIntegrationTest` を追加し、MockMvc でフォルダ/ドキュメント CRUD・パンくず・リビジョン一覧・404 応答を検証。テナント/ワークスペース/ロール権限をテスト内でシードし、エディタ機能トグル有効時のエンドツーエンド動作を確認。
+- **M1-T6 完了**: エディタ API レイヤーを構築し、フォルダ/ドキュメントコントローラ・DTO・マッパー・例外ハンドラを実装。`app.features.editor.enabled` トグル配下で `success/data/error/timestamp` エンベロープを返すよう統一し、権限チェックを `hasPermissionRule('directory.*'|'document.*')` で適用。
 - **M1-T5 完了**: `core/editor/domain/service/DocumentService.kt` を実装し、フォルダツリー/スラッグ生成との整合を取りつつプレーンテキストのドキュメント CRUD・リビジョン管理を提供。`DocumentAggregate` でノード・最新リビジョン・メタデータをセットで返却できるようにした。
 - **統合テスト**: `integration/editor/service/DocumentServiceIntegrationTest` を追加し、Testcontainers 上で CRUD、リビジョン順序、メタデータ更新、削除の挙動を検証。
 - **サポート更新**: `PropertyType` のシリアライゼーションを `multi_select`／`multiselect` 両対応に拡張し、`@OptIn(ExperimentalSerializationApi::class)` でビルド警告を解消。関連ユニットテストも更新。

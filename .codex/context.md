@@ -10,6 +10,8 @@ _Last updated: 2025-09-17 (session by Codex agent)._ Keep expanding this file wh
   - Role/permission model with dynamic roles, resource groups, and fine-grained permission rules that map onto Spring Security authorities.
 
 ## Recent Updates (2025-09-17)
+- M1-T7 完了: `EditorControllerIntegrationTest` を整備し、MockMvc でフォルダ/ドキュメント CRUD・パンくず・リビジョン・削除後 404 まで検証。テスト専用の `EditorSecurityTestConfig` で JWT 変換/Authorization をスタブ化しつつ、`TenantContextService` を各リクエスト前に明示セットして RLS コンテキストを再現。`./gradlew test`（ローカル実行）でグリーン確認済み。
+- M1-T6 完了: エディタのフォルダ/ドキュメント REST コントローラ、DTO、例外ハンドラを実装。機能トグル配下で `success/data/error/timestamp` エンベロープを返すよう統一。
 - M1-T5 完了: `DocumentService` を実装し、プレーンテキスト CRUD + リビジョン管理に対応。`DocumentAggregate` でノード/最新リビジョン/メタデータをまとめて返却。
 - `DocumentServiceIntegrationTest` を追加し、Testcontainers 上での CRUD・メタデータ・削除検証を実施。
 - `PropertyType` enum を `multi_select` / `multiselect` 双方向に対応させ、`JsonNames` 利用に伴う警告を `@OptIn(ExperimentalSerializationApi::class)` で解消。関連シリアライゼーションテストを更新。

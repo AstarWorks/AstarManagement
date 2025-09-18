@@ -173,6 +173,40 @@ class FolderService(
         return documentNodeRepository.findChildren(tenantId, workspaceId, parentId, includeArchived)
     }
 
+    @Transactional(readOnly = true)
+    fun getFolder(folderId: DocumentNodeId): DocumentNode {
+        val tenantId = currentTenantId()
+        return requireFolder(folderId, tenantId, null)
+    }
+
+    @Transactional(readOnly = true)
+    fun getBreadcrumb(nodeId: DocumentNodeId): List<DocumentNode> {
+        val tenantId = currentTenantId()
+        val node = documentNodeRepository.findById(nodeId)
+            ?: throw DocumentNodeNotFoundException.of(nodeId)
+
+        if (node.tenantId != tenantId) {
+            throw DocumentNodeNotFoundException.of(nodeId)
+        }
+
+        val pathSegments = node.materializedPath.trim('/').split('/')
+            .filter { it.isNotBlank() }
+        if (pathSegments.isEmpty()) {
+            return emptyList()
+        }
+
+        val breadcrumbNodes = mutableListOf<DocumentNode>()
+        var currentPath = ""
+        pathSegments.forEach { segment ->
+            currentPath += "/$segment"
+            val crumb = documentNodeRepository.findByTenantAndPath(tenantId, node.workspaceId, currentPath)
+                ?: throw DocumentNodeNotFoundException.of(node.id)
+            breadcrumbNodes.add(crumb)
+        }
+
+        return breadcrumbNodes
+    }
+
     private fun currentTenantId(): TenantId {
         val tenantUuid = tenantContextService.requireTenantContext()
         return TenantId(tenantUuid)
